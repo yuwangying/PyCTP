@@ -567,6 +567,12 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRtnOrder(self, Order):
         """报单回报"""
         print('OnRtnOrder:', Order)
+        if isinstance(Order['OrderRef'], bytes):
+            print('=======================OrderRef is bytes')
+        if isinstance(Order['LimitPrice'], int):
+            print('=======================LimitPrice is int')
+        if isinstance(Order['LimitPrice'], float):
+            print('=======================LimitPrice is float')
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
             if self.__rsp_OrderInsert['InputOrder']['OrderRef'] == Order['OrderRef']:
                 self.__rsp_OrderInsert['event'].set()

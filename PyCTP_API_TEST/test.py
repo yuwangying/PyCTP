@@ -50,8 +50,8 @@ def __main__():
     # 标准CTP交易、行情前置：180.168.146.187:10000、180.168.146.187:10010
     # CTPMini1：第一组：TradeFront：180.168.146.187:10003，MarketFront：180.168.146.187:10013；【电信】
     # 国贸期货CTP电信：交易：101.95.8.190:41205，行情：101.95.8.190:41213
-    print('连接交易前置', trader.Connect(b'tcp://180.168.146.187:10030'))
-    print('连接行情前置', market.Connect(b'tcp://180.168.146.187:10031'))
+    print('连接交易前置', trader.Connect(b'tcp://180.168.146.187:10000'))
+    print('连接行情前置', market.Connect(b'tcp://180.168.146.187:10010'))
     print('交易账号登陆', trader.Login(BrokerID, UserID, Password))
     print('交易账号登陆', market.Login(BrokerID, UserID, Password))
     print('交易日', trader.GetTradingDay())
