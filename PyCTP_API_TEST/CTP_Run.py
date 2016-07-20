@@ -19,6 +19,7 @@ import Utils
 
 
 def __main__():
+    # github test 2016年7月20日16:46:57
     # Simnow BrokerID='9999'，国贸期货CTP BrokerID='0187'
     # Simnow测试账号058176、669822，姓名：原鹏飞
     # Simnow测试账号063802、123456，姓名：余汪应
