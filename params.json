@@ -1,0 +1,6 @@
+{
+  "name": "Python CTP Development",
+  "tagline": "CTP with python3.4.3",
+  "body": "PyCTP\r\n=========  \r\n上期信息技术CTP开发(Python实现)  \r\n\r\n开发环境\r\n--------\r\n\r\n    windows10 64, lang:Python3.4.3  \r\n开发顺序\r\n--------  \r\n\r\n    PyCTP_API -> PyCTP_QT -> PyCPT_SOCKT\r\n\r\n## 各个目录说明  \r\n* PyCTP_API  \r\n  * 针对CTP的API库进行的API测试，分为Market(市场行情),Trader(交易)   \r\n* PyCTP_Integration\r\n  * 将CTP的Market、Trader集成到一起的版本,并实现多账户管理\r\n* PyCTP_QT\r\n  * 在PyCTP_Integration基础上实现界面操作\r\n* PyCTP_SOCKET  \r\n  * 实现PyCTP与Server之间的socket通信版本  \r\n\r\n### 更新时间:2016.07.21  \r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}

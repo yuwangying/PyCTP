@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Python CTP Development by yuwangying</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Python CTP Development</h1>
+        <p>CTP with python3.4.3</p>
+
+        <p class="view"><a href="https://github.com/yuwangying/PyCTP">View the Project on GitHub <small>yuwangying/PyCTP</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/yuwangying/PyCTP/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/yuwangying/PyCTP/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/yuwangying/PyCTP">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="pyctp" class="anchor" href="#pyctp" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PyCTP</h1>
+
+<p>上期信息技术CTP开发(Python实现)  </p>
+
+<h2>
+<a id="开发环境" class="anchor" href="#%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>开发环境</h2>
+
+<pre><code>windows10 64, lang:Python3.4.3  
+</code></pre>
+
+<h2>
+<a id="开发顺序" class="anchor" href="#%E5%BC%80%E5%8F%91%E9%A1%BA%E5%BA%8F" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>开发顺序</h2>
+
+<pre><code>PyCTP_API -&gt; PyCTP_QT -&gt; PyCPT_SOCKT
+</code></pre>
+
+<h2>
+<a id="各个目录说明" class="anchor" href="#%E5%90%84%E4%B8%AA%E7%9B%AE%E5%BD%95%E8%AF%B4%E6%98%8E" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>各个目录说明</h2>
+
+<ul>
+<li>PyCTP_API<br>
+
+<ul>
+<li>针对CTP的API库进行的API测试，分为Market(市场行情),Trader(交易)<br>
+</li>
+</ul>
+</li>
+<li>PyCTP_Integration
+
+<ul>
+<li>将CTP的Market、Trader集成到一起的版本,并实现多账户管理</li>
+</ul>
+</li>
+<li>PyCTP_QT
+
+<ul>
+<li>在PyCTP_Integration基础上实现界面操作</li>
+</ul>
+</li>
+<li>PyCTP_SOCKET<br>
+
+<ul>
+<li>实现PyCTP与Server之间的socket通信版本<br>
+</li>
+</ul>
+</li>
+</ul>
+
+<h3>
+<a id="更新时间20160721" class="anchor" href="#%E6%9B%B4%E6%96%B0%E6%97%B6%E9%97%B420160721" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>更新时间:2016.07.21</h3>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/yuwangying">yuwangying</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
