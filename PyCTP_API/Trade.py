@@ -571,7 +571,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRtnOrder(self, Order):
         """报单回报"""
         # print('OnRtnOrder:', Order)
-        print('OnRtnOrder:', Utils.code_transform(Order))
+        print('OnRtnOrder:\n', Utils.code_transform(Order))
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
             if self.__rsp_OrderInsert['InputOrder']['OrderRef'] == Order['OrderRef']:
@@ -581,7 +581,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRtnTrade(self, Trade):
         """成交回报"""
         # print('OnRtnTrade:', Trade)
-        print('OnRtnTrade:', Utils.code_transform(Trade))
+        print('OnRtnTrade:\n', Utils.code_transform(Trade))
         pass
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):

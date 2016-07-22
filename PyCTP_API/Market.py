@@ -63,10 +63,10 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def Logout(self):
         """ 登出请求 """
-        reqUserLogout = dict(BrokerID   = self.__BrokerID
-                            , UserID    = self.__UserID)
-        self.__rsp_Logout = dict(event      = threading.Event()
-                                , RequestID = self.__IncRequestID())
+        reqUserLogout = dict(BrokerID=self.__BrokerID,
+                             UserID=self.__UserID)
+        self.__rsp_Logout = dict(event=threading.Event(),
+                                 RequestID=self.__IncRequestID())
         ret = self.ReqUserLogout(reqUserLogout, self.__rsp_Logout['RequestID'])
         if ret == 0:
             self.__rsp_Logout['event'].clear()
