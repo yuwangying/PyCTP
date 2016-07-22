@@ -31,6 +31,24 @@ def code_transform(data):
         return data
 
 
+# 打印主菜单
+def print_menu():
+    print('===========================')
+    print('|请输入您的操作编号:')
+    print('|【e】查询交易所信息')
+    print('|【s】查询合约信息')
+    print('|【u】查询账户信息')
+    print('|【t】查询账户资金')
+    print('|【h】查询账户持仓')
+    print('|【o】查询委托记录')
+    print('|【d】查询交易记录')
+    print('|【i】报单')
+    print('|【a】撤单')
+    print('|【l】保存文件本地')
+    print('|【b】退出')
+    print('===========================')
+
+
 # 核对输入参数
 # def check_arguments(input_params):
 #     if input_params[0] != '{' or input_params[-1] != '}':
