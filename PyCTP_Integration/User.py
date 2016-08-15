@@ -12,33 +12,28 @@ import Utils
 
 class User:
     # 初始化参数BrokerID\UserID\Password\FrontAddress，参数格式为二进制字符串
-    def __init__(self, operator_id, BrokerID, FrontAddress, user_id, password):
+    def __init__(self, operator_id, BrokerID, FrontAddress, user_id, password, trader):
         print('创建User: operator_id=', operator_id, 'BrokerID=', BrokerID, 'user_id=', user_id)
-        self.operator_id = operator_id
-        self.BrokerID = BrokerID
-        self.UserID = user_id
-        self.Password = password
-        self.FrontAddress = FrontAddress
-        self.list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调
-        self.list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调
-        self.list_order_ing = []  # 以OrderRef为单个交易单元，还未执行完成的订单列表，临时存放较少的数据
-        self.list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
+        self.__operator_id = operator_id
+        self.__BrokerID = BrokerID
+        self.__UserID = user_id
+        self.__Password = password
+        self.__FrontAddress = FrontAddress
+        self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调
+        self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调
+        self.__list_order_ing = []  # 以OrderRef为单个交易单元，还未执行完成的订单列表，临时存放较少的数据
+        self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
+        self.__trader = trader  # 期货账户所属的交易员对象
         # 为每个user创建独立的流文件夹
-        self.trader = PyCTP_Trader_API.CreateFtdcTraderApi(b'tmp/'+self.UserID)
-        print('del_user(): operator_id=', operator_id, 'BrokerID=', BrokerID, 'user_id=', user_id)
+        s_path = b'conn/td/' + self.__UserID + b'/'
+        Utils.make_dirs(s_path)  # 创建流文件路劲
+        self.__trader = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
+        self.__trader.set_user(self)
         print('===========================')
-        print(self.UserID, '连接交易前置', Utils.code_transform(self.trader.Connect(self.FrontAddress)))
-        print(self.UserID, '交易账号登陆', Utils.code_transform(self.trader.Login(self.BrokerID, self.UserID, self.Password)))
-        print(self.UserID, '交易日', Utils.code_transform(self.trader.GetTradingDay()))
-        print(self.UserID, '设置投资者代码', Utils.code_transform(self.trader.setInvestorID(self.UserID)))
-        # Simnow BrokerID='9999'，国贸期货CTP BrokerID='0187'
-        # Simnow测试账号058176、669822，姓名：原鹏飞
-        # Simnow测试账号063802、123456，姓名：余汪应
-        # 国贸期货CTP电信账号，钱海玲，86001878/242169
-        # 24小时交易、行情前置：180.168.146.187:10030、180.168.146.187:10031
-        # 标准CTP交易、行情前置：180.168.146.187:10000、180.168.146.187:10010
-        # CTPMini1：第一组：TradeFront：180.168.146.187:10003，MarketFront：180.168.146.187:10013；【电信】
-        # 国贸期货CTP电信：交易：101.95.8.190:41205，行情：101.95.8.190:41213
+        print(self.__UserID, '连接交易前置', Utils.code_transform(self.__trader.Connect(self.__FrontAddress)))
+        print(self.__UserID, '交易账号登陆', Utils.code_transform(self.__trader.Login(self.__BrokerID, self.__UserID, self.__Password)))
+        print(self.__UserID, '交易日', Utils.code_transform(self.__trader.GetTradingDay()))
+        print(self.__UserID, '设置投资者代码', Utils.code_transform(self.__trader.setInvestorID(self.__UserID)))
 
     # 删除operator_id下面的某个期货账户
     # 参数说明： user=实例名称
@@ -51,6 +46,39 @@ class User:
         # 删除期货账户，释放TradeApi实例
         self.UnConnect()
         # 操作MongoDB，删除Operator下面的user_id（期货账户）
+
+    # 查询行情
+    def qry_depth_market_data(self, instrument_id):
+        return self.__trader.QryDepthMarketData(instrument_id)
+
+    # 对PyCTP_Market_API类中回调函数OnRtnOrder的间接回调
+    def on_rtn_trade(self, trade):
+        self.__trade = Utils.code_transform(trade)  # 回调函数字段
+        self.__trade['OperatorID'] = None  # 客户端账号（也能区分用户身份或交易员身份）
+        self.__trade['StrategyID'] = None  # 交易策略编号
+        self.__trade['RecTradeTime'] = None  # 收到成交回报的时间
+        self.__trade['RecTradeMicrosecond'] = None  # 收到成交回报的时间
+        print("on_rtn_trade()", self.__trade)
+
+    # 对PyCTP_Market_API类中回调函数OnRtnTrade的间接回调
+    def on_rtn_order(self, order):
+        print("on_rtn_order()", order)
+        self.__order = Utils.code_transform(order)  # 回调函数字段
+        self.__order['SendOrderTime'] = None  # 用户添加字段：发送报单时间
+        self.__order['SendOrderMicrosecond'] = None  # 用户添加字段：发送报单微妙
+        self.__order['CtpRtnOrderTime'] = None
+        self.__order['CtpRtnOrderMicrosecond'] = None
+        self.__order['ExchRtnOrderTime'] = None
+        self.__order['ExchRtnOrderMicrosecond'] = None
+        self.__order['OperatorID'] = None  # 客户端账号（也能区分用户身份或交易员身份）
+        self.__order['StrategyID'] = None  # 交易策略编号
+        print("on_rtn_order()", self.__order)
+
+if __name__ == '__main__':
+    print("User.py, if __name__ == '__main__':")
+    pass
+        
+
 
 
 

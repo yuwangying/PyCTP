@@ -46,8 +46,8 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESUME)
-        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESUME)
+        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESTART)
+        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESTART)
         self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())
@@ -150,7 +150,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             else:
                 return -4
         return ret
-
 
     def QryOrder(self, InstrumentID=b'', OrderSysID=b'', InsertTimeStart=b'', InsertTimeEnd=b''):
         """请求查询报单"""
@@ -437,10 +436,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRspQryInstrument(self, Instrument, RspInfo, RequestID, IsLast):
         """ 请求查询合约响应 """
         # print('OnRspQryInstrument:', Instrument, IsLast)
-        series_Instrument = Series(Instrument)
-        PyCTP_Trader.dfInstrument = pd.DataFrame.append(PyCTP_Trader.dfInstrument,
-                                                        other=series_Instrument,
-                                                        ignore_index=True)
         if RequestID == self.__rsp_QryInstrument['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryInstrument.update(RspInfo)
@@ -554,7 +549,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRspOrderInsert(self, InputOrder, RspInfo, RequestID, IsLast):
         """ 报单录入请求响应 """
         # 报单错误时响应
-        print('OnRspOrderInsert:', InputOrder, RspInfo, RequestID, IsLast)
+        print('OnRspOrderInsert()', InputOrder, RspInfo, RequestID, IsLast)
         if self.__rsp_OrderInsert['RequestID'] == RequestID \
                 and self.__rsp_OrderInsert['InputOrder']['OrderRef'] == InputOrder['OrderRef']:
             if RspInfo is not None and RspInfo['ErrorID'] != 0:
@@ -563,7 +558,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRspOrderAction(self, InputOrderAction, RspInfo, RequestID, IsLast):
         """报单操作请求响应:撤单操作响应"""
-        print('OnRspOrderAction:', InputOrderAction)
+        print('OnRspOrderAction()', InputOrderAction)
         # if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
         # if self.__rsp_OrderAction['InputOrder']['OrderRef'] == InputOrderAction['OrderRef']:
         #     self.__rsp_OrderInsert['event'].set()
@@ -571,23 +566,25 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRtnOrder(self, Order):
         """报单回报"""
-        # print('OnRtnOrder:', Order)
-        print('OnRtnOrder:\n', Utils.code_transform(Order))
+        from User import User
+        print('OnRtnOrder()', Utils.code_transform(Order))
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
             if self.__rsp_OrderInsert['InputOrder']['OrderRef'] == Order['OrderRef']:
                 self.__rsp_OrderInsert['event'].set()
+        self.user.on_rtn_order(Order)
         pass
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
-        # print('OnRtnTrade:', Trade)
+        # print('OnRtnTrade()', Trade)
         print('OnRtnTrade:\n', Utils.code_transform(Trade))
+        self.user.on_rtn_trade(Trade)  # user
         pass
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
-        print('OnErrRtnOrderAction:', Utils.code_transform(OrderAction), Utils.code_transform(RspInfo))
+        print('OnErrRtnOrderAction()', Utils.code_transform(OrderAction), Utils.code_transform(RspInfo))
         #if not self.__rsp_OrderInsert['event'].is_set() and OrderAction['OrderActionStatus'] == PyCTP.THOST_FTDC_OST_Canceled:
         #    self.__rsp_OrderInsert['ErrorID'] = 79
         #    self.__rsp_OrderInsert['ErrorMsg'] = bytes('CTP:发送报单操作失败', 'gb2312')
@@ -595,11 +592,11 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""
-        print('OnErrRtnOrderInsert:', Utils.code_transform(InputOrder), Utils.code_transform(RspInfo))
+        print('OnErrRtnOrderInsert()', Utils.code_transform(InputOrder), Utils.code_transform(RspInfo))
 
     def OnRtnTradingNotice(self, TradingNoticeInfo):
         """ 交易通知 """
-        print('OnRtnTradingNotice:', TradingNoticeInfo)
+        print('OnRtnTradingNotice()', TradingNoticeInfo)
         pass
 
     dfInstrumentStatus = DataFrame()  # 保存InstrumentStatus的全局变量
@@ -607,7 +604,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRtnExecOrder(self, ExecOrder):
         """执行宣告通知"""
-        print('OnRtnExecOrder:', ExecOrder)
+        print('OnRtnExecOrder()', ExecOrder)
 
     def OnRtnInstrumentStatus(self, InstrumentStatus):
         # """合约交易状态通知"""
@@ -616,4 +613,8 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         PyCTP_Trader_API.dfInstrumentStatus = pd.DataFrame.append(PyCTP_Trader_API.dfInstrumentStatus,
                                                               other=series_InstrumentStatus,
                                                               ignore_index=True)
+
+    # 设置user为成员变量
+    def set_user(self, user):
+        self.user = user
 

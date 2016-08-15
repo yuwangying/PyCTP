@@ -23,7 +23,13 @@ class MarketManager:
     # 初始化时创建一个行情API连接，多账户交易系统只需要一个行情API
     def __init__(self, front_address=b'tcp://180.168.146.187:10010', broker_id=b'9999', user_id=b'', password=b''):
         # 多账户系统中，只需要创建一个行情API
-        self.market = PyCTP_Market_API.CreateFtdcMdApi(b'tmp/market')
+        s_tmp = front_address[6:]
+        n_position = s_tmp.index(b':')
+        s_part1 = s_tmp[:n_position]
+        s_part2 = s_tmp[n_position+1:]
+        s_path = b'conn/md/' + s_part1 + b'_' + s_part2 + b'/'
+        Utils.make_dirs(s_path)  # 创建流文件路劲
+        self.market = PyCTP_Market_API.CreateFtdcMdApi(s_path)
         self.__broker_id = broker_id
         self.__front_address = front_address
         self.__user_id = user_id
@@ -52,11 +58,11 @@ class MarketManager:
             # 没有订阅，则添加该订阅信息到已经订阅的合约列表
             if not bool_subscribed:
                 self.list_instrument_subscribed_detail.append({instrument_id: [user_id+strategy_id]})
-                # MarketManager.list_instrument_subscribed.extend(instrument_id)
 
         if len(list_instrument_id_to_sub) > 0:
             time.sleep(1.0)
-            print('sub_market():订阅行情\n', Utils.code_transform(self.market.SubMarketData(list_instrument_id_to_sub)))
+            print('sub_market():订阅行情', Utils.code_transform(self.market.SubMarketData(list_instrument_id_to_sub)))
+            MarketManager.list_instrument_subscribed.extend(list_instrument_id_to_sub)
 
     # 退订行情，策略退订某一合约行情的时候需考虑是否有其他账户策略正在订阅此合约的行情
     def un_sub_market(self, list_instrument_id, user_id, strategy_id):
@@ -77,13 +83,14 @@ class MarketManager:
                     break
         if len(list_instrument_id_to_un_sub) > 0:
             time.sleep(1.0)
-            print('un_sub_market():退订行情\n', Utils.code_transform(self.market.UnSubMarketData(list_instrument_id_to_un_sub)))
+            print('un_sub_market():退订行情', Utils.code_transform(self.market.UnSubMarketData(list_instrument_id_to_un_sub)))
             # MarketManager.list_instrument_subscribed.remove(list_instrument_id_to_un_sub)
+            MarketManager.list_instrument_subscribed = list(set(MarketManager.list_instrument_subscribed) - set(list_instrument_id_to_un_sub))
 
     # 登出行情账号，包含登出、断开连接、释放实例
     def un_connect(self):
         time.sleep(1.0)
-        print('un_connect():断开行情连接\n', self.market.UnConnect())  # 包含断开连接和释放实例
+        print('un_connect():断开行情连接', self.market.UnConnect())  # 包含断开连接和释放实例
 
 
 
