@@ -34,7 +34,7 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
-        print('Connect():连接行情前置服务器')
+        print('PyCTP_Market_API.Connect():连接行情前置服务器')
         self.__FrontAddress = frontAddr
         self.RegisterSpi(self)
         self.RegisterFront(frontAddr)
@@ -53,7 +53,6 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
     def Login(self, BrokerID, UserID=b'', Password=b''):
         """ 用户登录请求 """
         # 行情登录过程中的UserID和Password可以为空
-        print('Login():登录行情')
         reqUserLogin = dict(BrokerID=BrokerID,
                             UserID=UserID,
                             Password=Password)
@@ -273,4 +272,13 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
         PyCTP_Market_API.df_tick_data = PyCTP_Market_API.df_tick_data.append(other=Series(tick),
                                                                              ignore_index=True,
                                                                              verify_integrity=False)
+        # 遍历策略列表，并将tick转发给策略类对应处理方法
+        for i in self.__list_strategy:
+            i.get_tick(tick)
+
+    def set_strategy(self, list_strategy):
+        self.__list_strategy = list_strategy
+
+    # def get_strategy(self):
+    #     return self.__list_strategy
 

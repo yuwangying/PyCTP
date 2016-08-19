@@ -46,8 +46,8 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESTART)
-        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESTART)
+        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESUME)
+        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESUME)
         self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())
@@ -567,7 +567,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRtnOrder(self, Order):
         """报单回报"""
         from User import User
-        print('OnRtnOrder()', Utils.code_transform(Order))
+        print('PyCTP_Trade.OnRtnOrder()', Utils.code_transform(Order))
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
             if self.__rsp_OrderInsert['InputOrder']['OrderRef'] == Order['OrderRef']:
@@ -577,8 +577,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
-        # print('OnRtnTrade()', Trade)
-        print('OnRtnTrade:\n', Utils.code_transform(Trade))
+        print('PyCTP_Trade.OnRtnTrade()', Utils.code_transform(Trade))
         self.user.on_rtn_trade(Trade)  # user
         pass
 

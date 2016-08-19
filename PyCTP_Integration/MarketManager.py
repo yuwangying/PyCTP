@@ -21,24 +21,29 @@ class MarketManager:
     list_instrument_subscribed = []
 
     # 初始化时创建一个行情API连接，多账户交易系统只需要一个行情API
-    def __init__(self, front_address=b'tcp://180.168.146.187:10010', broker_id=b'9999', user_id=b'', password=b''):
+    def __init__(self, front_address, broker_id, user_id='', password=''):
         # 多账户系统中，只需要创建一个行情API
-        s_tmp = front_address[6:]
+        s_tmp = (front_address[6:]).encode()
         n_position = s_tmp.index(b':')
-        s_part1 = s_tmp[:n_position]
-        s_part2 = s_tmp[n_position+1:]
+        s_part1 = (s_tmp[:n_position])
+        s_part2 = (s_tmp[n_position+1:])
         s_path = b'conn/md/' + s_part1 + b'_' + s_part2 + b'/'
         Utils.make_dirs(s_path)  # 创建流文件路劲
-        self.market = PyCTP_Market_API.CreateFtdcMdApi(s_path)
-        self.__broker_id = broker_id
-        self.__front_address = front_address
-        self.__user_id = user_id
-        self.__password = password
-        print('连接行情前置', Utils.code_transform(self.market.Connect(self.__front_address)))
-        print('登陆行情账号', Utils.code_transform(self.market.Login(self.__broker_id, self.__user_id, self.__password)))
+        self.__market = PyCTP_Market_API.CreateFtdcMdApi(s_path)
+        # self.__market.set_strategy(strategy)
+        self.__broker_id = broker_id.encode()
+        self.__front_address = front_address.encode()
+        self.__user_id = user_id.encode()
+        self.__password = password.encode()
+        print('连接行情前置', Utils.code_transform(self.__market.Connect(self.__front_address)))
+        print('登陆行情账号', Utils.code_transform(self.__market.Login(self.__broker_id, self.__user_id, self.__password)))
         # 已经订阅行情的合约列表，为每一个合约创建一个字典，键名为instrument_id，键值为list，list元素为user_id+strategy_id
         # [{'cu1608': ['80065801', '80067501']}, {'cu1609': ['80065801', '80067501']}]
         self.list_instrument_subscribed_detail = []
+
+    # 获取__market
+    def get_market(self):
+        return self.__market
 
     # 订阅行情，过滤已经订阅过的行情
     def sub_market(self, list_instrument_id, user_id, strategy_id):
@@ -61,8 +66,9 @@ class MarketManager:
 
         if len(list_instrument_id_to_sub) > 0:
             time.sleep(1.0)
-            print('sub_market():订阅行情', Utils.code_transform(self.market.SubMarketData(list_instrument_id_to_sub)))
+            print('MarketManager.sub_market()请求订阅行情', Utils.code_transform(self.__market.SubMarketData(list_instrument_id_to_sub)))
             MarketManager.list_instrument_subscribed.extend(list_instrument_id_to_sub)
+        print('MarketManager.sub_market()订阅行情详情', self.list_instrument_subscribed_detail)
 
     # 退订行情，策略退订某一合约行情的时候需考虑是否有其他账户策略正在订阅此合约的行情
     def un_sub_market(self, list_instrument_id, user_id, strategy_id):
@@ -74,6 +80,11 @@ class MarketManager:
             for instrument_id_subscribed in self.list_instrument_subscribed_detail:  # instrument_id_subscribed是{b'cu1609': '80065801'}
                 # 找到已经订阅的合约，将对应的订阅者（user_id+strategy_id）删除
                 if instrument_id in instrument_id_subscribed:
+                    if (user_id + strategy_id) in instrument_id_subscribed[instrument_id]:
+                        pass
+                    else:
+                        print("MarketManager.un_sub_market()订阅者身份错误", (user_id + strategy_id))
+                        return False
                     # 将合约的订阅者身份(user_id+strategy_id)从已经订阅的合约键值里删除
                     instrument_id_subscribed[instrument_id].remove(user_id + strategy_id)
                     # 如果订阅者为空，从已订阅列表中删除该键
@@ -83,14 +94,15 @@ class MarketManager:
                     break
         if len(list_instrument_id_to_un_sub) > 0:
             time.sleep(1.0)
-            print('un_sub_market():退订行情', Utils.code_transform(self.market.UnSubMarketData(list_instrument_id_to_un_sub)))
+            print('un_sub_market():请求退订行情', Utils.code_transform(self.__market.UnSubMarketData(list_instrument_id_to_un_sub)))
             # MarketManager.list_instrument_subscribed.remove(list_instrument_id_to_un_sub)
             MarketManager.list_instrument_subscribed = list(set(MarketManager.list_instrument_subscribed) - set(list_instrument_id_to_un_sub))
+        print('MarketManager.sub_market()订阅行情详情', self.list_instrument_subscribed_detail)
 
     # 登出行情账号，包含登出、断开连接、释放实例
     def un_connect(self):
         time.sleep(1.0)
-        print('un_connect():断开行情连接', self.market.UnConnect())  # 包含断开连接和释放实例
+        print('un_connect():断开行情连接', self.__market.UnConnect())  # 包含断开连接和释放实例
 
 
 

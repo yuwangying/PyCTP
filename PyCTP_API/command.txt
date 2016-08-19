@@ -5,12 +5,12 @@ Simnow期货账号058176、669822，姓名：原鹏飞
 Simnow测试账号063802、123456，姓名：余汪应
 
 买开
-{'InstrumentID':b'cu1609', 'Action':b'0', 'Direction':b'0', 'Volume':2, 'Price':39000.00, 'OrderRef': b'101'}
+{'InstrumentID':b'cu1611', 'Action':b'0', 'Direction':b'0', 'Volume':2, 'Price':37000.00, 'OrderRef': b'101'}
 {'InstrumentID':b'ni1701', 'Action':b'0', 'Direction':b'0', 'Volume':20, 'Price':83690.00, 'OrderRef': b'1'}
 卖平今
 {'InstrumentID':b'cu1609', 'Action':b'3', 'Direction':b'1', 'Volume':1, 'Price':37000.00, 'OrderRef': b'101'}
 撤单
-{'ExchangeID': b'SHFE', 'OrderRef': b'101', b'OrderSysID':b'          46'}
+{'ExchangeID': b'SHFE', 'OrderRef': b'101', 'OrderSysID':b'          46'}
 
 
 
