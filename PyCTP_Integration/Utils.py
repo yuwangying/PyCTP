@@ -37,7 +37,7 @@ def code_transform(data):
 
 # 打印主菜单
 def print_menu():
-    time.sleep(1.0)
+    time.sleep(0.5)
     print('===========================')
     print('|请输入您的操作编号:')
     print('|【qe】查询交易所信息')
@@ -58,6 +58,7 @@ def print_menu():
 
 # 打印交易员登录、交易员登录
 def print_select_admin_trader():
+    time.sleep(0.5)
     print('===========================')
     print('|请输入您的操作编号')
     print('|【1】管理员登录')
@@ -67,6 +68,7 @@ def print_select_admin_trader():
 
 
 def print_select_trader_user_manager():
+    time.sleep(0.5)
     print('===========================')
     print('|请输入您的操作编号')
     print('|【1】交易员管理')
@@ -77,6 +79,7 @@ def print_select_trader_user_manager():
 
 # 打印管理员管理菜单，管理员权限
 def print_trader_manager():
+    time.sleep(0.5)
     print('===========================')
     print('|请输入您的操作编号')
     print('|【1】查看交易员')
@@ -89,6 +92,7 @@ def print_trader_manager():
 
 # 打印交易员管理菜单，管理员权限
 def print_user_manager():
+    time.sleep(0.5)
     print('===========================')
     print('|请输入您的操作编号')
     print('|【1】查看期货账户')
@@ -101,6 +105,7 @@ def print_user_manager():
 
 # 打印交易员一般操作菜单，非管理员权限
 def print_trader_menu():
+    time.sleep(0.5)
     print('===========================')
     print('|请输入您的操作编号')
     print('|【1】查看所有期货账户')
@@ -276,20 +281,16 @@ def gui(ctp_manager):
                     obj_user = trader_include_user(ctp_manager, input_trader_id, input_user_id)
                     if obj_user is not None:
                         input_example = {'InstrumentID': b'cu1609',
-                                         'Action': b'0',
+                                         'CombOffsetFlag': b'0',
                                          'Direction': b'0',
-                                         'Volume': 2,
-                                         'Price': 39000.00,
-                                         'OrderRef': b'101'}
+                                         'VolumeTotalOriginal': 2,
+                                         'LimitPrice': 39000.00,
+                                         'OrderRef': b'101',
+                                         'CombHedgeFlag': b'1'}
                         print("请输入报单参数，例：", input_example)
                         try:
                             input_order_insert = eval(input())  # 控制台输入的格式str转换为dict
-                            obj_user.get_trade().OrderInsert(input_order_insert['InstrumentID'],
-                                                             input_order_insert['Action'],
-                                                             input_order_insert['Direction'],
-                                                             input_order_insert['Volume'],
-                                                             input_order_insert['Price'],
-                                                             input_order_insert['OrderRef'])
+                            obj_user.get_trade().OrderInsert(input_order_insert)
                         except SyntaxError as e:
                             print("输入错误，请重新输入，错误信息：", e)
                 elif v == '7':  # 撤单
@@ -303,9 +304,7 @@ def gui(ctp_manager):
                         print("请输入撤单参数，例：", input_example)
                         try:
                             input_order_insert = eval(input())  # 控制台输入的格式str转换为dict
-                            obj_user.get_trade().OrderAction(input_order_insert['ExchangeID'],
-                                                             input_order_insert['OrderRef'],
-                                                             input_order_insert['OrderSysID'])
+                            obj_user.get_trade().OrderAction(input_order_insert)
                         except SyntaxError as e:
                             print("输入错误，请重新输入，错误信息：", e)
                 elif v == '8':  # 订阅行情
@@ -375,7 +374,7 @@ def gui(ctp_manager):
                         print("输入错误，请重新输入，错误信息：", e)
                         continue
                 elif v == '12':  # 删除交易策略
-                    input_example = {'user_id': '800658', 'strategy_id': '01'}
+                    input_example = {'trader_id': '1601', 'user_id': '063802', 'strategy_id': '01'}
                     print("请输入删除策略的参数，例：", input_example)
                     input_arguments = input()
                     try:
@@ -383,6 +382,11 @@ def gui(ctp_manager):
                     except SyntaxError as e:
                         print("输入错误，请重新输入，错误信息：", e)
                         continue
+                    # 调用管理类实例中删除strategy的方法
+                    ctp_manager.delete_strategy(input_arguments)
+                    # 从数据库删除该策略记录
+                    ctp_manager.get_mdb().delete_strategy(input_arguments['user_id'], input_arguments['strategy_id'])
+
                 elif v == '13':  # 查询交易策略
                     input_example1 = {}  # 查询交易员名下所有的策略
                     input_example2 = {'user_id': '800658'}  # 查询交易员名下的指定期货账户的所有策略
@@ -400,8 +404,9 @@ def gui(ctp_manager):
                     input_arguments['trader_id'] = input_trader_id
                     output_v = ctp_manager.get_mdb().get_strategy(input_arguments)
                     if not output_v:
-                        continue
+                        print("不存在交易策略")
                     else:
+                        print("策略数量=", len(output_v))
                         print(output_v)
                 elif v == 'q':  # 退出
                     break

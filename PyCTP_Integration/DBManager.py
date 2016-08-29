@@ -195,6 +195,7 @@ class DBManger:
     '''strategy管理'''
     # 创建策略
     def create_strategy(self, dict_arguments):
+        print("===========================")
         trader_id = dict_arguments['trader_id']
         user_id = dict_arguments['user_id']
         strategy_id = dict_arguments['strategy_id']
@@ -258,14 +259,14 @@ class DBManger:
         elif len(dict_arguments) == 1 and 'trader_id' in dict_arguments:
             if self.__col_trader.count({'trader_id': dict_arguments['trader_id']}) == 0:
                 print("DBManager.get_strategy()数据库中不存在交易员", dict_arguments['trader_id'])
-                return False
+                return None
             for i in self.__col_strategy.find({'trader_id': dict_arguments['trader_id']}):
                 list_strategy.append(i)
         # 形参中有trader_id、user_id
         elif len(dict_arguments) == 2 and 'trader_id' in dict_arguments and 'user_id' in dict_arguments:
             if self.__col_user.count({'user_id': dict_arguments['user_id']}) == 0:
                 print("DBManager.get_strategy()数据库中不存在期货账户", dict_arguments['user_id'])
-                return False
+                return None
             for i in self.__col_strategy.find({'trader_id': dict_arguments['trader_id'], 'user_id': dict_arguments['user_id']}):
                 list_strategy.append(i)
         # 形参中有trader_id、user_id、strategy_id
@@ -273,17 +274,15 @@ class DBManger:
             trader_id = dict_arguments['trader_id']
             user_id = dict_arguments['user_id']
             strategy_id = dict_arguments['strategy_id']
-            if self.__col_strategy.count({'strategy_id': trader_id}) == 0:
+            if self.__col_strategy.count({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}) == 0:
                 print("DBManager.get_strategy()数据库中不存在期货账户", user_id, "的策略", strategy_id)
-                return False
+                return None
             for i in self.__col_strategy.find({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}):
                 list_strategy.append(i)
         else:
             print("DBManager.get_strategy()参数错误")
-            return False
+            return None
         return list_strategy
-
-
 
 
 if __name__ == '__main__':

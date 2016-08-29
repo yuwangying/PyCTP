@@ -34,7 +34,6 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
-        print('PyCTP_Market_API.Connect():连接行情前置服务器')
         self.__FrontAddress = frontAddr
         self.RegisterSpi(self)
         self.RegisterFront(frontAddr)
@@ -223,59 +222,14 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
         import datetime
         tick = Utils.code_transform(DepthMarketData)
         # print('OnRtnDepthMarketData()', tick)
-        '''
-        tick = dict(TradingDay=DepthMarketData['TradingDay'],
-                    InstrumentID=str(DepthMarketData['InstrumentID'], 'gb2312'),
-                    ExchangeID=DepthMarketData['ExchangeID'],
-                    ExchangeInstID=DepthMarketData['ExchangeInstID'],
-                    LastPrice=DepthMarketData['LastPrice'],
-                    PreSettlementPrice=DepthMarketData['PreSettlementPrice'],
-                    PreClosePrice=DepthMarketData['PreClosePrice'],
-                    PreOpenInterest=DepthMarketData['PreOpenInterest'],
-                    OpenPrice=DepthMarketData['OpenPrice'],
-                    HighestPrice=DepthMarketData['HighestPrice'],
-                    LowestPrice=DepthMarketData['LowestPrice'],
-                    Volume=DepthMarketData['Volume'],
-                    Turnover=DepthMarketData['Turnover'],
-                    OpenInterest=DepthMarketData['OpenInterest'],
-                    ClosePrice=DepthMarketData['ClosePrice'],
-                    SettlementPrice=DepthMarketData['SettlementPrice'],
-                    UpperLimitPrice=DepthMarketData['UpperLimitPrice'],
-                    LowerLimitPrice=DepthMarketData['LowerLimitPrice'],
-                    PreDelta=DepthMarketData['PreDelta'],
-                    CurrDelta=DepthMarketData['CurrDelta'],
-                    UpdateTime=DepthMarketData['UpdateTime'],
-                    UpdateMillisec=DepthMarketData['UpdateMillisec'],
-                    BidPrice1=DepthMarketData['BidPrice1'],
-                    BidVolume1=DepthMarketData['BidVolume1'],
-                    AskPrice1=DepthMarketData['AskPrice1'],
-                    AskVolume1=DepthMarketData['AskVolume1'],
-                    BidPrice2=DepthMarketData['BidPrice2'],
-                    BidVolume2=DepthMarketData['BidVolume2'],
-                    AskPrice2=DepthMarketData['AskPrice2'],
-                    AskVolume2=DepthMarketData['AskVolume2'],
-                    BidPrice3=DepthMarketData['BidPrice3'],
-                    BidVolume3=DepthMarketData['BidVolume3'],
-                    AskPrice3=DepthMarketData['AskPrice3'],
-                    AskVolume3=DepthMarketData['AskVolume3'],
-                    BidPrice4=DepthMarketData['BidPrice4'],
-                    BidVolume4=DepthMarketData['BidVolume4'],
-                    AskPrice4=DepthMarketData['AskPrice4'],
-                    AskVolume4=DepthMarketData['AskVolume4'],
-                    BidPrice5=DepthMarketData['BidPrice5'],
-                    BidVolume5=DepthMarketData['BidVolume5'],
-                    AskPrice5=DepthMarketData['AskPrice5'],
-                    AskVolume5=DepthMarketData['AskVolume5'],
-                    AveragePrice=DepthMarketData['AveragePrice'],
-                    ActionDay=DepthMarketData['ActionDay'])
-        '''
-        PyCTP_Market_API.df_tick_data = PyCTP_Market_API.df_tick_data.append(other=Series(tick),
-                                                                             ignore_index=True,
-                                                                             verify_integrity=False)
+        # PyCTP_Market_API.df_tick_data = PyCTP_Market_API.df_tick_data.append(other=Series(tick),
+        #                                                                      ignore_index=True,
+        #                                                                      verify_integrity=False)
         # 遍历策略列表，并将tick转发给策略类对应处理方法
         for i in self.__list_strategy:
-            i.get_tick(tick)
+            i.OnRtnDepthMarketData(tick)
 
+    # 将strategy实例的list设置为本类属性，在strategy实例中实现行情推送回调函数
     def set_strategy(self, list_strategy):
         self.__list_strategy = list_strategy
 
