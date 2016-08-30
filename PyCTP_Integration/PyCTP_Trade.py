@@ -16,7 +16,7 @@ import Utils
 
 class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
-    TIMEOUT = 30
+    TIMEOUT = 10
 
     __RequestID = 0
     __isLogined = False
@@ -297,25 +297,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                       'CombHedgeFlag': dict_arguments['CombHedgeFlag'],  # 组合投机套保标志:投机
                       'OrderRef': dict_arguments['OrderRef'],  # 报单引用
                       }
-        '''
-        InputOrder = {}
-        InputOrder['BrokerID'] = self.__BrokerID  # 经纪公司代码
-        InputOrder['InvestorID'] = self.__InvestorID  # 投资者代码
-        InputOrder['InstrumentID'] = InstrumentID  # 合约代码
-        InputOrder['OrderRef'] = OrderRef  # 报单引用，用户自行维护，平仓或撤单时需匹配OrderRef
-        InputOrder['UserID'] = self.__UserID  # 用户代码
-        InputOrder['OrderPriceType'] = PyCTP.THOST_FTDC_OPT_LimitPrice  # 报单价格条件:限价
-        InputOrder['Direction'] = Direction  # 买卖方向，0买，1卖
-        InputOrder['CombOffsetFlag'] = CombOffsetFlag  # 组合开平标志，上期所3平今、4平昨，其他交易所1平仓
-        InputOrder['CombHedgeFlag'] = PyCTP.THOST_FTDC_HF_Speculation  # 组合投机套保标志:投机
-        InputOrder['LimitPrice'] = LimitPrice  # 价格
-        InputOrder['VolumeTotalOriginal'] = VolumeTotalOriginal  # 数量
-        InputOrder['TimeCondition'] = PyCTP.THOST_FTDC_TC_GFD  # 有效期类型:当日有效
-        InputOrder['VolumeCondition'] = PyCTP.THOST_FTDC_VC_AV  # 成交量类型:任意数量
-        InputOrder['MinVolume'] = 1  # 最小成交量
-        InputOrder['ContingentCondition'] = PyCTP.THOST_FTDC_CC_Immediately  # 触发条件:立即
-        InputOrder['ForceCloseReason'] = PyCTP.THOST_FTDC_FCC_NotForceClose  # 强平原因:非强平
-        '''
         self.__rsp_OrderInsert = dict(FrontID=self.__FrontID,
                                       SessionID=self.__SessionID,
                                       InputOrder=InputOrder,
@@ -324,10 +305,11 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         ret = self.ReqOrderInsert(InputOrder, self.__rsp_OrderInsert['RequestID'])
         if ret == 0:
             self.__rsp_OrderInsert['event'].clear()
-            if self.__rsp_OrderInsert['event'].wait(self.TIMEOUT):
+            if True:  # self.__rsp_OrderInsert['event'].wait(self.TIMEOUT):
                 if 'ErrorID' in self.__rsp_OrderInsert.keys():
                     if self.__rsp_OrderInsert['ErrorID'] != 0:
-                        sys.stderr.write(str(self.__rsp_OrderInsert['ErrorMsg'], encoding='gb2312'))
+                        # print("PyCTP_Trade.OrderInsert()", self.__rsp_OrderInsert['ErrorMsg'])
+                        # sys.stderr.write(str(self.__rsp_OrderInsert['ErrorMsg'], encoding='gb2312'))  # 错误代码，用上一行代替
                         return self.__rsp_OrderInsert['ErrorID']
                 return self.__rsp_OrderInsert.copy()
             else:
@@ -349,7 +331,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         ret = self.ReqOrderInsert(InputOrder, self.__rsp_OrderInsert['RequestID'])
         if ret == 0:
             self.__rsp_OrderInsert['event'].clear()
-            if self.__rsp_OrderInsert['event'].wait(self.TIMEOUT):
+            if True:  # self.__rsp_OrderInsert['event'].wait(self.TIMEOUT):
                 if self.__rsp_OrderInsert['ErrorID'] != 0:
                     sys.stderr.write(str(self.__rsp_OrderInsert['ErrorMsg'], encoding='gb2312'))
                     return self.__rsp_OrderInsert['ErrorID']
@@ -372,18 +354,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                             'ExchangeID': dict_arguments['ExchangeID'],  # 交易所代码
                             'OrderSysID': dict_arguments['OrderSysID'],  # 报单编号（未成交挂单的报单编号）
                             }
-        '''
-        InputOrderAction = {}
-        InputOrderAction['ExchangeID'] = ExchangeID  # 交易所代码
-        InputOrderAction['BrokerID'] = self.__BrokerID  # 经纪公司代码
-        InputOrderAction['UserID'] = self.__UserID  # 用户代码
-        InputOrderAction['InvestorID'] = self.__InvestorID  # 投资者代码
-        InputOrderAction['OrderActionRef'] = int(self.__IncOrderRef())  # 报单操作引用
-        InputOrderAction['OrderRef'] = OrderRef  # 报单引用（未成交挂单的报单引用）
-        InputOrderAction['RequestID'] = self.__IncRequestID()  # 请求编号
-        InputOrderAction['OrderSysID'] = OrderSysID  # 报单编号（未成交挂单的报单编号）
-        InputOrderAction['ActionFlag'] = PyCTP.THOST_FTDC_AF_Delete  # 操作标志:撤单
-        '''
         self.__rsp_OrderAction = dict(FrontID=self.__FrontID,  # 前置编号
                                       SessionID=self.__SessionID,  # 会话编号
                                       InputOrderAction=InputOrderAction,
@@ -391,7 +361,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         ret = self.ReqOrderAction(InputOrderAction, InputOrderAction['RequestID'])
         if ret == 0:
             self.__rsp_OrderAction['event'].clear()
-            if self.__rsp_OrderAction['event'].wait(self.TIMEOUT):
+            if True:  # self.__rsp_OrderAction['event'].wait(self.TIMEOUT):
                 if self.__rsp_OrderAction['ErrorID'] != 0:
                     sys.stderr.write(str(self.__rsp_OrderInsert['ErrorMsg'], encoding='gb2312'))
                     return self.__rsp_OrderAction['ErrorID']
@@ -573,13 +543,12 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         RspInfo = Utils.code_transform(RspInfo)
         RequestID = Utils.code_transform(RequestID)
         IsLast = Utils.code_transform(IsLast)
-        print('PyCTP_Trade.OnRspOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo, 'RequestID:', RequestID, 'IsLast:', IsLast)
         if self.__rsp_OrderInsert['RequestID'] == RequestID \
-                and self.__rsp_OrderInsert['InputOrder']['OrderRef'] == InputOrder['OrderRef']:
+                and self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode() == InputOrder['OrderRef']:
             if RspInfo is not None and RspInfo['ErrorID'] != 0:
                 for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-                    if True:  # InputOrder['OrderRef'][:2] == i.get_strategy_id():
-                        i.OnRspOrderInsert(InputOrder)
+                    if InputOrder['OrderRef'][-2:] == i.get_strategy_id():
+                        i.OnRspOrderInsert(InputOrder, RspInfo, RequestID, IsLast)
                 self.__rsp_OrderInsert.update(RspInfo)
                 self.__rsp_OrderInsert['event'].set()
 
@@ -594,7 +563,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         # if self.__rsp_OrderAction['InputOrder']['OrderRef'] == InputOrderAction['OrderRef']:
         #     self.__rsp_OrderInsert['event'].set()
         for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if InputOrderAction['OrderRef'][:2] == i.get_strategy_id():
+            if InputOrderAction['OrderRef'][-2:] == i.get_strategy_id():
                 i.OnRspOrderAction(InputOrderAction, RspInfo, RequestID, IsLast)
 
     def OnRtnOrder(self, Order):
@@ -602,23 +571,23 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         from User import User
         # print('PyCTP_Trade.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         Order = Utils.code_transform(Order)
-        print('PyCTP_Trade.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
+        # print('PyCTP_Trade.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
             if self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode() == Order['OrderRef']:
                 self.__user.OnRtnOrder(Order)  # 转到user回调函数
                 for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-                    if Order['OrderRef'][:2] == i.get_strategy_id():
+                    if Order['OrderRef'][-2:] == i.get_strategy_id():
                         i.OnRtnOrder(Order)
                 self.__rsp_OrderInsert['event'].set()  # 协程解锁
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
         Trade = Utils.code_transform(Trade)
-        print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
+        # print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
         self.__user.OnRtnTrade(Trade)  # 转到user回调函数
         for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if Trade['OrderRef'][:2] == i.get_strategy_id():
+            if Trade['OrderRef'][-2:] == i.get_strategy_id():
                 i.OnRtnTrade(Trade)
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
@@ -631,7 +600,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         #    self.__rsp_OrderInsert['ErrorMsg'] = bytes('CTP:发送报单操作失败', 'gb2312')
         #    self.__rsp_OrderInsert['event'].set()
         for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if OrderAction['OrderRef'][:2] == i.get_strategy_id():
+            if OrderAction['OrderRef'][-2:] == i.get_strategy_id():
                 i.OnErrRtnOrderAction(OrderAction, RspInfo)
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
@@ -639,9 +608,9 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         # print('PyCTP_Trade.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
         InputOrder = Utils.code_transform(InputOrder)
         RspInfo = Utils.code_transform(RspInfo)
-        print('PyCTP_Trade.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
+        # print('PyCTP_Trade.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
         for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if InputOrder['OrderRef'][:2] == i.get_strategy_id():
+            if InputOrder['OrderRef'][-2:] == i.get_strategy_id():
                 i.OnErrRtnOrderInsert(InputOrder, RspInfo)
 
     def OnRtnTradingNotice(self, TradingNoticeInfo):

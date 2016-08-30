@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ca9303d6-9455-470e-8a06-c85cc939cf2f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Strategy.py" afterPath="$PROJECT_DIR$/Strategy.py" />
-    </list>
+    <list default="true" id="ca9303d6-9455-470e-8a06-c85cc939cf2f" name="Default" comment="" />
     <ignored path="PyCtp.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -30,7 +28,7 @@
     <SUITE FILE_PATH="coverage/PyCTP_Integration$PyCTP_Market.coverage" NAME="PyCTP_Market Coverage Results" MODIFIED="1470013497311" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_API_TEST$Trade.coverage" NAME="Trade Coverage Results" MODIFIED="1469003415730" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$DBManager.coverage" NAME="DBManager Coverage Results" MODIFIED="1470284287745" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PyCTP_Integration$MultiUserTradeSys.coverage" NAME="MultiUserTradeSys Coverage Results" MODIFIED="1472223598487" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PyCTP_Integration$MultiUserTradeSys.coverage" NAME="MultiUserTradeSys Coverage Results" MODIFIED="1472540414117" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -51,8 +49,8 @@
       <file leaf-file-name="MultiUserTradeSys.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MultiUserTradeSys.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-173">
-              <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+            <state relative-caret-position="695">
+              <caret line="220" column="23" selection-start-line="220" selection-start-column="23" selection-end-line="220" selection-end-column="23" />
               <folding>
                 <element signature="e#86#96#0" expanded="true" />
               </folding>
@@ -63,11 +61,22 @@
       <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3504">
-              <caret line="310" column="0" selection-start-line="310" selection-start-column="0" selection-end-line="310" selection-end-column="0" />
+            <state relative-caret-position="322">
+              <caret line="429" column="16" selection-start-line="429" selection-start-column="16" selection-end-line="429" selection-end-column="16" />
               <folding>
                 <element signature="e#90#130#0" expanded="true" />
+                <element signature="e#22679#23174#1" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="PyCTP.py" pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-530204734/PyCTP.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="146">
+              <caret line="932" column="30" selection-start-line="932" selection-start-column="30" selection-end-line="932" selection-end-column="30" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -75,8 +84,8 @@
       <file leaf-file-name="User.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/User.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="307">
-              <caret line="73" column="31" selection-start-line="73" selection-start-column="31" selection-end-line="73" selection-end-column="31" />
+            <state relative-caret-position="552">
+              <caret line="57" column="27" selection-start-line="57" selection-start-column="8" selection-end-line="57" selection-end-column="27" />
               <folding>
                 <element signature="e#90#130#0" expanded="true" />
               </folding>
@@ -87,9 +96,12 @@
       <file leaf-file-name="PyCTP_Trade.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="613" column="0" selection-start-line="613" selection-start-column="0" selection-end-line="613" selection-end-column="0" />
-              <folding />
+            <state relative-caret-position="-1587">
+              <caret line="33" column="23" selection-start-line="33" selection-start-column="23" selection-end-line="33" selection-end-column="23" />
+              <folding>
+                <element signature="e#12945#14167#0" expanded="false" />
+                <element signature="e#16506#17209#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -133,7 +145,7 @@
       <file leaf-file-name="PyCTP_Market.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/PyCTP_Market.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="299">
+            <state relative-caret-position="23">
               <caret line="28" column="15" selection-start-line="28" selection-start-column="15" selection-end-line="28" selection-end-column="15" />
               <folding>
                 <element signature="e#87#97#0" expanded="true" />
@@ -175,12 +187,12 @@
         <option value="$PROJECT_DIR$/command.txt" />
         <option value="$PROJECT_DIR$/OrderAlgorithm.py" />
         <option value="$PROJECT_DIR$/PyCTP_Market.py" />
-        <option value="$PROJECT_DIR$/MultiUserTradeSys.py" />
         <option value="$PROJECT_DIR$/Utils.py" />
         <option value="$PROJECT_DIR$/MarketManager.py" />
         <option value="$PROJECT_DIR$/DBManager.py" />
-        <option value="$PROJECT_DIR$/PyCTP_Trade.py" />
         <option value="$PROJECT_DIR$/User.py" />
+        <option value="$PROJECT_DIR$/PyCTP_Trade.py" />
+        <option value="$PROJECT_DIR$/MultiUserTradeSys.py" />
         <option value="$PROJECT_DIR$/Strategy.py" />
       </list>
     </option>
@@ -259,7 +271,7 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="1311" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
-    <property name="SearchEverywhereHistoryKey" value="THOST_FTDC_HF_Speculation&#9;null&#9;null&#10;get_strategy&#9;null&#9;null&#10;set_strategy&#9;null&#9;null&#10;del_user&#9;null&#9;null&#10;i in self.__DBM.get_user()=&#9;null&#9;null&#10;trader_login_status&#9;null&#9;null&#10;UnConnect&#9;null&#9;null&#10;OnRtnExecOrder&#9;null&#9;null" />
+    <property name="SearchEverywhereHistoryKey" value="event&#9;FILE&#9;file://D:/Python34/Lib/site-packages/IPython/utils/eventful.py&#10;THOST_FTDC_OST_Touched&#9;null&#9;null&#10;THOST_FTDC_HF_Speculation&#9;null&#9;null&#10;get_strategy&#9;null&#9;null&#10;set_strategy&#9;null&#9;null&#10;del_user&#9;null&#9;null&#10;i in self.__DBM.get_user()=&#9;null&#9;null&#10;trader_login_status&#9;null&#9;null&#10;UnConnect&#9;null&#9;null&#10;OnRtnExecOrder&#9;null&#9;null" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -589,17 +601,17 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-9" y="-9" width="1938" height="1048" extended-state="7" />
+    <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19239014" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3305785" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3290461" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3293979" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38487583" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30812642" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -647,7 +659,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/CTP_Run.py" />
     <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-530204734/PyCTP.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="33488">
@@ -850,14 +861,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-530204734/PyCTP.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="172">
-          <caret line="1550" column="8" selection-start-line="1550" selection-start-column="8" selection-end-line="1550" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="391">
@@ -874,22 +877,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MultiUserTradeSys.py">
+    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-530204734/PyCTP.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-173">
-          <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
-          <folding>
-            <element signature="e#86#96#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="146">
+          <caret line="932" column="30" selection-start-line="932" selection-start-column="30" selection-end-line="932" selection-end-column="30" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.py">
+    <entry file="file://$PROJECT_DIR$/User.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="249" column="24" selection-start-line="249" selection-start-column="24" selection-end-line="249" selection-end-column="24" />
+        <state relative-caret-position="552">
+          <caret line="57" column="27" selection-start-line="57" selection-start-column="8" selection-end-line="57" selection-end-column="27" />
           <folding>
-            <element signature="e#89#98#0" expanded="true" />
+            <element signature="e#90#130#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -916,7 +917,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/PyCTP_Market.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
+        <state relative-caret-position="23">
           <caret line="28" column="15" selection-start-line="28" selection-start-column="15" selection-end-line="28" selection-end-column="15" />
           <folding>
             <element signature="e#87#97#0" expanded="true" />
@@ -924,30 +925,54 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
+    <entry file="file://D:/Python34/Lib/site-packages/IPython/utils/eventful.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="613" column="0" selection-start-line="613" selection-start-column="0" selection-end-line="613" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#38#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/User.py">
+    <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="307">
-          <caret line="73" column="31" selection-start-line="73" selection-start-column="31" selection-end-line="73" selection-end-column="31" />
+        <state relative-caret-position="-1587">
+          <caret line="33" column="23" selection-start-line="33" selection-start-column="23" selection-end-line="33" selection-end-column="23" />
           <folding>
-            <element signature="e#90#130#0" expanded="true" />
+            <element signature="e#12945#14167#0" expanded="false" />
+            <element signature="e#16506#17209#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="249" column="24" selection-start-line="249" selection-start-column="24" selection-end-line="249" selection-end-column="24" />
+          <folding>
+            <element signature="e#89#98#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MultiUserTradeSys.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="695">
+          <caret line="220" column="23" selection-start-line="220" selection-start-column="23" selection-end-line="220" selection-end-column="23" />
+          <folding>
+            <element signature="e#86#96#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Strategy.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3504">
-          <caret line="310" column="0" selection-start-line="310" selection-start-column="0" selection-end-line="310" selection-end-column="0" />
+        <state relative-caret-position="322">
+          <caret line="429" column="16" selection-start-line="429" selection-start-column="16" selection-end-line="429" selection-end-column="16" />
           <folding>
             <element signature="e#90#130#0" expanded="true" />
+            <element signature="e#22679#23174#1" expanded="false" />
           </folding>
         </state>
       </provider>

@@ -27,6 +27,7 @@ class User:
         self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
         self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，撤单操作时添加次数，交易日换日时初始化值
         self.__dict_instrument_action_counter = dict()  # 记录合约撤单次数的字典
+        self.__order_ref_part2 = 0  # 所有策略共用报单引用编号
 
         # 为每个user创建独立的流文件夹
         s_path = b'conn/td/' + self.__user_id + b'/'
@@ -52,6 +53,11 @@ class User:
     # 获取trade实例(TD)
     def get_trade(self):
         return self.__trade
+
+    # 获取报单引用part2
+    def add_order_ref_part2(self):
+        self.__order_ref_part2 += 1
+        return self.__order_ref_part2
 
     # 添加交易策略实例，到self.__list_strategy
     def add_strategy(self, obj_strategy):

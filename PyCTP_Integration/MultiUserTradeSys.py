@@ -223,6 +223,9 @@ if __name__ == '__main__':
     else:
         print("CTPManager.create_strategy()初始化时数据库中没有策略")
 
+    while True:
+        pass
+
     # 进入命令窗口
     Utils.gui(ctp_manager)
 
