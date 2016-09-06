@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1622</width>
+    <width>1591</width>
     <height>992</height>
    </rect>
   </property>
@@ -56,20 +56,20 @@
          <widget class="QWidget" name="panel_show_account" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="QWidget" name="widget_2" native="true">
+            <widget class="QWidget" name="widget_dongtaiquanyi" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <widget class="QLabel" name="label_19">
+               <widget class="QLabel" name="label_dongtaiquanyi">
                 <property name="text">
                  <string>动态权益</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_30">
+               <widget class="QLabel" name="label_value_dongtaiquanyi">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -79,27 +79,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_2">
+            <widget class="Line" name="line_13">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_3" native="true">
+            <widget class="QWidget" name="widget_jingtaiquanyi" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
-               <widget class="QLabel" name="label_31">
+               <widget class="QLabel" name="label_jingtaiquanyi">
                 <property name="text">
                  <string>静态权益</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_32">
+               <widget class="QLabel" name="label_value_jingtaiquanyi">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -109,27 +109,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_3">
+            <widget class="Line" name="line_14">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_4" native="true">
+            <widget class="QWidget" name="widget_chicangyingkui" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
-               <widget class="QLabel" name="label_33">
+               <widget class="QLabel" name="label_chicangyingkui">
                 <property name="text">
                  <string>持仓盈亏</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_34">
+               <widget class="QLabel" name="label_value_chicangyingkui">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -139,27 +139,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_4">
+            <widget class="Line" name="line_15">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_5" native="true">
+            <widget class="QWidget" name="widget_pingcangyingkui" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_9">
               <item>
-               <widget class="QLabel" name="label_51">
+               <widget class="QLabel" name="label_pingcangyingkui">
                 <property name="text">
                  <string>平仓盈亏</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_52">
+               <widget class="QLabel" name="label_value_pingcangyingkui">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -169,27 +169,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_5">
+            <widget class="Line" name="line_16">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_6" native="true">
+            <widget class="QWidget" name="widget_shouxufei" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
-               <widget class="QLabel" name="label_53">
+               <widget class="QLabel" name="label_shouxufei">
                 <property name="text">
                  <string>手续费</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_54">
+               <widget class="QLabel" name="label_value_shouxufei">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -199,27 +199,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_6">
+            <widget class="Line" name="line_17">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_7" native="true">
+            <widget class="QWidget" name="widget_keyongzijin" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
-               <widget class="QLabel" name="label_55">
+               <widget class="QLabel" name="label_keyongzijin">
                 <property name="text">
                  <string>可用资金</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_56">
+               <widget class="QLabel" name="label_value_keyongzijin">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -229,27 +229,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_7">
+            <widget class="Line" name="line_18">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_8" native="true">
+            <widget class="QWidget" name="widget_zhanyongbaozhengjin" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_12">
               <item>
-               <widget class="QLabel" name="label_57">
+               <widget class="QLabel" name="label_zhanyongbaozhengjin">
                 <property name="text">
                  <string>占用保证金</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_58">
+               <widget class="QLabel" name="label_value_zhanyongbaozhengjin">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -259,27 +259,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_8">
+            <widget class="Line" name="line_19">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_9" native="true">
+            <widget class="QWidget" name="widget_xiadandongjie" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_13">
               <item>
-               <widget class="QLabel" name="label_59">
+               <widget class="QLabel" name="label_xiadandongjie">
                 <property name="text">
                  <string>下单冻结</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_60">
+               <widget class="QLabel" name="label_value_xiadandongjie">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -289,27 +289,27 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_9">
+            <widget class="Line" name="line_20">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_10" native="true">
+            <widget class="QWidget" name="widget_fengxiandu" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
-               <widget class="QLabel" name="label_61">
+               <widget class="QLabel" name="label_fengxiandu">
                 <property name="text">
                  <string>风险度</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_62">
+               <widget class="QLabel" name="label_value_fengxiandu">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -326,20 +326,20 @@
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_11" native="true">
+            <widget class="QWidget" name="widget_jinrirujin" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
-               <widget class="QLabel" name="label_63">
+               <widget class="QLabel" name="label_jinrirujin">
                 <property name="text">
                  <string>今日入金</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_64">
+               <widget class="QLabel" name="label_value_jinrirujin">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -356,20 +356,20 @@
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_12" native="true">
+            <widget class="QWidget" name="widget_jinrichujin" native="true">
              <property name="styleSheet">
               <string notr="true">border-right-color: rgb(170, 164, 162);</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
-               <widget class="QLabel" name="label_65">
+               <widget class="QLabel" name="label_jinrichujin">
                 <property name="text">
                  <string>今日出金</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_66">
+               <widget class="QLabel" name="label_value_jinrichujin">
                 <property name="text">
                  <string>10000000</string>
                 </property>
@@ -386,21 +386,21 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_6">
+            <widget class="QPushButton" name="pushButton_query_account">
              <property name="text">
               <string>查询账户</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_8">
+            <widget class="QPushButton" name="pushButton_only_close">
              <property name="text">
               <string>只能平仓</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_7">
+            <widget class="QPushButton" name="pushButton_start_strategy">
              <property name="text">
               <string>开始策略</string>
              </property>
@@ -419,7 +419,7 @@
             <number>5</number>
            </property>
            <item>
-            <widget class="QTableWidget" name="tablewidget_trade_args">
+            <widget class="QTableWidget" name="tablewidget_tableWidget_Trade_Args">
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
@@ -473,6 +473,11 @@
                 <green>168</green>
                 <blue>150</blue>
                </color>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>只能平仓</string>
               </property>
              </column>
              <column>
@@ -565,6 +570,14 @@
              </item>
              <item row="0" column="1">
               <property name="text">
+               <string>是</string>
+              </property>
+              <property name="checkState">
+               <enum>Checked</enum>
+              </property>
+             </item>
+             <item row="0" column="2">
+              <property name="text">
                <string>800xxxx</string>
               </property>
              </item>
@@ -589,274 +602,694 @@
              <property name="checkable">
               <bool>false</bool>
              </property>
-             <layout class="QGridLayout" name="gridLayout_trade_args">
-              <property name="horizontalSpacing">
-               <number>11</number>
+             <widget class="QLabel" name="label_qihuozhanghao">
+              <property name="geometry">
+               <rect>
+                <x>12</x>
+                <y>30</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
               </property>
-              <property name="verticalSpacing">
-               <number>7</number>
+              <property name="text">
+               <string>期货账号</string>
               </property>
-              <property name="margin">
-               <number>11</number>
+             </widget>
+             <widget class="QComboBox" name="comboBox_qihuozhanghao">
+              <property name="geometry">
+               <rect>
+                <x>79</x>
+                <y>30</y>
+                <width>87</width>
+                <height>21</height>
+               </rect>
               </property>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>期货账号</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1" colspan="3">
-               <widget class="QComboBox" name="comboBox"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>策略编号</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="comboBox_2"/>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>下单算法</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="QSpinBox" name="spinBox"/>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>交易模型</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="comboBox_3"/>
-              </item>
-              <item row="2" column="2">
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>止损跳数</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QSpinBox" name="spinBox_2"/>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>空头价差</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QLineEdit" name="lineEdit"/>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>总手</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="3">
-               <widget class="QSpinBox" name="spinBox_3"/>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>多头价差</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QLineEdit" name="lineEdit_2"/>
-              </item>
-              <item row="4" column="2">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>每份</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="3">
-               <widget class="QSpinBox" name="spinBox_4"/>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>价差让价</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QLineEdit" name="lineEdit_3"/>
-              </item>
-              <item row="5" column="2" colspan="2">
-               <widget class="QCheckBox" name="checkBox">
-                <property name="text">
-                 <string>价差联动</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>空头开</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QDoubleSpinBox" name="doubleSpinBox">
-                <property name="maximum">
-                 <double>99999.000000000000000</double>
-                </property>
-                <property name="value">
-                 <double>12345.670000000000073</double>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="2">
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>A卖持仓</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="3">
-               <widget class="QLineEdit" name="lineEdit_4">
-                <property name="text">
-                 <string>10</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_14">
-                <property name="text">
-                 <string>空头平</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="1">
-               <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
-                <property name="maximum">
-                 <double>99999.000000000000000</double>
-                </property>
-                <property name="value">
-                 <double>12345.670000000000073</double>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="2">
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>B买持仓</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="3">
-               <widget class="QLineEdit" name="lineEdit_5">
-                <property name="text">
-                 <string>10</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="0">
-               <widget class="QLabel" name="label_16">
-                <property name="text">
-                 <string>多头平</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="1">
-               <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
-                <property name="maximum">
-                 <double>99999.000000000000000</double>
-                </property>
-                <property name="value">
-                 <double>12345.670000000000073</double>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="2">
-               <widget class="QLabel" name="label_15">
-                <property name="text">
-                 <string>A买持仓</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="3">
-               <widget class="QLineEdit" name="lineEdit_6">
-                <property name="text">
-                 <string>10</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="label_18">
-                <property name="text">
-                 <string>多头开</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
-                <property name="maximum">
-                 <double>99999.000000000000000</double>
-                </property>
-                <property name="value">
-                 <double>12345.670000000000073</double>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="2">
-               <widget class="QLabel" name="label_17">
-                <property name="text">
-                 <string>B卖持仓</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="3">
-               <widget class="QLineEdit" name="lineEdit_7">
-                <property name="text">
-                 <string>10</string>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="0" colspan="2">
-               <widget class="QPushButton" name="pushButton">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>确定</string>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="2" colspan="2">
-               <widget class="QPushButton" name="pushButton_2">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>查询</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             </widget>
+             <widget class="QLabel" name="label_celuebianhao">
+              <property name="geometry">
+               <rect>
+                <x>189</x>
+                <y>28</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>策略编号</string>
+              </property>
+             </widget>
+             <widget class="QComboBox" name="comboBox_celuebianhao">
+              <property name="geometry">
+               <rect>
+                <x>256</x>
+                <y>28</y>
+                <width>87</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_xiadansuanfa">
+              <property name="geometry">
+               <rect>
+                <x>186</x>
+                <y>61</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>下单算法</string>
+              </property>
+             </widget>
+             <widget class="QSpinBox" name="spinBox_xiadansuanfa">
+              <property name="geometry">
+               <rect>
+                <x>262</x>
+                <y>61</y>
+                <width>42</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_jiaoyimoxing">
+              <property name="geometry">
+               <rect>
+                <x>15</x>
+                <y>58</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>交易模型</string>
+              </property>
+             </widget>
+             <widget class="QComboBox" name="comboBox_jiaoyimoxing">
+              <property name="geometry">
+               <rect>
+                <x>82</x>
+                <y>58</y>
+                <width>87</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_zhisuntiaoshu">
+              <property name="geometry">
+               <rect>
+                <x>186</x>
+                <y>90</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>止损跳数</string>
+              </property>
+             </widget>
+             <widget class="QSpinBox" name="spinBox_zhisuntiaoshu">
+              <property name="geometry">
+               <rect>
+                <x>262</x>
+                <y>90</y>
+                <width>42</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_kongtoujiacha">
+              <property name="geometry">
+               <rect>
+                <x>13</x>
+                <y>90</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>空头价差</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_kongtoujiacha">
+              <property name="geometry">
+               <rect>
+                <x>80</x>
+                <y>90</y>
+                <width>87</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_zongshou">
+              <property name="geometry">
+               <rect>
+                <x>180</x>
+                <y>123</y>
+                <width>30</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>总手</string>
+              </property>
+             </widget>
+             <widget class="QSpinBox" name="spinBox_zongshou">
+              <property name="geometry">
+               <rect>
+                <x>222</x>
+                <y>120</y>
+                <width>42</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_duotoujiacha">
+              <property name="geometry">
+               <rect>
+                <x>14</x>
+                <y>120</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>多头价差</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_duotoujiacha">
+              <property name="geometry">
+               <rect>
+                <x>82</x>
+                <y>118</y>
+                <width>87</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_meifen">
+              <property name="geometry">
+               <rect>
+                <x>180</x>
+                <y>154</y>
+                <width>30</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>每份</string>
+              </property>
+             </widget>
+             <widget class="QSpinBox" name="spinBox_meifen">
+              <property name="geometry">
+               <rect>
+                <x>222</x>
+                <y>152</y>
+                <width>42</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_jiacharangjia">
+              <property name="geometry">
+               <rect>
+                <x>11</x>
+                <y>152</y>
+                <width>60</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>价差让价</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_jiacharangjia">
+              <property name="geometry">
+               <rect>
+                <x>78</x>
+                <y>150</y>
+                <width>89</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QCheckBox" name="checkBox_jiachaliandong">
+              <property name="geometry">
+               <rect>
+                <x>16</x>
+                <y>184</y>
+                <width>87</width>
+                <height>19</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>价差联动</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_kongtoukai">
+              <property name="geometry">
+               <rect>
+                <x>12</x>
+                <y>216</y>
+                <width>45</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>空头开</string>
+              </property>
+             </widget>
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtoukai">
+              <property name="geometry">
+               <rect>
+                <x>68</x>
+                <y>216</y>
+                <width>90</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="maximum">
+               <double>99999.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>12345.670000000000073</double>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Asellchicang">
+              <property name="geometry">
+               <rect>
+                <x>168</x>
+                <y>218</y>
+                <width>53</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>A卖持仓</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Asellchicang">
+              <property name="geometry">
+               <rect>
+                <x>228</x>
+                <y>212</y>
+                <width>37</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>10</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_kongtouping">
+              <property name="geometry">
+               <rect>
+                <x>12</x>
+                <y>247</y>
+                <width>45</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>空头平</string>
+              </property>
+             </widget>
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtouping">
+              <property name="geometry">
+               <rect>
+                <x>70</x>
+                <y>247</y>
+                <width>90</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="maximum">
+               <double>99999.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>12345.670000000000073</double>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Bbuychicang">
+              <property name="geometry">
+               <rect>
+                <x>168</x>
+                <y>248</y>
+                <width>53</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>B买持仓</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Bbuychicang">
+              <property name="geometry">
+               <rect>
+                <x>230</x>
+                <y>246</y>
+                <width>37</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>10</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_duotouping">
+              <property name="geometry">
+               <rect>
+                <x>12</x>
+                <y>278</y>
+                <width>45</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>多头平</string>
+              </property>
+             </widget>
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_duotouping">
+              <property name="geometry">
+               <rect>
+                <x>70</x>
+                <y>278</y>
+                <width>90</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="maximum">
+               <double>99999.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>12345.670000000000073</double>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Abuychicang">
+              <property name="geometry">
+               <rect>
+                <x>168</x>
+                <y>280</y>
+                <width>53</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>A买持仓</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Abuychicang">
+              <property name="geometry">
+               <rect>
+                <x>228</x>
+                <y>278</y>
+                <width>39</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>10</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_duotoukai">
+              <property name="geometry">
+               <rect>
+                <x>12</x>
+                <y>309</y>
+                <width>45</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>多头开</string>
+              </property>
+             </widget>
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_duotoukai">
+              <property name="geometry">
+               <rect>
+                <x>68</x>
+                <y>309</y>
+                <width>90</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="maximum">
+               <double>99999.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>12345.670000000000073</double>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Bsellchicang">
+              <property name="geometry">
+               <rect>
+                <x>168</x>
+                <y>310</y>
+                <width>53</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>B卖持仓</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Bsellchicang">
+              <property name="geometry">
+               <rect>
+                <x>226</x>
+                <y>306</y>
+                <width>43</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>10</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_set_strategy">
+              <property name="geometry">
+               <rect>
+                <x>12</x>
+                <y>340</y>
+                <width>93</width>
+                <height>28</height>
+               </rect>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>确定</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_query_strategy">
+              <property name="geometry">
+               <rect>
+                <x>230</x>
+                <y>340</y>
+                <width>93</width>
+                <height>28</height>
+               </rect>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>查询</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Ajinsell">
+              <property name="geometry">
+               <rect>
+                <x>278</x>
+                <y>216</y>
+                <width>37</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>A今卖</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Ajinsell">
+              <property name="geometry">
+               <rect>
+                <x>330</x>
+                <y>212</y>
+                <width>39</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Bjinbuy">
+              <property name="geometry">
+               <rect>
+                <x>332</x>
+                <y>248</y>
+                <width>39</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Bjinbuy">
+              <property name="geometry">
+               <rect>
+                <x>280</x>
+                <y>250</y>
+                <width>37</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>B今买</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Ajinbuy">
+              <property name="geometry">
+               <rect>
+                <x>336</x>
+                <y>276</y>
+                <width>39</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Ajinbuy">
+              <property name="geometry">
+               <rect>
+                <x>280</x>
+                <y>280</y>
+                <width>37</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>A今买</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Bjinsell">
+              <property name="geometry">
+               <rect>
+                <x>334</x>
+                <y>306</y>
+                <width>39</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Bjinsell">
+              <property name="geometry">
+               <rect>
+                <x>280</x>
+                <y>310</y>
+                <width>37</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>B今卖</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Ajinsell_2">
+              <property name="geometry">
+               <rect>
+                <x>176</x>
+                <y>180</y>
+                <width>39</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Ajinsell_2">
+              <property name="geometry">
+               <rect>
+                <x>126</x>
+                <y>184</y>
+                <width>37</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>A等待</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Ajinsell_3">
+              <property name="geometry">
+               <rect>
+                <x>308</x>
+                <y>180</y>
+                <width>39</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Ajinsell_3">
+              <property name="geometry">
+               <rect>
+                <x>256</x>
+                <y>184</y>
+                <width>37</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>B等待</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Ajinsell_4">
+              <property name="geometry">
+               <rect>
+                <x>274</x>
+                <y>126</y>
+                <width>63</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>撤单限制</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Ajinsell_4">
+              <property name="geometry">
+               <rect>
+                <x>342</x>
+                <y>124</y>
+                <width>37</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_Ajinsell_5">
+              <property name="geometry">
+               <rect>
+                <x>344</x>
+                <y>154</y>
+                <width>37</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>999</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_Ajinsell_5">
+              <property name="geometry">
+               <rect>
+                <x>276</x>
+                <y>156</y>
+                <width>63</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>撤单次数</string>
+              </property>
+             </widget>
             </widget>
            </item>
           </layout>
@@ -907,7 +1340,7 @@
             <number>5</number>
            </property>
            <item>
-            <widget class="QTableWidget" name="tableWidget_2">
+            <widget class="QTableWidget" name="tableWidget_all_orders">
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
@@ -1104,14 +1537,14 @@
                <number>11</number>
               </property>
               <item row="2" column="0">
-               <widget class="QLabel" name="label_21">
+               <widget class="QLabel" name="label_buyorsell">
                 <property name="text">
                  <string>买卖</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="1" rowspan="2">
-               <widget class="QLineEdit" name="lineEdit_8">
+               <widget class="QLineEdit" name="lineEdit_heyue">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -1124,49 +1557,49 @@
                </widget>
               </item>
               <item row="0" column="0" rowspan="2">
-               <widget class="QLabel" name="label_20">
+               <widget class="QLabel" name="label_heyue">
                 <property name="text">
                  <string>合约</string>
                 </property>
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QRadioButton" name="radioButton_3">
+               <widget class="QRadioButton" name="radioButton_kaicang">
                 <property name="text">
                  <string>开仓</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="2">
-               <widget class="QRadioButton" name="radioButton_2">
+               <widget class="QRadioButton" name="radioButton_maichu">
                 <property name="text">
                  <string>卖出</string>
                 </property>
                </widget>
               </item>
               <item row="3" column="0">
-               <widget class="QLabel" name="label_22">
+               <widget class="QLabel" name="label_kaiping">
                 <property name="text">
                  <string>开平</string>
                 </property>
                </widget>
               </item>
               <item row="4" column="0" rowspan="2">
-               <widget class="QLabel" name="label_23">
+               <widget class="QLabel" name="label_shoushu">
                 <property name="text">
                  <string>手数</string>
                 </property>
                </widget>
               </item>
               <item row="3" column="2">
-               <widget class="QRadioButton" name="radioButton_4">
+               <widget class="QRadioButton" name="radioButton_pingcang">
                 <property name="text">
                  <string>平仓</string>
                 </property>
                </widget>
               </item>
               <item row="4" column="1" rowspan="2">
-               <widget class="QSpinBox" name="spinBox_5">
+               <widget class="QSpinBox" name="spinBox_shoushu">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -1176,21 +1609,21 @@
                </widget>
               </item>
               <item row="3" column="3">
-               <widget class="QRadioButton" name="radioButton_5">
+               <widget class="QRadioButton" name="radioButton_pingjin">
                 <property name="text">
                  <string>平今</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QRadioButton" name="radioButton">
+               <widget class="QRadioButton" name="radioButton_mairu">
                 <property name="text">
                  <string>买入</string>
                 </property>
                </widget>
               </item>
               <item row="6" column="1" rowspan="3">
-               <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_xiadanjiage">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -1206,21 +1639,21 @@
                </widget>
               </item>
               <item row="6" column="0" rowspan="3">
-               <widget class="QLabel" name="label_26">
+               <widget class="QLabel" name="label_xiadanjiage">
                 <property name="text">
                  <string>价格</string>
                 </property>
                </widget>
               </item>
               <item row="12" column="2" colspan="2">
-               <widget class="QPushButton" name="pushButton_5">
+               <widget class="QPushButton" name="pushButton_xiadantiaocang">
                 <property name="text">
                  <string>调仓</string>
                 </property>
                </widget>
               </item>
               <item row="11" column="0" rowspan="2" colspan="2">
-               <widget class="QPushButton" name="pushButton_3">
+               <widget class="QPushButton" name="pushButton_xiandan">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -1233,56 +1666,56 @@
                </widget>
               </item>
               <item row="11" column="2" colspan="2">
-               <widget class="QPushButton" name="pushButton_4">
+               <widget class="QPushButton" name="pushButton_xiadanquxiao">
                 <property name="text">
                  <string>取消</string>
                 </property>
                </widget>
               </item>
               <item row="6" column="2" colspan="2">
-               <widget class="QLabel" name="label_27">
+               <widget class="QLabel" name="label_pankouguadansell">
                 <property name="text">
                  <string>卖 82990 / 3</string>
                 </property>
                </widget>
               </item>
               <item row="7" column="2" colspan="2">
-               <widget class="QLabel" name="label_29">
+               <widget class="QLabel" name="label_dietingjia">
                 <property name="text">
                  <string>↓88020</string>
                 </property>
                </widget>
               </item>
               <item row="4" column="2" colspan="2">
-               <widget class="QLabel" name="label_24">
+               <widget class="QLabel" name="label_zuidashoushu">
                 <property name="text">
                  <string>≤0</string>
                 </property>
                </widget>
               </item>
               <item row="5" column="2" colspan="2">
-               <widget class="QLabel" name="label_25">
+               <widget class="QLabel" name="label_zhangtingjia">
                 <property name="text">
                  <string>↑88020</string>
                 </property>
                </widget>
               </item>
               <item row="8" column="2" colspan="2">
-               <widget class="QLabel" name="label_28">
+               <widget class="QLabel" name="label_pankouguadanbuy">
                 <property name="text">
                  <string>买 82970 / 20</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="2" colspan="2">
-               <widget class="QCheckBox" name="checkBox_2">
+               <widget class="QCheckBox" name="checkBox_taoli">
                 <property name="text">
                  <string>套利</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="2" colspan="2">
-               <widget class="QCheckBox" name="checkBox_3">
+               <widget class="QCheckBox" name="checkBox_baozhi">
                 <property name="text">
                  <string>保值</string>
                 </property>
@@ -1320,7 +1753,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1622</width>
+     <width>1591</width>
      <height>26</height>
     </rect>
    </property>
