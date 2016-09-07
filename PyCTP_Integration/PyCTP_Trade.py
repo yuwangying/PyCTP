@@ -304,7 +304,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                                       event=threading.Event())
         ret = self.ReqOrderInsert(InputOrder, self.__rsp_OrderInsert['RequestID'])
         if ret == 0:
-            self.__rsp_OrderInsert['event'].clear()
+            # self.__rsp_OrderInsert['event'].clear()
             if True:  # self.__rsp_OrderInsert['event'].wait(self.TIMEOUT):
                 if 'ErrorID' in self.__rsp_OrderInsert.keys():
                     if self.__rsp_OrderInsert['ErrorID'] != 0:
@@ -330,7 +330,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         print('ReqOrderInsert的传入参数', InputOrder)
         ret = self.ReqOrderInsert(InputOrder, self.__rsp_OrderInsert['RequestID'])
         if ret == 0:
-            self.__rsp_OrderInsert['event'].clear()
+            # self.__rsp_OrderInsert['event'].clear()
             if True:  # self.__rsp_OrderInsert['event'].wait(self.TIMEOUT):
                 if self.__rsp_OrderInsert['ErrorID'] != 0:
                     sys.stderr.write(str(self.__rsp_OrderInsert['ErrorMsg'], encoding='gb2312'))
@@ -360,12 +360,16 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                                       event=threading.Event())
         ret = self.ReqOrderAction(InputOrderAction, InputOrderAction['RequestID'])
         if ret == 0:
-            self.__rsp_OrderAction['event'].clear()
+            # self.__rsp_OrderAction['event'].clear()
             if True:  # self.__rsp_OrderAction['event'].wait(self.TIMEOUT):
-                if self.__rsp_OrderAction['ErrorID'] != 0:
-                    sys.stderr.write(str(self.__rsp_OrderInsert['ErrorMsg'], encoding='gb2312'))
-                    return self.__rsp_OrderAction['ErrorID']
-                return self.__rsp_OrderAction.copy()
+                print("PyCTP_Trade.OrderAction().self.__rsp_OrderAction=", self.__rsp_OrderAction)
+                if 'ErrorID' in self.__rsp_OrderAction:
+                    if self.__rsp_OrderAction['ErrorID'] != 0:
+                        sys.stderr.write(str(self.__rsp_OrderInsert['ErrorMsg'], encoding='gb2312'))
+                        return self.__rsp_OrderAction['ErrorID']
+                    return self.__rsp_OrderAction.copy()
+                else:
+                    print("PyCTP_Trade.OrderAction() ErrorID is not in self.__rsp_OrderAction")
             else:
                 return -4
         return ret
@@ -571,15 +575,18 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         from User import User
         # print('PyCTP_Trade.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         Order = Utils.code_transform(Order)
-        # print('PyCTP_Trade.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
+        if Utils.b_print:
+            print('PyCTP_Trade.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
-            if self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode() == Order['OrderRef']:
+            # print("#1 self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode() == Order['OrderRef']", self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode(), Order['OrderRef'])
+            if True:  # self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode() == Order['OrderRef']:
+                # print("PyCTP_Trade.OnRtnOrder() self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode() == Order['OrderRef']")
                 self.__user.OnRtnOrder(Order)  # 转到user回调函数
                 for i in self.__user.get_list_strategy():  # 转到strategy回调函数
                     if Order['OrderRef'][-2:] == i.get_strategy_id():
                         i.OnRtnOrder(Order)
-                self.__rsp_OrderInsert['event'].set()  # 协程解锁
+                # self.__rsp_OrderInsert['event'].set()  # 协程解锁
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
@@ -592,9 +599,12 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
-        OrderAction = Utils.code_transform(OrderAction)
-        RspInfo = Utils.code_transform(RspInfo)
-        print('PyCTP_Trade.OnErrRtnOrderAction()', 'OrderRef:', OrderAction['OrderRef'], 'OrderAction:', OrderAction, 'RspInfo:', RspInfo)
+        if OrderAction is not None:
+            OrderAction = Utils.code_transform(OrderAction)
+        if RspInfo is not None:
+            RspInfo = Utils.code_transform(RspInfo)
+        if Utils.b_print:
+            print('PyCTP_Trade.OnErrRtnOrderAction()', 'OrderAction:', OrderAction, 'RspInfo:', RspInfo)
         #if not self.__rsp_OrderInsert['event'].is_set() and OrderAction['OrderActionStatus'] == PyCTP.THOST_FTDC_OST_Canceled:
         #    self.__rsp_OrderInsert['ErrorID'] = 79
         #    self.__rsp_OrderInsert['ErrorMsg'] = bytes('CTP:发送报单操作失败', 'gb2312')
@@ -606,9 +616,12 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""
         # print('PyCTP_Trade.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
-        InputOrder = Utils.code_transform(InputOrder)
-        RspInfo = Utils.code_transform(RspInfo)
-        # print('PyCTP_Trade.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
+        if InputOrder is not None:
+            InputOrder = Utils.code_transform(InputOrder)
+        if RspInfo is not None:
+            RspInfo = Utils.code_transform(RspInfo)
+        if Utils.b_print:
+            print('PyCTP_Trade.OnErrRtnOrderInsert()', 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
         for i in self.__user.get_list_strategy():  # 转到strategy回调函数
             if InputOrder['OrderRef'][-2:] == i.get_strategy_id():
                 i.OnErrRtnOrderInsert(InputOrder, RspInfo)
@@ -648,3 +661,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     # 获取会话编号
     def get_session_id(self):
         return self.__SessionID
+
+    # 为了解决错误而实现的函数
+    # AttributeError: 'PyCTP_Trader_API' object has no attribute 'OnRspError'
+    def OnRspError(self, pRspInfo, nRequestID, bIsLast):
+        print("PyCTP_Trade.OnRspError()")
+        return None
+

@@ -223,6 +223,7 @@ if __name__ == '__main__':
     else:
         print("CTPManager.create_strategy()初始化时数据库中没有策略")
 
+    # 交易任务执行
     while True:
         pass
 

@@ -41,7 +41,8 @@ class User:
         print(self.__user_id, '投资者代码', Utils.code_transform(self.__trade.setInvestorID(self.__user_id)))
         self.__front_id = self.__trade.get_front_id()  # 获取前置编号
         self.__session_id = self.__trade.get_session_id()  # 获取会话编号
-
+        self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
+        print("User.__init__.self.__instrument_info=", self.__instrument_info)
     # 获取期货账号
     def get_user_id(self):
         return self.__user_id
@@ -53,6 +54,10 @@ class User:
     # 获取trade实例(TD)
     def get_trade(self):
         return self.__trade
+
+    # 获取self.__instrument_info
+    def get_instrument_info(self):
+        return self.__instrument_info
 
     # 获取报单引用part2
     def add_order_ref_part2(self):
@@ -82,6 +87,10 @@ class User:
     # 查询行情
     def qry_depth_market_data(self, instrument_id):
         return self.__trade.QryDepthMarketData(instrument_id)
+
+    # 查询合约
+    def qry_instrument(self):
+        return self.__trade.QryInstrument()
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):

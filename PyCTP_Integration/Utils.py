@@ -9,6 +9,8 @@ import os
 import time
 import DBManager
 
+# 打印控制标志
+b_print = True
 
 # 对CTP_API返回的dict结构内部的元素编码从bytes转换为utf-8，该方法也适用于单个变量的格式转换
 def code_transform(data):
