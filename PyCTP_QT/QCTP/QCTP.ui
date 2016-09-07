@@ -420,6 +420,9 @@
            </property>
            <item>
             <widget class="QTableWidget" name="tablewidget_tableWidget_Trade_Args">
+             <property name="contextMenuPolicy">
+              <enum>Qt::CustomContextMenu</enum>
+             </property>
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
