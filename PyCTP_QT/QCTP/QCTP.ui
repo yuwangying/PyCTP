@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1425</width>
+    <width>1276</width>
     <height>900</height>
    </rect>
   </property>
@@ -56,10 +56,10 @@
          <widget class="QWidget" name="panel_show_account" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <property name="spacing">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="margin">
-            <number>5</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QWidget" name="widget_dongtaiquanyi" native="true">
@@ -317,7 +317,7 @@
               <item>
                <widget class="QLabel" name="label_value_fengxiandu">
                 <property name="text">
-                 <string>10000000</string>
+                 <string>0</string>
                 </property>
                </widget>
               </item>
@@ -711,7 +711,7 @@
              <widget class="QLabel" name="label_zongshou">
               <property name="geometry">
                <rect>
-                <x>326</x>
+                <x>300</x>
                 <y>30</y>
                 <width>30</width>
                 <height>16</height>
@@ -726,7 +726,7 @@
                <rect>
                 <x>78</x>
                 <y>30</y>
-                <width>120</width>
+                <width>105</width>
                 <height>21</height>
                </rect>
               </property>
@@ -741,7 +741,7 @@
                <rect>
                 <x>78</x>
                 <y>60</y>
-                <width>120</width>
+                <width>105</width>
                 <height>21</height>
                </rect>
               </property>
@@ -762,7 +762,7 @@
              <widget class="QSpinBox" name="spinBox_meifen">
               <property name="geometry">
                <rect>
-                <x>360</x>
+                <x>334</x>
                 <y>60</y>
                 <width>55</width>
                 <height>21</height>
@@ -778,7 +778,7 @@
              <widget class="QLabel" name="label_celuebianhao">
               <property name="geometry">
                <rect>
-                <x>212</x>
+                <x>186</x>
                 <y>30</y>
                 <width>60</width>
                 <height>16</height>
@@ -791,7 +791,7 @@
              <widget class="QComboBox" name="comboBox_celuebianhao">
               <property name="geometry">
                <rect>
-                <x>278</x>
+                <x>252</x>
                 <y>30</y>
                 <width>40</width>
                 <height>21</height>
@@ -806,7 +806,7 @@
              <widget class="QLabel" name="label_xiadansuanfa">
               <property name="geometry">
                <rect>
-                <x>212</x>
+                <x>186</x>
                 <y>60</y>
                 <width>60</width>
                 <height>16</height>
@@ -819,7 +819,7 @@
              <widget class="QSpinBox" name="spinBox_xiadansuanfa">
               <property name="geometry">
                <rect>
-                <x>278</x>
+                <x>252</x>
                 <y>60</y>
                 <width>40</width>
                 <height>21</height>
@@ -829,7 +829,7 @@
              <widget class="QLabel" name="label_meifen">
               <property name="geometry">
                <rect>
-                <x>326</x>
+                <x>300</x>
                 <y>60</y>
                 <width>30</width>
                 <height>16</height>
@@ -845,7 +845,7 @@
              <widget class="QSpinBox" name="spinBox_meifen_5">
               <property name="geometry">
                <rect>
-                <x>360</x>
+                <x>334</x>
                 <y>30</y>
                 <width>55</width>
                 <height>21</height>
@@ -2012,7 +2012,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1425</width>
+     <width>1276</width>
      <height>26</height>
     </rect>
    </property>
