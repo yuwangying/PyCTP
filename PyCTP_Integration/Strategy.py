@@ -75,7 +75,7 @@ class Strategy:
         self.__trade_tasking = False  # 交易任务进行中
         self.__a_order_insert_args = dict()  # a合约报单参数
         self.__b_order_insert_args = dict()  # b合约报单参数
-        self.__list_order_pending = list()  # 挂单列表，报单回报写入，成交回报删除
+        self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
 
     # 设置参数
     def set_arguments(self, dict_arguments):
@@ -188,8 +188,11 @@ class Strategy:
         elif tick['InstrumentID'] == self.__list_instrument_id[0]:
             self.__instrument_a_tick = tick
             # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
+
         # 选择下单算法
-        self.select_order_algorithm(self.__order_algorithm)
+        if not self.__trade_tasking:
+            self.select_order_algorithm(self.__order_algorithm)
+
         # 下单任务进行中被行情驱动
         if self.__trade_tasking:
             dict_arguments = {'flag': 'tick', 'tick': tick}
@@ -412,9 +415,9 @@ class Strategy:
             self.__instrument_a_tick_after_tasking = self.__instrument_a_tick
             self.__instrument_b_tick_after_tasking = self.__instrument_b_tick
             # 报单手数：盘口挂单量、每份发单手数、剩余可开仓手数中取最小值
-            order_volume = min(self.__spread_long_volume,
-                               self.__lots_batch,
-                               self.__lots - (self.__position_a_buy + self.__position_b_buy))
+            order_volume = min(self.__spread_long_volume,  # 市场对手量
+                               self.__lots_batch,  # 每份量
+                               self.__lots - (self.__position_a_buy + self.__position_b_buy))  # 剩余可开数量
             if order_volume <= 0 or not isinstance(order_volume, int):
                 if Utils.b_print:
                     print('Strategy.order_algorithm_one() 发单手数错误值', order_volume)
@@ -572,7 +575,7 @@ class Strategy:
                         if i['Direction'] == '0':
                             # 挂单价格与盘口买一价比较，如果与盘口价格差距n个最小跳以上，撤单
                             # print("Strategy.trade_task()self.__a_wait_price_tick * self.__a_price_tick", self.__a_wait_price_tick, self.__a_price_tick,type(self.__a_wait_price_tick), type(self.__a_price_tick))
-                            if dict_arguments['tick']['BidPrice1'] >= (i['LimitPrice'] + self.__a_wait_price_tick*self.__a_price_tick):
+                            if dict_arguments['tick']['BidPrice1'] > (i['LimitPrice'] + self.__a_wait_price_tick*self.__a_price_tick):
                                 if Utils.b_print:
                                     print("Strategy.trade_task() 通过A最新tick判断A合约买挂单符合撤单条件")
                                 # A合约撤单
@@ -625,7 +628,7 @@ class Strategy:
                                     print('Strategy.trade_task() A合约撤单，OrderRef=', i['OrderRef'], '撤单参数：', order_action_arguments)
                                 self.__user.get_trade().OrderAction(order_action_arguments)
                 # B有挂单，判断是否需要撤单，并启动B合约一定成交策略
-                elif i['InstrumentID'] == self.__list_instrument_id[1]:
+                if i['InstrumentID'] == self.__list_instrument_id[1]:
                     # 通过B最新tick判断B合约是否需要撤单
                     if dict_arguments['tick']['InstrumentID'] == self.__list_instrument_id[1]:
                         # B挂单的买卖方向为买
@@ -697,7 +700,7 @@ class Strategy:
                             print("Strategy.update_list_order_pending() 报单状态：部分成交还在队列中")
                     elif dict_arguments['Order']['OrderStatus'] == '2':  # 部分成交不在队列中
                         if Utils.b_print:
-                            print("Strategy.update_list_order_pending() 报单状态：部分成交不在队列中")
+                            print("Strategy.update_list_order_pending() 报单状态：未成交还在队列中")
                     elif dict_arguments['Order']['OrderStatus'] == '3':  # 未成交还在队列中
                         # i = dict_arguments['Order']  # 更新挂单列表
                         self.__list_order_pending[i] = dict_arguments['Order']  # 更新挂单列表

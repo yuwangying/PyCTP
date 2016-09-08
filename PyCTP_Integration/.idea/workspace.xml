@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ca9303d6-9455-470e-8a06-c85cc939cf2f" name="Default" comment="" />
+    <list default="true" id="ca9303d6-9455-470e-8a06-c85cc939cf2f" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Strategy.py" afterPath="$PROJECT_DIR$/Strategy.py" />
+    </list>
     <ignored path="PyCtp.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -132,11 +134,11 @@
       <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="343">
-              <caret line="373" column="81" selection-start-line="373" selection-start-column="81" selection-end-line="373" selection-end-column="81" />
+            <state relative-caret-position="328">
+              <caret line="331" column="10" selection-start-line="331" selection-start-column="10" selection-end-line="331" selection-end-column="10" />
               <folding>
                 <element signature="e#90#130#0" expanded="true" />
-                <element signature="e#37943#38438#1" expanded="false" />
+                <element signature="e#38006#38501#1" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -609,7 +611,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-9" y="-9" width="1938" height="1048" extended-state="7" />
+    <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19239014" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -961,11 +963,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Strategy.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="343">
-          <caret line="373" column="81" selection-start-line="373" selection-start-column="81" selection-end-line="373" selection-end-column="81" />
+        <state relative-caret-position="328">
+          <caret line="331" column="10" selection-start-line="331" selection-start-column="10" selection-end-line="331" selection-end-column="10" />
           <folding>
             <element signature="e#90#130#0" expanded="true" />
-            <element signature="e#37943#38438#1" expanded="false" />
+            <element signature="e#38006#38501#1" expanded="false" />
           </folding>
         </state>
       </provider>
