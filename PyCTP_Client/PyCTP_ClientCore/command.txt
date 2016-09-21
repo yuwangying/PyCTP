@@ -1,0 +1,9 @@
+买开
+{'InstrumentID':b'cu1609', 'Action':b'0', 'Direction':b'0', 'Volume':2, 'Price':39000.00, 'OrderRef': b'101'}
+卖平今
+{'InstrumentID':b'cu1609', 'Action':b'3', 'Direction':b'1', 'Volume':1, 'Price':37000.00, 'OrderRef': b'101'}
+撤单
+{'ExchangeID': b'SHFE', 'OrderRef': b'101', b'OrderSysID':b'          46'}
+
+MarketManager.sub_market() 订阅行情
+{'合约列表': [b'cu1610', b'cu1611'], 'user_id': '063802', 'strategy_id': '02'}

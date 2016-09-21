@@ -1,0 +1,170 @@
+# -*- coding: utf-8 -*-
+
+"""
+Module implementing QLoginForm.
+"""
+import time
+import Utils
+from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtGui import QWidget
+from PyQt4 import QtGui, QtCore
+import PyQt4
+from SocketManager import SocketManager
+import socket
+import json
+import QCTP
+import ClientMain
+
+from Ui_QLogin import Ui_LoginForm
+
+
+class QLoginForm(QWidget, Ui_LoginForm):
+    """
+    Class documentation goes here.
+    """
+
+    Signal_SendMsg = QtCore.pyqtSignal(str)  # 自定义信号
+
+    def __init__(self, parent=None):
+        """
+        Constructor
+        @param parent reference to the parent widget
+        @type QWidget
+        """
+        super(QLoginForm, self).__init__(parent)
+        self.setupUi(self)
+
+        self.Signal_SendMsg.connect(self.slot_SendMsg)  # 绑定信号、槽函数
+        self.__sockfd = None  # socket_file_description
+        self.__sm = None  # SocketManager对象
+
+    def set_login_message(self, str_buff):
+        print("set_login_message(self, str_buff):json_buff=", type(str_buff), str_buff)
+        dict_buff = eval(str_buff)  # str to dict
+        if not isinstance(dict_buff, dict):
+            print("QLogin.set_login_message() 客户端收到的消息转换成dict出错")
+            return
+        if 'MsgResult' not in dict_buff:
+            print("QLogin.set_login_message() 客户端收到的消息中不包含字段MsgResult")
+            return
+        if dict_buff['MsgResult'] == 0:  # 服务端返回登录成功消息
+            self.label_login_error.setText("登录成功")
+            #self.setVisible(False)
+        elif dict_buff['MsgResult'] == 1:  # 服务端发挥登录失败消息
+            self.label_login_error.setText("登录失败")
+            self.label_login_error.setText(dict_buff['MsgErrorReason'])
+            self.pushButton_login.setEnabled(True)  # 激活登录按钮，可以重新登录
+
+    def set_sockfd(self, socket_file_description):
+        self.__sockfd = socket_file_description
+
+    def set_SocketManager(self, obj_sm):
+        self.__sm = obj_sm
+
+    def get_SocketManager(self):
+        return self.__sm
+
+    def set_QCTP(self, obj_QCTP):
+        self.__QCTP = obj_QCTP
+
+    def get_QCTP(self):
+        return self.__QCTP
+
+    def set_QAccountWidget(self, obj_QAccountWidget):
+        self.__QAccountWidget = obj_QAccountWidget
+
+    def set_QOrderWidget(self, obj_QOrderWidget):
+        self.__QOrderWidget = obj_QOrderWidget
+
+    def set_QClientMain(self, qclientmain):
+        self.__QClientMain = qclientmain
+
+    # 自定义槽
+    @pyqtSlot(str)
+    def slot_SendMsg(self, msg):
+        print("slot_SendMsg()", msg)
+        # send json to server
+        SocketManager.send_msg(Utils.socket_file_description, msg)
+    
+    @pyqtSlot()
+    def on_pushButton_login_clicked(self):
+        """
+        Slot documentation goes here.
+        """
+        # TODO: not implemented yet
+
+        self.pushButton_login.setEnabled(False)  # 点击后按钮灰显不可用，收到登录失败重新激活
+
+        # 未勾选脱机登录
+        if self.checkBox_isoffline.checkState() == PyQt4.QtCore.Qt.Unchecked:
+            print("on_pushButton_login_clicked() 未勾选脱机登录")
+            # stockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket套接字
+
+            if not self.__sm:
+                sm = SocketManager("10.0.0.37", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
+                sm.connect()
+                sm.start()
+                self.set_SocketManager(sm)  # SocketManager对象设置为QLoginForm对象的属性
+                # self.__QClientMain.set_SocketManager(sm)  # SocketManager对象设置为QClientMain对象的属性
+                self.__QClientMain.set_QLoginForm(self)  # QLoginForm对象设置为QClientMain对象的属性
+                self.__QClientMain.set_QCTP(self.get_QCTP())  # QCTP对象设置为QClientMain对象的属性
+                self.__QClientMain.set_SocketManager(sm)  # QCTP对象设置为QClientMain对象的属性
+                # 绑定信号:sm的signal_send_message到ClientMain.slot_output_message
+                # sm.signal_send_message.connect(self.__QClientMain.slot_output_message)
+                sm.set_QLogin(self)  # QLoginForm对象设置为SocketManager对象的属性
+
+            dict_login = {'MsgRef': self.__sm.msg_ref_add(),
+                          'MsgSendFlag': 'c2s',
+                          'MsgType': 4,  # 消息类型为trader登录验证
+                          'MsgResult': 0,  # 0：成功、1：失败
+                          'MsgErrorReason': 'ID or password error',
+                          'trader_id': self.lineEdit_trader_id.text(),
+                          'trader_password': self.lineEdit_trader_password.text()}
+            print("dict_login =", dict_login)
+            json_login = json.dumps(dict_login)
+            self.__sm.send_msg(self.__sm.get_sockfd(), json_login)
+        # 勾选脱机登录
+        elif self.checkBox_isoffline.checkState() == PyQt4.QtCore.Qt.Checked:
+            pass
+
+    
+    @pyqtSlot()
+    def on_pushButton_cancel_clicked(self):
+        """
+        Slot documentation goes here.
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+    
+    @pyqtSlot(bool)
+    def on_checkBox_isoffline_clicked(self, checked):
+        """
+        Slot documentation goes here.
+        
+        @param checked DESCRIPTION
+        @type bool
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+        print("on_checkBox_isoffline_clicked()", checked)
+    
+    @pyqtSlot(int)
+    def on_checkBox_isoffline_stateChanged(self, p0):
+        """
+        Slot documentation goes here.
+        
+        @param p0 DESCRIPTION
+        @type int
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+
+if __name__ == "__main__":
+    import sys
+
+    app = QtGui.QApplication(sys.argv)
+    Form = QLoginForm()
+    Form.show()
+
+    sys.exit(app.exec_())
+
