@@ -283,3 +283,40 @@ if __name__ == "__main__":
     Form = QAccountWidget()
     Form.show()
     sys.exit(app.exec_())
+    
+    @pyqtSlot(QPoint)
+    def on_tableWidget_Trade_Args_customContextMenuRequested(self, pos):
+        """
+        Slot documentation goes here.
+        
+        @param pos DESCRIPTION
+        @type QPoint
+        """
+        # TODO: not implemented yet
+        raise NotImplementedError
+    
+    @pyqtSlot(int, int)
+    def on_tableWidget_Trade_Args_cellClicked(self, row, column):
+        """
+        Slot documentation goes here.
+        
+        @param row DESCRIPTION
+        @type int
+        @param column DESCRIPTION
+        @type int
+        """
+        # TODO: not implemented yet
+        raise NotImplementedError
+    
+    @pyqtSlot(int, int)
+    def on_tableWidget_Trade_Args_cellDoubleClicked(self, row, column):
+        """
+        Slot documentation goes here.
+        
+        @param row DESCRIPTION
+        @type int
+        @param column DESCRIPTION
+        @type int
+        """
+        # TODO: not implemented yet
+        raise NotImplementedError

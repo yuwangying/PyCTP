@@ -35,6 +35,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         self.setupUi(self)
 
         self.Signal_SendMsg.connect(self.slot_SendMsg)  # 绑定信号、槽函数
+
         self.__sockfd = None  # socket_file_description
         self.__sm = None  # SocketManager对象
 
@@ -73,6 +74,9 @@ class QLoginForm(QWidget, Ui_LoginForm):
     def set_QAccountWidget(self, obj_QAccountWidget):
         self.__QAccountWidget = obj_QAccountWidget
 
+    def set_dict_QAccountWidget(self, dict_QAccountWidget):
+        self.dict_QAccountWidget = dict_QAccountWidget
+
     def set_QOrderWidget(self, obj_QOrderWidget):
         self.__QOrderWidget = obj_QOrderWidget
 
@@ -84,7 +88,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
     def slot_SendMsg(self, msg):
         print("slot_SendMsg()", msg)
         # send json to server
-        SocketManager.send_msg(Utils.socket_file_description, msg)
+        self.__sm.send_msg(msg)
     
     @pyqtSlot()
     def on_pushButton_login_clicked(self):
@@ -101,10 +105,11 @@ class QLoginForm(QWidget, Ui_LoginForm):
             # stockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket套接字
 
             if not self.__sm:
-                sm = SocketManager("10.0.0.37", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
+                sm = SocketManager("10.0.0.33", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
                 sm.connect()
                 sm.start()
                 self.set_SocketManager(sm)  # SocketManager对象设置为QLoginForm对象的属性
+                sm.set_ClientMain(self.__QClientMain)
                 # self.__QClientMain.set_SocketManager(sm)  # SocketManager对象设置为QClientMain对象的属性
                 self.__QClientMain.set_QLoginForm(self)  # QLoginForm对象设置为QClientMain对象的属性
                 self.__QClientMain.set_QCTP(self.get_QCTP())  # QCTP对象设置为QClientMain对象的属性
@@ -114,15 +119,18 @@ class QLoginForm(QWidget, Ui_LoginForm):
                 sm.set_QLogin(self)  # QLoginForm对象设置为SocketManager对象的属性
 
             dict_login = {'MsgRef': self.__sm.msg_ref_add(),
-                          'MsgSendFlag': 'c2s',
+                          'MsgSendFlag': 0,
                           'MsgType': 4,  # 消息类型为trader登录验证
                           'MsgResult': 0,  # 0：成功、1：失败
                           'MsgErrorReason': 'ID or password error',
-                          'trader_id': self.lineEdit_trader_id.text(),
-                          'trader_password': self.lineEdit_trader_password.text()}
-            print("dict_login =", dict_login)
+                          'info': {'trader_id': self.lineEdit_trader_id.text(),
+                                   'trader_password': self.lineEdit_trader_password.text()
+                                   },
+                          }
+
             json_login = json.dumps(dict_login)
-            self.__sm.send_msg(self.__sm.get_sockfd(), json_login)
+            # self.__sm.send_msg(json_login)
+            self.Signal_SendMsg.emit(json_login)
         # 勾选脱机登录
         elif self.checkBox_isoffline.checkState() == PyQt4.QtCore.Qt.Checked:
             pass
@@ -135,6 +143,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+        self.close()
     
     @pyqtSlot(bool)
     def on_checkBox_isoffline_clicked(self, checked):

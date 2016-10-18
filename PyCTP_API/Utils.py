@@ -39,7 +39,8 @@ def print_menu():
     print('|【s】查询合约信息')
     print('|【u】查询账户信息')
     print('|【t】查询账户资金')
-    print('|【h】查询账户持仓')
+    print('|【h】查询账户持仓汇总')
+    print('|【i】查询账户持仓明细')
     print('|【o】查询委托记录')
     print('|【d】查询交易记录')
     print('|【i】报单')
@@ -48,15 +49,3 @@ def print_menu():
     print('|【b】退出')
     print('===========================')
 
-
-# 核对输入参数
-# def check_arguments(input_params):
-#     if input_params[0] != '{' or input_params[-1] != '}':
-#         print('输入参数错误')
-#         return False
-#     try:
-#         input_params = eval(input_params)
-#     except SyntaxError as e:
-#         print('except:', e)
-#         print('输入参数错误')
-#         continue

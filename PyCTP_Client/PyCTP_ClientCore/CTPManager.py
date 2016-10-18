@@ -12,7 +12,7 @@ import chardet
 import pandas as pd
 from pandas import Series, DataFrame
 from pymongo import MongoClient
-import DBManager
+from DBManager import DBManger
 from PyCTP_Trade import PyCTP_Trader_API
 from PyCTP_Market import PyCTP_Market_API
 import Utils
@@ -24,80 +24,10 @@ from collections import namedtuple  # Socket所需package
 import socket
 import struct
 
-Message = namedtuple("Message", "head checknum buff")
-
-# m = Message("gmqh", 0, "hello, world")
-
-
-# 计算校验码
-def msg_check(message):
-    # 将收到的head以及buff分别累加 % 255
-    checknum = 0
-    for i in message.head:
-        # print("i1 = %c \n" % i)
-        checknum = ((checknum + ord(i)) % 255)
-        # print("i1 checknum = %d \n" % checknum)
-    for i in message.buff:
-        # print("i2 = %c \n" %i)
-        checknum = ((checknum + ord(i)) % 255)
-        # print("i2 checknum = %d \n" % checknum)
-    return checknum
-
-
-# 发送数据
-def write_msg(sockfd, buff):
-    # print("send buff = ", buff)
-    # print("send buff len = ", len(buff))
-    # print("send buff = ", buff.encode())
-    # print("send buff len = ", len(buff.encode()))
-    # 构造Message
-    m = Message("gmqh_sh_2016", 0, buff)
-
-    # 数据发送前,将校验数据填入Message结构体
-    checknum = msg_check(m)
-    m = Message("gmqh_sh_2016", checknum, buff)
-
-    # print("send m.buff = ", m.buff.encode())
-    # print("send m.checknum = ", m.checknum)
-    # 打包数据(13位的head,1位校验码,不定长数据段)
-    data = struct.pack(">13s1B" + str(len(m.buff.encode()) + 1) + "s", m.head.encode(), m.checknum, m.buff.encode())
-
-    print("socket.write_msg: send data = ", data)
-    # 发送数据
-    size = sockfd.send(data)
-
-    # print(size)
-    return size
-
-
-# 读取数据
-def read_msg(sockfd):
-    try:
-        # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
-        data = sockfd.recv(1038)
-    except socket.error as e:
-        print(e)
-    # 解包数据
-    head, checknum, buff = struct.unpack(">13s1B" + str(len(data) - 14) + "s", data)
-    # print(head, checknum, buff, '\n')
-    # 将解包的数据封装为Message结构体
-    m = Message(head.decode().split('\x00')[0], checknum, buff.decode())
-    tmp_checknum = msg_check(m)
-    m = Message(head.decode().split('\x00')[0], tmp_checknum, buff.decode())
-
-    # 将收到的标志位与收到数据重新计算的标志位进行对比+head内容对比
-    if (m.checknum == checknum) and (m.head == "gmqh_sh_2016"):
-        # 打印接收到的数据
-        print("socket.read_msg: receive data = ", m.buff)
-        return m.buff.split('\x00')[0]
-    else:
-        return ""
-
 
 class CTPManager:
     def __init__(self):
-        self.__socket = None  # socket通信实例
-        self.__DBManager = None  # DBManager.DBManger()  # 创建数据库连接
+        self.__DBManager = DBManger()  # 创建数据库连接
         self.__MarketManager = None  # 行情管理实例，MarketManager
         self.__trader = None  # 交易员实例
         self.__list_user = list()  # 期货账户（TD）实例list
@@ -108,6 +38,7 @@ class CTPManager:
         dict_arguments = {'front_address': 'tcp://180.168.146.187:10010', 'broker_id': '9999'}
         self.__MarketManager = MarketManager(dict_arguments['front_address'], dict_arguments['broker_id'])  # 行情管理实例，MarketManager
         print("行情接口交易日：", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
+        self.__MarketManager.get_market().set_strategy(self.__list_strategy)  # 将策略列表设置为Market_API类的属性
 
     # 创建trader
     def create_trader(self, dict_arguments):
@@ -121,7 +52,10 @@ class CTPManager:
                 if i.get_user_id() == dict_arguments['user_id']:
                     print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['user_id'], "的实例")
                     return False
-        self.__list_user.append(User(dict_arguments))  # 期货账户实例列表
+        obj_User = User(dict_arguments)
+        obj_User.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
+        obj_User.set_CTPManager(self)  # 将CTPManager类设置为user的属性
+        self.__list_user.append(obj_User)  # user类实例添加到列表存放
         print("CTPManager.create_user()创建期货账户实例", dict_arguments)
 
     # 将strategy对象添加到user里
@@ -193,6 +127,10 @@ class CTPManager:
                 self.__MarketManager.un_sub_market(i.get_list_instrument_id(), dict_arguments['user_id'], dict_arguments['strategy_id'])
                 self.__list_strategy.remove(i)
 
+    # 创建数据库连接实例
+    def create_DBManager(self):
+        self.__DBManager = DBManger()
+
     # 获取数据库连接实例
     def get_mdb(self):
         return self.__DBManager
@@ -218,6 +156,12 @@ class CTPManager:
         for i in self.__list_user:
             if i.get_user_id() == user_id:
                 return i
+
+    def set_ClientMain(self, obj_ClientMain):
+        self.__ClientMain = obj_ClientMain
+
+    def get_ClientMain(self):
+        return self.__ClientMain
 
     # 新增trader_id下面的某个期货账户
     def add_user(self, trader_id, broker_id, front_address, user_id, password):
@@ -245,111 +189,13 @@ class CTPManager:
     # 交易员登录验证
     def trader_login(self, trader_id, password):
         return self.__DBManager.check_trader(trader_id, password)
-    
-    
-if __name__ == '__main__':
-    # 24小时测试环境-交易、行情前置：180.168.146.187:10030、180.168.146.187:10031
-    # 标准CTP仿真环境-交易、行情前置：180.168.146.187:10000、180.168.146.187:10010
-    # 国贸期货CTP-交易、行情前置：tcp://101.95.8.190:41205、tcp://101.95.8.190:41213
-    # trade_front_address = b'tcp://180.168.146.187:10030'
 
-    # 创建CTPManager
-    ctp_manager = CTPManager()  # 创建管理类
-    socket_connected = None  # 与TradeServer之间的Socket通信状态，初始值False
+    # 设置客户端的交易开关，0关、1开
+    def set_on_off(self, int_on_off):
+        self.__on_off = int_on_off
 
-    # 创建socket套接字
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if s:
-        # 连接服务器: IP,port
-        try:
-            # 进行与服务端的连接(ip地址根据实际情况进行更改)
-            s.settimeout(1.0)  # 连接服务器超时设置为1秒
-            s.connect(("10.0.0.37", 8888))  # 连接服务器
-            socket_connected = True  # 连接服务器成功
-        except socket.error as e:
-            print("socket error", e)
-            socket_connected = False  # 连接服务器失败
-    else:
-        print("socket error")
+    # 获取客户端的交易开关，0关、1开
+    def get_on_off(self):
+        return self.__on_off
 
-    # 连接服务器成功，验证交易员身份证
-    if socket_connected:
-        input_trader_id = input("请输入交易员ID")
-        # 验证交易员ID
-        if write_msg(s, input_trader_id) < 0:
-            print("socket: write msg error")
-        else:
-            # 接收数据
-            buff = read_msg(s)
-            if buff == "":
-                print("socket: read msg error")
-            else:
-                if buff == input_trader_id:
-                    print("交易员ID正确")
-                else:
-                    print("TradeServer:", buff)
-
-        input_trader_password = input("请输入交易员密码")
-        # 验证交易员密码
-        if write_msg(s, input_trader_password) < 0:
-            print("socket: write msg error")
-        else:
-            # 接收数据
-            buff = read_msg(s)
-            if buff == "":
-                print("socket: read msg error")
-            else:
-                if buff == input_trader_password:
-                    print("交易员密码正确")
-                else:
-                    print("TradeServer:", buff)
-
-    # 输入提示符
-    while True:
-        buff = input(b'->')
-        if buff == "":
-            continue
-        # 发送数据buff
-        if write_msg(s, buff) < 0:
-            print("write msg error")
-            continue
-        else:
-            # 接收数据
-            if read_msg(s) < 0:
-                print("read msg error")
-                continue
-    s.close()  # 关闭socket套接字
-
-    """
-    # 创建MarketManager实例
-    dict_arguments = dict()
-    ctp_manager.create_md(dict_arguments)
-    # 创建user实例
-    list_user_db = ctp_manager.get_mdb().get_user()
-    for i in list_user_db:
-        ctp_manager.create_user(i)  # 创建期货账户，td
-
-    # 创建trader实例
-    list_trader_db = ctp_manager.get_mdb().get_trader()
-    for i in list_trader_db:
-        trader_tmp = ctp_manager.create_trader(i)  # 创建交易员实例
-
-    # 将策略实例的list设为market的属性，实现策略实例中行情推送函数回调
-    ctp_manager.get_md().get_market().set_strategy(ctp_manager.get_list_strategy())
-
-    # 访问数据库获取strategy列表，创建strategy实例
-    list_strategy_db = ctp_manager.get_mdb().get_strategy({})
-    if list_strategy_db is not None:
-        for i in list_strategy_db:
-            ctp_manager.create_strategy(i)  # 创建交易策略
-    else:
-        print("CTPManager.create_strategy()初始化时数据库中没有策略")
-
-    # 交易任务执行
-    while True:
-        pass
-
-    # 进入命令窗口
-    Utils.gui(ctp_manager)
-    """
 

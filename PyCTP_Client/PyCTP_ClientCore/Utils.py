@@ -9,8 +9,8 @@ import os
 import time
 import DBManager
 
-# 打印控制标志
-b_print = True
+Strategy_print = False  # Strategy类打印控制
+PyCTP_Trade_API_print = True  # PyCTP_Trade_API类打印控制
 
 # 创建套接字，全局变量
 socket_file_description = None
@@ -141,10 +141,11 @@ def trader_include_user(ctp_manager, trader_id, user_id):
         if i.get_user_id().decode() == user_id and i.get_trader_id().decode() == trader_id:
             return i
 
+
 # 人机交互
 def gui(ctp_manager):
     from PyCTP_Market import PyCTP_Market_API
-    import ClientCore
+    import CTPManager
 
     # ctp_manager.get_mdb() = DBManager.DBManger()  # 在主程序之前已经创建了DBManager.DBManger()
     while True:
@@ -424,24 +425,6 @@ def gui(ctp_manager):
         else:
             print("输入错误，请重新输入")
             time.sleep(0.5)
-
-'''
-# 与MultiUserTradeSys独立
-# 管理员类，用来管理operator
-class Administrator:
-    @staticmethod
-    def add_operator(operator_name, operator_password, email=''):
-        # 调用pymongoDB，进行insert操作
-
-        # 不能重复添加operator
-
-        pass
-
-    @staticmethod
-    def del_operator(operator_name, operator_password='', email=''):
-        # 调用pymongoDB，进行remove操作
-        pass
-'''
 
 
 # 流文件路劲管理

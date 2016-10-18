@@ -156,7 +156,7 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
         if nReason == 4097:
             print('OnFrontDisconnected()网络异常，设置is_first_connect = False')
             PyCTP_Market_API.is_first_connect = False
-            #self.Login(self.__BrokerID, self.__UserID, self.__Password)
+            # self.Login(self.__BrokerID, self.__UserID, self.__Password)
 
         # 登陆状态时掉线, 自动重登陆
         # if self.__isLogined:
@@ -232,6 +232,6 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
     def set_strategy(self, list_strategy):
         self.__list_strategy = list_strategy
 
-    # def get_strategy(self):
-    #     return self.__list_strategy
+    def get_strategy(self):
+        return self.__list_strategy
 

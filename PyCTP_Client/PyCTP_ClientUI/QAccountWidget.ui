@@ -45,7 +45,7 @@
          <item row="1" column="0">
           <widget class="QLabel" name="label_value_dongtaiquanyi">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -75,7 +75,7 @@
          <item>
           <widget class="QLabel" name="label_value_jingtaiquanyi">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -105,7 +105,7 @@
          <item>
           <widget class="QLabel" name="label_value_chicangyingkui">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -135,7 +135,7 @@
          <item>
           <widget class="QLabel" name="label_value_pingcangyingkui">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -165,7 +165,7 @@
          <item>
           <widget class="QLabel" name="label_value_shouxufei">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -195,7 +195,7 @@
          <item>
           <widget class="QLabel" name="label_value_keyongzijin">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -225,7 +225,7 @@
          <item>
           <widget class="QLabel" name="label_value_zhanyongbaozhengjin">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -255,7 +255,7 @@
          <item>
           <widget class="QLabel" name="label_value_xiadandongjie">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -285,7 +285,7 @@
          <item>
           <widget class="QLabel" name="label_value_fengxiandu">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -315,7 +315,7 @@
          <item>
           <widget class="QLabel" name="label_value_jinrirujin">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -345,7 +345,7 @@
          <item>
           <widget class="QLabel" name="label_value_jinrichujin">
            <property name="text">
-            <string>10000000</string>
+            <string>0.0</string>
            </property>
           </widget>
          </item>
@@ -396,7 +396,7 @@
        <number>5</number>
       </property>
       <item>
-       <widget class="QTableWidget" name="tablewidget_tableWidget_Trade_Args">
+       <widget class="QTableWidget" name="tableWidget_Trade_Args">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -436,16 +436,6 @@
         <attribute name="verticalHeaderHighlightSections">
          <bool>true</bool>
         </attribute>
-        <row>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </row>
-        <row>
-         <property name="text">
-          <string>2</string>
-         </property>
-        </row>
         <column>
          <property name="text">
           <string>策略开关</string>
@@ -485,22 +475,12 @@
         </column>
         <column>
          <property name="text">
-          <string>新建列</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>交易模型参数</string>
+          <string>交易模型</string>
          </property>
         </column>
         <column>
          <property name="text">
           <string>持仓盈亏</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>手续费</string>
          </property>
         </column>
         <column>
@@ -515,12 +495,12 @@
         </column>
         <column>
          <property name="text">
-          <string>新建列</string>
+          <string>卖持仓</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>卖持仓</string>
+          <string>手续费</string>
          </property>
         </column>
         <column>
@@ -538,27 +518,6 @@
           <string>平均滑点</string>
          </property>
         </column>
-        <item row="0" column="0">
-         <property name="text">
-          <string>开</string>
-         </property>
-         <property name="checkState">
-          <enum>Checked</enum>
-         </property>
-        </item>
-        <item row="0" column="1">
-         <property name="text">
-          <string>800xxxx</string>
-         </property>
-        </item>
-        <item row="1" column="0">
-         <property name="text">
-          <string>关</string>
-         </property>
-         <property name="checkState">
-          <enum>Unchecked</enum>
-         </property>
-        </item>
        </widget>
       </item>
       <item>
@@ -698,16 +657,6 @@
            <height>21</height>
           </rect>
          </property>
-         <item>
-          <property name="text">
-           <string>8600123456</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>8600222222</string>
-          </property>
-         </item>
         </widget>
         <widget class="QComboBox" name="comboBox_jiaoyimoxing">
          <property name="geometry">
@@ -718,16 +667,6 @@
            <height>21</height>
           </rect>
          </property>
-         <item>
-          <property name="text">
-           <string>11</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>22</string>
-          </property>
-         </item>
         </widget>
         <widget class="QCheckBox" name="checkBox_kongtouping">
          <property name="geometry">
@@ -755,7 +694,7 @@
           <number>9999</number>
          </property>
          <property name="value">
-          <number>9999</number>
+          <number>0</number>
          </property>
         </widget>
         <widget class="QLabel" name="label_celuebianhao">
@@ -780,11 +719,9 @@
            <height>21</height>
           </rect>
          </property>
-         <item>
-          <property name="text">
-           <string>99</string>
-          </property>
-         </item>
+         <property name="editable">
+          <bool>false</bool>
+         </property>
         </widget>
         <widget class="QLabel" name="label_xiadansuanfa">
          <property name="geometry">
@@ -838,7 +775,7 @@
           <number>9999</number>
          </property>
          <property name="value">
-          <number>9999</number>
+          <number>0</number>
          </property>
         </widget>
         <widget class="QSpinBox" name="spinBox_rangjia">
@@ -861,7 +798,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>-12345678.00</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLineEdit" name="lineEdit_duotoujiacha">
@@ -874,7 +811,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>-12345678.00</string>
+          <string/>
          </property>
         </widget>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtoukai">
@@ -905,7 +842,7 @@
           <double>99999999.000000000000000</double>
          </property>
          <property name="value">
-          <double>-12345678.000000000000000</double>
+          <double>0.000000000000000</double>
          </property>
         </widget>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtouping">
@@ -924,7 +861,7 @@
           <double>99999999.000000000000000</double>
          </property>
          <property name="value">
-          <double>-12345678.000000000000000</double>
+          <double>0.000000000000000</double>
          </property>
         </widget>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_duotouping">
@@ -943,7 +880,7 @@
           <double>99999999.000000000000000</double>
          </property>
          <property name="value">
-          <double>-12345678.000000000000000</double>
+          <double>0.000000000000000</double>
          </property>
         </widget>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_duotoukai">
@@ -962,7 +899,7 @@
           <double>99999999.000000000000000</double>
          </property>
          <property name="value">
-          <double>-12345678.000000000000000</double>
+          <double>0.000000000000000</double>
          </property>
         </widget>
         <widget class="QLabel" name="label_Adengdai">
@@ -1034,7 +971,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Bzongbuy">
@@ -1060,7 +997,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Azongbuy">
@@ -1086,7 +1023,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Bzongsell">
@@ -1112,7 +1049,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_chedanxianzhi">
@@ -1138,7 +1075,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>450</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Achedan">
@@ -1164,7 +1101,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>450</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Bchedan">
@@ -1190,7 +1127,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>450</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Ajinsell">
@@ -1222,7 +1159,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Bjinbuy">
@@ -1254,7 +1191,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Ajinbuy">
@@ -1286,7 +1223,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QLabel" name="label_Bjinsell">
@@ -1312,7 +1249,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>9999</string>
+          <string/>
          </property>
         </widget>
         <widget class="QPushButton" name="pushButton_liandongjia">

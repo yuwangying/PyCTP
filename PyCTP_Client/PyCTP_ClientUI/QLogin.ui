@@ -43,6 +43,9 @@
       <property name="text">
        <string>登录</string>
       </property>
+      <property name="shortcut">
+       <string>Return</string>
+      </property>
      </widget>
      <widget class="QPushButton" name="pushButton_cancel">
       <property name="geometry">
@@ -55,6 +58,9 @@
       </property>
       <property name="text">
        <string>取消</string>
+      </property>
+      <property name="shortcut">
+       <string>Esc</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_trader_id">
@@ -136,6 +142,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_trader_id</tabstop>
+  <tabstop>lineEdit_trader_password</tabstop>
+  <tabstop>checkBox_isoffline</tabstop>
+  <tabstop>pushButton_login</tabstop>
+  <tabstop>pushButton_cancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

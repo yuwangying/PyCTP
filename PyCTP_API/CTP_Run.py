@@ -24,50 +24,50 @@ def __main__():
     # Simnow测试账号058176、669822，姓名：原鹏飞
     # Simnow测试账号063802、123456，姓名：余汪应
     # 国贸期货CTP电信账号，钱海玲，86001878/242169
-    BrokerID = b'9999'
-    UserID = b'063802'  #b'063802'
-    Password = b'123456'  # b'123456'
+    BrokerID = b'0187'  # 9999
+    UserID = b'86002565'  # 063802
+    Password = b'240534'  # 123456
     ExchangeID = b'SHFE'
-    listInstrumentID = [b'cu1609', b'cu1610']
-    InstrumentID = b'cu1609'
-    trader = PyCTP_Trader.CreateFtdcTraderApi(b'tmp/_tmp_t_')
-    market = PyCTP_Market.CreateFtdcMdApi(b'tmp/_tmp_m_')
+    listInstrumentID = [b'cu1701', b'cu1612']
+    InstrumentID = b'cu1701'
+    trader = PyCTP_Trader.CreateFtdcTraderApi(b'tmp/_tmp_t_')  # Trade实例
+    market = PyCTP_Market.CreateFtdcMdApi(b'tmp/_tmp_m_')  # Market实例
     # 24小时交易、行情前置：180.168.146.187:10030、180.168.146.187:10031
     # 标准CTP交易、行情前置：180.168.146.187:10000、180.168.146.187:10010
     # CTPMini1：第一组：TradeFront：180.168.146.187:10003，MarketFront：180.168.146.187:10013；【电信】
     # 国贸期货CTP电信：交易：101.95.8.190:41205，行情：101.95.8.190:41213
-    print('连接交易前置', Utils.code_transform(trader.Connect(b'tcp://180.168.146.187:10000')))
-    print('连接行情前置', Utils.code_transform(market.Connect(b'tcp://180.168.146.187:10010')))
+    print('连接交易前置', Utils.code_transform(trader.Connect(b'tcp://101.95.8.190:41205')))  # 180.168.146.187:10000
+    print('连接行情前置', Utils.code_transform(market.Connect(b'tcp://101.95.8.190:41213')))  #  180.168.146.187:10010
     print('交易账号登陆', Utils.code_transform(trader.Login(BrokerID, UserID, Password)))
     print('交易账号登陆', Utils.code_transform(market.Login(BrokerID, UserID, Password)))
     print('交易日', Utils.code_transform(trader.GetTradingDay()))
     print('设置投资者代码', Utils.code_transform(trader.setInvestorID(UserID)))
-    time.sleep(1.0)
-    print('查询交易所', Utils.code_transform(trader.QryExchange()))
-    time.sleep(1.0)
-    print('查询投资者', Utils.code_transform(trader.QryInvestor()))
-    time.sleep(1.0)
-    print('查询资金账户', Utils.code_transform(trader.QryTradingAccount()))
-    time.sleep(1.0)
-    print('查询合约', Utils.code_transform(trader.QryInstrument(b'SHFE')))
+    # time.sleep(1.0)
+    # print('查询交易所', Utils.code_transform(trader.QryExchange()))
+    # time.sleep(1.0)
+    # print('查询投资者', Utils.code_transform(trader.QryInvestor()))
+    # time.sleep(1.0)
+    # print('查询资金账户', Utils.code_transform(trader.QryTradingAccount()))
+    # time.sleep(1.0)
+    # print('查询合约', Utils.code_transform(trader.QryInstrument(b'SHFE')))
     # time.sleep(1.0)
     # dfInstrument.to_csv('data/dfInstrument.csv')
-    time.sleep(1.0)
-    print('查询交易代码', Utils.code_transform(trader.QryTradingCode(ExchangeID)))
-    time.sleep(1.0)
-    print('合约手续费率', Utils.code_transform(trader.QryInstrumentCommissionRate(InstrumentID)))
-    time.sleep(1.0)
-    print('合约保证金率', Utils.code_transform(trader.QryInstrumentMarginRate(InstrumentID)))
-    time.sleep(1.0)
-    print('查询报单', Utils.code_transform(trader.QryOrder()))
-    time.sleep(1.0)
-    print('查询成交单', Utils.code_transform(trader.QryTrade()))
-    time.sleep(1.0)
-    print('投资者持仓', Utils.code_transform(trader.QryInvestorPosition()))
-    time.sleep(1.0)
-    print('查询行情', Utils.code_transform(trader.QryDepthMarketData(InstrumentID)))
-    time.sleep(1.0)
-    print('订阅行情', Utils.code_transform(market.SubMarketData(listInstrumentID)))
+    # time.sleep(1.0)
+    # print('查询交易代码', Utils.code_transform(trader.QryTradingCode(ExchangeID)))
+    # time.sleep(1.0)
+    # print('合约手续费率', Utils.code_transform(trader.QryInstrumentCommissionRate(InstrumentID)))
+    # time.sleep(1.0)
+    # print('合约保证金率', Utils.code_transform(trader.QryInstrumentMarginRate(InstrumentID)))
+    # time.sleep(1.0)
+    # print('查询报单', Utils.code_transform(trader.QryOrder()))
+    # time.sleep(1.0)
+    # print('查询成交单', Utils.code_transform(trader.QryTrade()))
+    # time.sleep(1.0)
+    # print('投资者持仓', Utils.code_transform(trader.QryInvestorPosition()))
+    # time.sleep(1.0)
+    # print('查询行情', Utils.code_transform(trader.QryDepthMarketData(InstrumentID)))
+    # time.sleep(1.0)
+    # print('订阅行情', Utils.code_transform(market.SubMarketData(listInstrumentID)))
 
     # 调试OrderInsert
     while True:
@@ -106,7 +106,11 @@ def __main__():
             continue
 
         if var == 'h':
-            print('查询账户持仓\n', Utils.code_transform(trader.QryInvestorPosition()))
+            print('查询账户持仓汇总\n', Utils.code_transform(trader.QryInvestorPosition()))
+            continue
+
+        if var == 'i':
+            print('查询账户持仓明细\n', Utils.code_transform(trader.QryInvestorPositionDetail()))
             continue
 
         if var == 'o':
@@ -157,9 +161,18 @@ def __main__():
 
         # 保存文件到本地
         if var == 'l':
-            PyCTP_Market.df_data.to_csv('data/df_data.csv')  # 保存行情到本地csv文件
-            PyCTP_Trader.dfInstrumentStatus.to_csv('data/dfInstrumentStatus.csv')  # 保合约状态到本地csv文件
-            PyCTP_Trader.dfInstrument.to_csv('data/dfInstrument.csv')  # 保合约状态到本地csv文件
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_Tick.csv'
+            PyCTP_Market.df_data.to_csv(path_tmp)  # 保存行情到本地csv文件
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_Instrument.csv'
+            PyCTP_Trader.dfInstrument.to_csv(path_tmp)  # 保存合约状态到本地csv文件
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_Postion.csv'
+            PyCTP_Trader.dfQryInvestorPosition.to_csv(path_tmp)  # 保存持仓到本地csv文件
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_PostionDetail.csv'
+            PyCTP_Trader.dfQryInvestorPositionDetail.to_csv(path_tmp)  # 保存持仓明细到本地csv文件
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_RecordOrder.csv'
+            PyCTP_Trader.dfRecordOrder.to_csv(path_tmp)  # 保存Trade回调记录到本地csv文件
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_RecordTrade.csv'
+            PyCTP_Trader.dfRecordTrade.to_csv(path_tmp)  # 保存Order回调记录到本地csv文件
             continue
 
         # 输入错误重新输入

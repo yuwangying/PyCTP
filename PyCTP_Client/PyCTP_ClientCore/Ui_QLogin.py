@@ -67,12 +67,18 @@ class Ui_LoginForm(object):
 
         self.retranslateUi(LoginForm)
         QtCore.QMetaObject.connectSlotsByName(LoginForm)
+        LoginForm.setTabOrder(self.lineEdit_trader_id, self.lineEdit_trader_password)
+        LoginForm.setTabOrder(self.lineEdit_trader_password, self.checkBox_isoffline)
+        LoginForm.setTabOrder(self.checkBox_isoffline, self.pushButton_login)
+        LoginForm.setTabOrder(self.pushButton_login, self.pushButton_cancel)
 
     def retranslateUi(self, LoginForm):
         LoginForm.setWindowTitle(_translate("LoginForm", "Form", None))
         self.groupBox_login_form.setTitle(_translate("LoginForm", "登录项", None))
         self.pushButton_login.setText(_translate("LoginForm", "登录", None))
+        self.pushButton_login.setShortcut(_translate("LoginForm", "Return", None))
         self.pushButton_cancel.setText(_translate("LoginForm", "取消", None))
+        self.pushButton_cancel.setShortcut(_translate("LoginForm", "Esc", None))
         self.label_trader_id.setText(_translate("LoginForm", "交易员账户", None))
         self.label_trader_password.setText(_translate("LoginForm", "交易员密码", None))
         self.checkBox_isoffline.setText(_translate("LoginForm", "脱机登录", None))

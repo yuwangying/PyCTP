@@ -21,6 +21,11 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     __RequestID = 0
     __isLogined = False
 
+    dfQryInvestorPosition = DataFrame()  # 保存查询持仓汇总的全局变量
+    dfQryInvestorPositionDetail = DataFrame()  # 保存查询持仓明细的全局变量
+    dfRecordOrder = DataFrame()  # 保存Order回调记录
+    dfRecordTrade = DataFrame()  # 保存Trade回调记录
+
     def __IncRequestID(self):
         """ 自增并返回请求ID """
         self.__RequestID += 1
@@ -46,8 +51,8 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESUME)
-        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESUME)
+        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESTART)
+        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESTART)
         self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())
@@ -181,8 +186,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         return ret
         pass
 
-
-
     def QryInvestorPosition(self, InstrumentID=b''):
         """ 请求查询投资者持仓 """
         QryInvestorPositionField = dict(BrokerID=self.__BrokerID, InvestorID=self.__InvestorID, InstrumentID=InstrumentID)
@@ -194,6 +197,23 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 if self.__rsp_QryInvestorPosition['ErrorID'] != 0:
                     return self.__rsp_QryInvestorPosition['ErrorID']
                 return self.__rsp_QryInvestorPosition['results']
+            else:
+                return -4
+        return ret
+
+    def QryInvestorPositionDetail(self, InstrumentID=b''):
+        """ 请求查询投资者持仓明细 """
+        """ywy2016年10月12日实现"""
+        QryInvestorPositionDetailField = dict(BrokerID=self.__BrokerID, InvestorID=self.__InvestorID, InstrumentID=InstrumentID)
+        self.__rsp_QryInvestorPositionDetail = dict(results=[], RequestID=self.__IncRequestID(), ErrorID=0,
+                                              event=threading.Event())
+        ret = self.ReqQryInvestorPositionDetail(QryInvestorPositionDetailField, self.__rsp_QryInvestorPositionDetail['RequestID'])
+        if ret == 0:
+            self.__rsp_QryInvestorPositionDetail['event'].clear()
+            if self.__rsp_QryInvestorPositionDetail['event'].wait(self.TIMEOUT):
+                if self.__rsp_QryInvestorPositionDetail['ErrorID'] != 0:
+                    return self.__rsp_QryInvestorPositionDetail['ErrorID']
+                return self.__rsp_QryInvestorPositionDetail['results']
             else:
                 return -4
         return ret
@@ -498,7 +518,26 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             if InvestorPosition is not None:
                 self.__rsp_QryInvestorPosition['results'].append(InvestorPosition)
             if IsLast:
+                # 将查询结果转为df格式
+                for i in self.__rsp_QryInvestorPosition['results']:
+                    PyCTP_Trader_API.dfQryInvestorPosition = DataFrame.append(
+                        PyCTP_Trader_API.dfQryInvestorPosition, other=Utils.code_transform(i), ignore_index=True)
                 self.__rsp_QryInvestorPosition['event'].set()
+
+    def OnRspQryInvestorPositionDetail(self, InvestorPositionDetail, RspInfo, RequestID, IsLast):
+        """ 请求查询投资者持仓明细响应 """
+        """ywy2016年10月12日实现"""
+        if RequestID == self.__rsp_QryInvestorPositionDetail['RequestID']:
+            if RspInfo is not None:
+                self.__rsp_QryInvestorPositionDetail.update(RspInfo)
+            if InvestorPositionDetail is not None:
+                self.__rsp_QryInvestorPositionDetail['results'].append(InvestorPositionDetail)
+            if IsLast:
+                # 将查询结果转为df格式
+                for i in self.__rsp_QryInvestorPositionDetail['results']:
+                    PyCTP_Trader_API.dfQryInvestorPositionDetail = DataFrame.append(PyCTP_Trader_API.dfQryInvestorPositionDetail, other=Utils.code_transform(i), ignore_index=True)
+
+                self.__rsp_QryInvestorPositionDetail['event'].set()
 
     def OnRspQryTradingAccount(self, TradingAccount, RspInfo, RequestID, IsLast):
         """ 请求查询资金账户响应 """
@@ -576,13 +615,17 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
             if self.__rsp_OrderInsert['InputOrder']['OrderRef'] == Order['OrderRef']:
                 self.__rsp_OrderInsert['event'].set()
-        pass
+        PyCTP_Trader_API.dfRecordOrder = DataFrame.append(PyCTP_Trader_API.dfRecordOrder,
+                                                        other=Utils.code_transform(Order),
+                                                        ignore_index=True)
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
         # print('OnRtnTrade:', Trade)
         print('OnRtnTrade:\n', Utils.code_transform(Trade))
-        pass
+        PyCTP_Trader_API.dfRecordTrade = DataFrame.append(PyCTP_Trader_API.dfRecordTrade,
+                                                                        other=Utils.code_transform(Trade),
+                                                                        ignore_index=True)
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
@@ -600,6 +643,9 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         """ 交易通知 """
         print('OnRtnTradingNotice:', TradingNoticeInfo)
         pass
+
+    def get_UserID(self):
+        return self.__UserID
 
 
 class PyCTP_Trader(PyCTP_Trader_API):

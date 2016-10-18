@@ -12,15 +12,55 @@ import datetime
 class DBManger:
     def __init__(self):
         '''Create Mongodb Connection'''
-        # self.__client = MongoClient() #Default Connection
-        self.__client = MongoClient('localhost', 27017)
-        self.__db = self.__client.CTP  # 总数据库
-        self.__col_admin = self.__db.admin  # 管理员集合
-        self.__col_trader = self.__db.trader  # 交易员集合
-        self.__col_user = self.__db.user  # 期货账户集合
-        self.__col_trader_login_log = self.__db.trader_login_log  # 已经登录的交易员集合
-        self.__col_strategy = self.__db.strategy  # 交易策略集合
-        # client = MongoClient('mongodb://localhost:27017/')
+        self.__mongo_client = MongoClient('localhost', 27017)  # 创建数据库连接实例
+        self.__db_CTP = self.__mongo_client.CTP  # 总数据库
+        self.__col_admin = self.__db_CTP.admin  # 管理员集合
+        self.__col_trader = self.__db_CTP.trader  # 交易员集合
+        self.__col_user = self.__db_CTP.user  # 期货账户集合
+        # 其他集合：策略、持仓、持仓明细、trade、order，在user类里管理
+
+    def set_user(self, obj_user):
+        self.__user = obj_user
+
+    # 动态创建结合的方法，传入参数：集合名
+    def create_collection(self, collection_name):
+        self.__db_CTP.create_collection(collection_name)
+    
+    # 获取数据库中的集合，传入参数：集合名，返回值：集合
+    def get_collection(self, collection_name):
+        return self.__db_CTP.get_collection(collection_name)
+
+    # 清空本地数据库
+    def clear_db(self):
+        self.__col_trader.remove()  # 清空交易员集合中的文档
+        self.__col_user.remove()  # 清空user集合中的文档
+        # self.__col_strategy.remove()  # 交易策略集合
+        # self.__col_position.remove()  # 持仓
+        # self.__col_position_detail.remove({'TradingDay': self.__user.GetTradingDay()})
+
+    # 插入order记录到数据库
+    # def insert_order(self, order):
+    #     pass
+    # 
+    # 插入trade记录到数据库
+    # def insert_trade(self, trade):
+    #     self.__col_position_detail.insert(trade)
+    #     pass
+
+    def get_col_trader(self):
+        return self.__col_trader
+
+    def get_col_user(self):
+        return self.__col_user
+
+    # def get_col_strategy(self, str_user_id):
+    #     return self.__col_strategy
+    # 
+    # def get_col_position(self):
+    #     return self.__col_position
+    # 
+    # def get_col_position_detail(self):
+    #     return self.__col_position_detail
 
     '''验证管理员'''
     def check_admin(self, admin_id, password):
@@ -162,28 +202,6 @@ class DBManger:
                 return None
             else:
                 return user  # list_user.append(user)
-
-    # 更新交易员login信息
-    def update_trader_login_status(self, trader_id):
-        trader_login_status = dict()
-        trader_login_status['trader_id'] = trader_id
-        trader_login_status['login_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        trader_login_status['trading_day'] = PyCTP_Market_API.TradingDay.decode('utf-8')
-        # 从交易员集合里查询是否存在该交易员
-        number = self.__col_trader.count({'trader_id': trader_id})
-        if number == 0:
-            print("update_trader_login_status(),不存在该交易员", trader_id)
-            return False
-        # 交易员登录日志中已经存在该交易员记录，则修改日志信息
-        elif number == 1:
-            number2 = self.__col_trader_login_log.count({'trader_id': trader_id})
-            # 交易员登录状态记录表里面不存在该交易员，则创建文档
-            if number2 == 0:
-                self.__col_trader_login_log.insert_one(trader_login_status)
-            # 交易员登录状态记录表里面已存在该交易员，则修改文档
-            elif number2 == 1:
-                self.__col_trader_login_log.update_one({'trader_id': trader_id}, {"$set": trader_login_status})
-            return True
 
     '''交易员查询名下所有期货账户信息，非管理员权限'''
     def get_user_id(self, trader_id):
