@@ -35,9 +35,14 @@ class CTPManager:
 
     # 创建MD
     def create_md(self, dict_arguments):
-        dict_arguments = {'front_address': 'tcp://180.168.146.187:10010', 'broker_id': '9999'}
-        self.__MarketManager = MarketManager(dict_arguments['front_address'], dict_arguments['broker_id'])  # 行情管理实例，MarketManager
-        print("行情接口交易日：", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
+        # dict_arguments = {'front_address': 'tcp://180.168.146.187:10010', 'broker_id': '9999'}
+        # 创建行情管理实例MarketManager
+        self.__MarketManager = MarketManager(dict_arguments['front_address'],
+                                             dict_arguments['broker_id'],
+                                             dict_arguments['user_id'],
+                                             dict_arguments['password']
+                                             )
+        print("CTPManager.create_md() 行情接口交易日", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
         self.__MarketManager.get_market().set_strategy(self.__list_strategy)  # 将策略列表设置为Market_API类的属性
 
     # 创建trader
@@ -56,7 +61,7 @@ class CTPManager:
         obj_User.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
         obj_User.set_CTPManager(self)  # 将CTPManager类设置为user的属性
         self.__list_user.append(obj_User)  # user类实例添加到列表存放
-        print("CTPManager.create_user()创建期货账户实例", dict_arguments)
+        print("CTPManager.create_user() 创建期货账户实例", dict_arguments)
 
     # 将strategy对象添加到user里
     def add_strategy_to_user(self, obj_strategy):
@@ -69,26 +74,26 @@ class CTPManager:
         # 形参{'trader_id': '1601', 'user_id': '800658', 'strategy_id': '01', 'OrderAlgorithm':'01', 'list_instrument_id': ['cu1611', 'cu1610']}
         # 判断数据库中是否存在trader_id
         if self.__DBManager.get_trader(dict_arguments['trader_id']) is None:
-            print("MultiUserTradeSys.create_strategy()数据库中不存在该交易员")
+            print("CTPManager.create_strategy() 数据库中不存在该交易员")
             return False
         # 判断数据库中是否存在user_id
         if self.__DBManager.get_user(dict_arguments['user_id']) is None:
-            print("MultiUserTradeSys.create_strategy()数据库中不存在该期货账户")
+            print("CTPManager.create_strategy() 数据库中不存在该期货账户")
             return False
         # strategy_id格式必须为两位阿拉伯数字的字符串，判断数据库中是否已经存在该strategy_id
         if len(dict_arguments['strategy_id']) != 2:
-            print("MultiUserTradeSys.create_strategy()策略编码数据长度不为二", len(dict_arguments['strategy_id']))
+            print("CTPManager.create_strategy() 策略编码数据长度不为二", len(dict_arguments['strategy_id']))
             return False
 
         print('===========================')
-        print("CTPManager.create_strategy()创建策略实例", dict_arguments)
+        print("CTPManager.create_strategy() 创建策略实例", dict_arguments)
         for i in self.__list_user:
             if i.get_user_id().decode('utf-8') == dict_arguments['user_id']:
                 obj_strategy = Strategy(dict_arguments, i, self.__DBManager)    # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
-                i.add_strategy(obj_strategy)               # 将obj_strategy添加到user实例中的list_strategy
+                i.add_strategy(obj_strategy)               # 将策略实例添加到user的策略列表
                 # obj_strategy.set_DBM(self.__DBM)           # 将数据库连接实例设置为strategy的属性
                 # obj_strategy.set_user(i)                   # 将user设置为strategy的属性
-                self.__list_strategy.append(obj_strategy)  # 将策略实例添加到ctp_manager对象的__list_strategy属性
+                self.__list_strategy.append(obj_strategy)  # # 将策略实例添加到CTP_Manager的策略列表
 
         # 字符串转码为二进制字符串
         list_instrument_id = list()
@@ -101,19 +106,19 @@ class CTPManager:
     def delete_strategy(self, dict_arguments):
         # 判断数据库中是否存在trader_id
         if self.__DBManager.get_trader(dict_arguments['trader_id']) is None:
-            print("MultiUserTradeSys.delete_strategy()数据库中不存在该交易员")
+            print("CTPManager.delete_strategy() 数据库中不存在该交易员")
             return False
         # 判断数据库中是否存在user_id
         if self.__DBManager.get_user(dict_arguments['user_id']) is None:
-            print("MultiUserTradeSys.delete_strategy()数据库中不存在该期货账户")
+            print("CTPManager.delete_strategy() 数据库中不存在该期货账户")
             return False
         # 判断数据库中是否存在strategy_id
         if self.__DBManager.get_strategy(dict_arguments) is None:
-            print("MultiUserTradeSys.delete_strategy()数据库中不存在该策略")
+            print("CTPManager.delete_strategy() 数据库中不存在该策略")
             return False
 
         print('===========================')
-        print("CTPManager.delete_strategy()删除策略实例", dict_arguments)
+        print("CTPManager.delete_strategy() 删除策略实例", dict_arguments)
 
         # 将obj_strategy从user实例的list_strategy中删除
         for i in self.__list_user:

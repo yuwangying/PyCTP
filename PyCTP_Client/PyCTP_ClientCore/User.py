@@ -55,11 +55,11 @@ class User:
         # 脱机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
         # 其中trade和order记录只清空当天的
         self.__mongo_client = MongoClient('localhost', 27017)  # 创建数据库连接实例
-        col_strategy = self.__user_id + 'strategy'  # 策略集合名
-        col_position = self.__user_id + 'position'  # 持仓汇总集合名
-        col_position_detail = self.__user_id + 'position_detail'  # 持仓明细集合名
-        col_trade = self.__user_id + 'trade'  # trade回调记录集合名
-        col_order = self.__user_id + 'order'  # order回调记录集合名
+        col_strategy = self.__user_id.decode() + 'strategy'  # 策略集合名
+        col_position = self.__user_id.decode() + 'position'  # 持仓汇总集合名
+        col_position_detail = self.__user_id.decode() + 'position_detail'  # 持仓明细集合名
+        col_trade = self.__user_id.decode() + 'trade'  # trade回调记录集合名
+        col_order = self.__user_id.decode() + 'order'  # order回调记录集合名
         for i in [col_strategy, col_position, col_position_detail]:
             try:
                 self.__mongo_client.CTP.drop_collection(i)

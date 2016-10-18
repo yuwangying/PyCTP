@@ -111,12 +111,22 @@ class ClientMain(QtCore.QObject):
             # 更新数据库，将StraetgyInfo消息转给对应的user
             # self.__CTPManager.get_mdb().get_col_strategy().remove()  # 从数据库删除数据
             for i in buff['Info']:
-                # buff['Info']是list，内包含多个strategy信息，总数限制为30k个
-                self.__CTPManager.get_mdb().get_col_strategy().insert(i)  # 存入数据到数据库，是一个list，内含多个dict
+                # buff['Info']是list，内包含多个strategy信息，一批限制为30k个，可以分批发送，总数无限大
                 self.__CTPManager.create_strategy(i)  # 创建策略实例
+                for j in self.__CTPManager.get_list_user():  # 遍历user实例列表
+                    if j.get_user_id() == i['user_id']:  # 找到对应的user实例
+                        j.get_col_strategy.insert(i)  # 将strategy参数存入到本地数据库
 
-        elif buff['MsgType'] == 6:  # StrategyInfo，更新Strategy参数
-            pass
+        elif buff['MsgType'] == 7:  # StrategyInfo，更新Strategy参数
+            for i in buff['Info']:
+                # buff['Info']是list，内包含多个strategy信息，总数限制为30k个
+                # 将策略更新到数据库中的集合col_strategy，通过user类的数据库连接实例操作
+                for j in self.__CTPManager.get_list_user():  # 遍历ctp管理类的user实例列表
+                    if j.get_user_id() == i['user_id']:  # 找到对应的user
+                        j.get_col_strategy.update({'user_id': i['user_id']}, i)  # 更新本地数据库中策略参数文档
+                        for k in j.get_list_strategy():  # 遍历user的策略实例列表
+                            if k.get_strategy_id == i['strategy_id']:  # 找到对应的strategy
+                                k.set_arguments(i)  # 更新strategy类的参数
 
         elif buff['MsgType'] == 4:  # trader登录
             if buff['MsgResult'] == 0:  # 登录结果为成功
@@ -125,30 +135,24 @@ class ClientMain(QtCore.QObject):
                 self.__QCTP.show()
 
                 # 模拟登陆成功之后服务端给客户端发送信息，客户端用来初始化
-                # 发送MarketManagerInfo
-                dict_market = {'MsgRef': self.__sm.msg_ref_add(),
-                               'MsgSendFlag': 0,
-                               'MsgType': 6,  # 消息类型为Market行情参数
-                               'MsgResult': 0,  # 0：成功、1：失败
-                               'MsgErrorReason': 'None',
-                               'Info':
-                                   [
-                                       {"front_address": "tcp://180.168.146.187:10010",
-                                        "user_id": "063802",
-                                        "pass_word": "123456",
-                                        "user_name": "余汪应",
-                                        "broker_id": "9999"
-                                        },
-                                       {"front_address": "tcp://180.168.146.187:10010",
-                                        "user_id": "058176",
-                                        "pass_word": "669822",
-                                        "user_name": "原鹏飞",
-                                        "broker_id": "9999"
-                                        }
-                                   ]
-                               }
-                json_market = json.dumps(dict_market)
-                self.__sm.send_msg(json_market)
+
+                # 发送MarketInfo
+                dict_MarketInfo = {'MsgRef': self.__sm.msg_ref_add(),
+                                   'MsgSendFlag': 0,  # 0:c2s、1:s2c
+                                   'MsgType': 6,  # 消息类型为PositionInfo
+                                   'MsgResult': 0,  # 0：成功、1：失败
+                                   'MsgErrorReason': 'None',
+                                   'Info':
+                                       [
+                                           {'front_address': 'tcp://180.168.146.187:10010',
+                                            'broker_id': '9999',
+                                            'user_id': '',
+                                            'password': ''
+                                            }
+                                       ]
+                                   }
+                json_PositionInfo = json.dumps(dict_MarketInfo)
+                self.__sm.send_msg(json_PositionInfo)
 
                 # 发送UserInfo
                 dict_UserInfo = {'MsgRef': self.__sm.msg_ref_add(),
@@ -312,11 +316,13 @@ class ClientMain(QtCore.QObject):
                                      }
                 json_PositionInfo = json.dumps(dict_PositionInfo)
                 self.__sm.send_msg(json_PositionInfo)
+
         elif buff['MsgType'] == 5:  # PositionInfo
             pass
 
         elif buff['MsgType'] == 6:  # MarketManagerInfo
-            self.__CTPManager.create_md(buff)
+            for i in buff['Info']:
+                self.__CTPManager.create_md(i)
 
 
 if __name__ == '__main__':

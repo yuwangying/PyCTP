@@ -22,7 +22,7 @@ class Strategy:
         self.__DBM = obj_DBM  # 数据库连接实例
         self.__user = obj_user  # user实例
         self.__dict_arguments = dict_arguments  # 转存形参到类的私有变量
-        self.__TradingDay = self.__user.GetTradingDay().decode()  # 获取交易日
+        self.__TradingDay = self.__user.GetTradingDay()  # 获取交易日
 
         # 交易参数
         self.__trader_id = dict_arguments['trader_id']
