@@ -671,6 +671,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     # 为了解决错误而实现的函数
     # AttributeError: 'PyCTP_Trader_API' object has no attribute 'OnRspError'
     def OnRspError(self, pRspInfo, nRequestID, bIsLast):
-        print("PyCTP_Trade.OnRspError() pRspInfo=", pRspInfo, "nRequestID=", nRequestID, "bIsLast=", bIsLast)
+        print("PyCTP_Trade.OnRspError() pRspInfo=", Utils.code_transform(pRspInfo), "nRequestID=", nRequestID, "bIsLast=", bIsLast)
         return None
 

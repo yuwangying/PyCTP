@@ -23,7 +23,7 @@
     <SUITE FILE_PATH="coverage/PyCTP_API_TEST$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469003425934" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$Utils.coverage" NAME="Utils Coverage Results" MODIFIED="1469632933149" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_API$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469161407258" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1476797759889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1476863314486" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$test__1_.coverage" NAME="test (1) Coverage Results" MODIFIED="1469457199918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCtp$test.coverage" NAME="test Coverage Results" MODIFIED="1468915461792" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$MarketManager.coverage" NAME="MarketManager Coverage Results" MODIFIED="1469679462315" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -55,28 +55,39 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="450">
-      <file leaf-file-name="ClientMain.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ClientMain.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ClientMain.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
-              <caret line="138" column="30" selection-start-line="138" selection-start-column="30" selection-end-line="138" selection-end-column="30" />
+            <state relative-caret-position="5129">
+              <caret line="259" column="57" selection-start-line="259" selection-start-column="57" selection-end-line="259" selection-end-column="57" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
                 <element signature="e#1627#1939#1" expanded="false" />
-                <element signature="e#5735#6516#0" expanded="false" />
                 <element signature="e#6697#7911#0" expanded="false" />
-                <element signature="e#8090#14084#0" expanded="false" />
                 <element signature="e#14275#17370#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="190">
-              <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+            <state relative-caret-position="328">
+              <caret line="814" column="13" selection-start-line="814" selection-start-column="13" selection-end-line="814" selection-end-column="13" />
+              <folding>
+                <element signature="e#90#101#0" expanded="true" />
+                <element signature="e#48455#52330#1" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Utils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="460">
+              <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
               <folding />
             </state>
           </provider>
@@ -85,18 +96,8 @@
       <file leaf-file-name="QLogin.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/QLogin.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="253">
-              <caret line="107" column="44" selection-start-line="107" selection-start-column="44" selection-end-line="107" selection-end-column="44" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SocketManager.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SocketManager.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3358">
-              <caret line="154" column="42" selection-start-line="154" selection-start-column="42" selection-end-line="154" selection-end-column="42" />
+            <state relative-caret-position="2438">
+              <caret line="118" column="72" selection-start-line="118" selection-start-column="72" selection-end-line="118" selection-end-column="72" />
               <folding />
             </state>
           </provider>
@@ -105,8 +106,8 @@
       <file leaf-file-name="User.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/User.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="490">
-              <caret line="115" column="26" selection-start-line="115" selection-start-column="26" selection-end-line="115" selection-end-column="26" />
+            <state relative-caret-position="4071">
+              <caret line="180" column="34" selection-start-line="180" selection-start-column="34" selection-end-line="180" selection-end-column="34" />
               <folding>
                 <element signature="e#90#105#0" expanded="true" />
               </folding>
@@ -117,8 +118,8 @@
       <file leaf-file-name="PyCTP_Trade.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
-              <caret line="659" column="8" selection-start-line="659" selection-start-column="8" selection-end-line="659" selection-end-column="8" />
+            <state relative-caret-position="15364">
+              <caret line="673" column="81" selection-start-line="673" selection-start-column="81" selection-end-line="673" selection-end-column="81" />
               <folding />
             </state>
           </provider>
@@ -127,8 +128,8 @@
       <file leaf-file-name="DBManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/DBManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4876">
-              <caret line="214" column="8" selection-start-line="214" selection-start-column="8" selection-end-line="214" selection-end-column="8" />
+            <state relative-caret-position="276">
+              <caret line="14" column="27" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="27" />
               <folding>
                 <element signature="e#81#122#0" expanded="true" />
               </folding>
@@ -139,8 +140,8 @@
       <file leaf-file-name="CTPManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CTPManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1607">
-              <caret line="102" column="28" selection-start-line="102" selection-start-column="13" selection-end-line="102" selection-end-column="28" />
+            <state relative-caret-position="368">
+              <caret line="34" column="25" selection-start-line="34" selection-start-column="25" selection-end-line="34" selection-end-column="25" />
               <folding>
                 <element signature="e#86#96#0" expanded="true" />
               </folding>
@@ -151,7 +152,7 @@
       <file leaf-file-name="MarketManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MarketManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
+            <state relative-caret-position="322">
               <caret line="23" column="8" selection-start-line="23" selection-start-column="8" selection-end-line="23" selection-end-column="8" />
               <folding />
             </state>
@@ -199,15 +200,15 @@
         <option value="$PROJECT_DIR$/PyCTP_Market.py" />
         <option value="$PROJECT_DIR$/SocketManager.py" />
         <option value="$PROJECT_DIR$/QAccountWidget.py" />
-        <option value="$PROJECT_DIR$/Utils.py" />
-        <option value="$PROJECT_DIR$/PyCTP_Trade.py" />
         <option value="$PROJECT_DIR$/DBManager.py" />
-        <option value="$PROJECT_DIR$/QLogin.py" />
-        <option value="$PROJECT_DIR$/User.py" />
         <option value="$PROJECT_DIR$/MarketManager.py" />
+        <option value="$PROJECT_DIR$/QLogin.py" />
+        <option value="$PROJECT_DIR$/Utils.py" />
         <option value="$PROJECT_DIR$/CTPManager.py" />
-        <option value="$PROJECT_DIR$/Strategy.py" />
         <option value="$PROJECT_DIR$/ClientMain.py" />
+        <option value="$PROJECT_DIR$/User.py" />
+        <option value="$PROJECT_DIR$/PyCTP_Trade.py" />
+        <option value="$PROJECT_DIR$/Strategy.py" />
       </list>
     </option>
   </component>
@@ -263,27 +264,10 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
-        <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PyCTP_ClientCore" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PyCTP_ClientCore" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PyCTP_ClientCore" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
+        <subPane />
       </pane>
     </panes>
   </component>
@@ -659,26 +643,26 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19453377" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19721329" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295711" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3290461" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2765237" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3792325" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2765237" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3792325" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -716,13 +700,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://D:/Python34/Lib/_pyio.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="1401" column="48" selection-start-line="1401" selection-start-column="48" selection-end-line="1401" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test.py" />
     <entry file="file://$PROJECT_DIR$/test2.py" />
     <entry file="file://$PROJECT_DIR$/Order.py" />
@@ -924,7 +901,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="417">
           <caret line="1724" column="8" selection-start-line="1724" selection-start-column="8" selection-end-line="1724" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -932,7 +908,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="808">
           <caret line="139" column="54" selection-start-line="139" selection-start-column="54" selection-end-line="139" selection-end-column="54" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -940,7 +915,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1242">
           <caret line="54" column="8" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="31" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -948,7 +922,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-6782">
           <caret line="194" column="41" selection-start-line="194" selection-start-column="37" selection-end-line="194" selection-end-column="41" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -959,78 +932,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-736">
-          <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/SocketManager.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3358">
           <caret line="154" column="42" selection-start-line="154" selection-start-column="42" selection-end-line="154" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MarketManager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="322">
+          <caret line="23" column="8" selection-start-line="23" selection-start-column="8" selection-end-line="23" selection-end-column="8" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/QLogin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2438">
+          <caret line="118" column="72" selection-start-line="118" selection-start-column="72" selection-end-line="118" selection-end-column="72" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="460">
+          <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/Python34/Lib/site-packages/pymongo/database.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="203">
+          <caret line="234" column="8" selection-start-line="234" selection-start-column="8" selection-end-line="234" selection-end-column="8" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/DBManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4876">
-          <caret line="214" column="8" selection-start-line="214" selection-start-column="8" selection-end-line="214" selection-end-column="8" />
+        <state relative-caret-position="276">
+          <caret line="14" column="27" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="27" />
           <folding>
             <element signature="e#81#122#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/QLogin.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="253">
-          <caret line="107" column="44" selection-start-line="107" selection-start-column="44" selection-end-line="107" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MarketManager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="23" column="8" selection-start-line="23" selection-start-column="8" selection-end-line="23" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="659" column="8" selection-start-line="659" selection-start-column="8" selection-end-line="659" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/User.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="490">
-          <caret line="115" column="26" selection-start-line="115" selection-start-column="26" selection-end-line="115" selection-end-column="26" />
-          <folding>
-            <element signature="e#90#105#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Strategy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/CTPManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1607">
-          <caret line="102" column="28" selection-start-line="102" selection-start-column="13" selection-end-line="102" selection-end-column="28" />
+        <state relative-caret-position="368">
+          <caret line="34" column="25" selection-start-line="34" selection-start-column="25" selection-end-line="34" selection-end-column="25" />
           <folding>
             <element signature="e#86#96#0" expanded="true" />
           </folding>
@@ -1039,15 +992,42 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ClientMain.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="138" column="30" selection-start-line="138" selection-start-column="30" selection-end-line="138" selection-end-column="30" />
+        <state relative-caret-position="5129">
+          <caret line="259" column="57" selection-start-line="259" selection-start-column="57" selection-end-line="259" selection-end-column="57" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
             <element signature="e#1627#1939#1" expanded="false" />
-            <element signature="e#5735#6516#0" expanded="false" />
             <element signature="e#6697#7911#0" expanded="false" />
-            <element signature="e#8090#14084#0" expanded="false" />
             <element signature="e#14275#17370#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/User.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4071">
+          <caret line="180" column="34" selection-start-line="180" selection-start-column="34" selection-end-line="180" selection-end-column="34" />
+          <folding>
+            <element signature="e#90#105#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15364">
+          <caret line="673" column="81" selection-start-line="673" selection-start-column="81" selection-end-line="673" selection-end-column="81" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Strategy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="328">
+          <caret line="814" column="13" selection-start-line="814" selection-start-column="13" selection-end-line="814" selection-end-column="13" />
+          <folding>
+            <element signature="e#90#101#0" expanded="true" />
+            <element signature="e#48455#52330#1" expanded="false" />
           </folding>
         </state>
       </provider>

@@ -218,7 +218,7 @@ class ClientMain(QtCore.QObject):
                                               "a_wait_price_tick": 1,
                                               "b_wait_price_tick": 0,
                                               "trade_model": "boll_reversion",
-                                              "on_off": 0,  # 策略交易开关，0关、1开
+                                              "on_off": 1,  # 策略交易开关，0关、1开
                                               "trade_date": "2016-10-11",  # 交易日
                                               "today_profit": 0,  # 平仓盈利
                                               "today_commission": 0,  # 手续费
@@ -257,7 +257,7 @@ class ClientMain(QtCore.QObject):
                                               "a_wait_price_tick": 1,
                                               "b_wait_price_tick": 0,
                                               "trade_model": "boll_reversion",
-                                              "on_off": 0,  # 策略交易开关，0关、1开
+                                              "on_off": 1,  # 策略交易开关，0关、1开
                                               "trade_date": "2016-10-11",  # 交易日
                                               "today_profit": 0,  # 平仓盈利
                                               "today_commission": 0,  # 手续费

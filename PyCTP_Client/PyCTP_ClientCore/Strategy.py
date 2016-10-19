@@ -6,6 +6,7 @@ Created on Wed Jul 20 08:46:13 2016
 """
 
 
+import copy
 from PyCTP_Trade import PyCTP_Trader_API
 from PyCTP_Market import PyCTP_Market_API
 from OrderAlgorithm import OrderAlgorithm
@@ -206,12 +207,11 @@ class Strategy:
             self.__instrument_a_tick = tick
             # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
 
-        # 选择下单算法
+        # 没有下单任务执行中，进入下单算法
         if not self.__trade_tasking:
             self.select_order_algorithm(self.__order_algorithm)
-
-        # 下单任务进行中被行情驱动
-        if self.__trade_tasking:
+        # 有下单任务执行中，行情跟踪
+        elif self.__trade_tasking:
             dict_arguments = {'flag': 'tick', 'tick': tick}
             self.trade_task(dict_arguments)
         # 打印价差
@@ -250,6 +250,7 @@ class Strategy:
                           'Order': Order}
 
         self.update_list_order_pending(dict_arguments)  # 更新挂单list
+        self.update_task_status()  # 更新任务状态
         # self.update_position(dict_arguments)  # 更新持仓量变量（放到OnRtnTrade回调中）
 
         self.__user.action_counter(dict_arguments['Order']['InstrumentID'])  # 撤单次数添加到user类的撤单计数器
@@ -266,6 +267,7 @@ class Strategy:
                           'Trade': Trade}
 
         self.update_position(Trade)  # 更新持仓量变量
+        self.update_task_status()  # 更新任务状态
         
         self.trade_task(dict_arguments)  # 转到交易任务处理
 
@@ -289,18 +291,11 @@ class Strategy:
 
     # 选择下单算法
     def select_order_algorithm(self, flag):
-        # 交易任务进行中则不执行新的交易算法
-        if self.__trade_tasking:
-            # print("Strategy.select_order_algorithm() self.__trade_tasking=", self.__trade_tasking)
-            return
         # 有挂单
         if len(self.__list_order_pending) > 0:
-            # print("Strategy.select_order_algorithm() len(self.__list_order_pending)>0")
             return
-        if self.__position_a_sell == self.__position_b_buy and self.__position_a_buy == self.__position_b_sell:
-            pass
-        else:
-            # print("Strategy.select_order_algorithm() 持仓量不相等，不开始执行新的交易算法")
+        # 撇退
+        if self.__position_a_sell != self.__position_b_buy or self.__position_a_buy != self.__position_b_sell:
             return
         # 选择执行交易算法
         if flag == '01':
@@ -329,6 +324,7 @@ class Strategy:
 
         # 策略开关为关则直接跳出，不执行开平仓逻辑判断，依次为：策略开关、单个期货账户开关（user）、总开关（trader）
         if self.__on_off == 0 or self.__user.get_on_off() == 0 or self.__user.get_CTPManager().get_on_off() == 0:
+            print("Strategy.order_algorithm_one() 策略开关状态", self.__on_off, self.__user.get_on_off(), self.__user.get_CTPManager().get_on_off())
             return
 
         # 价差卖平
@@ -569,17 +565,6 @@ class Strategy:
             pass
         # 报单回报
         elif dict_arguments['flag'] == 'OnRtnOrder':
-            if Utils.Strategy_print:
-                print("Strategy.trade_task() 更新前self.__trade_tasking =", self.__trade_tasking)
-            if self.__position_a_buy == self.__position_b_sell \
-                    and self.__position_a_sell == self.__position_b_buy \
-                    and len(self.__list_order_pending) == 0:
-                self.__trade_tasking = False
-            else:
-                self.__trade_tasking = True
-            if Utils.Strategy_print:
-                print("Strategy.trade_task() 更新后self.__trade_tasking =", self.__trade_tasking)
-
             # A成交回报，B发送等量的报单(OrderInsert)
             if dict_arguments['Order']['InstrumentID'] == self.__list_instrument_id[0] \
                     and dict_arguments['Order']['OrderStatus'] in ['0', '1']:  # OrderStatus全部成交或部分成交
@@ -817,6 +802,21 @@ class Strategy:
         if Utils.Strategy_print:
             print("Strategy.update_list_order_pending() 更新后self.__list_order_pending=", self.__list_order_pending)
 
+    # 更新任务状态
+    def update_task_status(self):
+        # if Utils.Strategy_print:
+        #     print("Strategy.update_task_status() 更新前self.__trade_tasking=", self.__trade_tasking)
+        if self.__position_a_buy_today == self.__position_b_sell_today \
+                and self.__position_a_buy_yesterday == self.__position_b_sell_yesterday \
+                and self.__position_a_sell_today == self.__position_b_buy_today \
+                and self.__position_a_sell_yesterday == self.__position_b_buy_yesterday \
+                and len(self.__list_order_pending) == 0:
+            self.__trade_tasking = False
+        else:
+            self.__trade_tasking = True
+        # if Utils.Strategy_print:
+        #     print("Strategy.update_task_status() 更新后self.__trade_tasking=", self.__trade_tasking)
+
     """
     # 更新持仓量变量，共12个变量
     def update_position(self, dict_arguments):
@@ -909,16 +909,16 @@ class Strategy:
             self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
             self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         if Utils.Strategy_print:
-            print("     B合约：今买、昨买、总买", self.__position_b_buy_today, self.__position_b_buy_yesterday,
-                  self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today, self.__position_b_sell_yesterday,
-                  self.__position_b_sell)
-        if Utils.Strategy_print:
-            print("     A合约：今买、昨买、总买", self.__position_a_buy_today, self.__position_a_buy_yesterday,
+            print("     A合约", self.__list_instrument_id[0], "今买、昨买、总买", self.__position_a_buy_today, self.__position_a_buy_yesterday,
                   self.__position_a_buy, "今卖、昨卖、总卖", self.__position_a_sell_today, self.__position_a_sell_yesterday,
                   self.__position_a_sell)
+            print("     B合约", self.__list_instrument_id[1], "今买、昨买、总买", self.__position_b_buy_today, self.__position_b_buy_yesterday,
+                  self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today, self.__position_b_sell_yesterday,
+                  self.__position_b_sell)
 
     # 更新持仓明细list
-    def update_list_position_detail(self, trade):
+    def update_list_position_detail(self, input_trade):
+        trade = copy.deepcopy(input_trade)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
         # 开仓单，添加到list，添加到list尾部
         if trade['OffsetFlag'] == '0':
             self.__list_position_detail.append(trade)

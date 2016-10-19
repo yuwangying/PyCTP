@@ -32,6 +32,7 @@ class CTPManager:
         self.__trader = None  # 交易员实例
         self.__list_user = list()  # 期货账户（TD）实例list
         self.__list_strategy = list()  # 交易策略实例list
+        self.__on_off = 1  # 策略开关，初始值为关
 
     # 创建MD
     def create_md(self, dict_arguments):

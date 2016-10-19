@@ -9,8 +9,8 @@ import os
 import time
 import DBManager
 
-Strategy_print = False  # Strategy类打印控制
 PyCTP_Trade_API_print = True  # PyCTP_Trade_API类打印控制
+Strategy_print = True  # Strategy类打印控制
 
 # 创建套接字，全局变量
 socket_file_description = None
