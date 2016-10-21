@@ -19,25 +19,16 @@ import Utils
 
 
 def __main__():
-    # github test 2016年7月20日16:46:57
-    # Simnow BrokerID='9999'，国贸期货CTP BrokerID='0187'
-    # Simnow测试账号058176、669822，姓名：原鹏飞
-    # Simnow测试账号063802、123456，姓名：余汪应
-    # 国贸期货CTP电信账号，钱海玲，86001878/242169
-    BrokerID = b'0187'  # 9999
-    UserID = b'86002565'  # 063802
-    Password = b'240534'  # 123456
+    BrokerID = b'9999'
+    UserID = b'063802'
+    Password = b'123456'
     ExchangeID = b'SHFE'
     listInstrumentID = [b'cu1701', b'cu1612']
     InstrumentID = b'cu1701'
     trader = PyCTP_Trader.CreateFtdcTraderApi(b'tmp/_tmp_t_')  # Trade实例
     market = PyCTP_Market.CreateFtdcMdApi(b'tmp/_tmp_m_')  # Market实例
-    # 24小时交易、行情前置：180.168.146.187:10030、180.168.146.187:10031
-    # 标准CTP交易、行情前置：180.168.146.187:10000、180.168.146.187:10010
-    # CTPMini1：第一组：TradeFront：180.168.146.187:10003，MarketFront：180.168.146.187:10013；【电信】
-    # 国贸期货CTP电信：交易：101.95.8.190:41205，行情：101.95.8.190:41213
-    print('连接交易前置', Utils.code_transform(trader.Connect(b'tcp://101.95.8.190:41205')))  # 180.168.146.187:10000
-    print('连接行情前置', Utils.code_transform(market.Connect(b'tcp://101.95.8.190:41213')))  #  180.168.146.187:10010
+    print('连接交易前置', Utils.code_transform(trader.Connect(b'tcp://180.168.146.187:10000')))
+    print('连接行情前置', Utils.code_transform(market.Connect(b'tcp://180.168.146.187:10010')))
     print('交易账号登陆', Utils.code_transform(trader.Login(BrokerID, UserID, Password)))
     print('交易账号登陆', Utils.code_transform(market.Login(BrokerID, UserID, Password)))
     print('交易日', Utils.code_transform(trader.GetTradingDay()))
@@ -109,7 +100,7 @@ def __main__():
             print('查询账户持仓汇总\n', Utils.code_transform(trader.QryInvestorPosition()))
             continue
 
-        if var == 'i':
+        if var == 'H':
             print('查询账户持仓明细\n', Utils.code_transform(trader.QryInvestorPositionDetail()))
             continue
 

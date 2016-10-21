@@ -7,6 +7,7 @@ from QCTP import QCTP
 from QAccountWidget import QAccountWidget
 from SocketManager import SocketManager
 import json
+import Utils
 import time
 import threading
 from MarketManager import MarketManager
@@ -105,6 +106,10 @@ class ClientMain(QtCore.QObject):
             self.__dict_QAccountWidget = {'总账户': QAccountWidget()}  # 创建总账户的QAccountWidget()，存放到dict
             self.__QCTP.tab_accounts.insertTab(0, self.__dict_QAccountWidget['总账户'], '总账户')  # 总账户窗口插入到tab，位置0
             self.__dict_QAccountWidget['总账户'].set_widget_name('总账户')  # 设置窗口属性"widget_name"
+            # 拿list_user中的一个user实例查询合约信息
+            list_InstrumentInfo = Utils.code_transform(self.__CTPManager.get_list_user()[0].qry_instrument())
+            for i in self.__CTPManager.get_list_user():  # 合约信息设置为所有user实例的属性
+                i.set_InstrumentInfo(list_InstrumentInfo)
 
         elif buff['MsgType'] == 3:  # StrategyInfo，创建Strategy实例
             # print("ClientMain.slot_output_message() buff['MsgType'] == 3, StrategyInfo")
@@ -187,83 +192,83 @@ class ClientMain(QtCore.QObject):
                                      'MsgErrorReason': 'ID or password error',
                                      'Info':
                                          [
-                                             {"position_a_sell_today": 0,
-                                              "position_b_sell": 0,
-                                              "spread_shift": 0,
-                                              "position_b_sell_today": 0,
-                                              "position_b_buy_today": 0,
-                                              "position_a_sell": 0,
-                                              "buy_close": 9000,
-                                              "stop_loss": 0,
-                                              "position_b_buy_yesterday": 0,
+                                             {"trader_id": "1601",
+                                              "user_id": "063802",
+                                              "strategy_id": "01",
+                                              "order_algorithm": "01",  # 下单算法
+                                              "trade_model": "boll_reversion",  # 交易模型
+                                              "on_off": 1,  # 策略交易开关，0关、1开
                                               "is_active": 1,
-                                              "position_b_sell_yesterday": 0,
-                                              "strategy_id": "02",
-                                              "position_b_buy": 0,
-                                              "lots_batch": 1,
-                                              "position_a_buy": 0,
-                                              "sell_open": -9000,
-                                              "order_algorithm": "01",
-                                              "trader_id": "1601",
-                                              "order_action_limit": 400,
-                                              "sell_close": 9000,
-                                              "buy_open": -9000,
                                               "only_close": 0,
                                               "list_instrument_id": ["rb1705", "rb1701"],
-                                              "position_a_buy_yesterday": 0,
-                                              "user_id": "063802",
-                                              "position_a_buy_today": 0,
-                                              "position_a_sell_yesterday": 0,
                                               "lots": 10,
+                                              "lots_batch": 1,
+                                              "order_action_limit": 400,
+                                              "stop_loss": 0,
+                                              "spread_shift": 0,
                                               "a_wait_price_tick": 1,
                                               "b_wait_price_tick": 0,
-                                              "trade_model": "boll_reversion",
-                                              "on_off": 1,  # 策略交易开关，0关、1开
-                                              "trade_date": "2016-10-11",  # 交易日
+                                              "sell_open": 9000,
+                                              "buy_close": 9000,
+                                              "buy_open": 9000,
+                                              "sell_close": -9000,
+                                              "position_a_sell_today": 0,
+                                              "position_a_sell_yesterday": 0,
+                                              "position_a_sell": 0,
+                                              "position_a_buy_today": 0,
+                                              "position_a_buy_yesterday": 0,
+                                              "position_a_buy": 0,
+                                              "position_b_buy_today": 0,
+                                              "position_b_buy_yesterday": 0,
+                                              "position_b_buy": 0,
+                                              "position_b_sell_today": 0,
+                                              "position_b_sell_yesterday": 0,
+                                              "position_b_sell": 0,
                                               "today_profit": 0,  # 平仓盈利
                                               "today_commission": 0,  # 手续费
                                               "today_trade_volume": 0,  # 成交量
                                               "today_sum_slippage": 0,  # 总滑价
                                               "today_average_slippage": 0,  # 平均滑价
+                                              "trade_date": "2016-10-11",  # 交易日
                                               },
-                                             {"position_a_sell_today": 0,
-                                              "position_b_sell": 0,
-                                              "spread_shift": 0,
-                                              "position_b_sell_today": 0,
-                                              "position_b_buy_today": 0,
-                                              "position_a_sell": 0,
-                                              "buy_close": 9000,
-                                              "stop_loss": 0,
-                                              "position_b_buy_yesterday": 0,
+                                             {"trader_id": "1601",
+                                              "user_id": "063802",
+                                              "strategy_id": "02",
+                                              "order_algorithm": "01",  # 下单算法
+                                              "trade_model": "boll_reversion",  # 交易模型
+                                              "on_off": 1,  # 策略交易开关，0关、1开
                                               "is_active": 1,
-                                              "position_b_sell_yesterday": 0,
-                                              "strategy_id": "01",
-                                              "position_b_buy": 0,
-                                              "lots_batch": 1,
-                                              "position_a_buy": 0,
-                                              "sell_open": -9000,
-                                              "order_algorithm": "01",
-                                              "trader_id": "1601",
-                                              "order_action_limit": 400,
-                                              "sell_close": 9000,
-                                              "buy_open": -9000,
                                               "only_close": 0,
                                               "list_instrument_id": ["ni1705", "ni1701"],
-                                              "position_a_buy_yesterday": 0,
-                                              "user_id": "063802",
-                                              "position_a_buy_today": 0,
-                                              "position_a_sell_yesterday": 0,
                                               "lots": 10,
+                                              "lots_batch": 1,
+                                              "order_action_limit": 400,
+                                              "stop_loss": 0,
+                                              "spread_shift": 0,
                                               "a_wait_price_tick": 1,
                                               "b_wait_price_tick": 0,
-                                              "trade_model": "boll_reversion",
-                                              "on_off": 1,  # 策略交易开关，0关、1开
-                                              "trade_date": "2016-10-11",  # 交易日
+                                              "sell_open": 9000,
+                                              "buy_close": 9000,
+                                              "buy_open": 9000,
+                                              "sell_close": -9000,
+                                              "position_a_sell_today": 0,
+                                              "position_a_sell_yesterday": 0,
+                                              "position_a_sell": 0,
+                                              "position_a_buy_today": 0,
+                                              "position_a_buy_yesterday": 0,
+                                              "position_a_buy": 0,
+                                              "position_b_buy_today": 0,
+                                              "position_b_buy_yesterday": 0,
+                                              "position_b_buy": 0,
+                                              "position_b_sell_today": 0,
+                                              "position_b_sell_yesterday": 0,
+                                              "position_b_sell": 0,
                                               "today_profit": 0,  # 平仓盈利
                                               "today_commission": 0,  # 手续费
                                               "today_trade_volume": 0,  # 成交量
                                               "today_sum_slippage": 0,  # 总滑价
                                               "today_average_slippage": 0,  # 平均滑价
+                                              "trade_date": "2016-10-11",  # 交易日
                                               }
                                          ]
                                      }

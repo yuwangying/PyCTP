@@ -41,7 +41,6 @@ class Strategy:
         self.__stop_loss = dict_arguments['stop_loss']  # 止损，单位为最小跳数
         self.__lots = dict_arguments['lots']  # 总手
         self.__lots_batch = dict_arguments['lots_batch']  # 每批下单手数
-        self.__is_active = dict_arguments['is_active']  # 策略开关状态
         self.__order_action_limit = dict_arguments['order_action_limit']  # 撤单次数限制
         self.__only_close = dict_arguments['only_close']  # 只能平仓
         self.__on_off = dict_arguments['on_off']  # 策略开关，0关，1开
@@ -84,6 +83,9 @@ class Strategy:
 
         self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
+        if Utils.Strategy_print:
+            print("Strategy.__init__() A合约", self.__list_instrument_id[0], "最小跳", self.__a_price_tick)
+            print("Strategy.__init__() B合约", self.__list_instrument_id[1], "最小跳", self.__b_price_tick)
 
         # set_arguments()中不存在的私有变量
         self.__trade_tasking = False  # 交易任务进行中
@@ -112,7 +114,6 @@ class Strategy:
         self.__stop_loss = dict_arguments['stop_loss']  # 止损，单位为最小跳数
         self.__lots = dict_arguments['lots']  # 总手
         self.__lots_batch = dict_arguments['lots_batch']  # 每批下单手数
-        self.__is_active = dict_arguments['is_active']  # 策略开关状态
         self.__order_action_limit = dict_arguments['order_action_limit']  # 撤单次数限制
         self.__only_close = dict_arguments['only_close']  # 只能平仓
         self.__on_off = dict_arguments['on_off']  # 策略开关，0关，1开
@@ -140,13 +141,6 @@ class Strategy:
         self.__list_position_detail = list()  # 持仓明细列表
 
         self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的合约列表
-
-        self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
-        self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
-
-        self.__order_ref_last = None  # 最后一次实际使用的报单引用
-        self.__order_ref_a = None  # A合约报单引用
-        self.__order_ref_b = None  # B合约报单引用
 
     # 获取参数
     def get_arguments(self):
@@ -186,10 +180,13 @@ class Strategy:
 
     # 获取指定合约最小跳'PriceTick'
     def get_price_tick(self, instrument_id):
-        print("Strategy.get_price_tick() type(self.__user.get_instrument_info())=", type(self.__user.get_instrument_info()), self.__user.get_instrument_info())
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['PriceTick']
+        # for i in self.__user.get_instrument_info():
+        #     if i['InstrumentID'] == instrument_id:
+        #         return i['PriceTick']
+
 
     # 生成报单引用，前两位是策略编号，后面几位递增1
     def add_order_ref(self):
@@ -328,7 +325,7 @@ class Strategy:
             return
 
         # 价差卖平
-        if self.__spread_long <= self.__sell_close \
+        if self.__spread_long >= self.__sell_close \
                 and self.__position_a_sell == self.__position_b_buy \
                 and self.__position_a_sell > 0:
             '''
@@ -366,7 +363,7 @@ class Strategy:
             self.__a_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           'OrderRef': self.__order_ref_a,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[0].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_a_tick['AskPrice1'],  # 限价
+                                          'LimitPrice': self.__instrument_a_tick['BidPrice1'],  # 限价
                                           'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'0',  # 买卖，0买,1卖
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -376,7 +373,7 @@ class Strategy:
             self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           # 'OrderRef': self.__order_ref_b,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_b_tick['BidPrice1'],  # 限价
+                                          'LimitPrice': self.__instrument_b_tick['AskPrice1'],  # 限价
                                           # 'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'1',  # 买卖，0买,1卖
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -440,7 +437,7 @@ class Strategy:
             self.trade_task(self.__a_order_insert_args)  # 执行下单任务
             self.__trade_tasking = True  # 交易任务执行中
         # 价差卖开
-        elif self.__spread_long >= self.__sell_open\
+        elif self.__spread_long >= self.__sell_open \
                 and self.__position_a_buy + self.__position_a_sell < self.__lots:
             '''
             市场多头价差大于策略卖开触发参数
@@ -450,7 +447,8 @@ class Strategy:
                 print("Strategy.order_algorithm_one() 策略编号", self.__strategy_id, "交易信号触发", "价差卖开")
             # 打印价差
             if Utils.Strategy_print:
-                print(self.__user_id + self.__strategy_id, self.__list_instrument_id, self.__spread_long, "(", self.__spread_long_volume, ")", self.__spread_short, "(", self.__spread_short_volume, ")")
+                print(self.__user_id + self.__strategy_id, self.__list_instrument_id, self.__spread_long, "(",
+                      self.__spread_long_volume, ")", self.__spread_short, "(", self.__spread_short_volume, ")")
             # 满足交易任务之前的一个tick
             self.__instrument_a_tick_after_tasking = self.__instrument_a_tick
             self.__instrument_b_tick_after_tasking = self.__instrument_b_tick
@@ -485,6 +483,7 @@ class Strategy:
                                           }
             self.trade_task(self.__a_order_insert_args)  # 执行下单任务
             self.__trade_tasking = True  # 交易任务执行中
+
         # 价差买开
         elif self.__spread_short <= self.__buy_open \
                 and self.__position_a_buy + self.__position_a_sell < self.__lots:
@@ -514,7 +513,7 @@ class Strategy:
             self.__a_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           'OrderRef': self.__order_ref_a,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[0].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_a_tick['BidPrice1'],  # 限价
+                                          'LimitPrice': self.__instrument_a_tick['AskPrice1'],  # 限价
                                           'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'0',  # 买卖，0买,1卖
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -524,7 +523,7 @@ class Strategy:
             self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           # 'OrderRef': self.__order_ref_b,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_b_tick['AskPrice1'],  # 限价
+                                          'LimitPrice': self.__instrument_b_tick['BidPrice1'],  # 限价
                                           # 'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'1',  # 买卖，0买,1卖
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓

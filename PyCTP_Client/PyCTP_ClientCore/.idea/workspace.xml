@@ -23,7 +23,7 @@
     <SUITE FILE_PATH="coverage/PyCTP_API_TEST$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469003425934" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$Utils.coverage" NAME="Utils Coverage Results" MODIFIED="1469632933149" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_API$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469161407258" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1476863314486" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1476946997767" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$test__1_.coverage" NAME="test (1) Coverage Results" MODIFIED="1469457199918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCtp$test.coverage" NAME="test Coverage Results" MODIFIED="1468915461792" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$MarketManager.coverage" NAME="MarketManager Coverage Results" MODIFIED="1469679462315" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -58,13 +58,14 @@
       <file leaf-file-name="ClientMain.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ClientMain.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5129">
-              <caret line="259" column="57" selection-start-line="259" selection-start-column="57" selection-end-line="259" selection-end-column="57" />
+            <state relative-caret-position="23">
+              <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <element signature="e#1627#1939#1" expanded="false" />
-                <element signature="e#6697#7911#0" expanded="false" />
-                <element signature="e#14275#17370#0" expanded="false" />
+                <element signature="e#1640#1952#1" expanded="false" />
+                <element signature="e#6997#8211#0" expanded="false" />
+                <element signature="e#8390#14414#0" expanded="false" />
+                <element signature="e#14605#17700#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -73,11 +74,12 @@
       <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="328">
-              <caret line="814" column="13" selection-start-line="814" selection-start-column="13" selection-end-line="814" selection-end-column="13" />
+            <state relative-caret-position="373">
+              <caret line="344" column="19" selection-start-line="344" selection-start-column="19" selection-end-line="344" selection-end-column="19" />
               <folding>
                 <element signature="e#90#101#0" expanded="true" />
-                <element signature="e#48455#52330#1" expanded="false" />
+                <element signature="e#23175#26150#0" expanded="false" />
+                <element signature="e#48248#52123#1" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -86,8 +88,8 @@
       <file leaf-file-name="Utils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="460">
-              <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
+            <state relative-caret-position="230">
+              <caret line="12" column="14" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -96,8 +98,18 @@
       <file leaf-file-name="QLogin.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/QLogin.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2438">
-              <caret line="118" column="72" selection-start-line="118" selection-start-column="72" selection-end-line="118" selection-end-column="72" />
+            <state relative-caret-position="345">
+              <caret line="27" column="8" selection-start-line="27" selection-start-column="8" selection-end-line="27" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SocketManager.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SocketManager.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3358">
+              <caret line="154" column="42" selection-start-line="154" selection-start-column="42" selection-end-line="154" selection-end-column="42" />
               <folding />
             </state>
           </provider>
@@ -106,10 +118,10 @@
       <file leaf-file-name="User.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/User.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4071">
-              <caret line="180" column="34" selection-start-line="180" selection-start-column="34" selection-end-line="180" selection-end-column="34" />
+            <state relative-caret-position="1495">
+              <caret line="69" column="55" selection-start-line="69" selection-start-column="35" selection-end-line="69" selection-end-column="55" />
               <folding>
-                <element signature="e#90#105#0" expanded="true" />
+                <element signature="e#89#100#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -118,8 +130,8 @@
       <file leaf-file-name="PyCTP_Trade.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15364">
-              <caret line="673" column="81" selection-start-line="673" selection-start-column="81" selection-end-line="673" selection-end-column="81" />
+            <state relative-caret-position="1012">
+              <caret line="49" column="37" selection-start-line="49" selection-start-column="37" selection-end-line="49" selection-end-column="37" />
               <folding />
             </state>
           </provider>
@@ -140,8 +152,8 @@
       <file leaf-file-name="CTPManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CTPManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="368">
-              <caret line="34" column="25" selection-start-line="34" selection-start-column="25" selection-end-line="34" selection-end-column="25" />
+            <state relative-caret-position="4301">
+              <caret line="205" column="0" selection-start-line="205" selection-start-column="0" selection-end-line="205" selection-end-column="0" />
               <folding>
                 <element signature="e#86#96#0" expanded="true" />
               </folding>
@@ -204,10 +216,10 @@
         <option value="$PROJECT_DIR$/MarketManager.py" />
         <option value="$PROJECT_DIR$/QLogin.py" />
         <option value="$PROJECT_DIR$/Utils.py" />
-        <option value="$PROJECT_DIR$/CTPManager.py" />
-        <option value="$PROJECT_DIR$/ClientMain.py" />
-        <option value="$PROJECT_DIR$/User.py" />
         <option value="$PROJECT_DIR$/PyCTP_Trade.py" />
+        <option value="$PROJECT_DIR$/CTPManager.py" />
+        <option value="$PROJECT_DIR$/User.py" />
+        <option value="$PROJECT_DIR$/ClientMain.py" />
         <option value="$PROJECT_DIR$/Strategy.py" />
       </list>
     </option>
@@ -250,7 +262,7 @@
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectView">
-    <navigator currentView="ProjectPane" proportions="" version="1">
+    <navigator proportions="" version="1">
       <flattenPackages />
       <showMembers />
       <showModules />
@@ -263,13 +275,7 @@
       <manualOrder />
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes>
-      <pane id="Scope" />
-      <pane id="Scratches" />
-      <pane id="ProjectPane">
-        <subPane />
-      </pane>
-    </panes>
+    <panes />
   </component>
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
@@ -897,13 +903,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-530204734/PyCTP.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="417">
-          <caret line="1724" column="8" selection-start-line="1724" selection-start-column="8" selection-end-line="1724" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/PyCTP_Market.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="808">
@@ -932,41 +931,65 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SocketManager.py">
+    <entry file="file://D:/Python34/Lib/site-packages/pymongo/database.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3358">
-          <caret line="154" column="42" selection-start-line="154" selection-start-column="42" selection-end-line="154" selection-end-column="42" />
+        <state relative-caret-position="203">
+          <caret line="234" column="8" selection-start-line="234" selection-start-column="8" selection-end-line="234" selection-end-column="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MarketManager.py">
+    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-530204734/PyCTP.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="322">
-          <caret line="23" column="8" selection-start-line="23" selection-start-column="8" selection-end-line="23" selection-end-column="8" />
+        <state relative-caret-position="284">
+          <caret line="1604" column="8" selection-start-line="1604" selection-start-column="8" selection-end-line="1604" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ClientMain.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="23">
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#1640#1952#1" expanded="false" />
+            <element signature="e#6997#8211#0" expanded="false" />
+            <element signature="e#8390#14414#0" expanded="false" />
+            <element signature="e#14605#17700#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="230">
+          <caret line="12" column="14" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="14" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/QLogin.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2438">
-          <caret line="118" column="72" selection-start-line="118" selection-start-column="72" selection-end-line="118" selection-end-column="72" />
+        <state relative-caret-position="345">
+          <caret line="27" column="8" selection-start-line="27" selection-start-column="8" selection-end-line="27" selection-end-column="8" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.py">
+    <entry file="file://$PROJECT_DIR$/SocketManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="460">
-          <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
+        <state relative-caret-position="3358">
+          <caret line="154" column="42" selection-start-line="154" selection-start-column="42" selection-end-line="154" selection-end-column="42" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://D:/Python34/Lib/site-packages/pymongo/database.py">
+    <entry file="file://$PROJECT_DIR$/User.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="234" column="8" selection-start-line="234" selection-start-column="8" selection-end-line="234" selection-end-column="8" />
+        <state relative-caret-position="1495">
+          <caret line="69" column="55" selection-start-line="69" selection-start-column="35" selection-end-line="69" selection-end-column="55" />
+          <folding>
+            <element signature="e#89#100#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -982,52 +1005,38 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CTPManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="368">
-          <caret line="34" column="25" selection-start-line="34" selection-start-column="25" selection-end-line="34" selection-end-column="25" />
+        <state relative-caret-position="4301">
+          <caret line="205" column="0" selection-start-line="205" selection-start-column="0" selection-end-line="205" selection-end-column="0" />
           <folding>
             <element signature="e#86#96#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ClientMain.py">
+    <entry file="file://$PROJECT_DIR$/MarketManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5129">
-          <caret line="259" column="57" selection-start-line="259" selection-start-column="57" selection-end-line="259" selection-end-column="57" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <element signature="e#1627#1939#1" expanded="false" />
-            <element signature="e#6697#7911#0" expanded="false" />
-            <element signature="e#14275#17370#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/User.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4071">
-          <caret line="180" column="34" selection-start-line="180" selection-start-column="34" selection-end-line="180" selection-end-column="34" />
-          <folding>
-            <element signature="e#90#105#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="322">
+          <caret line="23" column="8" selection-start-line="23" selection-start-column="8" selection-end-line="23" selection-end-column="8" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/PyCTP_Trade.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15364">
-          <caret line="673" column="81" selection-start-line="673" selection-start-column="81" selection-end-line="673" selection-end-column="81" />
+        <state relative-caret-position="1012">
+          <caret line="49" column="37" selection-start-line="49" selection-start-column="37" selection-end-line="49" selection-end-column="37" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Strategy.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="328">
-          <caret line="814" column="13" selection-start-line="814" selection-start-column="13" selection-end-line="814" selection-end-column="13" />
+        <state relative-caret-position="373">
+          <caret line="344" column="19" selection-start-line="344" selection-start-column="19" selection-end-line="344" selection-end-column="19" />
           <folding>
             <element signature="e#90#101#0" expanded="true" />
-            <element signature="e#48455#52330#1" expanded="false" />
+            <element signature="e#23175#26150#0" expanded="false" />
+            <element signature="e#48248#52123#1" expanded="false" />
           </folding>
         </state>
       </provider>

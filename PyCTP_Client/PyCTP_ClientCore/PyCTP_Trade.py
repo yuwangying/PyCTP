@@ -108,11 +108,12 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             # else:
             #     return self.__rsp_QryInstrument['results']
             self.__rsp_QryInstrument['event'].clear()
-            if self.__rsp_QryInstrument['event'].wait(20.0):
+            if self.__rsp_QryInstrument['event'].wait(30.0):
                 if self.__rsp_QryInstrument['ErrorID'] != 0:
                     return self.__rsp_QryInstrument['ErrorID']
                 return self.__rsp_QryInstrument['results']
             else:
+                print('PyCTP_Trade_API.QryInstrument() return -4')
                 return -4
         return ret
 
@@ -593,7 +594,8 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRtnTrade(self, Trade):
         """成交回报"""
         Trade = Utils.code_transform(Trade)
-        print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
+        if Utils.PyCTP_Trade_API_print:
+            print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
         self.__user.OnRtnTrade(Trade)  # 转到user回调函数
         for i in self.__user.get_list_strategy():  # 转到strategy回调函数
             if Trade['OrderRef'][-2:] == i.get_strategy_id():
@@ -603,6 +605,9 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         """ 报单操作错误回报 """
         if OrderAction is not None:
             OrderAction = Utils.code_transform(OrderAction)
+            for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+                if OrderAction['OrderRef'][-2:] == i.get_strategy_id():
+                    i.OnErrRtnOrderAction(OrderAction, RspInfo)
         if RspInfo is not None:
             RspInfo = Utils.code_transform(RspInfo)
         if Utils.PyCTP_Trade_API_print:
@@ -611,9 +616,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         #    self.__rsp_OrderInsert['ErrorID'] = 79
         #    self.__rsp_OrderInsert['ErrorMsg'] = bytes('CTP:发送报单操作失败', 'gb2312')
         #    self.__rsp_OrderInsert['event'].set()
-        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if OrderAction['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnErrRtnOrderAction(OrderAction, RspInfo)
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""

@@ -51,8 +51,8 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESTART)
-        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESTART)
+        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESUME)
+        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESUME)
         self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())
@@ -361,18 +361,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     # def OrderAction(self, VolumeChange = 0, OrderRef=b'', OrderSysID=b'', ExchangeID=b''):
     def OrderAction(self, ExchangeID, OrderRef, OrderSysID):
         """报单操作请求"""
-        # ywy新增
-        # InputOrderAction = {}
-        # InputOrderAction['BrokerID'] = self.__BrokerID  # 经纪公司代码
-        # InputOrderAction['InvestorID'] = self.__InvestorID  # 投资者代码
-        # InputOrderAction['InstrumentID'] = InstrumentID  # 合约代码
-        # InputOrderAction['OrderRef'] = OrderRef  # 报单引用
-        # InputOrderAction['OrderSysID'] = OrderSysID  # 报单编号
-        # InputOrderAction['ExchangeID'] = ExchangeID  # 交易所代码
-        # InputOrderAction['OrderActionRef'] = self.__IncOrderActionRef()  # 报单操作引用
-        # InputOrderAction['UserID'] = self.__UserID  # 用户代码
-        # InputOrderAction['ActionFlag'] = PyCTP.THOST_FTDC_AF_Delete  # 删除 #define THOST_FTDC_AF_Delete '0', 修改 #define THOST_FTDC_AF_Modify '3'
-        # InputOrderAction['VolumeChange'] = VolumeChange  # 数量
         """ 报单操作请求(撤单), 注意,这是异步指令 """
         # assert ActionFlag == PyCTP.THOST_FTDC_AF_Delete
         InputOrderAction = {}

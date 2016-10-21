@@ -5,7 +5,7 @@ Created on Wed Jul 20 08:46:13 2016
 @author: YuWanying
 """
 
-
+import time
 import datetime
 from pymongo import MongoClient
 from PyCTP_Trade import PyCTP_Trader_API
@@ -62,14 +62,22 @@ class User:
         print(self.__user_id, '连接交易前置', Utils.code_transform(self.__trade.Connect(self.__FrontAddress)))
         print(self.__user_id, '登陆交易账号', Utils.code_transform(self.__trade.Login(self.__BrokerID, self.__user_id, self.__Password)))
         print(self.__user_id, '交易日', Utils.code_transform(self.__trade.GetTradingDay()))
+        time.sleep(1.0)
         print(self.__user_id, '投资者代码', Utils.code_transform(self.__trade.setInvestorID(self.__user_id)))
         self.__front_id = self.__trade.get_front_id()  # 获取前置编号
         self.__session_id = self.__trade.get_session_id()  # 获取会话编号
         self.__TradingDay = self.__trade.GetTradingDay().decode()  # 获取交易日
-        self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
-        print("User.__init__.self.__instrument_info=", self.__instrument_info)
+        # self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
+        # time.sleep(1.0)
+        # print("User.__init__.self.__instrument_info=", self.__instrument_info)
 
         self.__on_off = 1  # 策略交易开关，0关、1开
+
+        # self.__init_finished = False  # 初始化完成
+
+    # 设置合约信息
+    def set_InstrumentInfo(self, list_InstrumentInfo):
+        self.__instrument_info = list_InstrumentInfo
 
     # 将CTPManager类设置为user的属性
     def set_CTPManager(self, obj_CTPManager):

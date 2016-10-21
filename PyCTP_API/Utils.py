@@ -40,7 +40,7 @@ def print_menu():
     print('|【u】查询账户信息')
     print('|【t】查询账户资金')
     print('|【h】查询账户持仓汇总')
-    print('|【i】查询账户持仓明细')
+    print('|【H】查询账户持仓明细')
     print('|【o】查询委托记录')
     print('|【d】查询交易记录')
     print('|【i】报单')
