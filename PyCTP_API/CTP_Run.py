@@ -20,8 +20,8 @@ import Utils
 
 def __main__():
     BrokerID = b'9999'
-    UserID = b'063802'
-    Password = b'123456'
+    UserID = b'063802'  # 063802
+    Password = b'123456'  # 123456
     ExchangeID = b'SHFE'
     listInstrumentID = [b'cu1701', b'cu1612']
     InstrumentID = b'cu1701'
@@ -65,12 +65,12 @@ def __main__():
         Utils.print_menu()
         var = input()
 
-        if var == 'e':
-            print('查询交易所信息\n', Utils.code_transform(trader.QryExchange()))
+        if var == '1':
+            print('查询交易所\n', Utils.code_transform(trader.QryExchange()))
             continue
 
-        if var == 's':
-            print('请选择要查询的交易所合约信息：\ns = 上海期货交易所\nd = 大连商品交易所\nz = 郑州商品交易所\nc = 中国金融期货交易所\na=以上所有交易所')
+        if var == '2':
+            print('请选择要查询的交易所合约信息：\ns = 上海期货交易所\nd = 大连商品交易所\nz = 郑州商品交易所\nc = 中国金融期货交易所\na = 以上所有交易所')
             var = input()
             if var == 's':
                 input_params = b'SHFE'
@@ -88,31 +88,35 @@ def __main__():
             print('查询合约', Utils.code_transform(trader.QryInstrument(input_params)))
             continue
 
-        if var == 'u':
+        if var == '3':
+            print('查询合约状态\n', Utils.code_transform(trader.QryInvestor()))
+            continue
+
+        if var == '4':
             print('查询账户信息\n', Utils.code_transform(trader.QryInvestor()))
             continue
 
-        if var == 't':
+        if var == '5':
             print('查询账户资金\n', Utils.code_transform(trader.QryTradingAccount()))
             continue
 
-        if var == 'h':
+        if var == '6':
             print('查询账户持仓汇总\n', Utils.code_transform(trader.QryInvestorPosition()))
             continue
 
-        if var == 'H':
+        if var == '7':
             print('查询账户持仓明细\n', Utils.code_transform(trader.QryInvestorPositionDetail()))
             continue
 
-        if var == 'o':
+        if var == '8':
             print('查询委托记录\n', Utils.code_transform(trader.QryOrder()))
             continue
 
-        if var == 'd':
+        if var == '9':
             print('查询交易记录\n', Utils.code_transform(trader.QryTrade()))
             continue
 
-        if var == 'i':
+        if var == '10':
             print('please input OrderInsert arguments dict:\n')
             input_params = input()
             try:
@@ -131,7 +135,7 @@ def __main__():
             continue
 
         # 进入OrderAction命令模式
-        if var == 'a':
+        if var == '10':
             print('please input OrderAction arguments:\n')
             input_params = input()
             try:
@@ -146,25 +150,29 @@ def __main__():
                                OrderSysID=input_params['OrderSysID'])
             continue
 
-        # 退出
-        if var == 'b':
-            break
-
         # 保存文件到本地
-        if var == 'l':
-            path_tmp = 'data/'+trader.get_UserID().decode()+'_Tick.csv'
-            PyCTP_Market.df_data.to_csv(path_tmp)  # 保存行情到本地csv文件
-            path_tmp = 'data/'+trader.get_UserID().decode()+'_Instrument.csv'
-            PyCTP_Trader.dfInstrument.to_csv(path_tmp)  # 保存合约状态到本地csv文件
-            path_tmp = 'data/'+trader.get_UserID().decode()+'_Postion.csv'
-            PyCTP_Trader.dfQryInvestorPosition.to_csv(path_tmp)  # 保存持仓到本地csv文件
-            path_tmp = 'data/'+trader.get_UserID().decode()+'_PostionDetail.csv'
-            PyCTP_Trader.dfQryInvestorPositionDetail.to_csv(path_tmp)  # 保存持仓明细到本地csv文件
-            path_tmp = 'data/'+trader.get_UserID().decode()+'_RecordOrder.csv'
-            PyCTP_Trader.dfRecordOrder.to_csv(path_tmp)  # 保存Trade回调记录到本地csv文件
-            path_tmp = 'data/'+trader.get_UserID().decode()+'_RecordTrade.csv'
-            PyCTP_Trader.dfRecordTrade.to_csv(path_tmp)  # 保存Order回调记录到本地csv文件
+        if var == 's':
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_QryInstrument.csv'
+            PyCTP_Trader.dfQryInstrument.to_csv(path_tmp)
+            path_tmp = 'data/' + trader.get_UserID().decode() + '_QryInstrumentStatus.csv'
+            PyCTP_Trader.dfQryInstrumentStatus.to_csv(path_tmp)
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_QryInvestorPosition.csv'
+            PyCTP_Trader.dfQryInvestorPosition.to_csv(path_tmp)
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_QryInvestorPositionDetail.csv'
+            PyCTP_Trader.dfQryInvestorPositionDetail.to_csv(path_tmp)
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_OnRtnOrder.csv'
+            PyCTP_Trader.dfOnRtnOrder.to_csv(path_tmp)
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_OnRtnTrade.csv'
+            PyCTP_Trader.dfOnRtnTrade.to_csv(path_tmp)
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_QryOrder.csv'
+            PyCTP_Trader.dfQryOrder.to_csv(path_tmp)
+            path_tmp = 'data/'+trader.get_UserID().decode()+'_QryTrade.csv'
+            PyCTP_Trader.dfQryTrade.to_csv(path_tmp)
             continue
+
+        # 退出
+        if var == 'q':
+            break
 
         # 输入错误重新输入
         if True:

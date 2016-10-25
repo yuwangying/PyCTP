@@ -199,10 +199,3 @@ class PyCTP_Market(PyCTP_Market_API):
                     , bsize1=DepthMarketData['BidVolume1'])
         self.data.append(tick)
         PyCTP_Market.df_data = self.df_data.append(other=Series(tick), ignore_index=True, verify_integrity=False)
-        # print('tick:', tick)
-        # print('line 607>>>type(data):', type(self.data), len(self.data))
-        # print('line 609>>>type(df_data):', type(self.df_data), len(self.df_data))
-        # s1 = Strategy()
-        # Strategy.strategy_1()
-        # s1.strategy_2(1, 2)
-
