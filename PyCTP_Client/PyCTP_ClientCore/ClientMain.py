@@ -22,7 +22,7 @@ class ClientMain(QtCore.QObject):
 
     def set_SocketManager(self, obj_sm):
         self.__sm = obj_sm
-        obj_sm.signal_send_message.connect(self.slot_output_message)
+        self.__sm.signal_send_message.connect(self.slot_output_message)  # 绑定自定义信号槽
 
     def set_QLoginForm(self, qloginform):
         self.__QLoginForm = qloginform
@@ -60,6 +60,15 @@ class ClientMain(QtCore.QObject):
     def get_CTPManager(self):
         return self.__CTPManager
 
+    def get_listMarketInfo(self):
+        return self.__listMarketInfo
+
+    def get_listUserInfo(self):
+        return self.__listUserInfo
+
+    def get_listStrategyInfo(self):
+        return self.__listStrategyInfo
+
     """
     # 创建行情管理器
     def create_market_manager(self, dict_args):
@@ -81,266 +90,119 @@ class ClientMain(QtCore.QObject):
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
     def slot_output_message(self, buff):
-        print("ClientMain.slot_output_message()", buff)
-        if buff['MsgType'] == 1:  # TraderInfo
-            # print("ClientMain.slot_output_message() buff['MsgType'] == 1, TraderInfo")
-            # 单个trader：将收到的数据存入数据库，存入之前清空数据库文档
-            self.__CTPManager.get_mdb().get_col_trader().remove()  # 从数据库删除数据
-            self.__CTPManager.get_mdb().get_col_trader().insert({buff['Info']})  # 存入数据到数据库，是一个dict
-            self.__CTPManager.create_trader(buff['Info'])  # 创建一个交易员实例
-
-        elif buff['MsgType'] == 2:  # UserInfo
-            # print("ClientMain.slot_output_message() buff['MsgType'] == 2, UserInfo")
-            # user集合：将收到的数据存入数据库，存入之前清空数据库文档
-            self.__CTPManager.get_mdb().get_col_user().remove()  # 从数据库删除数据
-            for i in buff['Info']:
-                self.__CTPManager.get_mdb().get_col_user().insert(i)  # 存入数据到数据库，是一个list，内含多个dict
-                self.__CTPManager.create_user(i)  # 创建交易员实例
-                self.__dict_QAccountWidget = {i['user_id']: QAccountWidget()}  # 创建单个账户的QAccountWidget()
-                for j in self.__CTPManager.get_list_user():
-                    if j.get_user_id().decode() == i['user_id']:
-                        self.__dict_QAccountWidget[i['user_id']].set_user(j)  # user对象设置为对应窗口对象的属性
-                        self.__dict_QAccountWidget[i['user_id']].set_widget_name(i['user_id'])  # 设置窗口属性"widget_name"
-                self.get_QLoginForm().set_dict_QAccountWidget(self.__dict_QAccountWidget)  # dict_QAccountWidget设置为QLoginForm属性
-                self.__QCTP.tab_accounts.addTab(self.__dict_QAccountWidget[i['user_id']], i['user_id'])  # 账户窗口添加到QCTP窗口的tab
-            self.__dict_QAccountWidget = {'总账户': QAccountWidget()}  # 创建总账户的QAccountWidget()，存放到dict
-            self.__QCTP.tab_accounts.insertTab(0, self.__dict_QAccountWidget['总账户'], '总账户')  # 总账户窗口插入到tab，位置0
-            self.__dict_QAccountWidget['总账户'].set_widget_name('总账户')  # 设置窗口属性"widget_name"
-            # 拿list_user中的一个user实例查询合约信息
-            list_InstrumentInfo = Utils.code_transform(self.__CTPManager.get_list_user()[0].qry_instrument())
-            for i in self.__CTPManager.get_list_user():  # 合约信息设置为所有user实例的属性
-                i.set_InstrumentInfo(list_InstrumentInfo)
-
-        elif buff['MsgType'] == 3:  # StrategyInfo，创建Strategy实例
-            # print("ClientMain.slot_output_message() buff['MsgType'] == 3, StrategyInfo")
-            # 更新数据库，将StraetgyInfo消息转给对应的user
-            # self.__CTPManager.get_mdb().get_col_strategy().remove()  # 从数据库删除数据
-            for i in buff['Info']:
-                # buff['Info']是list，内包含多个strategy信息，一批限制为30k个，可以分批发送，总数无限大
-                self.__CTPManager.create_strategy(i)  # 创建策略实例
-                for j in self.__CTPManager.get_list_user():  # 遍历user实例列表
-                    if j.get_user_id() == i['user_id']:  # 找到对应的user实例
-                        j.get_col_strategy.insert(i)  # 将strategy参数存入到本地数据库
-
-        elif buff['MsgType'] == 7:  # StrategyInfo，更新Strategy参数
-            for i in buff['Info']:
-                # buff['Info']是list，内包含多个strategy信息，总数限制为30k个
-                # 将策略更新到数据库中的集合col_strategy，通过user类的数据库连接实例操作
-                for j in self.__CTPManager.get_list_user():  # 遍历ctp管理类的user实例列表
-                    if j.get_user_id() == i['user_id']:  # 找到对应的user
-                        j.get_col_strategy.update({'user_id': i['user_id']}, i)  # 更新本地数据库中策略参数文档
-                        for k in j.get_list_strategy():  # 遍历user的策略实例列表
-                            if k.get_strategy_id == i['strategy_id']:  # 找到对应的strategy
-                                k.set_arguments(i)  # 更新strategy类的参数
-
-        elif buff['MsgType'] == 4:  # trader登录
-            if buff['MsgResult'] == 0:  # 登录结果为成功
-                # print("ClientMain.slot_output_message() buff['MsgType'] == 4, trader登录")
-                self.__QLoginForm.hide()
-                self.__QCTP.show()
-
-                # 模拟登陆成功之后服务端给客户端发送信息，客户端用来初始化
-
-                # 发送MarketInfo
-                dict_MarketInfo = {'MsgRef': self.__sm.msg_ref_add(),
-                                   'MsgSendFlag': 0,  # 0:c2s、1:s2c
-                                   'MsgType': 6,  # 消息类型为PositionInfo
-                                   'MsgResult': 0,  # 0：成功、1：失败
-                                   'MsgErrorReason': 'None',
-                                   'Info':
-                                       [
-                                           {'front_address': 'tcp://180.168.146.187:10010',
-                                            'broker_id': '9999',
-                                            'user_id': '',
-                                            'password': ''
-                                            }
-                                       ]
-                                   }
-                json_PositionInfo = json.dumps(dict_MarketInfo)
-                self.__sm.send_msg(json_PositionInfo)
-
-                # 发送UserInfo
-                dict_UserInfo = {'MsgRef': self.__sm.msg_ref_add(),
-                                 'MsgSendFlag': 0,
-                                 'MsgType': 2,  # 消息类型为UserInfo
-                                 'MsgResult': 0,  # 0：成功、1：失败
-                                 'MsgErrorReason': 'ID or password error',
-                                 'Info':
-                                     [
-                                         {'user_id': '063802',
-                                          'password': '123456',
-                                          'front_address': 'tcp://180.168.146.187:10000',
-                                          'broker_id': '9999',
-                                          'trader_id': '1601'
-                                          },
-                                         {'user_id': '058176',
-                                          'password': '669822',
-                                          'front_address': 'tcp://180.168.146.187:10000',
-                                          'broker_id': '9999',
-                                          'trader_id': '1601'
-                                          }
-                                     ]
-                                 }
-                json_UserInfo = json.dumps(dict_UserInfo)
-                self.__sm.send_msg(json_UserInfo)
-
-                # 发送StrategyInfo
-                dict_StrategyInfo = {'MsgRef': 1,  # self.__sm.msg_ref_add(),
-                                     'MsgSendFlag': 0,
-                                     'MsgType': 3,  # 消息类型为StrategyInfo
-                                     'MsgResult': 0,  # 0：成功、1：失败
-                                     'MsgErrorReason': 'ID or password error',
-                                     'Info':
-                                         [
-                                             {"trader_id": "1601",
-                                              "user_id": "063802",
-                                              "strategy_id": "01",
-                                              "order_algorithm": "01",  # 下单算法
-                                              "trade_model": "boll_reversion",  # 交易模型
-                                              "on_off": 1,  # 策略交易开关，0关、1开
-                                              "is_active": 1,
-                                              "only_close": 0,
-                                              "list_instrument_id": ["rb1705", "rb1701"],
-                                              "lots": 10,
-                                              "lots_batch": 1,
-                                              "order_action_limit": 400,
-                                              "stop_loss": 0,
-                                              "spread_shift": 0,
-                                              "a_wait_price_tick": 1,
-                                              "b_wait_price_tick": 0,
-                                              "sell_open": 9000,
-                                              "buy_close": 9000,
-                                              "buy_open": 9000,
-                                              "sell_close": -9000,
-                                              "position_a_sell_today": 0,
-                                              "position_a_sell_yesterday": 0,
-                                              "position_a_sell": 0,
-                                              "position_a_buy_today": 0,
-                                              "position_a_buy_yesterday": 0,
-                                              "position_a_buy": 0,
-                                              "position_b_buy_today": 0,
-                                              "position_b_buy_yesterday": 0,
-                                              "position_b_buy": 0,
-                                              "position_b_sell_today": 0,
-                                              "position_b_sell_yesterday": 0,
-                                              "position_b_sell": 0,
-                                              "today_profit": 0,  # 平仓盈利
-                                              "today_commission": 0,  # 手续费
-                                              "today_trade_volume": 0,  # 成交量
-                                              "today_sum_slippage": 0,  # 总滑价
-                                              "today_average_slippage": 0,  # 平均滑价
-                                              "trade_date": "2016-10-11",  # 交易日
-                                              },
-                                             {"trader_id": "1601",
-                                              "user_id": "063802",
-                                              "strategy_id": "02",
-                                              "order_algorithm": "01",  # 下单算法
-                                              "trade_model": "boll_reversion",  # 交易模型
-                                              "on_off": 1,  # 策略交易开关，0关、1开
-                                              "is_active": 1,
-                                              "only_close": 0,
-                                              "list_instrument_id": ["ni1705", "ni1701"],
-                                              "lots": 10,
-                                              "lots_batch": 1,
-                                              "order_action_limit": 400,
-                                              "stop_loss": 0,
-                                              "spread_shift": 0,
-                                              "a_wait_price_tick": 1,
-                                              "b_wait_price_tick": 0,
-                                              "sell_open": 9000,
-                                              "buy_close": 9000,
-                                              "buy_open": 9000,
-                                              "sell_close": -9000,
-                                              "position_a_sell_today": 0,
-                                              "position_a_sell_yesterday": 0,
-                                              "position_a_sell": 0,
-                                              "position_a_buy_today": 0,
-                                              "position_a_buy_yesterday": 0,
-                                              "position_a_buy": 0,
-                                              "position_b_buy_today": 0,
-                                              "position_b_buy_yesterday": 0,
-                                              "position_b_buy": 0,
-                                              "position_b_sell_today": 0,
-                                              "position_b_sell_yesterday": 0,
-                                              "position_b_sell": 0,
-                                              "today_profit": 0,  # 平仓盈利
-                                              "today_commission": 0,  # 手续费
-                                              "today_trade_volume": 0,  # 成交量
-                                              "today_sum_slippage": 0,  # 总滑价
-                                              "today_average_slippage": 0,  # 平均滑价
-                                              "trade_date": "2016-10-11",  # 交易日
-                                              }
-                                         ]
-                                     }
-                json_StrategyInfo = json.dumps(dict_StrategyInfo)
-                self.__sm.send_msg(json_StrategyInfo)
-
-                # 发送PositionInfo
-                dict_PositionInfo = {'MsgRef': self.__sm.msg_ref_add(),
-                                     'MsgSendFlag': 0,
-                                     'MsgType': 5,  # 消息类型为PositionInfo
-                                     'MsgResult': 0,  # 0：成功、1：失败
-                                     'MsgErrorReason': 'None',
-                                     'Info':
-                                         [
-                                             {'trader_id': '1601',  # 交易员id
-                                              'user_id': '063802',  # user_id等于投资者代码
-                                              'strategy_id': '01',  # 策略编号
-                                              'InstrumentID': 'cu1611',  # 合约代码
-                                              'BrokerID': '9999',  # 经纪公司代码
-                                              'InvestorID': '063802',  # 投资者代码
-                                              'Direction': '0',  # 持仓多空方向：0买、1卖
-                                              'HedgeFlag': '1',  # 投机套保标志：1投机、2套利、3保值
-                                              'CreatePositionDate': '20160926',  # 开仓日期
-                                              'CreatePositionPrice': '38000',  # 开仓价格
-                                              'YesterdayPosition': '1',  # 上日持仓
-                                              'TodayPosition': '0',  # 今日持仓
-                                              'MarginRateByMoney': 0,  # 保证金率
-                                              'PositionFrozen': 0,  # 持仓冻结资金
-                                              'PositionProfit': 0,  # 持仓盈亏
-                                              'PreSettlementPrice': 0,  # 上次结算价
-                                              },
-                                             {'trader_id': '1601',  # 交易员id
-                                              'user_id': '063802',  # user_id等于投资者代码
-                                              'strategy_id': '01',  # 策略编号
-                                              'InstrumentID': 'cu1612',  # 合约代码
-                                              'BrokerID': '9999',  # 经纪公司代码
-                                              'InvestorID': '063802',  # 投资者代码
-                                              'Direction': '1',  # 持仓多空方向
-                                              'HedgeFlag': '1',  # 投机套保标志
-                                              'CreatePositionDate': '20160926',  # 开仓日期
-                                              'CreatePositionPrice': '38050',  # 开仓价格
-                                              'YesterdayPosition': '1',  # 上日持仓
-                                              'TodayPosition': '0',  # 今日持仓
-                                              'MarginRateByMoney': 0,  # 保证金率
-                                              'PositionFrozen': 0,  # 持仓冻结资金
-                                              'PositionProfit': 0,  # 持仓盈亏
-                                              'PreSettlementPrice': 0,  # 上次结算价
-                                              },
-                                         ]
-                                     }
-                json_PositionInfo = json.dumps(dict_PositionInfo)
-                self.__sm.send_msg(json_PositionInfo)
-
-        elif buff['MsgType'] == 5:  # PositionInfo
+        # 消息源MsgSrc值：0客户端、1服务端
+        if buff['MsgSrc'] == 0:  # 由客户端发起的消息类型
+            if buff['MsgType'] == 1:  # 交易员登录验证，MsgType=1
+                print("ClientMain.slot_output_message() MsgType=1", buff)  # 输出错误消息
+                if buff['MsgResult'] == 0:  # 验证通过
+                    self.get_QLoginForm().label_login_error.setText(buff['MsgErrorReason'])  # 界面提示错误信息
+                    self.__CTPManager.set_TraderID(buff['TraderID'])  # 将TraderID设置为CTPManager的属性
+                    self.__TraderID = self.__QLoginForm.get_dict_login()['TraderID']
+                    self.__Password = self.__QLoginForm.get_dict_login()['Password']
+                    self.QryMarketInfo()  # 查询行情配置
+                    # self.__sm.signal_send_message.emit(self.slot_output_message)  # 绑定自定义信号槽
+                elif buff['MsgResult'] == 1:  # 验证不通过
+                    self.get_QLoginForm().label_login_error.setText(buff['MsgErrorReason'])  # 界面提示错误信息
+                    self.get_QLoginForm().pushButton_login.setEnabled(True)  # 登录按钮激活
+            elif buff['MsgType'] == 4:  # 查询行情配置，MsgType=4
+                print("ClientMain.slot_output_message() MsgType=4", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    self.__listMarketInfo = buff['Info']  # 转存行情信息到本类的属性里
+                    self.QryUserInfo()  # 查询期货账户
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 2:  # 查询期货账户，MsgType=2
+                print("ClientMain.slot_output_message() MsgType=2", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    self.__listUserInfo = buff['Info']  # 转存期货账户信息到本类的属性里
+                    self.QryStrategyInfo()  # 查询策略信息
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 3:  # 查询策略，MsgType=3
+                print("ClientMain.slot_output_message() MsgType=3", buff)  # 输出错误消息
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    self.__listStrategyInfo = buff['Info']  # 转存策略信息到本类的属性里
+                    self.__CTPManager.init()  # 跳转到开始初始化程序，有CTPManager开始初始化
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 6:  # 新增策略，MsgType=6
+                print("ClientMain.slot_output_message() MsgType=6", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    pass
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 5:  # 修改策略，MsgType=5
+                print("ClientMain.slot_output_message() MsgType=5", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    pass
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
+                print("ClientMain.slot_output_message() MsgType=7", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    pass
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 10:  # 查询策略昨仓，MsgType=10
+                print("ClientMain.slot_output_message() MsgType=10", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    for i in self.__CTPManager.get_list_user():  # 遍历user对象列表
+                        if i.get_user_id().decode() == buff['UserID']:  # 找到对应的user对象
+                            for j in i.get_list_strategy():  # 遍历strategy对象列表
+                                if j.get_strategy_id() == buff['StrategyID']:  # 找到对应的strategy对象
+                                    j.init_yesterday_position(buff['Info'][0])  # 初始化策略昨仓
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+        elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
-        elif buff['MsgType'] == 6:  # MarketManagerInfo
-            for i in buff['Info']:
-                self.__CTPManager.create_md(i)
+    # 查询行情信息
+    def QryMarketInfo(self):
+        dict_QryMarketInfo = {'MsgRef': self.__sm.msg_ref_add(),
+                              'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                              'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                              'MsgType': 4,  # 查询行情信息
+                              'TraderID': self.__TraderID
+                              }
+        json_QryMarketInfo = json.dumps(dict_QryMarketInfo)
+        self.get_SocketManager().send_msg(json_QryMarketInfo)
+
+    # 查询期货账户
+    def QryUserInfo(self):
+        dict_QryUserInfo = {'MsgRef': self.__sm.msg_ref_add(),
+                            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                            'MsgType': 2,  # 查询期货账户
+                            'TraderID': self.__TraderID,
+                            'UserID': ''
+                            }
+        json_QryUserInfo = json.dumps(dict_QryUserInfo)
+        self.get_SocketManager().send_msg(json_QryUserInfo)
+
+    # 查询策略
+    def QryStrategyInfo(self):
+        dict_QryStrategyInfo = {'MsgRef': self.__sm.msg_ref_add(),
+                                'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                                'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                                'MsgType': 3,  # 查询策略
+                                'TraderID': self.__TraderID,
+                                'UserID': ''
+                                }
+        json_QryStrategyInfo = json.dumps(dict_QryStrategyInfo)
+        self.get_SocketManager().send_msg(json_QryStrategyInfo)
 
 
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    q_client_main = ClientMain()  # 创建客户端界面实例
+    q_client_main = ClientMain()  # 创建客户端主界面实例
     ctp_manager = CTPManager()  # 创建客户端内核管理实例
     ctp_manager.set_ClientMain(q_client_main)  # 客户端界面实例与内核管理实例相互设置为对方的属性
     q_client_main.set_CTPManager(ctp_manager)
 
-    q_login_form = QLogin.QLoginForm()  # 创建登录窗口
-    q_login_form.set_QClientMain(q_client_main)
+    q_login_form = QLogin.QLoginForm()  # 创建登录界面
+    q_login_form.set_QClientMain(q_client_main)  # 登录界面与客户端主界面相互设置为对方的属性
     q_client_main.set_QLoginForm(q_login_form)
     q_login_form.show()
 

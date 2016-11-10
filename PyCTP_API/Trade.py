@@ -505,6 +505,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                                                                other=Utils.code_transform(Order),
                                                                ignore_index=True)
             if IsLast:
+                print("OnRspQryOrder() Order", Order)
+                print("OnRspQryOrder() RspInfo", RspInfo)
+                print("OnRspQryOrder() RequestID", RequestID)
+                print("OnRspQryOrder() IsLast", IsLast)
                 self.__rsp_QryOrder['event'].set()
 
     def OnRspQryTrade(self, Trade, RspInfo, RequestID, IsLast):
@@ -518,6 +522,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                                                                other=Utils.code_transform(Trade),
                                                                ignore_index=True)
             if IsLast:
+                print("OnRspQryTrade() Trade", Trade)
+                print("OnRspQryTrade() RspInfo", RspInfo)
+                print("OnRspQryTrade() RequestID", RequestID)
+                print("OnRspQryTrade() IsLast", IsLast)
                 self.__rsp_QryTrade['event'].set()
 
     def OnRspQryInvestorPosition(self, InvestorPosition, RspInfo, RequestID, IsLast):

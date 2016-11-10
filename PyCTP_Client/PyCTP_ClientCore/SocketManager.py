@@ -59,6 +59,7 @@ class SocketManager(QtCore.QThread):
 
     def get_msg_ref(self):
         return self.__msg_ref
+
     def msg_ref_add(self):
         self.__msg_ref += 1
         return self.__msg_ref
@@ -84,7 +85,7 @@ class SocketManager(QtCore.QThread):
         totalRecved = 0
         while totalRecved < n:
             onceContent = socket.recv(n - totalRecved)
-            print("onceContent", onceContent)
+            # print("onceContent", onceContent)
             totalContent += onceContent
             totalRecved = len(totalContent)
 
@@ -201,7 +202,7 @@ class SocketManager(QtCore.QThread):
 
 if __name__ == '__main__':
     # 创建socket套接字
-    socket_manager = SocketManager("10.0.0.17", 8888)  # 192.168.5.13
+    socket_manager = SocketManager("10.0.0.33", 8888)  # 192.168.5.13
     socket_manager.connect()
     socket_manager.start()
 

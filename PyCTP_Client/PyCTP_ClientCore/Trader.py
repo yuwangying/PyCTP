@@ -13,11 +13,11 @@ import Utils
 # 交易员类
 class Trader:
     def __init__(self, dict_argument):  # trader_id, trader_name, password, is_active):
-        print('创建Trader: trader_id=', dict_argument['trader_id'], 'BrokerID=', ['broker_id'], 'user_id=', ['user_id'])
+        # print('创建Trader: trader_id=', dict_argument['trader_id'], 'BrokerID=', ['broker_id'], 'user_id=', ['user_id'])
         self.__trader_id = dict_argument['trader_id']
         self.__trader_name = dict_argument['trader_name']
         self.__password = dict_argument['password']
-        self.__is_active = dict_argument['is_active']
+        # self.__is_active = dict_argument['is_active']
         self.__list_user = list()  # 保存交易员名下的期货账户列表
 
     # 获取trader_id
@@ -51,8 +51,4 @@ class Trader:
     # 设置交易员id
     def set_trader_id(self, trader_id):
         self.__trader_id = trader_id
-
-    # 获取交易员id
-    def get_trader_id(self):
-        return self.__trader_id
 

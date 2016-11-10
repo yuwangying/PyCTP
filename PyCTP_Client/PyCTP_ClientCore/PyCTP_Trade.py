@@ -164,12 +164,15 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             self.__rsp_QryOrder['event'].clear()
             if self.__rsp_QryOrder['event'].wait(self.TIMEOUT):
                 if self.__rsp_QryOrder['ErrorID'] != 0:
+                    # self.__user.QryOrder(self.__rsp_QryOrder['ErrorID'])  # 转到user类的回调函数
                     return self.__rsp_QryOrder['ErrorID']
+                # self.__user.QryOrder(self.__rsp_QryOrder['results'])  # 转到user类的回调函数
                 return self.__rsp_QryOrder['results']
             else:
+                # self.__user.QryOrder(-4)  # 转到user类的回调函数
                 return -4
+        # self.__user.QryOrder(ret)  # 转到user类的回调函数
         return ret
-        pass
 
     def QryTrade(self, InstrumentID=b'', ExchangeID=b'', TradeID=b''):
         """请求查询成交单"""
@@ -180,12 +183,15 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             self.__rsp_QryTrade['event'].clear()
             if self.__rsp_QryTrade['event'].wait(self.TIMEOUT):
                 if self.__rsp_QryTrade['ErrorID'] != 0:
+                    # self.__user.QryTrade(self.__rsp_QryTrade['ErrorID'])  # 转到user类的回调函数
                     return self.__rsp_QryTrade['ErrorID']
+                # self.__user.QryTrade(self.__rsp_QryTrade['results'])  # 转到user类的回调函数
                 return self.__rsp_QryTrade['results']
             else:
+                # self.__user.QryTrade(-4)  # 转到user类的回调函数
                 return -4
+        # self.__user.QryTrade(ret)  # 转到user类的回调函数
         return ret
-        pass
 
     def QryInvestorPosition(self, InstrumentID=b''):
         """ 请求查询投资者持仓 """
@@ -463,6 +469,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRspQryOrder(self, Order, RspInfo, RequestID, IsLast):
         """请求查询投资者持仓响应"""
+        # self.__user.OnRspQryOrder(Order, RspInfo, RequestID, IsLast)  # 转到user回调函数
         if RequestID == self.__rsp_QryOrder['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryOrder.update(RspInfo)
@@ -470,10 +477,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 self.__rsp_QryOrder['results'].append(Order)
             if IsLast:
                 self.__rsp_QryOrder['event'].set()
-        pass
 
     def OnRspQryTrade(self, Trade, RspInfo, RequestID, IsLast):
         """请求查询成交单响应"""
+        # self.__user.OnRspQryTrade(Trade, RspInfo, RequestID, IsLast)  # 转到user回调函数
         if RequestID == self.__rsp_QryTrade['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryTrade.update(RspInfo)
@@ -481,7 +488,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 self.__rsp_QryTrade['results'].append(Trade)
             if IsLast:
                 self.__rsp_QryTrade['event'].set()
-        pass
 
     def OnRspQryInvestorPosition(self, InvestorPosition, RspInfo, RequestID, IsLast):
         """ 请求查询投资者持仓响应 """

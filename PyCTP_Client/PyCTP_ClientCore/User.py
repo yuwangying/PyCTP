@@ -10,19 +10,18 @@ import datetime
 from pymongo import MongoClient
 from PyCTP_Trade import PyCTP_Trader_API
 import Utils
+from pandas import DataFrame, Series
 
 
 class User:
-    # 初始化参数BrokerID\UserID\Password\front_address，参数格式为二进制字符串
+    # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     def __init__(self, dict_arguments):
-        # 形参{'trader_id': '', 'broker_id': '', 'front_address': '', 'user_id': '', 'password': '', 'trader': ''}
-
-        print('创建user: user_id=', dict_arguments['trader_id'], 'BrokerID=', dict_arguments['broker_id'], 'user_id=', dict_arguments['user_id'])
-        self.__trader_id = dict_arguments['trader_id'].encode()
-        self.__user_id = dict_arguments['user_id'].encode()
-        self.__BrokerID = dict_arguments['broker_id'].encode()
+        print('User.__init__()', dict_arguments)
+        self.__trader_id = dict_arguments['traderid'].encode()
+        self.__user_id = dict_arguments['userid'].encode()
+        self.__BrokerID = dict_arguments['brokerid'].encode()
         self.__Password = dict_arguments['password'].encode()
-        self.__FrontAddress = dict_arguments['front_address'].encode()
+        self.__FrontAddress = dict_arguments['frontaddress'].encode()
 
         self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
         self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
@@ -42,12 +41,12 @@ class User:
         col_position_detail = self.__user_id.decode() + 'position_detail'  # 持仓明细集合名
         col_trade = self.__user_id.decode() + 'trade'  # trade回调记录集合名
         col_order = self.__user_id.decode() + 'order'  # order回调记录集合名
-        for i in [col_strategy, col_position, col_position_detail]:
+        for i in [col_strategy, col_position, col_position_detail]:  # 初始化user时清空集合
             try:
                 self.__mongo_client.CTP.drop_collection(i)
             except:
                 print("User.__init__() 删除数据库集合失败，集合名=", i)
-        for i in [col_trade, col_order]:
+        for i in [col_trade, col_order]:  # 初始化user时清空当天Trade、Order集合
             try:
                 self.__mongo_client.CTP.get_collection(i).delete_many({'TradingDay': self.__TradingDay})
             except:
@@ -67,17 +66,32 @@ class User:
         self.__front_id = self.__trade.get_front_id()  # 获取前置编号
         self.__session_id = self.__trade.get_session_id()  # 获取会话编号
         self.__TradingDay = self.__trade.GetTradingDay().decode()  # 获取交易日
-        # self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
-        # time.sleep(1.0)
-        # print("User.__init__.self.__instrument_info=", self.__instrument_info)
 
         self.__on_off = 1  # 策略交易开关，0关、1开
 
-        # self.__init_finished = False  # 初始化完成
+        self.__init_finished = False  # 初始化完成
+
+        self.__dfQryTrade = DataFrame()  # 查询交易、委托记录
+        self.__dfQryOrder = DataFrame()
+        self.QryTrade()  # 获取user的Trade记录
+        time.sleep(1.0)
+        self.QryOrder()  # 获取user的Order记录
+        time.sleep(1.0)
 
     # 设置合约信息
     def set_InstrumentInfo(self, list_InstrumentInfo):
         self.__instrument_info = list_InstrumentInfo
+
+    # 查询合约信息
+    def qry_instrument_info(self):
+        if self.__CTPManager.get_got_list_instrument_info() is False:
+            self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
+            self.__CTPManager.set_list_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
+            if len(self.__instrument_info) > 0:
+                self.__CTPManager.set_got_list_instrument_info(True)  # 将获取合约信息的状态设置为真，获取成功
+
+    # time.sleep(1.0)
+    # print("User.__init__.self.__instrument_info=", self.__instrument_info)
 
     # 将CTPManager类设置为user的属性
     def set_CTPManager(self, obj_CTPManager):
@@ -91,9 +105,29 @@ class User:
     def set_DBManager(self, obj_DBManager):
         self.__DBManager = obj_DBManager
 
-    # 从数据库获取user的strategy参数列表
+    # 获得数据库
+    def get_mongodb_CTP(self):
+        return self.__mongo_client.CTP
+
+    # 从数据库获取user的strategy参数集合
     def get_col_strategy(self):
         return self.__mongo_client.CTP.get_collection(self.__user_id+'_strategy')
+
+    # 从数据库获取user的持仓汇总集合
+    def get_col_position(self):
+        return self.__mongo_client.CTP.get_collection(self.__user_id+'_position')
+
+    # 从数据库获取user的持仓明细集合
+    def get_col_position_detail(self):
+        return self.__mongo_client.CTP.get_collection(self.__user_id+'_position_detail')
+
+    # 从数据库获取user的trade集合
+    def get_col_trade(self):
+        return self.__mongo_client.CTP.get_collection(self.__user_id+'_trade')
+
+    # 从数据库获取user的order列表
+    def get_col_order(self):
+        return self.__mongo_client.CTP.get_collection(self.__user_id + '_order')
 
     # 获取期货账号
     def get_user_id(self):
@@ -118,6 +152,14 @@ class User:
     # 获取user的交易开关，0关、1开
     def get_on_off(self):
         return self.__on_off
+
+    # 设置user初始化状态
+    def set_init_finished(self, bool_input):
+        self.__init_finished = bool_input
+
+    # 获取user初始化状态
+    def get_init_finished(self):
+        return self.__init_finished
 
     # 获取交易日
     def GetTradingDay(self):
@@ -191,6 +233,63 @@ class User:
         Order['RecOrderMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
         # self.__DBManager.insert_trade(Order)  # 记录插入到数据库
         self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Order').insert_one(Order)  # 记录插入到数据库
+
+    """
+    # 转PyCTP_Market_API类中回调函数OnRspQryTrade
+    def OnRspQryTrade(self, Trade, RspInfo, RequestID, IsLast):
+        self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
+                                             other=Utils.code_transform(Trade),
+                                             ignore_index=True)
+        print("User.OnRspQryTrade() Trade =", Trade)
+        print("User.OnRspQryTrade() RspInfo =", RspInfo)
+        print("User.OnRspQryTrade() RequestID =", RequestID)
+        print("User.OnRspQryTrade() IsLast =", IsLast)
+
+    # 转PyCTP_Market_API类中回调函数OnRspQryOrder
+    def OnRspQryOrder(self, Order, RspInfo, RequestID, IsLast):
+        self.__dfQryOrder = DataFrame.append(self.__dfQryOrder,
+                                             other=Utils.code_transform(Order),
+                                             ignore_index=True)
+        print("User.OnRspQryTrade() Order =", Order)
+        print("User.OnRspQryTrade() RspInfo =", RspInfo)
+        print("User.OnRspQryTrade() RequestID =", RequestID)
+        print("User.OnRspQryTrade() IsLast =", IsLast)
+    """
+
+    # 转PyCTP_Market_API类中回调函数QryTrade
+    def QryTrade(self):
+        self.__listQryTrade = self.__trade.QryTrade()
+        print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
+        for i in self.__listQryTrade:
+            self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
+                                                 other=Utils.code_transform(i),
+                                                 ignore_index=True)
+
+    # 转PyCTP_Market_API类中回调函数QryOrder
+    def QryOrder(self):
+        self.__listQryOrder = self.__trade.QryOrder()
+        print("User.QryOrder() list_QryOrder =", self.__user_id, self.__listQryOrder)
+        for i in self.__listQryOrder:
+            self.__dfQryOrder = DataFrame.append(self.__dfQryOrder,
+                                                 other=Utils.code_transform(i),
+                                                 ignore_index=True)
+
+    # 获取listQryOrder
+    def get_listQryOrder(self):
+        return self.__listQryOrder
+
+    # 获取listQryTrade
+    def get_listQryTrade(self):
+        return self.__listQryTrade
+
+    # 获取dfQryOrder
+    def get_dfQryOrder(self):
+        return self.__dfQryOrder
+
+    # 获取dfQryTrade
+    def get_dfQryTrade(self):
+        return self.__dfQryTrade
+
 
 if __name__ == '__main__':
     print("User.py, if __name__ == '__main__':")

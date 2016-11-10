@@ -226,10 +226,10 @@ class DBManger:
             print("DBManager.create_strategy()数据库中不存在期货账号", user_id)
             return False
         # 除重
-        if self.__col_strategy.count({'user_id': user_id, 'strategy_id': strategy_id}) > 0:
+        if self.__user.get_col_strategy.count({'user_id': user_id, 'strategy_id': strategy_id}) > 0:
             print("DBManager.create_strategy()数据库中已存在期货账号", user_id, '的策略编号', strategy_id)
             return False
-        self.__col_strategy.insert_one(dict_arguments)
+        self.__user.get_col_strategy.insert_one(dict_arguments)
         print("DBManager.create_strategy()策略信息存入数据库成功", dict_arguments)
         return True
 
@@ -239,10 +239,10 @@ class DBManger:
         if self.__col_user.count({'user_id': user_id}) == 0:
             print("DBManager.delete_strategy()数据库中不存在期货账户", user_id)
             return False
-        if self.__col_strategy.count({'user_id': user_id, 'strategy_id': strategy_id}) == 0:
+        if self.__user.get_col_strategy.count({'user_id': user_id, 'strategy_id': strategy_id}) == 0:
             print("DBManager.delete_strategy()数据库中不存在期货账户为", user_id, '的策略编号', strategy_id)
             return False
-        self.__col_strategy.remove({'user_id': user_id, 'strategy_id': strategy_id})
+        self.__user.get_col_strategy.remove({'user_id': user_id, 'strategy_id': strategy_id})
         print("DBManager.create_strategy()成功从数据库删除期货账户为", user_id, '的策略编号', strategy_id)
         return True
 
@@ -258,11 +258,11 @@ class DBManger:
         if self.__col_user.count({'trader_id': trader_id, 'user_id': user_id}) == 0:
             print("DBManager.delete_strategy()数据库中交易员", trader_id, "不存在期货账户", user_id)
             return False
-        if self.__col_strategy.count({'user_id': user_id, 'strategy_id': strategy_id}) == 0:
-            print("DBManager.delete_strategy()数据库中不存在期货账户为", user_id, '的策略编号', strategy_id)
+        if self.__user.get_col_strategy().count({'user_id': user_id, 'strategy_id': strategy_id}) == 0:
+            print("DBManager.delete_strategy()数据库中不存在期货账户", user_id, '的策略', strategy_id)
             return False
-        self.__col_strategy.update_one({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}, {"$set": dict_arguments})
-        print("DBManager.create_strategy()成功从数据库修改期货账户为", user_id, '的策略编号', strategy_id)
+        self.__user.get_col_strategy().update_one({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}, {"$set": dict_arguments})
+        print("DBManager.update_strategy() 成功更新期货账户", user_id, '策略编号', strategy_id, '策略参数')
         return True
 
     # 查询策略
@@ -271,31 +271,31 @@ class DBManger:
         # 当形参中某键值不存在时，查询该键值所有的策略
         list_strategy = list()
         if len(dict_arguments) == 0:  # 查询所有
-            for i in self.__col_strategy.find({}):
+            for i in self.__user.get_col_strategy.find({}):
                 list_strategy.append(i)
         # 形参中有trader_id
         elif len(dict_arguments) == 1 and 'trader_id' in dict_arguments:
             if self.__col_trader.count({'trader_id': dict_arguments['trader_id']}) == 0:
                 print("DBManager.get_strategy()数据库中不存在交易员", dict_arguments['trader_id'])
                 return None
-            for i in self.__col_strategy.find({'trader_id': dict_arguments['trader_id']}):
+            for i in self.__user.get_col_strategy.find({'trader_id': dict_arguments['trader_id']}):
                 list_strategy.append(i)
         # 形参中有trader_id、user_id
         elif len(dict_arguments) == 2 and 'trader_id' in dict_arguments and 'user_id' in dict_arguments:
             if self.__col_user.count({'user_id': dict_arguments['user_id']}) == 0:
                 print("DBManager.get_strategy()数据库中不存在期货账户", dict_arguments['user_id'])
                 return None
-            for i in self.__col_strategy.find({'trader_id': dict_arguments['trader_id'], 'user_id': dict_arguments['user_id']}):
+            for i in self.__user.get_col_strategy.find({'trader_id': dict_arguments['trader_id'], 'user_id': dict_arguments['user_id']}):
                 list_strategy.append(i)
         # 形参中有trader_id、user_id、strategy_id
         elif len(dict_arguments) == 3 and 'trader_id' in dict_arguments and 'user_id' in dict_arguments and 'strategy_id' in dict_arguments:
             trader_id = dict_arguments['trader_id']
             user_id = dict_arguments['user_id']
             strategy_id = dict_arguments['strategy_id']
-            if self.__col_strategy.count({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}) == 0:
+            if self.__user.get_col_strategy.count({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}) == 0:
                 print("DBManager.get_strategy()数据库中不存在期货账户", user_id, "的策略", strategy_id)
                 return None
-            for i in self.__col_strategy.find({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}):
+            for i in self.__user.get_col_strategy.find({'trader_id': trader_id, 'user_id': user_id, 'strategy_id': strategy_id}):
                 list_strategy.append(i)
         else:
             print("DBManager.get_strategy()参数错误")

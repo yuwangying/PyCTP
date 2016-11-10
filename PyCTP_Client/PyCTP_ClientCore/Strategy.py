@@ -7,66 +7,31 @@ Created on Wed Jul 20 08:46:13 2016
 
 
 import copy
+import json
 from PyCTP_Trade import PyCTP_Trader_API
 from PyCTP_Market import PyCTP_Market_API
 from OrderAlgorithm import OrderAlgorithm
 import PyCTP
 import time
 import Utils
+from pandas import DataFrame, Series
+import pandas as pd
 
 
 class Strategy:
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
     def __init__(self, dict_arguments, obj_user, obj_DBM):
-        print("创建Strategy实例的形参", dict_arguments)
-        print('创建Strategy: strategy_id=', dict_arguments['strategy_id'], 'BrokerID=', 'user_id=', dict_arguments['user_id'])
+        print('Strategy.__init__() 创建交易策略，user_id=', dict_arguments['user_id'], 'strategy_id=', dict_arguments['strategy_id'])
         self.__DBM = obj_DBM  # 数据库连接实例
         self.__user = obj_user  # user实例
         self.__dict_arguments = dict_arguments  # 转存形参到类的私有变量
         self.__TradingDay = self.__user.GetTradingDay()  # 获取交易日
-
-        # 交易参数
-        self.__trader_id = dict_arguments['trader_id']
-        self.__user_id = dict_arguments['user_id']
-        self.__strategy_id = dict_arguments['strategy_id']
-        self.__order_algorithm = dict_arguments['order_algorithm']  # 下单算法选择标志位
-        self.__list_instrument_id = dict_arguments['list_instrument_id']  # 合约列表
-        self.__buy_open = dict_arguments['buy_open']  # 触发买开（开多单）
-        self.__sell_close = dict_arguments['sell_close']  # 触发卖平（平多单）
-        self.__sell_open = dict_arguments['sell_open']  # 触发卖开（开空单）
-        self.__buy_close = dict_arguments['buy_close']  # 触发买平（平空单）
-        self.__spread_shift = dict_arguments['spread_shift']  # 价差让价
-        self.__a_wait_price_tick = dict_arguments['a_wait_price_tick']  # A合约挂单等待最小跳数
-        self.__b_wait_price_tick = dict_arguments['b_wait_price_tick']  # B合约挂单等待最小跳数
-        self.__stop_loss = dict_arguments['stop_loss']  # 止损，单位为最小跳数
-        self.__lots = dict_arguments['lots']  # 总手
-        self.__lots_batch = dict_arguments['lots_batch']  # 每批下单手数
-        self.__order_action_limit = dict_arguments['order_action_limit']  # 撤单次数限制
-        self.__only_close = dict_arguments['only_close']  # 只能平仓
-        self.__on_off = dict_arguments['on_off']  # 策略开关，0关，1开
-
-        # 以一天的盘面为周期的统计指标
-        self.__last_trade_date = dict_arguments['trade_date']  # 交易日
-        self.__today_profit = dict_arguments['today_profit']  # 平仓盈利
-        self.__today_commission = dict_arguments['today_commission']  # 手续费
-        self.__today_trade_volume = dict_arguments['today_trade_volume']  # 成交量
-        self.__today_sum_slippage = dict_arguments['today_sum_slippage']  # 总滑价
-        self.__today_average_slippage = dict_arguments['today_average_slippage']  # 平均滑价
-
-        self.__position_a_buy_today = dict_arguments['position_a_buy_today']  # A合约买持仓今仓
-        self.__position_a_buy_yesterday = dict_arguments['position_a_buy_yesterday']  # A合约买持仓昨仓
-        self.__position_a_buy = dict_arguments['position_a_buy']  # A合约买持仓总仓位
-        self.__position_a_sell_today = dict_arguments['position_a_sell_today']  # A合约卖持仓今仓
-        self.__position_a_sell_yesterday = dict_arguments['position_a_sell_yesterday']  # A合约卖持仓昨仓
-        self.__position_a_sell = dict_arguments['position_a_sell']  # A合约卖持仓总仓位
-        self.__position_b_buy_today = dict_arguments['position_b_buy_today']  # B合约买持仓今仓
-        self.__position_b_buy_yesterday = dict_arguments['position_b_buy_yesterday']  # B合约买持仓昨仓
-        self.__position_b_buy = dict_arguments['position_b_buy']  # B合约买持仓总仓位
-        self.__position_b_sell_today = dict_arguments['position_b_sell_today']  # B合约卖持仓今仓
-        self.__position_b_sell_yesterday = dict_arguments['position_b_sell_yesterday']  # B合约卖持仓昨仓
-        self.__position_b_sell = dict_arguments['position_b_sell']  # B合约卖持仓总仓位    
+        self.__init_finished = False  # strategy初始化状态
+        self.__trade_tasking = False  # 交易任务进行中
+        self.__a_order_insert_args = dict()  # a合约报单参数
+        self.__b_order_insert_args = dict()  # b合约报单参数
         self.__list_position_detail = list()  # 持仓明细列表
-
+        self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
         self.__instrument_a_tick = None  # A合约tick（第一腿）
         self.__instrument_b_tick = None  # B合约tick（第二腿）
         self.__spread_long = None  # 市场多头价差：A合约买一价 - B合约买一价
@@ -74,30 +39,23 @@ class Strategy:
         self.__spread_short = None  # 市场空头价差：A合约卖一价 - B合约卖一价
         self.__spread_short_volume = None  # 市场空头价差盘口挂单量：min(A合约买一量 - B合约买一量)
         self.__spread = None  # 市场最新价价差
-
-        self.__order_ref_last = None  # 最后一次实际使用的报单引用
         self.__order_ref_a = None  # A合约报单引用
         self.__order_ref_b = None  # B合约报单引用
+        self.__order_ref_last = None  # 最后一次实际使用的报单引用
 
+        self.set_arguments(dict_arguments)  # 设置策略参数
         self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的合约列表
-
         self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
-        if Utils.Strategy_print:
-            print("Strategy.__init__() A合约", self.__list_instrument_id[0], "最小跳", self.__a_price_tick)
-            print("Strategy.__init__() B合约", self.__list_instrument_id[1], "最小跳", self.__b_price_tick)
-
-        # set_arguments()中不存在的私有变量
-        self.__trade_tasking = False  # 交易任务进行中
-        self.__a_order_insert_args = dict()  # a合约报单参数
-        self.__b_order_insert_args = dict()  # b合约报单参数
-        self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
+        self.QryStrategyYesterdayPosition()  # 向服务器查询昨仓，目的初始化本策略昨仓
+        # self.init_yesterday_position()  # 初始化策略昨仓
+        # self.init_yesterday_position()  # 初始化策略持仓
+        # self.statistics()  # 统计指标，通过QryOrder和QryTrade获取记录
 
     # 设置参数
     def set_arguments(self, dict_arguments):
         self.__dict_arguments = dict_arguments  # 将形参转存为私有变量
         self.__DBM.update_strategy(dict_arguments)  # 更新数据库
-        self.__dict_arguments = dict_arguments  # 转存形参到类的私有变量
 
         self.__trader_id = dict_arguments['trader_id']
         self.__user_id = dict_arguments['user_id']
@@ -114,37 +72,64 @@ class Strategy:
         self.__stop_loss = dict_arguments['stop_loss']  # 止损，单位为最小跳数
         self.__lots = dict_arguments['lots']  # 总手
         self.__lots_batch = dict_arguments['lots_batch']  # 每批下单手数
-        self.__order_action_limit = dict_arguments['order_action_limit']  # 撤单次数限制
-        self.__only_close = dict_arguments['only_close']  # 只能平仓
-        self.__on_off = dict_arguments['on_off']  # 策略开关，0关，1开
+        self.__order_action_limit = dict_arguments['order_action_tires_limit']  # 撤单次数限制
+        self.__on_off = dict_arguments['StrategyOnoff']  # 策略开关，0关、1开、-1只平
 
-        # 以一天的盘面为周期的统计指标
-        self.__last_trade_date = dict_arguments['trade_date']  # 交易日
-        self.__today_profit = dict_arguments['today_profit']  # 平仓盈利
-        self.__today_commission = dict_arguments['today_commission']  # 手续费
-        self.__today_trade_volume = dict_arguments['commission']  # 成交量
-        self.__today_sum_slippage = dict_arguments['today_sum_slippage']  # 总滑价
-        self.__today_average_slippage = dict_arguments['today_average_slippage']  # 平均滑价
+        self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的统计撤单次数的合约列表
 
-        self.__position_a_buy_today = dict_arguments['position_a_buy_today']  # A合约买持仓今仓
-        self.__position_a_buy_yesterday = dict_arguments['position_a_buy_yesterday']  # A合约买持仓昨仓
-        self.__position_a_buy = dict_arguments['position_a_buy']  # A合约买持仓总仓位
-        self.__position_a_sell_today = dict_arguments['position_a_sell_today']  # A合约卖持仓今仓
-        self.__position_a_sell_yesterday = dict_arguments['position_a_sell_yesterday']  # A合约卖持仓昨仓
-        self.__position_a_sell = dict_arguments['position_a_sell']  # A合约卖持仓总仓位
-        self.__position_b_buy_today = dict_arguments['position_b_buy_today']  # B合约买持仓今仓
-        self.__position_b_buy_yesterday = dict_arguments['position_b_buy_yesterday']  # B合约买持仓昨仓
-        self.__position_b_buy = dict_arguments['position_b_buy']  # B合约买持仓总仓位
-        self.__position_b_sell_today = dict_arguments['position_b_sell_today']  # B合约卖持仓今仓
-        self.__position_b_sell_yesterday = dict_arguments['position_b_sell_yesterday']  # B合约卖持仓昨仓
-        self.__position_b_sell = dict_arguments['position_b_sell']  # B合约卖持仓总仓位    
-        self.__list_position_detail = list()  # 持仓明细列表
+    # 查询策略昨仓
+    def QryStrategyYesterdayPosition(self):
+        dict_QryStrategyYesterdayPosition = {'MsgRef': self.__user.get_CTPManager().get_ClientMain().get_SocketManager().msg_ref_add(),
+                                             'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                                             'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                                             'MsgType': 10,  # 查询策略昨仓
+                                             'TraderID': self.__trader_id,
+                                             'UserID': self.__user_id,
+                                             'StrategyID': self.__strategy_id
+                                             }
+        json_QryStrategyYesterdayPosition = json.dumps(dict_QryStrategyYesterdayPosition)
+        self.__user.get_CTPManager().get_ClientMain().get_SocketManager().send_msg(json_QryStrategyYesterdayPosition)
 
-        self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的合约列表
+    # 查询策略昨仓响应
+    def OnRspQryStrategyYesterdayPosition(self, dict_StrategyYesterdayPosition):
+        print(">>> dict_StrategyYesterdayPosition =\n", dict_StrategyYesterdayPosition)
+        self.__dict_StrategyYesterdayPosition = dict_StrategyYesterdayPosition
+        
+    # 初始化昨仓
+    def init_yesterday_position(self, dict_input):
+        self.__position_a_buy = dict_input['position_a_buy']
+        self.__position_a_buy_today = dict_input['position_a_buy_today']
+        self.__position_a_buy_yesterday = dict_input['position_a_buy_yesterday']
+        self.__position_a_sell = dict_input['position_a_sell']
+        self.__position_a_sell_today = dict_input['position_a_sell_today']
+        self.__position_a_sell_yesterday = dict_input['position_a_sell_yesterday']
+        self.__position_b_buy = dict_input['position_b_buy']
+        self.__position_b_buy_today = dict_input['position_b_buy_today']
+        self.__position_b_buy_yesterday = dict_input['position_b_buy_yesterday']
+        self.__position_b_sell = dict_input['position_b_sell']
+        self.__position_b_sell_today = dict_input['position_b_sell_today']
+        self.__position_b_sell_yesterday = dict_input['position_b_sell_yesterday']
+        print("Strategy.init_yesterday_position() over, 接着初始化今仓")
+
+    # 初始化今仓
+    def init_today_position(self):
+        self.dfQryTrade = self.__user.get_dfQryTrade()  #
+        self.dfQryTradeStrategy = DataFrame()  # 本策略的交易记录
+
+
+        print("Strategy.init() over")
 
     # 获取参数
     def get_arguments(self):
         return self.__dict_arguments
+    
+    # 设置strategy初始化状态
+    def set_init_finished(self, bool_input):
+        self.__init_finished = bool_input
+    
+    # 获取strategy初始化状态
+    def get_init_finished(self):
+        return self.__init_finished
 
     # 设置数据库连接实例
     def set_DBM(self, DBM):
@@ -195,6 +180,10 @@ class Strategy:
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
         """ 行情推送 """
+        # 初始化未完成，跳过
+        if self.__init_finished is False:
+            return
+
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__list_instrument_id[1]:
             self.__instrument_b_tick = tick
@@ -965,4 +954,47 @@ class Strategy:
                         elif trade['Volume'] > self.__list_position_detail[i]['Volume']:
                             trade['Volume'] -= self.__list_position_detail[i]['Volume']
                             del self.__list_position_detail[i]
+
+    # 统计指标
+    def statistics(self):
+        # 以一天的盘面为周期的统计指标
+        # self.__today_profit = dict_arguments['today_profit']  # 平仓盈利
+        # self.__today_commission = dict_arguments['today_commission']  # 手续费
+        # self.__today_trade_volume = dict_arguments['commission']  # 成交量
+        # self.__today_sum_slippage = dict_arguments['today_sum_slippage']  # 总滑价
+        # self.__today_average_slippage = dict_arguments['today_average_slippage']  # 平均滑价
+        #
+        # self.__position_a_buy_today = dict_arguments['position_a_buy_today']  # A合约买持仓今仓
+        # self.__position_a_buy_yesterday = dict_arguments['position_a_buy_yesterday']  # A合约买持仓昨仓
+        # self.__position_a_buy = dict_arguments['position_a_buy']  # A合约买持仓总仓位
+        # self.__position_a_sell_today = dict_arguments['position_a_sell_today']  # A合约卖持仓今仓
+        # self.__position_a_sell_yesterday = dict_arguments['position_a_sell_yesterday']  # A合约卖持仓昨仓
+        # self.__position_a_sell = dict_arguments['position_a_sell']  # A合约卖持仓总仓位
+        # self.__position_b_buy_today = dict_arguments['position_b_buy_today']  # B合约买持仓今仓
+        # self.__position_b_buy_yesterday = dict_arguments['position_b_buy_yesterday']  # B合约买持仓昨仓
+        # self.__position_b_buy = dict_arguments['position_b_buy']  # B合约买持仓总仓位
+        # self.__position_b_sell_today = dict_arguments['position_b_sell_today']  # B合约卖持仓今仓
+        # self.__position_b_sell_yesterday = dict_arguments['position_b_sell_yesterday']  # B合约卖持仓昨仓
+        # self.__position_b_sell = dict_arguments['position_b_sell']  # B合约卖持仓总仓位
+        pass
+
+if __name__ == '__main__':
+    df1 = pd.read_csv('D:/CTP_Dev/CTP数据样本/API查询/063802_第1次（启动时流文件为空）/063802_QryTrade.csv', header=0)
+    # print("type(pd1)=", type(pd1))
+    # print("pd1", pd1[pd1.OrderRef > 10])
+    # print("", pd1["Unnamed: 0"][6])
+    # for i in df1.index:
+    #     print(df1.iloc[i]["OrderRef"])
+    # print(type(df1["OrderRef"][0]))
+    # df1['OrderRef'].astype(str)
+    s = df1['OrderRef'].astype(str).str[-2:].astype(int)
+    df1['StrategyID'] = s
+    # print(df1['StrategyID'])
+    # print(type(df1['StrategyID'][0]))
+    # print(type(df1['OrderRef'][0]))
+    df2 = df1[df1.StrategyID == 11]
+    print(df2)
+
+    pass
+
 

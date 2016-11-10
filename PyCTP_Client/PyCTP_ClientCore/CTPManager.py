@@ -32,15 +32,30 @@ class CTPManager:
         self.__trader = None  # 交易员实例
         self.__list_user = list()  # 期货账户（TD）实例list
         self.__list_strategy = list()  # 交易策略实例list
+        self.__list_instrument_info = list()  # 期货合约信息
+        self.__got_list_instrument_info = False  # 获得了期货合约信息
         self.__on_off = 1  # 策略开关，初始值为关
+
+    # 初始化
+    def init(self):
+        # 创建行情实例
+        self.create_md(self.__ClientMain.get_listMarketInfo()[0])
+
+        # 创建期货账户
+        for i in self.__ClientMain.get_listUserInfo():
+            self.create_user(i)
+
+        # 创建策略
+        for i in self.__ClientMain.get_listStrategyInfo():
+            self.create_strategy(i)
 
     # 创建MD
     def create_md(self, dict_arguments):
         # dict_arguments = {'front_address': 'tcp://180.168.146.187:10010', 'broker_id': '9999'}
         # 创建行情管理实例MarketManager
-        self.__MarketManager = MarketManager(dict_arguments['front_address'],
-                                             dict_arguments['broker_id'],
-                                             dict_arguments['user_id'],
+        self.__MarketManager = MarketManager(dict_arguments['frontaddress'],
+                                             dict_arguments['brokerid'],
+                                             dict_arguments['userid'],
                                              dict_arguments['password']
                                              )
         print("CTPManager.create_md() 行情接口交易日", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
@@ -55,12 +70,13 @@ class CTPManager:
         # 不允许重复创建期货账户实例
         if len(self.__list_user) > 0:
             for i in self.__list_user:
-                if i.get_user_id() == dict_arguments['user_id']:
-                    print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['user_id'], "的实例")
+                if i.get_user_id() == dict_arguments['userid']:
+                    print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
                     return False
         obj_User = User(dict_arguments)
         obj_User.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
         obj_User.set_CTPManager(self)  # 将CTPManager类设置为user的属性
+        obj_User.qry_instrument_info()  # 查询合约信息
         self.__list_user.append(obj_User)  # user类实例添加到列表存放
         print("CTPManager.create_user() 创建期货账户实例", dict_arguments)
 
@@ -72,35 +88,25 @@ class CTPManager:
 
     # 创建strategy
     def create_strategy(self, dict_arguments):
-        # 形参{'trader_id': '1601', 'user_id': '800658', 'strategy_id': '01', 'OrderAlgorithm':'01', 'list_instrument_id': ['cu1611', 'cu1610']}
-        # 判断数据库中是否存在trader_id
-        if self.__DBManager.get_trader(dict_arguments['trader_id']) is None:
-            print("CTPManager.create_strategy() 数据库中不存在该交易员")
-            return False
-        # 判断数据库中是否存在user_id
-        if self.__DBManager.get_user(dict_arguments['user_id']) is None:
-            print("CTPManager.create_strategy() 数据库中不存在该期货账户")
-            return False
-        # strategy_id格式必须为两位阿拉伯数字的字符串，判断数据库中是否已经存在该strategy_id
-        if len(dict_arguments['strategy_id']) != 2:
-            print("CTPManager.create_strategy() 策略编码数据长度不为二", len(dict_arguments['strategy_id']))
-            return False
+        # 不允许重复创建策略实例
+        if len(self.__list_strategy) > 0:
+            for i in self.__list_strategy:
+                if i.get_strategy_id() == dict_arguments['strategy_id']:
+                    print("MultiUserTraderSys.create_strategy()已经存在strategy_id为", dict_arguments['strategyid'], "的实例，不允许重复创建")
+                    return False
 
         print('===========================')
         print("CTPManager.create_strategy() 创建策略实例", dict_arguments)
         for i in self.__list_user:
-            if i.get_user_id().decode('utf-8') == dict_arguments['user_id']:
-                obj_strategy = Strategy(dict_arguments, i, self.__DBManager)    # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
+            if i.get_user_id().decode('utf-8') == dict_arguments['user_id']:  # 找到策略所属的user实例
+                obj_strategy = Strategy(dict_arguments, i, self.__DBManager)  # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
                 i.add_strategy(obj_strategy)               # 将策略实例添加到user的策略列表
-                # obj_strategy.set_DBM(self.__DBM)           # 将数据库连接实例设置为strategy的属性
-                # obj_strategy.set_user(i)                   # 将user设置为strategy的属性
-                self.__list_strategy.append(obj_strategy)  # # 将策略实例添加到CTP_Manager的策略列表
+                self.__list_strategy.append(obj_strategy)  # 将策略实例添加到CTP_Manager的策略列表
 
-        # 字符串转码为二进制字符串
+        # 订阅行情
         list_instrument_id = list()
         for i in dict_arguments['list_instrument_id']:
-            list_instrument_id.append(i.encode())
-        # 订阅行情
+            list_instrument_id.append(i.encode())  # 将合约代码转码为二进制字符串
         self.__MarketManager.sub_market(list_instrument_id, dict_arguments['user_id'], dict_arguments['strategy_id'])
 
     # 删除strategy
@@ -196,6 +202,14 @@ class CTPManager:
     def trader_login(self, trader_id, password):
         return self.__DBManager.check_trader(trader_id, password)
 
+    # 设置交易员id
+    def set_TraderID(self, str_TraderID):
+        self.__TraderID = str_TraderID
+
+    # 获得交易员id
+    def get_TraderID(self):
+        return self.__TraderID
+
     # 设置客户端的交易开关，0关、1开
     def set_on_off(self, int_on_off):
         self.__on_off = int_on_off
@@ -203,6 +217,22 @@ class CTPManager:
     # 获取客户端的交易开关，0关、1开
     def get_on_off(self):
         return self.__on_off
+
+    # 设置“已经获取到合约信息的状态”
+    def set_got_list_instrument_info(self, bool_status):
+        self.__got_list_instrument_info = bool_status
+
+    # 获取“已经获取到合约信息的状态”
+    def get_got_list_instrument_info(self):
+        return self.__got_list_instrument_info
+
+    # 设置合约信息
+    def set_list_instrument_info(self, input_list):
+        self.__list_instrument_info = input_list
+
+    # 获取合约信息
+    def get_list_instrument_info(self):
+        return self.__list_instrument_info
 
 
 

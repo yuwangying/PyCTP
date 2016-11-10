@@ -39,6 +39,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         self.__sockfd = None  # socket_file_description
         self.__sm = None  # SocketManager对象
 
+    """
     def set_login_message(self, str_buff):
         print("set_login_message(self, str_buff):json_buff=", type(str_buff), str_buff)
         dict_buff = eval(str_buff)  # str to dict
@@ -55,6 +56,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
             self.label_login_error.setText("登录失败")
             self.label_login_error.setText(dict_buff['MsgErrorReason'])
             self.pushButton_login.setEnabled(True)  # 激活登录按钮，可以重新登录
+    """
 
     def set_sockfd(self, socket_file_description):
         self.__sockfd = socket_file_description
@@ -86,7 +88,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):
-        print("slot_SendMsg()", msg)
+        # print("QLogin.slot_SendMsg()", msg)
         # send json to server
         self.__sm.send_msg(msg)
     
@@ -105,7 +107,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
             # stockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket套接字
 
             if not self.__sm:
-                sm = SocketManager("10.0.0.33", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
+                sm = SocketManager("10.0.0.60", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
                 sm.connect()
                 sm.start()
                 self.set_SocketManager(sm)  # SocketManager对象设置为QLoginForm对象的属性
@@ -113,27 +115,28 @@ class QLoginForm(QWidget, Ui_LoginForm):
                 # self.__QClientMain.set_SocketManager(sm)  # SocketManager对象设置为QClientMain对象的属性
                 self.__QClientMain.set_QLoginForm(self)  # QLoginForm对象设置为QClientMain对象的属性
                 self.__QClientMain.set_QCTP(self.get_QCTP())  # QCTP对象设置为QClientMain对象的属性
-                self.__QClientMain.set_SocketManager(sm)  # QCTP对象设置为QClientMain对象的属性
+                self.__QClientMain.set_SocketManager(sm)  # sm(SoketManager)对象设置为QClientMain对象的属性
                 # 绑定信号:sm的signal_send_message到ClientMain.slot_output_message
                 # sm.signal_send_message.connect(self.__QClientMain.slot_output_message)
                 sm.set_QLogin(self)  # QLoginForm对象设置为SocketManager对象的属性
 
-            dict_login = {'MsgRef': self.__sm.msg_ref_add(),
-                          'MsgSendFlag': 0,
-                          'MsgType': 4,  # 消息类型为trader登录验证
-                          'MsgResult': 0,  # 0：成功、1：失败
-                          'MsgErrorReason': 'ID or password error',
-                          'info': {'trader_id': self.lineEdit_trader_id.text(),
-                                   'trader_password': self.lineEdit_trader_password.text()
-                                   },
+            self.__dict_login = {'MsgRef': self.__sm.msg_ref_add(),
+                          'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                          'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                          'MsgType': 1,  # 消息类型为trader登录验证
+                          'TraderID': self.lineEdit_trader_id.text(),
+                          'Password': self.lineEdit_trader_password.text()
                           }
 
-            json_login = json.dumps(dict_login)
-            # self.__sm.send_msg(json_login)
+            json_login = json.dumps(self.__dict_login)
             self.Signal_SendMsg.emit(json_login)
         # 勾选脱机登录
         elif self.checkBox_isoffline.checkState() == PyQt4.QtCore.Qt.Checked:
             pass
+
+    # 获得交易员登录信息
+    def get_dict_login(self):
+        return self.__dict_login
 
     
     @pyqtSlot()
