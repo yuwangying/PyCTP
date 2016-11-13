@@ -260,19 +260,27 @@ class User:
     def QryTrade(self):
         self.__listQryTrade = self.__trade.QryTrade()
         print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
+        if len(self.__listQryTrade) == 0:
+            return None
         for i in self.__listQryTrade:
             self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
                                                  other=Utils.code_transform(i),
                                                  ignore_index=True)
+        self.__dfQryTrade['StrategyID'] = self.__dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)  # 截取OrderRef后两位数为StrategyID
+        self.__dfQryTrade.to_csv("data/"+self.__user_id.decode()+"_dfQryTrade.csv")
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
         self.__listQryOrder = self.__trade.QryOrder()
-        print("User.QryOrder() list_QryOrder =", self.__user_id, self.__listQryOrder)
+        print("User.QryOrder() list_QryOrder=", self.__user_id, self.__listQryOrder)
+        if len(self.__listQryOrder) == 0:
+            return None
         for i in self.__listQryOrder:
             self.__dfQryOrder = DataFrame.append(self.__dfQryOrder,
                                                  other=Utils.code_transform(i),
                                                  ignore_index=True)
+        self.__dfQryOrder['StrategyID'] = self.__dfQryOrder['OrderRef'].astype(str).str[-1:].astype(int)  # 截取OrderRef后两位数为StrategyID
+        self.__dfQryOrder.to_csv("data/" + self.__user_id.decode() + "_dfQryOrder.csv")
 
     # 获取listQryOrder
     def get_listQryOrder(self):

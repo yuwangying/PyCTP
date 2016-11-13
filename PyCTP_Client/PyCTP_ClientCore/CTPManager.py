@@ -92,7 +92,7 @@ class CTPManager:
         if len(self.__list_strategy) > 0:
             for i in self.__list_strategy:
                 if i.get_strategy_id() == dict_arguments['strategy_id']:
-                    print("MultiUserTraderSys.create_strategy()已经存在strategy_id为", dict_arguments['strategyid'], "的实例，不允许重复创建")
+                    print("MultiUserTraderSys.create_strategy()已经存在strategy_id为", dict_arguments['strategy_id'], "的实例，不允许重复创建")
                     return False
 
         print('===========================')
