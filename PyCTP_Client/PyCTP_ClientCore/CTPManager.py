@@ -35,6 +35,7 @@ class CTPManager:
         self.__list_instrument_info = list()  # 期货合约信息
         self.__got_list_instrument_info = False  # 获得了期货合约信息
         self.__on_off = 1  # 策略开关，初始值为关
+        self.__init_finished = False  # 初始化完成
 
     # 初始化
     def init(self):
@@ -162,6 +163,14 @@ class CTPManager:
     # 获取strategy对象的list
     def get_list_strategy(self):
         return self.__list_strategy
+
+    # 设置CTPManager内核初始化完成
+    def set_init_finished(self, bool_input):
+        self.__init_finished = bool_input
+
+    # 获取CTPManager内核初始化状态
+    def get_init_finished(self):
+        return self.__init_finished
 
     # 从user对象列表里找到指定user_id的user对象
     def find_user(self, user_id):

@@ -638,7 +638,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRtnTradingNotice(self, TradingNoticeInfo):
         """ 交易通知 """
-        print('PyCTP_Trade.OnRtnTradingNotice()', TradingNoticeInfo)
+        print('PyCTP_Trade.OnRtnTradingNotice()', Utils.code_transform(TradingNoticeInfo))
         pass
 
     dfInstrumentStatus = DataFrame()  # 保存InstrumentStatus的全局变量

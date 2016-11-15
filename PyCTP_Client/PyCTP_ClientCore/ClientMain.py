@@ -18,7 +18,8 @@ from Strategy import Strategy
 
 class ClientMain(QtCore.QObject):
     def __init__(self, parent=None):
-        super(ClientMain, self).__init__(parent) #显示调用父类初始化方法，使用其信号槽机制
+        super(ClientMain, self).__init__(parent) # 显示调用父类初始化方法，使用其信号槽机制
+        self.__list_QAccountWidget = list()  # 存放账户窗口
 
     def set_SocketManager(self, obj_sm):
         self.__sm = obj_sm
@@ -41,6 +42,22 @@ class ClientMain(QtCore.QObject):
 
     def set_CTPManager(self, obj_CTPManager):
         self.__CTPManager = obj_CTPManager
+
+    # 设置内核初始化状态
+    def set_core_init_finished(self, bool_input):
+        self.__core_init_finished = bool_input
+        # 如果内核初始化完成，隐藏登录窗口，显示主窗口
+        if self.__core_init_finished is True:
+            print("ClientMain.set_core_init_finished() 内核初始化完成")
+            self.__QLoginForm.hide()  # 隐藏登录窗口
+            self.__QCTP.show()  # 显示主窗口
+            # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list集合里
+            self.__list_QAccountWidget.append({'总账户': QAccountWidget(self.get_CTPManager().get_list_user())})
+            for i in self.get_CTPManager().get_list_user():
+                self.__list_QAccountWidget.append({i.get_user_id().decode(): QAccountWidget(i)})  # 将窗口对象存放到list集合里
+            for i in self.__list_QAccountWidget:
+                self.get_QCTP().tab_accounts.addTab(i, i.get_user_id().decode())  # 账户窗口添加到QCTP窗口的tab
+
 
     def get_SocketManager(self):
         return self.__sm
@@ -69,23 +86,9 @@ class ClientMain(QtCore.QObject):
     def get_listStrategyInfo(self):
         return self.__listStrategyInfo
 
-    """
-    # 创建行情管理器
-    def create_market_manager(self, dict_args):
-        pass
-
-    # 创建user
-    def create_user(self, dict_args):
-        pass
-
-    # 创建trader
-    def create_trader(self, args):
-        self.__trader = Trader(args)
-
-    # 创建strategy
-    def create_strategy(self, dict_args):
-        pass
-    """
+    # 获取内核初始化状态
+    def get_core_init_finished(self):
+        return self.__core_init_finished
 
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
@@ -95,7 +98,8 @@ class ClientMain(QtCore.QObject):
             if buff['MsgType'] == 1:  # 交易员登录验证，MsgType=1
                 print("ClientMain.slot_output_message() MsgType=1", buff)  # 输出错误消息
                 if buff['MsgResult'] == 0:  # 验证通过
-                    self.get_QLoginForm().label_login_error.setText(buff['MsgErrorReason'])  # 界面提示错误信息
+                    # self.get_QLoginForm().label_login_error.setText(buff['MsgErrorReason'])  # 界面提示信息
+                    self.get_QLoginForm().label_login_error.setText('登陆成功，初始化中...')  # 界面提示信息
                     self.__CTPManager.set_TraderID(buff['TraderID'])  # 将TraderID设置为CTPManager的属性
                     self.__TraderID = self.__QLoginForm.get_dict_login()['TraderID']
                     self.__Password = self.__QLoginForm.get_dict_login()['Password']
@@ -147,10 +151,18 @@ class ClientMain(QtCore.QObject):
                 print("ClientMain.slot_output_message() MsgType=10", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     for i in self.__CTPManager.get_list_user():  # 遍历user对象列表
+                        print(">>> i.get_user_id().decode()=", i.get_user_id().decode(), "buff['UserID']=", buff['UserID'])
                         if i.get_user_id().decode() == buff['UserID']:  # 找到对应的user对象
+                            print(">>> if i.get_user_id().decode() == buff['UserID']:  # 找到对应的user对象")
+                            print(">>> i.get_list_strategy()=", i.get_list_strategy())
+                            if len(i.get_list_strategy()) == 0:
+                                continue
                             for j in i.get_list_strategy():  # 遍历strategy对象列表
+                                print(">>> j=", j, "i.get_list_strategy()=", i.get_list_strategy())
                                 if j.get_strategy_id() == buff['StrategyID']:  # 找到对应的strategy对象
-                                    j.init_yesterday_position(buff['Info'][0])  # 初始化策略昨仓
+                                    print(">>> if j.get_strategy_id() == buff['StrategyID']:  # 找到对应的strategy对象")
+                                    j.OnRspQryStrategyYesterdayPosition(buff['Info'][0])  # 将查询结果给到Strategy的回调函数
+                                    j.init_yesterday_position()  # 初始化策略昨仓
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     pass
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
@@ -210,14 +222,12 @@ if __name__ == '__main__':
     q_login_form.set_QCTP(q_ctp)
     q_client_main.set_QCTP(q_ctp)
 
-    # dict_QAccountWidget = {'总账户': QAccountWidget()}  # 创建总账户QAccountWidget
     # q_login_form.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为LoginForm的属性
     # q_client_main.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为ClientMain的属性
     # q_ctp.tab_accounts.addTab(dict_QAccountWidget['总账户'], '总账户')  # 账户窗口添加到QCTP窗口的tab
     # print('>>>>>>>>>>>len(ctp_manager.get_list_user()=', len(ctp_manager.get_list_user()))
     # for i in ctp_manager.get_list_user():
     #     tmp = QAccountWidget()
-    #     print(">>>>>>>>>>>>>", i.get_user_id(), tmp)
     #     dict_QAccountWidget = {i.get_user_id(): tmp}  # 创建单个账户QAccountWidget，键名为user_id
     #     q_ctp.tab_accounts.addTab(dict_QAccountWidget[i.get_user_id()], i.get_user_id())  # 账户窗口添加到QCTP窗口的tab
 

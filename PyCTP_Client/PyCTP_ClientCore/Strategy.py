@@ -49,7 +49,7 @@ class Strategy:
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
         self.QryStrategyYesterdayPosition()  # 向服务器查询昨仓，目的初始化本策略昨仓
         # self.init_yesterday_position()  # 初始化策略昨仓
-        # self.init_yesterday_position()  # 初始化策略持仓
+        # self.init_today_position()  # 初始化策略持仓
         # self.statistics()  # 统计指标，通过QryOrder和QryTrade获取记录
 
     # 设置参数
@@ -96,7 +96,9 @@ class Strategy:
         self.__dict_StrategyYesterdayPosition = dict_StrategyYesterdayPosition
         
     # 初始化昨仓
-    def init_yesterday_position(self, dict_input):
+    def init_yesterday_position(self):
+        dict_input = self.__dict_StrategyYesterdayPosition
+        print(">>> dict_input=", dict_input)
         self.__position_a_buy = dict_input['position_a_buy']
         self.__position_a_buy_today = dict_input['position_a_buy_today']
         self.__position_a_buy_yesterday = dict_input['position_a_buy_yesterday']
@@ -109,15 +111,14 @@ class Strategy:
         self.__position_b_sell = dict_input['position_b_sell']
         self.__position_b_sell_today = dict_input['position_b_sell_today']
         self.__position_b_sell_yesterday = dict_input['position_b_sell_yesterday']
-        print("Strategy.init_yesterday_position() over, 接着初始化今仓")
-        self.init_today_position()
+        self.init_today_position()  # 初始化策略持仓
 
     # 初始化今仓
     def init_today_position(self):
         self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
         if self.__dfQryTrade is not None:  # 记录不为空
             # 从user的Trade中选出该策略的记录
-            print("self.__strategy_id=", int(self.__strategy_id), "\nself.__dfQryTrade=\n", self.__dfQryTrade.StrategyID)
+            print("Strategy.init_today_position() self.__strategy_id=", int(self.__strategy_id), "\nself.__dfQryTrade=\n", self.__dfQryTrade.StrategyID)
             self.__dfQryTradeStrategy = self.__dfQryTrade[self.__dfQryTrade.StrategyID == int(self.__strategy_id)]
         else:  # 记录为空
             return
@@ -171,6 +172,10 @@ class Strategy:
                       self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today, self.__position_b_sell_yesterday,
                       self.__position_b_sell)
         self.__init_finished = True  # 策略初始化完成，可以开始交易
+        if self.__user.get_CTPManager().get_list_strategy()[-1].get_strategy_id() == self.get_strategy_id():
+            self.__user.get_CTPManager().set_init_finished(True)  # CTPManager初始化完成
+            self.__user.get_CTPManager().get_ClientMain().set_core_init_finished(True)  # CTPManager初始化完成，切换窗口
+            print("Strategy.init_today_position() 最后一个strategy初始化今仓完成")
 
     # 获取参数
     def get_arguments(self):
@@ -1047,28 +1052,3 @@ if __name__ == '__main__':
     get_dfQryTrade['StrategyID'] = get_dfQryTrade['OrderRef'].astype(str).str[-2:].astype(
         int)  # 截取OrderRef后两位数为StrategyID
     # print("get_dfQryTrade\n", get_dfQryTrade)
-
-    # 初始化今仓
-    def init_today_position():
-        self_dfQryTrade = get_dfQryTrade  # 获得user的交易记录
-        if self_dfQryTrade is not None:  # 记录不为空
-            # 从user记录中选出本策略的记录
-            self_dfQryTradeStrategy = self_dfQryTrade[self_dfQryTrade.StrategyID == 11]
-            # print("self_dfQryTradeStrategy=\n", self_dfQryTradeStrategy)
-        else:  # 记录为空
-            return
-
-        # print(self_dfQryTradeStrategy.columns)
-        # 遍历该策略记录，更新当天持仓
-        # print(self_dfQryTradeStrategy.loc())
-        for i in self_dfQryTradeStrategy.index:
-            # print("Strategy.init_today_position() i=", i)
-            # print(self_dfQryTradeStrategy[:][i])
-            print(self_dfQryTradeStrategy['StrategyID'][i])
-            # print("type(i)=", type(i))
-            # print(i[''])
-            # s1 = self_dfQryTradeStrategy.items()
-            # print(s1)
-            pass
-
-    init_today_position()

@@ -29,7 +29,7 @@ class QAccountWidget(QWidget, Ui_Form):
     """
     Signal_SendMsg = QtCore.pyqtSignal(str)  # 自定义信号
 
-    def __init__(self, parent=None):
+    def __init__(self, obj_user=None, list_user=None, parent=None):
         """
         Constructor
         
@@ -53,6 +53,11 @@ class QAccountWidget(QWidget, Ui_Form):
 
         # 绑定信号、槽函数
         self.Signal_SendMsg.connect(self.slot_SendMsg)
+
+        if obj_user is not None:
+            self.__user = obj_user
+        if list_user is not None:
+            self.__list_user = list_user
 
     # 自定义槽
     @pyqtSlot(str)
