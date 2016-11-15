@@ -51,12 +51,14 @@ class ClientMain(QtCore.QObject):
             print("ClientMain.set_core_init_finished() 内核初始化完成")
             self.__QLoginForm.hide()  # 隐藏登录窗口
             self.__QCTP.show()  # 显示主窗口
-            # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list集合里
-            self.__list_QAccountWidget.append({'总账户': QAccountWidget(self.get_CTPManager().get_list_user())})
+            # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里
+            self.__list_QAccountWidget.append(QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user()))
+            # 创建单个账户窗口，将user对象设置为其属性，将窗口对象存放到list里
             for i in self.get_CTPManager().get_list_user():
-                self.__list_QAccountWidget.append({i.get_user_id().decode(): QAccountWidget(i)})  # 将窗口对象存放到list集合里
+                self.__list_QAccountWidget.append(QAccountWidget(str_widget_name=i.get_user_id().decode(), obj_user=i))  # 将窗口对象存放到list集合里
             for i in self.__list_QAccountWidget:
-                self.get_QCTP().tab_accounts.addTab(i, i.get_user_id().decode())  # 账户窗口添加到QCTP窗口的tab
+                print(">>> i =", i)
+                self.get_QCTP().tab_accounts.addTab(i, i.get_widget_name())  # 账户窗口添加到QCTP窗口的tab
 
 
     def get_SocketManager(self):

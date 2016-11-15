@@ -60,6 +60,7 @@ class Strategy:
         self.__trader_id = dict_arguments['trader_id']
         self.__user_id = dict_arguments['user_id']
         self.__strategy_id = dict_arguments['strategy_id']
+        self.__trade_model = dict_arguments['trade_model']  # 交易模型
         self.__order_algorithm = dict_arguments['order_algorithm']  # 下单算法选择标志位
         self.__list_instrument_id = dict_arguments['list_instrument_id']  # 合约列表
         self.__buy_open = dict_arguments['buy_open']  # 触发买开（开多单）
@@ -73,7 +74,8 @@ class Strategy:
         self.__lots = dict_arguments['lots']  # 总手
         self.__lots_batch = dict_arguments['lots_batch']  # 每批下单手数
         self.__order_action_limit = dict_arguments['order_action_tires_limit']  # 撤单次数限制
-        self.__on_off = dict_arguments['StrategyOnoff']  # 策略开关，0关、1开、-1只平
+        self.__on_off = dict_arguments['StrategyOnoff']  # 策略开关，0关、1开
+        self.__only_close = dict_arguments['StrategyOnoff']  # 只平，0关、1开
 
         self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的统计撤单次数的合约列表
 
@@ -229,6 +231,10 @@ class Strategy:
         # for i in self.__user.get_instrument_info():
         #     if i['InstrumentID'] == instrument_id:
         #         return i['PriceTick']
+
+    # 获取策略开关
+    def get_on_off(self):
+        return self.__on_off
 
     # 生成报单引用，前两位是策略编号，后面几位递增1
     def add_order_ref(self):

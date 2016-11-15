@@ -438,7 +438,7 @@
         </attribute>
         <column>
          <property name="text">
-          <string>策略开关</string>
+          <string>开关</string>
          </property>
          <property name="background">
           <color>
@@ -446,6 +446,11 @@
            <green>168</green>
            <blue>150</blue>
           </color>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>只平</string>
          </property>
         </column>
         <column>
@@ -480,7 +485,22 @@
         </column>
         <column>
          <property name="text">
+          <string>下单算法</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>持仓盈亏</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>平仓盈亏</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>手续费</string>
          </property>
         </column>
         <column>
@@ -496,11 +516,6 @@
         <column>
          <property name="text">
           <string>卖持仓</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>手续费</string>
          </property>
         </column>
         <column>
