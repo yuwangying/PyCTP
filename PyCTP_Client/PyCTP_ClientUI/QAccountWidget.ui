@@ -35,17 +35,17 @@
          <string notr="true">border-right-color: rgb(170, 164, 162);</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_dongtaiquanyi">
-           <property name="text">
-            <string>动态权益</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_value_dongtaiquanyi">
            <property name="text">
             <string>0.0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_dongtaiquanyi">
+           <property name="text">
+            <string>动态权益</string>
            </property>
           </widget>
          </item>
@@ -388,7 +388,7 @@
    </item>
    <item>
     <widget class="QWidget" name="container_trade" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout_container_trade" stretch="13,6">
+     <layout class="QHBoxLayout" name="horizontalLayout_container_trade" stretch="14,6">
       <property name="spacing">
        <number>5</number>
       </property>
@@ -490,21 +490,6 @@
         </column>
         <column>
          <property name="text">
-          <string>持仓盈亏</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>平仓盈亏</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>手续费</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
           <string>总持仓</string>
          </property>
         </column>
@@ -516,6 +501,21 @@
         <column>
          <property name="text">
           <string>卖持仓</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>持仓盈亏</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>平仓盈亏</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>手续费</string>
          </property>
         </column>
         <column>
@@ -549,7 +549,7 @@
         <widget class="QLabel" name="label_kongtoujiacha">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>120</y>
            <width>60</width>
            <height>16</height>
@@ -562,7 +562,7 @@
         <widget class="QLabel" name="label_qihuozhanghao">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>30</y>
            <width>60</width>
            <height>16</height>
@@ -575,7 +575,7 @@
         <widget class="QLabel" name="label_jiaoyimoxing">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>60</y>
            <width>60</width>
            <height>16</height>
@@ -585,23 +585,23 @@
           <string>交易模型</string>
          </property>
         </widget>
-        <widget class="QLabel" name="label_rangjia">
+        <widget class="QLabel" name="label_chaojiachufa">
          <property name="geometry">
           <rect>
-           <x>120</x>
+           <x>98</x>
            <y>90</y>
-           <width>35</width>
+           <width>63</width>
            <height>16</height>
           </rect>
          </property>
          <property name="text">
-          <string>让价</string>
+          <string>超价触发</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_duotoujiacha">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>150</y>
            <width>60</width>
            <height>16</height>
@@ -614,7 +614,7 @@
         <widget class="QCheckBox" name="checkBox_kongtoukai">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>180</y>
            <width>72</width>
            <height>19</height>
@@ -627,7 +627,7 @@
         <widget class="QCheckBox" name="checkBox_duotouping">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>240</y>
            <width>72</width>
            <height>19</height>
@@ -640,7 +640,7 @@
         <widget class="QCheckBox" name="checkBox_duotoukai">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>270</y>
            <width>72</width>
            <height>19</height>
@@ -653,7 +653,7 @@
         <widget class="QLabel" name="label_zongshou">
          <property name="geometry">
           <rect>
-           <x>326</x>
+           <x>328</x>
            <y>30</y>
            <width>30</width>
            <height>16</height>
@@ -666,7 +666,7 @@
         <widget class="QComboBox" name="comboBox_qihuozhanghao">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>30</y>
            <width>120</width>
            <height>21</height>
@@ -676,7 +676,7 @@
         <widget class="QComboBox" name="comboBox_jiaoyimoxing">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>60</y>
            <width>120</width>
            <height>21</height>
@@ -686,7 +686,7 @@
         <widget class="QCheckBox" name="checkBox_kongtouping">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>210</y>
            <width>72</width>
            <height>19</height>
@@ -696,26 +696,10 @@
           <string>空头平</string>
          </property>
         </widget>
-        <widget class="QSpinBox" name="spinBox_meifen">
-         <property name="geometry">
-          <rect>
-           <x>360</x>
-           <y>60</y>
-           <width>55</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-         <property name="value">
-          <number>0</number>
-         </property>
-        </widget>
         <widget class="QLabel" name="label_celuebianhao">
          <property name="geometry">
           <rect>
-           <x>212</x>
+           <x>220</x>
            <y>30</y>
            <width>60</width>
            <height>16</height>
@@ -728,7 +712,7 @@
         <widget class="QComboBox" name="comboBox_celuebianhao">
          <property name="geometry">
           <rect>
-           <x>278</x>
+           <x>282</x>
            <y>30</y>
            <width>40</width>
            <height>21</height>
@@ -741,7 +725,7 @@
         <widget class="QLabel" name="label_xiadansuanfa">
          <property name="geometry">
           <rect>
-           <x>212</x>
+           <x>220</x>
            <y>60</y>
            <width>60</width>
            <height>16</height>
@@ -751,20 +735,10 @@
           <string>下单算法</string>
          </property>
         </widget>
-        <widget class="QSpinBox" name="spinBox_xiadansuanfa">
-         <property name="geometry">
-          <rect>
-           <x>278</x>
-           <y>60</y>
-           <width>40</width>
-           <height>21</height>
-          </rect>
-         </property>
-        </widget>
         <widget class="QLabel" name="label_meifen">
          <property name="geometry">
           <rect>
-           <x>326</x>
+           <x>328</x>
            <y>60</y>
            <width>30</width>
            <height>16</height>
@@ -777,26 +751,10 @@
           <string>每份</string>
          </property>
         </widget>
-        <widget class="QSpinBox" name="spinBox_zongshoushu">
-         <property name="geometry">
-          <rect>
-           <x>360</x>
-           <y>30</y>
-           <width>55</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-         <property name="value">
-          <number>0</number>
-         </property>
-        </widget>
         <widget class="QSpinBox" name="spinBox_rangjia">
          <property name="geometry">
           <rect>
-           <x>156</x>
+           <x>162</x>
            <y>90</y>
            <width>42</width>
            <height>21</height>
@@ -806,7 +764,7 @@
         <widget class="QLineEdit" name="lineEdit_kongtoujiacha">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>120</y>
            <width>120</width>
            <height>21</height>
@@ -819,7 +777,7 @@
         <widget class="QLineEdit" name="lineEdit_duotoujiacha">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>150</y>
            <width>120</width>
            <height>21</height>
@@ -832,7 +790,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtoukai">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>180</y>
            <width>120</width>
            <height>21</height>
@@ -863,7 +821,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtouping">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>210</y>
            <width>120</width>
            <height>21</height>
@@ -882,7 +840,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinBox_duotouping">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>240</y>
            <width>120</width>
            <height>21</height>
@@ -901,7 +859,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinBox_duotoukai">
          <property name="geometry">
           <rect>
-           <x>78</x>
+           <x>84</x>
            <y>270</y>
            <width>120</width>
            <height>21</height>
@@ -920,8 +878,8 @@
         <widget class="QLabel" name="label_Adengdai">
          <property name="geometry">
           <rect>
-           <x>212</x>
-           <y>120</y>
+           <x>220</x>
+           <y>90</y>
            <width>38</width>
            <height>16</height>
           </rect>
@@ -933,8 +891,8 @@
         <widget class="QSpinBox" name="spinBox_Adengdai">
          <property name="geometry">
           <rect>
-           <x>256</x>
-           <y>120</y>
+           <x>264</x>
+           <y>90</y>
            <width>40</width>
            <height>21</height>
           </rect>
@@ -943,8 +901,8 @@
         <widget class="QLabel" name="label_Bdengdai">
          <property name="geometry">
           <rect>
-           <x>212</x>
-           <y>150</y>
+           <x>320</x>
+           <y>90</y>
            <width>38</width>
            <height>16</height>
           </rect>
@@ -956,8 +914,8 @@
         <widget class="QSpinBox" name="spinBox_Bdengdai">
          <property name="geometry">
           <rect>
-           <x>256</x>
-           <y>150</y>
+           <x>362</x>
+           <y>90</y>
            <width>40</width>
            <height>21</height>
           </rect>
@@ -966,7 +924,7 @@
         <widget class="QLabel" name="label_Azongsell">
          <property name="geometry">
           <rect>
-           <x>212</x>
+           <x>220</x>
            <y>180</y>
            <width>38</width>
            <height>16</height>
@@ -979,7 +937,7 @@
         <widget class="QLineEdit" name="lineEdit_Azongsell">
          <property name="geometry">
           <rect>
-           <x>256</x>
+           <x>264</x>
            <y>180</y>
            <width>40</width>
            <height>21</height>
@@ -992,7 +950,7 @@
         <widget class="QLabel" name="label_Bzongbuy">
          <property name="geometry">
           <rect>
-           <x>212</x>
+           <x>220</x>
            <y>210</y>
            <width>38</width>
            <height>16</height>
@@ -1005,7 +963,7 @@
         <widget class="QLineEdit" name="lineEdit_Bzongbuy">
          <property name="geometry">
           <rect>
-           <x>256</x>
+           <x>264</x>
            <y>210</y>
            <width>40</width>
            <height>21</height>
@@ -1018,7 +976,7 @@
         <widget class="QLabel" name="label_Azongbuy">
          <property name="geometry">
           <rect>
-           <x>212</x>
+           <x>220</x>
            <y>240</y>
            <width>38</width>
            <height>16</height>
@@ -1031,7 +989,7 @@
         <widget class="QLineEdit" name="lineEdit_Azongbuy">
          <property name="geometry">
           <rect>
-           <x>256</x>
+           <x>264</x>
            <y>240</y>
            <width>40</width>
            <height>21</height>
@@ -1044,7 +1002,7 @@
         <widget class="QLabel" name="label_Bzongsell">
          <property name="geometry">
           <rect>
-           <x>212</x>
+           <x>220</x>
            <y>270</y>
            <width>38</width>
            <height>16</height>
@@ -1057,7 +1015,7 @@
         <widget class="QLineEdit" name="lineEdit_Bzongsell">
          <property name="geometry">
           <rect>
-           <x>256</x>
+           <x>264</x>
            <y>270</y>
            <width>40</width>
            <height>21</height>
@@ -1067,24 +1025,24 @@
           <string/>
          </property>
         </widget>
-        <widget class="QLabel" name="label_chedanxianzhi">
+        <widget class="QLabel" name="label_Achedanxianzhi">
          <property name="geometry">
           <rect>
-           <x>280</x>
-           <y>90</y>
-           <width>60</width>
+           <x>220</x>
+           <y>120</y>
+           <width>39</width>
            <height>16</height>
           </rect>
          </property>
          <property name="text">
-          <string>撤单限制</string>
+          <string>A限制</string>
          </property>
         </widget>
-        <widget class="QLineEdit" name="lineEdit_chedanxianzhi">
+        <widget class="QLineEdit" name="lineEdit_Achedanxianzhi">
          <property name="geometry">
           <rect>
-           <x>348</x>
-           <y>90</y>
+           <x>264</x>
+           <y>120</y>
            <width>40</width>
            <height>21</height>
           </rect>
@@ -1096,9 +1054,9 @@
         <widget class="QLabel" name="label_Achedan">
          <property name="geometry">
           <rect>
-           <x>303</x>
-           <y>120</y>
-           <width>53</width>
+           <x>220</x>
+           <y>150</y>
+           <width>37</width>
            <height>16</height>
           </rect>
          </property>
@@ -1109,8 +1067,8 @@
         <widget class="QLineEdit" name="lineEdit_Achedan">
          <property name="geometry">
           <rect>
-           <x>348</x>
-           <y>120</y>
+           <x>264</x>
+           <y>150</y>
            <width>40</width>
            <height>21</height>
           </rect>
@@ -1122,9 +1080,9 @@
         <widget class="QLabel" name="label_Bchedan">
          <property name="geometry">
           <rect>
-           <x>303</x>
+           <x>320</x>
            <y>150</y>
-           <width>53</width>
+           <width>37</width>
            <height>16</height>
           </rect>
          </property>
@@ -1135,7 +1093,7 @@
         <widget class="QLineEdit" name="lineEdit_Bchedan">
          <property name="geometry">
           <rect>
-           <x>348</x>
+           <x>362</x>
            <y>150</y>
            <width>40</width>
            <height>21</height>
@@ -1148,7 +1106,7 @@
         <widget class="QLabel" name="label_Ajinsell">
          <property name="geometry">
           <rect>
-           <x>306</x>
+           <x>320</x>
            <y>180</y>
            <width>38</width>
            <height>16</height>
@@ -1161,7 +1119,7 @@
         <widget class="QLineEdit" name="lineEdit_Ajinsell">
          <property name="geometry">
           <rect>
-           <x>348</x>
+           <x>362</x>
            <y>180</y>
            <width>40</width>
            <height>21</height>
@@ -1180,7 +1138,7 @@
         <widget class="QLabel" name="label_Bjinbuy">
          <property name="geometry">
           <rect>
-           <x>306</x>
+           <x>320</x>
            <y>210</y>
            <width>38</width>
            <height>16</height>
@@ -1193,7 +1151,7 @@
         <widget class="QLineEdit" name="lineEdit_Bjinbuy">
          <property name="geometry">
           <rect>
-           <x>348</x>
+           <x>362</x>
            <y>210</y>
            <width>40</width>
            <height>21</height>
@@ -1212,7 +1170,7 @@
         <widget class="QLabel" name="label_Ajinbuy">
          <property name="geometry">
           <rect>
-           <x>306</x>
+           <x>320</x>
            <y>240</y>
            <width>38</width>
            <height>16</height>
@@ -1225,7 +1183,7 @@
         <widget class="QLineEdit" name="lineEdit_Ajinbuy">
          <property name="geometry">
           <rect>
-           <x>348</x>
+           <x>362</x>
            <y>240</y>
            <width>40</width>
            <height>21</height>
@@ -1244,7 +1202,7 @@
         <widget class="QLabel" name="label_Bjinsell">
          <property name="geometry">
           <rect>
-           <x>306</x>
+           <x>320</x>
            <y>270</y>
            <width>38</width>
            <height>16</height>
@@ -1257,7 +1215,7 @@
         <widget class="QLineEdit" name="lineEdit_Bjinsell">
          <property name="geometry">
           <rect>
-           <x>348</x>
+           <x>362</x>
            <y>270</y>
            <width>40</width>
            <height>21</height>
@@ -1270,7 +1228,7 @@
         <widget class="QPushButton" name="pushButton_liandongjia">
          <property name="geometry">
           <rect>
-           <x>112</x>
+           <x>126</x>
            <y>300</y>
            <width>50</width>
            <height>22</height>
@@ -1283,7 +1241,7 @@
         <widget class="QPushButton" name="pushButton_liandongjian">
          <property name="geometry">
           <rect>
-           <x>112</x>
+           <x>126</x>
            <y>326</y>
            <width>50</width>
            <height>22</height>
@@ -1296,7 +1254,7 @@
         <widget class="QLabel" name="label_zhisun">
          <property name="geometry">
           <rect>
-           <x>6</x>
+           <x>12</x>
            <y>90</y>
            <width>33</width>
            <height>16</height>
@@ -1309,7 +1267,7 @@
         <widget class="QSpinBox" name="spinBox_zhisun">
          <property name="geometry">
           <rect>
-           <x>46</x>
+           <x>48</x>
            <y>90</y>
            <width>42</width>
            <height>21</height>
@@ -1322,7 +1280,7 @@
          </property>
          <property name="geometry">
           <rect>
-           <x>176</x>
+           <x>190</x>
            <y>300</y>
            <width>100</width>
            <height>50</height>
@@ -1341,7 +1299,7 @@
         <widget class="QPushButton" name="pushButton_query_strategy">
          <property name="geometry">
           <rect>
-           <x>290</x>
+           <x>304</x>
            <y>300</y>
            <width>100</width>
            <height>50</height>
@@ -1355,6 +1313,71 @@
          </property>
          <property name="text">
           <string>查询</string>
+         </property>
+        </widget>
+        <widget class="QComboBox" name="comboBox_xiadansuanfa">
+         <property name="geometry">
+          <rect>
+           <x>282</x>
+           <y>60</y>
+           <width>40</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="editable">
+          <bool>false</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_Bchedanxianzhi">
+         <property name="geometry">
+          <rect>
+           <x>320</x>
+           <y>120</y>
+           <width>39</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>B限制</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_Bchedanxianzhi">
+         <property name="geometry">
+          <rect>
+           <x>362</x>
+           <y>120</y>
+           <width>40</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_zongshou">
+         <property name="geometry">
+          <rect>
+           <x>362</x>
+           <y>30</y>
+           <width>40</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_meifen">
+         <property name="geometry">
+          <rect>
+           <x>362</x>
+           <y>60</y>
+           <width>40</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </widget>

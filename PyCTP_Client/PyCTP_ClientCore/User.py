@@ -86,7 +86,7 @@ class User:
     def qry_instrument_info(self):
         if self.__CTPManager.get_got_list_instrument_info() is False:
             self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
-            self.__CTPManager.set_list_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
+            self.__CTPManager.set_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
             if len(self.__instrument_info) > 0:
                 self.__CTPManager.set_got_list_instrument_info(True)  # 将获取合约信息的状态设置为真，获取成功
 
@@ -104,6 +104,20 @@ class User:
     # 设置数据库管理类DBManager为该类对象
     def set_DBManager(self, obj_DBManager):
         self.__DBManager = obj_DBManager
+
+    # QAccountWidegt设置为属性
+    def set_QAccountWidget(self, obj_QAccountWidget):
+        self.__QAccountWidget = obj_QAccountWidget
+
+    def get_QAccountWidget(self):
+        return self.__QAccountWidget
+
+    # QAccountWidegtTotal设置为属性（总账户的窗口）
+    def set_QAccountWidgetTotal(self, obj_QAccountWidgetTotal):
+        self.__QAccountWidgetTotal = obj_QAccountWidgetTotal
+
+    def get_QAccountWidgetTotal(self):
+        return self.__QAccountWidgetTotal
 
     # 获得数据库
     def get_mongodb_CTP(self):

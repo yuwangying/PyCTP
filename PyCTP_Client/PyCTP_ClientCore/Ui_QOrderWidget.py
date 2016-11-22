@@ -214,7 +214,7 @@ class Ui_Form(object):
         self.checkBox_baozhi.setGeometry(QtCore.QRect(192, 45, 57, 19))
         self.checkBox_baozhi.setObjectName(_fromUtf8("checkBox_baozhi"))
         self.horizontalLayout_container_order.addWidget(self.groupBox_order_insert)
-        self.horizontalLayout_container_order.setStretch(0, 13)
+        self.horizontalLayout_container_order.setStretch(0, 14)
         self.horizontalLayout_container_order.setStretch(1, 6)
         self.verticalLayout.addWidget(self.container_order)
 

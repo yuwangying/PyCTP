@@ -51,15 +51,21 @@ class ClientMain(QtCore.QObject):
             print("ClientMain.set_core_init_finished() 内核初始化完成")
             self.__QLoginForm.hide()  # 隐藏登录窗口
             self.__QCTP.show()  # 显示主窗口
-            # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里
-            self.__list_QAccountWidget.append(QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user()))
+            # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里，总账户窗口初始化函数内部将总账户窗口对象设置为各user对象的属性。
+            tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user())
+            tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
+            tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
+            self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
+
             # 创建单个账户窗口，将user对象设置为其属性，将窗口对象存放到list里
             for i in self.get_CTPManager().get_list_user():
-                self.__list_QAccountWidget.append(QAccountWidget(str_widget_name=i.get_user_id().decode(), obj_user=i))  # 将窗口对象存放到list集合里
+                tmpQ = QAccountWidget(str_widget_name=i.get_user_id().decode(), obj_user=i)  # 创建窗口，并将user设置为其属性
+                i.set_QAccountWidget(tmpQ)  # 窗口实例设置为user的对象
+                tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
+                tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
+                self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
             for i in self.__list_QAccountWidget:
-                print(">>> i =", i)
                 self.get_QCTP().tab_accounts.addTab(i, i.get_widget_name())  # 账户窗口添加到QCTP窗口的tab
-
 
     def get_SocketManager(self):
         return self.__sm
@@ -88,9 +94,19 @@ class ClientMain(QtCore.QObject):
     def get_listStrategyInfo(self):
         return self.__listStrategyInfo
 
+    def get_list_QAccountWidget(self):
+        return self.__list_QAccountWidget
+
     # 获取内核初始化状态
     def get_core_init_finished(self):
         return self.__core_init_finished
+
+    # 设置鼠标点击状态，信息包含:item所在行、item所在列、widget_name、user_id、strategy_id
+    def set_clicked_status(self, in_dict):
+        self.__clicked_status = in_dict
+
+    def get_clicked_status(self):
+        return self.__clicked_status
 
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
@@ -153,16 +169,11 @@ class ClientMain(QtCore.QObject):
                 print("ClientMain.slot_output_message() MsgType=10", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     for i in self.__CTPManager.get_list_user():  # 遍历user对象列表
-                        print(">>> i.get_user_id().decode()=", i.get_user_id().decode(), "buff['UserID']=", buff['UserID'])
                         if i.get_user_id().decode() == buff['UserID']:  # 找到对应的user对象
-                            print(">>> if i.get_user_id().decode() == buff['UserID']:  # 找到对应的user对象")
-                            print(">>> i.get_list_strategy()=", i.get_list_strategy())
                             if len(i.get_list_strategy()) == 0:
                                 continue
                             for j in i.get_list_strategy():  # 遍历strategy对象列表
-                                print(">>> j=", j, "i.get_list_strategy()=", i.get_list_strategy())
                                 if j.get_strategy_id() == buff['StrategyID']:  # 找到对应的strategy对象
-                                    print(">>> if j.get_strategy_id() == buff['StrategyID']:  # 找到对应的strategy对象")
                                     j.OnRspQryStrategyYesterdayPosition(buff['Info'][0])  # 将查询结果给到Strategy的回调函数
                                     j.init_yesterday_position()  # 初始化策略昨仓
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -209,6 +220,13 @@ class ClientMain(QtCore.QObject):
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
+
+    # 添加样式表
+    file = QtCore.QFile('img/silvery.css')
+    file.open(QtCore.QFile.ReadOnly)
+    styleSheet = file.readAll().data().decode("utf-8")
+    file.close()
+    # QtGui.qApp.setStyleSheet(styleSheet)
 
     q_client_main = ClientMain()  # 创建客户端主界面实例
     ctp_manager = CTPManager()  # 创建客户端内核管理实例

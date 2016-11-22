@@ -22,7 +22,7 @@
    </property>
    <item>
     <widget class="QWidget" name="container_order" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout_container_order" stretch="13,6">
+     <layout class="QHBoxLayout" name="horizontalLayout_container_order" stretch="14,6">
       <property name="spacing">
        <number>5</number>
       </property>

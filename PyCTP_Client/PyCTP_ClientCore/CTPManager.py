@@ -47,6 +47,7 @@ class CTPManager:
             self.create_user(i)
 
         # 创建策略
+        print("CTPManager.init() self.__ClientMain.get_listStrategyInfo()=", self.__ClientMain.get_listStrategyInfo())
         for i in self.__ClientMain.get_listStrategyInfo():
             self.create_strategy(i)
 
@@ -90,17 +91,20 @@ class CTPManager:
     # 创建strategy
     def create_strategy(self, dict_arguments):
         # 不允许重复创建策略实例
+        print("CTPManager.create_strategy() user_id=", dict_arguments['user_id'], "strategy_id=",
+              dict_arguments['strategy_id'])
         if len(self.__list_strategy) > 0:
             for i in self.__list_strategy:
-                if i.get_strategy_id() == dict_arguments['strategy_id']:
-                    print("MultiUserTraderSys.create_strategy()已经存在strategy_id为", dict_arguments['strategy_id'], "的实例，不允许重复创建")
+                if i.get_strategy_id() == dict_arguments['strategy_id'] and i.get_user_id() == dict_arguments['user_id']:
+                    print("CTPManager.create_strategy()已经存在strategy_id为", dict_arguments['strategy_id'], "的实例，不允许重复创建")
                     return False
 
         print('===========================')
         print("CTPManager.create_strategy() 创建策略实例", dict_arguments)
         for i in self.__list_user:
-            if i.get_user_id().decode('utf-8') == dict_arguments['user_id']:  # 找到策略所属的user实例
+            if i.get_user_id().decode() == dict_arguments['user_id']:  # 找到策略所属的user实例
                 obj_strategy = Strategy(dict_arguments, i, self.__DBManager)  # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
+                # print("CTPManager.create_strategy() user_id=", i.get_user_id().decode(), "strategy_id=", dict_arguments['strategy_id'])
                 i.add_strategy(obj_strategy)               # 将策略实例添加到user的策略列表
                 self.__list_strategy.append(obj_strategy)  # 将策略实例添加到CTP_Manager的策略列表
 
@@ -236,11 +240,11 @@ class CTPManager:
         return self.__got_list_instrument_info
 
     # 设置合约信息
-    def set_list_instrument_info(self, input_list):
+    def set_instrument_info(self, input_list):
         self.__list_instrument_info = input_list
 
     # 获取合约信息
-    def get_list_instrument_info(self):
+    def get_instrument_info(self):
         return self.__list_instrument_info
 
 
