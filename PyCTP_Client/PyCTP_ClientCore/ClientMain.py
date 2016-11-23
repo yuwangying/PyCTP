@@ -53,15 +53,21 @@ class ClientMain(QtCore.QObject):
             self.__QCTP.show()  # 显示主窗口
             # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里，总账户窗口初始化函数内部将总账户窗口对象设置为各user对象的属性。
             tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user())
-            tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
+            tmpQ.set_ClientMain(self)  # ClientMain设置为窗口对象的属性
+            # 总账户窗口实例设置为所有策略的属性
+            for i_strategy in self.get_CTPManager().get_list_strategy():
+                i_strategy.set_QAccountWidgetTotal(tmpQ)
             tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
             self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
 
             # 创建单个账户窗口，将user对象设置为其属性，将窗口对象存放到list里
-            for i in self.get_CTPManager().get_list_user():
-                tmpQ = QAccountWidget(str_widget_name=i.get_user_id().decode(), obj_user=i)  # 创建窗口，并将user设置为其属性
-                i.set_QAccountWidget(tmpQ)  # 窗口实例设置为user的对象
+            for i_user in self.get_CTPManager().get_list_user():
+                tmpQ = QAccountWidget(str_widget_name=i_user.get_user_id().decode(), obj_user=i_user)  # 创建窗口，并将user设置为其属性
+                i_user.set_QAccountWidget(tmpQ)  # 窗口实例设置为user的对象
                 tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
+                # 单账户窗口实例设置为对应期货账户下面所有策略的属性
+                for i_strategy in tmpQ.get_user().get_list_strategy():
+                    i_strategy.set_QAccountWidget(tmpQ)
                 tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
                 self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
             for i in self.__list_QAccountWidget:

@@ -23,6 +23,7 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
+
 class QAccountWidget(QWidget, Ui_Form):
     """
     Class documentation goes here.
@@ -74,6 +75,8 @@ class QAccountWidget(QWidget, Ui_Form):
         self.tableWidget_Trade_Args.setColumnCount(16)
         self.tableWidget_Trade_Args.setCurrentCell(0, 0)
 
+        # self.on_tableWidget_Trade_Args_cellClicked(0, 0)
+
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):
@@ -94,8 +97,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__user = obj_user
 
     def get_user(self):
-        print(">>> QAccountWidget.get_user() widget_name=", self.__widget_name, 'user_id=',
-              self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
+        print(">>> QAccountWidget.get_user() widget_name=", self.__widget_name)
         return self.__user
 
     def get_widget_name(self):
@@ -130,7 +132,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 判断当前窗口是否单账户
     def is_single_user(self):
-        print(">>> QAccountWidget.is_single_user()")
+        print(">>> QAccountWidget.is_single_user() widget_name=", self.__widget_name)
         if self.__widget_name == "总账户":
             return False
         else:
@@ -376,7 +378,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新“策略参数”框价差，（仅更新鼠标所选中的单一策略）
     def update_groupBox_spread(self, obj_strategy):
-        print(">>> QAccountWidget.update_groupBox_spread() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'], str(obj_strategy.get_spread_short()), str(obj_strategy.get_spread_long()))
+        print(">>> QAccountWidget.update_groupBox_spread() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'], ')', str(obj_strategy.get_spread_short()), str(obj_strategy.get_spread_long()), ')')
         # self.lineEdit_kongtoujiacha.setText(str(obj_strategy.get_spread_short()))
         # self.lineEdit_duotoujiacha.setText(str(obj_strategy.get_spread_long()))
         self.lineEdit_kongtoujiacha.setText(str("%.2f" % float(obj_strategy.get_spread_short())))
@@ -726,6 +728,22 @@ class QAccountWidget(QWidget, Ui_Form):
         in_dict = {'row': row, 'column': column, 'widget_name': self.__widget_name, 'user_id': self.tableWidget_Trade_Args.item(row, 2).text(), 'strategy_id': self.tableWidget_Trade_Args.item(row, 3).text()}
         self.set_clicked_status(in_dict)  # 保存鼠标点击状态到本类属性
         self.__ClientMain.set_clicked_status(in_dict)  # 保存鼠标点击状态到ClientMain的属性
+        # 设置策略在总账户窗口中被鼠标选中的标志位
+        if self.is_single_user():  # 单账户窗口
+            for i_user in self.__ClientMain.get_CTPManager().get_list_user():
+                print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() i_user.get_user_id()=", i_user.get_user_id())
+                if i_user.get_user_id().decode() == in_dict['user_id']:
+                    for i_strategy in i_user.get_list_strategy():
+                        if i_strategy.get_strategy_id() == in_dict['strategy_id']:
+                            i_strategy.set_clicked(True)  # 策略在单账户窗口中被鼠标选中
+                        else:
+                            i_strategy.set_clicked(False)  # 策略在单账户窗口中未被鼠标选中
+        else:  # 总账户窗口
+            for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
+                if i_strategy.get_user_id() == in_dict['user_id'] and i_strategy.get_strategy_id() == in_dict['strategy_id']:
+                    i_strategy.set_clicked_total(True)  # 策略在总账户窗口中被鼠标选中
+                else:
+                    i_strategy.set_clicked_total(False)  # 策略在总账户窗口中未被鼠标选中
         self.update_groupBox_trade_args()  # 更新策略参数框
         # self.update_groupBox_spread()  # 更新策略参数框中的价差值
 

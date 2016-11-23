@@ -52,6 +52,9 @@ class Strategy:
         # self.init_today_position()  # 初始化策略持仓
         # self.statistics()  # 统计指标，通过QryOrder和QryTrade获取记录
 
+        self.__clicked_total = False  # 策略在主窗口中被选中的标志
+        self.__clicked = False  # 策略在单账户窗口中被选中的标志
+
     # 设置参数
     def set_arguments(self, dict_arguments):
         self.__dict_arguments = dict_arguments  # 将形参转存为私有变量
@@ -112,7 +115,7 @@ class Strategy:
         self.__position_b_sell = dict_input['position_b_sell']
         self.__position_b_sell_today = dict_input['position_b_sell_today']
         self.__position_b_sell_yesterday = dict_input['position_b_sell_yesterday']
-        self.init_today_position()  # 初始化策略持仓
+        self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
 
     # 初始化今仓
     def init_today_position(self):
@@ -265,6 +268,36 @@ class Strategy:
         }
         return out_dict
 
+    # 设置当前策略在单账户窗口被选中的状态，True：被选中，False：未被选中
+    def set_clicked(self, in_bool):
+        self.__clicked = in_bool
+        print(">>> Strategy.set_clicked() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked)
+
+    def get_clicked(self):
+        return self.__clicked
+
+    # 设置当前策略在总账户窗口被选中的状态，True：被选中，False：未被选中
+    def set_clicked_total(self, in_bool):
+        self.__clicked_total = in_bool
+        print(">>> Strategy.set_clicked_total() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked_total=", self.__clicked_total)
+
+    def get_clicked_total(self):
+        return self.__clicked_total
+
+    # QAccountWidegt设置为属性
+    def set_QAccountWidget(self, obj_QAccountWidget):
+        self.__QAccountWidget = obj_QAccountWidget
+
+    def get_QAccountWidget(self):
+        return self.__QAccountWidget
+
+    # QAccountWidegtTotal设置为属性（总账户的窗口）
+    def set_QAccountWidgetTotal(self, obj_QAccountWidgetTotal):
+        self.__QAccountWidgetTotal = obj_QAccountWidgetTotal
+
+    def get_QAccountWidgetTotal(self):
+        return self.__QAccountWidgetTotal
+
     # 生成报单引用，前两位是策略编号，后面几位递增1
     def add_order_ref(self):
         return (str(self.__user.add_order_ref_part2()) + self.__strategy_id).encode()
@@ -405,11 +438,27 @@ class Strategy:
         #           self.__list_instrument_id, self.__spread_long, "(", self.__spread_long_volume, ")",
         #           self.__spread_short, "(", self.__spread_short_volume, ")")
 
+        """
         # 将价差值传递给界面
         # 找到strategy实例中的user_id、strategy_id与鼠标选中的相同的
         for i_widget in self.__user.get_CTPManager().get_ClientMain().get_list_QAccountWidget():
-            if i_widget.get_clicked_status()['user_id'] == self.__user_id and i_widget.get_clicked_status()['strategy_id'] == self.__strategy_id:
+            # if i_widget.get_clicked_status()['user_id'] == self.__user_id and i_widget.get_clicked_status()['strategy_id'] == self.__strategy_id:
+            #     i_widget.update_groupBox_spread(self)
+            # 总账户窗口中刷新价差行情
+            if i_widget.get_widget_name() == "总账户" and self.__clicked_total:
                 i_widget.update_groupBox_spread(self)
+            # 单账户窗口中刷新价差行情
+            if i_widget.get_widget_name() == self.__user_id and self.__clicked:
+                i_widget.update_groupBox_spread(self)
+        """
+
+        # 总账户窗口中刷新价差行情
+        # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
+        if self.__clicked_total:
+            self.__QAccountWidgetTotal.update_groupBox_spread(self)
+        # 单账户窗口中刷新价差行情
+        if self.__clicked:
+            self.__QAccountWidget.update_groupBox_spread(self)
 
     # 下单算法1：A合约以对手价发单，B合约以对手价发单
     def order_algorithm_one(self):
