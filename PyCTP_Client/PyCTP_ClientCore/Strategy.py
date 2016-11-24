@@ -98,26 +98,27 @@ class Strategy:
 
     # 查询策略昨仓响应
     def OnRspQryStrategyYesterdayPosition(self, dict_StrategyYesterdayPosition):
-        self.__dict_StrategyYesterdayPosition = dict_StrategyYesterdayPosition
+        self.__dict_StrategyYesterdayPosition = copy.deepcopy(dict_StrategyYesterdayPosition)
+        print(">>> Strategy.OnRspQryStrategyYesterdayPosition() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_StrategyYesterdayPosition=\n\t", self.__dict_StrategyYesterdayPosition)
         
-    # 初始化昨仓
+    # 初始化昨仓，从服务端获得数据计算
     def init_yesterday_position(self):
         dict_input = self.__dict_StrategyYesterdayPosition
         self.__position_a_buy = dict_input['position_a_buy']
-        self.__position_a_buy_today = dict_input['position_a_buy_today']
-        self.__position_a_buy_yesterday = dict_input['position_a_buy_yesterday']
+        self.__position_a_buy_today = 0
+        self.__position_a_buy_yesterday = dict_input['position_a_buy']
         self.__position_a_sell = dict_input['position_a_sell']
-        self.__position_a_sell_today = dict_input['position_a_sell_today']
-        self.__position_a_sell_yesterday = dict_input['position_a_sell_yesterday']
+        self.__position_a_sell_today = 0
+        self.__position_a_sell_yesterday = dict_input['position_a_sell']
         self.__position_b_buy = dict_input['position_b_buy']
-        self.__position_b_buy_today = dict_input['position_b_buy_today']
-        self.__position_b_buy_yesterday = dict_input['position_b_buy_yesterday']
+        self.__position_b_buy_today = 0
+        self.__position_b_buy_yesterday = dict_input['position_b_buy']
         self.__position_b_sell = dict_input['position_b_sell']
-        self.__position_b_sell_today = dict_input['position_b_sell_today']
-        self.__position_b_sell_yesterday = dict_input['position_b_sell_yesterday']
+        self.__position_b_sell_today = 0
+        self.__position_b_sell_yesterday = dict_input['position_b_sell']
         self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
 
-    # 初始化今仓
+    # 初始化今仓，从当天成交回报数据计算
     def init_today_position(self):
         self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
         if len(self.__dfQryTrade) > 0:  # 记录不为空
@@ -307,11 +308,11 @@ class Strategy:
         """ 行情推送 """
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__list_instrument_id[1]:
-            self.__instrument_b_tick = tick
+            self.__instrument_b_tick = copy.deepcopy(tick)
             # print(self.__user_id + self.__strategy_id, "B合约：", self.__instrument_b_tick)
         # 过滤出A合约的tick
         elif tick['InstrumentID'] == self.__list_instrument_id[0]:
-            self.__instrument_a_tick = tick
+            self.__instrument_a_tick = copy.deepcopy(tick)
             # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
 
         # 初始化未完成，跳过

@@ -480,16 +480,6 @@
         </column>
         <column>
          <property name="text">
-          <string>交易模型</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>下单算法</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
           <string>总持仓</string>
          </property>
         </column>
@@ -531,6 +521,16 @@
         <column>
          <property name="text">
           <string>平均滑点</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>交易模型</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>下单算法</string>
          </property>
         </column>
        </widget>

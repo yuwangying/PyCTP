@@ -51,6 +51,7 @@ class ClientMain(QtCore.QObject):
             print("ClientMain.set_core_init_finished() 内核初始化完成")
             self.__QLoginForm.hide()  # 隐藏登录窗口
             self.__QCTP.show()  # 显示主窗口
+
             # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里，总账户窗口初始化函数内部将总账户窗口对象设置为各user对象的属性。
             tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user())
             tmpQ.set_ClientMain(self)  # ClientMain设置为窗口对象的属性
@@ -70,8 +71,10 @@ class ClientMain(QtCore.QObject):
                     i_strategy.set_QAccountWidget(tmpQ)
                 tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
                 self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
+
+            # 账户窗口添加到QCTP窗口的tab
             for i in self.__list_QAccountWidget:
-                self.get_QCTP().tab_accounts.addTab(i, i.get_widget_name())  # 账户窗口添加到QCTP窗口的tab
+                self.get_QCTP().tab_accounts.addTab(i, i.get_widget_name())
 
     def get_SocketManager(self):
         return self.__sm
@@ -102,6 +105,9 @@ class ClientMain(QtCore.QObject):
 
     def get_list_QAccountWidget(self):
         return self.__list_QAccountWidget
+
+    def get_listAlgorithmWidget(self):
+        return self.__listAlgorithmInfo
 
     # 获取内核初始化状态
     def get_core_init_finished(self):
@@ -143,6 +149,13 @@ class ClientMain(QtCore.QObject):
                 print("ClientMain.slot_output_message() MsgType=2", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.__listUserInfo = buff['Info']  # 转存期货账户信息到本类的属性里
+                    self.QryAlgorithmInfo()  # 查询策略信息
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 11:  # 查询下单算法编号，MsgType=11
+                print("ClientMain.slot_output_message() MsgType=11", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    self.__listAlgorithmInfo = buff['Info']  # 转存期货账户信息到本类的属性里
                     self.QryStrategyInfo()  # 查询策略信息
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     pass
@@ -181,6 +194,7 @@ class ClientMain(QtCore.QObject):
                             for j in i.get_list_strategy():  # 遍历strategy对象列表
                                 if j.get_strategy_id() == buff['StrategyID']:  # 找到对应的strategy对象
                                     j.OnRspQryStrategyYesterdayPosition(buff['Info'][0])  # 将查询结果给到Strategy的回调函数
+                                    print(">>> ClientMain.slot_output_message() ")
                                     j.init_yesterday_position()  # 初始化策略昨仓
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     pass
@@ -209,6 +223,17 @@ class ClientMain(QtCore.QObject):
                             }
         json_QryUserInfo = json.dumps(dict_QryUserInfo)
         self.get_SocketManager().send_msg(json_QryUserInfo)
+
+    # 查询下单算法
+    def QryAlgorithmInfo(self):
+        dict_QryAlgorithmInfo = {'MsgRef': self.__sm.msg_ref_add(),
+                                 'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                                 'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                                 'MsgType': 11,  # 查询期货账户
+                                 'TraderID': self.__TraderID,
+                                 }
+        json_QryAlgorithmInfo = json.dumps(dict_QryAlgorithmInfo)
+        self.get_SocketManager().send_msg(json_QryAlgorithmInfo)
 
     # 查询策略
     def QryStrategyInfo(self):
