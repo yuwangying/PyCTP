@@ -560,6 +560,8 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+        # 获取界面参数框里显示的期货账号的策略编号
+        self.__ClientMain.QryStrategyInfo(UserID=self.comboBox_qihuozhanghao.currentText(), StrategyID=self.comboBox_celuebianhao.currentText())
     
     @pyqtSlot(bool)
     def on_checkBox_kongtoukai_clicked(self, checked):

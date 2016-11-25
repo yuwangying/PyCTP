@@ -179,12 +179,13 @@ class Strategy:
         elif len(self.__dfQryTrade) == 0:  # 记录为空
             pass
 
-        self.__init_finished = True  # 策略初始化完成，可以开始交易
+        self.__init_finished = True  # 当前策略初始化完成
+        # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
         if self.__user.get_CTPManager().get_list_strategy()[-1].get_strategy_id() == self.get_strategy_id()\
                 and self.__user.get_CTPManager().get_list_strategy()[-1].get_user_id() == self.get_user_id():
-            self.__user.get_CTPManager().set_init_finished(True)  # CTPManager初始化完成
-            self.__user.get_CTPManager().get_ClientMain().set_core_init_finished(True)  # CTPManager初始化完成，切换窗口
-            print("Strategy.init_today_position() 最后一个strategy初始化今仓完成")
+            print("Strategy.init_today_position() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示")
+            self.__user.get_CTPManager().set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
+            self.__user.get_CTPManager().get_ClientMain().create_QAccountWidget()  # 创建窗口界面
 
     # 获取参数
     def get_arguments(self):
