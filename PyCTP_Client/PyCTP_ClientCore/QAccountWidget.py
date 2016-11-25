@@ -138,7 +138,6 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 判断当前窗口是否单账户
     def is_single_user(self):
-        print(">>> QAccountWidget.is_single_user() widget_name=", self.__widget_name)
         if self.__widget_name == "总账户":
             return False
         else:
@@ -413,10 +412,20 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
 
     # 更新“策略参数”框价差，（仅更新鼠标所选中的单一策略）
-    def update_groupBox_spread(self, obj_strategy):
+    # def update_groupBox_spread(self, obj_strategy):
+    def update_groupBox_spread(self, spread_long, spread_short):
+        print(">>> QAccountWidget.update_groupBox_spread widget_name=", self.__widget_name)
+        print(">>> QAccountWidget.update_groupBox_spread address memory =", self.update_groupBox_spread)
+        print(">>> QAccountWidget.lineEdit_kongtoujiacha address memory =", self.lineEdit_kongtoujiacha)
+        print(">>> QAccountWidget.lineEdit_duotoujiacha address memory =", self.lineEdit_duotoujiacha)
+        # print(">>> QAccountWidget.obj_strategy address memory =", obj_strategy)
         # print(">>> QAccountWidget.update_groupBox_spread() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'], '(', str("%.2f" % float(obj_strategy.get_spread_short())), str("%.2f" % float(obj_strategy.get_spread_long())), ')')
-        self.lineEdit_kongtoujiacha.setText(str("%.2f" % float(obj_strategy.get_spread_short())))
-        self.lineEdit_duotoujiacha.setText(str("%.2f" % float(obj_strategy.get_spread_long())))
+        for i in range(3):
+            self.lineEdit_kongtoujiacha.setText(str("%.2f" % float("0")))
+            self.lineEdit_duotoujiacha.setText(str("%.2f" % float()))
+        # self.lineEdit_kongtoujiacha.setText("short")
+        # self.lineEdit_duotoujiacha.setText("long")
+
 
     # 更新界面：“策略参数”框，    groupBox_trade_args
     def update_groupBox_trade_args(self):
@@ -768,7 +777,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # 设置策略在总账户窗口中被鼠标选中的标志位
         if self.is_single_user():  # 单账户窗口
             for i_user in self.__ClientMain.get_CTPManager().get_list_user():
-                print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() i_user.get_user_id()=", i_user.get_user_id())
+                # print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() i_user.get_user_id()=", i_user.get_user_id())
                 if i_user.get_user_id().decode() == in_dict['user_id']:
                     for i_strategy in i_user.get_list_strategy():
                         if i_strategy.get_strategy_id() == in_dict['strategy_id']:

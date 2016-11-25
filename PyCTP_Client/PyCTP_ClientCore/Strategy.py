@@ -273,7 +273,7 @@ class Strategy:
     # 设置当前策略在单账户窗口被选中的状态，True：被选中，False：未被选中
     def set_clicked(self, in_bool):
         self.__clicked = in_bool
-        print(">>> Strategy.set_clicked() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked)
+        # print(">>> Strategy.set_clicked() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked)
 
     def get_clicked(self):
         return self.__clicked
@@ -281,7 +281,7 @@ class Strategy:
     # 设置当前策略在总账户窗口被选中的状态，True：被选中，False：未被选中
     def set_clicked_total(self, in_bool):
         self.__clicked_total = in_bool
-        print(">>> Strategy.set_clicked_total() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked_total=", self.__clicked_total)
+        # print(">>> Strategy.set_clicked_total() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked_total=", self.__clicked_total)
 
     def get_clicked_total(self):
         return self.__clicked_total
@@ -303,6 +303,7 @@ class Strategy:
     # 设置当前界面显示的窗口名称
     def set_show_widget_name(self, str_widget_name):
         self.__show_widget_name = str_widget_name
+        print(">>> Strategy.set_show_widget_name() user_id=", self.__user_id, "strategy_id=", self.__strategy_id , "show_widget_name=", self.__show_widget_name)
 
     def get_show_widget_name(self):
         return self.__show_widget_name
@@ -314,6 +315,17 @@ class Strategy:
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
         """ 行情推送 """
+        if tick is None:
+            return
+        if isinstance(tick['BidPrice1'], float) is False:
+            return
+        if isinstance(tick['AskPrice1'], float) is False:
+            return
+        if isinstance(tick['BidVolume1'], int) is False:
+            return
+        if isinstance(tick['AskVolume1'], int) is False:
+            return
+
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__list_instrument_id[1]:
             self.__instrument_b_tick = copy.deepcopy(tick)
@@ -431,7 +443,6 @@ class Strategy:
     # 更新市场价差值
     def market_spread(self):
         # 计算市场盘口价差、量
-
         if self.__instrument_a_tick is None or self.__instrument_b_tick is None:
             return
 
@@ -441,33 +452,20 @@ class Strategy:
         self.__spread_short = self.__instrument_a_tick['AskPrice1'] - self.__instrument_b_tick['BidPrice1']
         self.__spread_short_volume = min(self.__instrument_a_tick['AskVolume1'],
                                          self.__instrument_b_tick['BidVolume1'])
-        # 输出价差行情
-        # if Utils.Strategy_print:
-        #     print("Strategy.order_algorithm_one() user_id=", self.__user_id ,"strategy_id=", self.__strategy_id,
-        #           self.__list_instrument_id, self.__spread_long, "(", self.__spread_long_volume, ")",
-        #           self.__spread_short, "(", self.__spread_short_volume, ")")
-
-        """
-        # 将价差值传递给界面
-        # 找到strategy实例中的user_id、strategy_id与鼠标选中的相同的
-        for i_widget in self.__user.get_CTPManager().get_ClientMain().get_list_QAccountWidget():
-            # if i_widget.get_clicked_status()['user_id'] == self.__user_id and i_widget.get_clicked_status()['strategy_id'] == self.__strategy_id:
-            #     i_widget.update_groupBox_spread(self)
-            # 总账户窗口中刷新价差行情
-            if i_widget.get_widget_name() == "总账户" and self.__clicked_total:
-                i_widget.update_groupBox_spread(self)
-            # 单账户窗口中刷新价差行情
-            if i_widget.get_widget_name() == self.__user_id and self.__clicked:
-                i_widget.update_groupBox_spread(self)
-        """
-
         # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
+
         # 总账户窗口中刷新价差行情
-        if self.__show_widget_name == "总账户" and self.__clicked_total:
-            self.__QAccountWidgetTotal.update_groupBox_spread(self)
+        if self.__show_widget_name == "总账户":
+            if self.__clicked_total:
+                print(">>> Strategy.self.__QAccountWidgetTotal address memory =", self.__QAccountWidgetTotal)
+                # self.__QAccountWidgetTotal.update_groupBox_spread(self)
+                self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_long, self.__spread_short)
         # 单账户窗口中刷新价差行情
-        elif self.__show_widget_name == self.__user_id and self.__clicked:
-            self.__QAccountWidget.update_groupBox_spread(self)
+        elif self.__show_widget_name == self.__user_id:
+            if self.__clicked:
+                print(">>> Strategy.self.__QAccountWidget address memory =", self.__QAccountWidget)
+                # self.__QAccountWidget.update_groupBox_spread(self)
+                self.__QAccountWidget.update_groupBox_spread(self.__spread_long, self.__spread_short)
 
     # 下单算法1：A合约以对手价发单，B合约以对手价发单
     def order_algorithm_one(self):
