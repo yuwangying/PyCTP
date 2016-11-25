@@ -113,6 +113,12 @@ class ClientMain(QtCore.QObject):
     def get_clicked_status(self):
         return self.__clicked_status
 
+    def set_show_widget_name(self, str_widget_name):
+        self.__show_widget_name = str_widget_name
+
+    def get_show_widget_name(self):
+        return self.__show_widget_name
+
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
     def slot_output_message(self, buff):

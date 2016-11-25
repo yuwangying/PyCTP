@@ -300,6 +300,13 @@ class Strategy:
     def get_QAccountWidgetTotal(self):
         return self.__QAccountWidgetTotal
 
+    # 设置当前界面显示的窗口名称
+    def set_show_widget_name(self, str_widget_name):
+        self.__show_widget_name = str_widget_name
+
+    def get_show_widget_name(self):
+        return self.__show_widget_name
+
     # 生成报单引用，前两位是策略编号，后面几位递增1
     def add_order_ref(self):
         return (str(self.__user.add_order_ref_part2()) + self.__strategy_id).encode()
@@ -454,12 +461,12 @@ class Strategy:
                 i_widget.update_groupBox_spread(self)
         """
 
-        # 总账户窗口中刷新价差行情
         # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
-        if self.__clicked_total:
+        # 总账户窗口中刷新价差行情
+        if self.__show_widget_name == "总账户" and self.__clicked_total:
             self.__QAccountWidgetTotal.update_groupBox_spread(self)
         # 单账户窗口中刷新价差行情
-        if self.__clicked:
+        elif self.__show_widget_name == self.__user_id and self.__clicked:
             self.__QAccountWidget.update_groupBox_spread(self)
 
     # 下单算法1：A合约以对手价发单，B合约以对手价发单

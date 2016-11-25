@@ -85,9 +85,15 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__sm.send_msg(msg)
 
     def showEvent(self, QShowEvent):
-        print(">>> showEvent()", self.objectName())
+        print(">>> showEvent()", self.objectName(), "widget_name=", self.__widget_name)
+        self.__ClientMain.set_show_widget_name(self.__widget_name)
+        for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
+            i_strategy.set_show_widget_name(self.__widget_name)
         pass
 
+    def hideEvent(self, QHideEvent):
+        print(">>> hideEvent()", self.objectName(), "widget_name=", self.__widget_name)
+        pass
     def set_ClientMain(self, obj_ClientMain):
         print(">>> QAccountWidget.set_ClientMain() ")
         self.__ClientMain = obj_ClientMain
@@ -408,7 +414,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新“策略参数”框价差，（仅更新鼠标所选中的单一策略）
     def update_groupBox_spread(self, obj_strategy):
-        print(">>> QAccountWidget.update_groupBox_spread() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'], '(', str("%.2f" % float(obj_strategy.get_spread_short())), str("%.2f" % float(obj_strategy.get_spread_long())), ')')
+        # print(">>> QAccountWidget.update_groupBox_spread() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'], '(', str("%.2f" % float(obj_strategy.get_spread_short())), str("%.2f" % float(obj_strategy.get_spread_long())), ')')
         self.lineEdit_kongtoujiacha.setText(str("%.2f" % float(obj_strategy.get_spread_short())))
         self.lineEdit_duotoujiacha.setText(str("%.2f" % float(obj_strategy.get_spread_long())))
 
@@ -561,7 +567,8 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         # raise NotImplementedError
         # 获取界面参数框里显示的期货账号的策略编号
-        self.__ClientMain.QryStrategyInfo(UserID=self.comboBox_qihuozhanghao.currentText(), StrategyID=self.comboBox_celuebianhao.currentText())
+        self.__ClientMain.QryStrategyInfo(UserID=self.comboBox_qihuozhanghao.currentText(),
+                                          StrategyID=self.comboBox_celuebianhao.currentText())
     
     @pyqtSlot(bool)
     def on_checkBox_kongtoukai_clicked(self, checked):
