@@ -71,7 +71,7 @@ class User:
 
         self.__init_finished = False  # 初始化完成
 
-        self.__dfQryTrade = DataFrame()  # 查询交易、委托记录
+        self.__dfQryTrade = DataFrame()  # 保存查询当天的Trade和Order记录
         self.__dfQryOrder = DataFrame()
         self.QryTrade()  # 获取user的Trade记录
         time.sleep(1.0)
@@ -248,40 +248,19 @@ class User:
         # self.__DBManager.insert_trade(Order)  # 记录插入到数据库
         self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Order').insert_one(Order)  # 记录插入到数据库
 
-    """
-    # 转PyCTP_Market_API类中回调函数OnRspQryTrade
-    def OnRspQryTrade(self, Trade, RspInfo, RequestID, IsLast):
-        self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
-                                             other=Utils.code_transform(Trade),
-                                             ignore_index=True)
-        print("User.OnRspQryTrade() Trade =", Trade)
-        print("User.OnRspQryTrade() RspInfo =", RspInfo)
-        print("User.OnRspQryTrade() RequestID =", RequestID)
-        print("User.OnRspQryTrade() IsLast =", IsLast)
-
-    # 转PyCTP_Market_API类中回调函数OnRspQryOrder
-    def OnRspQryOrder(self, Order, RspInfo, RequestID, IsLast):
-        self.__dfQryOrder = DataFrame.append(self.__dfQryOrder,
-                                             other=Utils.code_transform(Order),
-                                             ignore_index=True)
-        print("User.OnRspQryTrade() Order =", Order)
-        print("User.OnRspQryTrade() RspInfo =", RspInfo)
-        print("User.OnRspQryTrade() RequestID =", RequestID)
-        print("User.OnRspQryTrade() IsLast =", IsLast)
-    """
-
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
         self.__listQryTrade = self.__trade.QryTrade()
+        print(">>> User.QryTrade() self.__listQryTrade=", self.__listQryTrade, type(self.__listQryTrade), len(self.__listQryTrade))
         print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
         if len(self.__listQryTrade) == 0:
-            return None
+            return
         for i in self.__listQryTrade:
             self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
                                                  other=Utils.code_transform(i),
                                                  ignore_index=True)
         self.__dfQryTrade['StrategyID'] = self.__dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)  # 截取OrderRef后两位数为StrategyID
-        self.__dfQryTrade.to_csv("data/"+self.__user_id.decode()+"_dfQryTrade.csv")
+        # self.__dfQryTrade.to_csv("data/"+self.__user_id.decode()+"_dfQryTrade.csv")  # 保存数据到本地
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
@@ -294,7 +273,7 @@ class User:
                                                  other=Utils.code_transform(i),
                                                  ignore_index=True)
         self.__dfQryOrder['StrategyID'] = self.__dfQryOrder['OrderRef'].astype(str).str[-1:].astype(int)  # 截取OrderRef后两位数为StrategyID
-        self.__dfQryOrder.to_csv("data/" + self.__user_id.decode() + "_dfQryOrder.csv")
+        # self.__dfQryOrder.to_csv("data/" + self.__user_id.decode() + "_dfQryOrder.csv")  # 保存数据到本地
 
     # 获取listQryOrder
     def get_listQryOrder(self):

@@ -219,8 +219,9 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
     def OnRtnDepthMarketData(self, DepthMarketData):
         """ 行情推送 """
         import datetime
+        # print('PyCTP_Market.OnRtnDepthMarketData() DepthMarketData=', DepthMarketData)
         tick = Utils.code_transform(DepthMarketData)
-        # print('OnRtnDepthMarketData()', tick)
+        # print('PyCTP_Market.OnRtnDepthMarketData() tick=', tick)
         # PyCTP_Market_API.df_tick_data = PyCTP_Market_API.df_tick_data.append(other=Series(tick),
         #                                                                      ignore_index=True,
         #                                                                      verify_integrity=False)

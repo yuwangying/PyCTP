@@ -8,6 +8,7 @@ Created on Wed Jul 20 08:46:13 2016
 import os
 import time
 import DBManager
+import chardet
 
 PyCTP_Trade_API_print = False  # PyCTP_Trade_API类打印控制
 Strategy_print = True  # Strategy类打印控制

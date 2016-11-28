@@ -114,6 +114,23 @@ class CTPManager:
             list_instrument_id.append(i.encode())  # 将合约代码转码为二进制字符串
         self.__MarketManager.sub_market(list_instrument_id, dict_arguments['user_id'], dict_arguments['strategy_id'])
 
+        # 最后一个策略初始化完成
+        # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
+        lastStrategyInfo = self.__ClientMain.get_listStrategyInfo()[-1]
+
+        if len(lastStrategyInfo) > 0:
+            print(">>> CTPManager.create_strategy() lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id()", lastStrategyInfo['strategy_id'], obj_strategy.get_strategy_id(), lastStrategyInfo['user_id'], obj_strategy.get_user_id())
+            if lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id():
+                print("CTPManager.create_strategy() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示, if > 0")
+                # self.__init_finished = True  # 当前策略初始化完成
+                self.set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
+                self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
+        else:
+            print("CTPManager.create_strategy() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示, if <> 0")
+            # self.__init_finished = True  # 当前策略初始化完成
+            self.set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
+            self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
+
     # 删除strategy
     def delete_strategy(self, dict_arguments):
         # 判断数据库中是否存在trader_id
@@ -170,6 +187,7 @@ class CTPManager:
 
     # 设置CTPManager内核初始化完成
     def set_init_finished(self, bool_input):
+        print(">>> CTPManager.set_init_finished() bool_input=", bool_input)
         self.__init_finished = bool_input
 
     # 获取CTPManager内核初始化状态
@@ -187,6 +205,13 @@ class CTPManager:
 
     def get_ClientMain(self):
         return self.__ClientMain
+
+    # 所有策略的昨仓保存到一个list，从服务端查询获得
+    def set_YesterdayPosition(self, listYesterdayPosition):
+        self.__listYesterdayPosition = listYesterdayPosition
+
+    def get_YesterdayPosition(self):
+        return self.__listYesterdayPosition
 
     # 新增trader_id下面的某个期货账户
     def add_user(self, trader_id, broker_id, front_address, user_id, password):

@@ -42,18 +42,32 @@ class Strategy:
         self.__order_ref_a = None  # A合约报单引用
         self.__order_ref_b = None  # B合约报单引用
         self.__order_ref_last = None  # 最后一次实际使用的报单引用
+        self.__dictYesterdayPositoin = dict()  # 本策略昨仓
+        self.__position_a_buy = 0  # 策略持仓初始值为0
+        self.__position_a_buy_today = 0
+        self.__position_a_buy_yesterday = 0
+        self.__position_a_sell = 0
+        self.__position_a_sell_today = 0
+        self.__position_a_sell_yesterday = 0
+        self.__position_b_buy = 0
+        self.__position_b_buy_today = 0
+        self.__position_b_buy_yesterday = 0
+        self.__position_b_sell = 0
+        self.__position_b_sell_today = 0
+        self.__position_b_sell_yesterday = 0
+        self.__clicked_total = False  # 策略在主窗口中被选中的标志
+        self.__clicked = False  # 策略在单账户窗口中被选中的标志
+        self.__spread_to_ui_locked = False  # 方法调用锁，初始化时打开 : 上锁True，解锁False
+        self.__dfQryTradeStrategy = DataFrame()  # 本策略的查询当天交易记录
+        self.__dfQryOrderStrategy = DataFrame()  # 本策略的查询当天委托记录
 
         self.set_arguments(dict_arguments)  # 设置策略参数
         self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的合约列表
         self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
-        self.QryStrategyYesterdayPosition()  # 向服务器查询昨仓，目的初始化本策略昨仓
-        # self.init_yesterday_position()  # 初始化策略昨仓
+        self.init_yesterday_position()  # 初始化策略昨仓
         # self.init_today_position()  # 初始化策略持仓
-        # self.statistics()  # 统计指标，通过QryOrder和QryTrade获取记录
-
-        self.__clicked_total = False  # 策略在主窗口中被选中的标志
-        self.__clicked = False  # 策略在单账户窗口中被选中的标志
+        # self.init_statistics()  # 初始化统计指标
 
     # 设置参数
     def set_arguments(self, dict_arguments):
@@ -99,32 +113,36 @@ class Strategy:
     # 查询策略昨仓响应
     def OnRspQryStrategyYesterdayPosition(self, dict_StrategyYesterdayPosition):
         self.__dict_StrategyYesterdayPosition = copy.deepcopy(dict_StrategyYesterdayPosition)
-        print(">>> Strategy.OnRspQryStrategyYesterdayPosition() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_StrategyYesterdayPosition=\n\t", self.__dict_StrategyYesterdayPosition)
-        
+        # print(">>> Strategy.OnRspQryStrategyYesterdayPosition() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_StrategyYesterdayPosition=\n\t", self.__dict_StrategyYesterdayPosition)
+
     # 初始化昨仓，从服务端获得数据计算
     def init_yesterday_position(self):
-        dict_input = self.__dict_StrategyYesterdayPosition
-        self.__position_a_buy = dict_input['position_a_buy']
-        self.__position_a_buy_today = 0
-        self.__position_a_buy_yesterday = dict_input['position_a_buy']
-        self.__position_a_sell = dict_input['position_a_sell']
-        self.__position_a_sell_today = 0
-        self.__position_a_sell_yesterday = dict_input['position_a_sell']
-        self.__position_b_buy = dict_input['position_b_buy']
-        self.__position_b_buy_today = 0
-        self.__position_b_buy_yesterday = dict_input['position_b_buy']
-        self.__position_b_sell = dict_input['position_b_sell']
-        self.__position_b_sell_today = 0
-        self.__position_b_sell_yesterday = dict_input['position_b_sell']
+        # 所有策略昨仓的list中无数据
+        for i in self.__user.get_CTPManager().get_YesterdayPosition():
+            if i['user_id'] == self.__user_id and i['strategy_id'] == self.__strategy_id:
+                self.__dictYesterdayPositoin = copy.deepcopy(i)
+                self.__position_a_buy = self.__dictYesterdayPositoin['position_a_buy']
+                self.__position_a_buy_today = 0
+                self.__position_a_buy_yesterday = self.__dictYesterdayPositoin['position_a_buy']
+                self.__position_a_sell = self.__dictYesterdayPositoin['position_a_sell']
+                self.__position_a_sell_today = 0
+                self.__position_a_sell_yesterday = self.__dictYesterdayPositoin['position_a_sell']
+                self.__position_b_buy = self.__dictYesterdayPositoin['position_b_buy']
+                self.__position_b_buy_today = 0
+                self.__position_b_buy_yesterday = self.__dictYesterdayPositoin['position_b_buy']
+                self.__position_b_sell = self.__dictYesterdayPositoin['position_b_sell']
+                self.__position_b_sell_today = 0
+                self.__position_b_sell_yesterday = self.__dictYesterdayPositoin['position_b_sell']
         self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
 
     # 初始化今仓，从当天成交回报数据计算
     def init_today_position(self):
-        self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
-        if len(self.__dfQryTrade) > 0:  # 记录不为空
-            # 从user的Trade中选出该策略的记录
-            print("Strategy.init_today_position() self.__strategy_id=", int(self.__strategy_id), "\nself.__dfQryTrade=\n", self.__dfQryTrade.StrategyID)
+        print("Strategy.init_today_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
+        if len(self.__user.get_dfQryTrade()) > 0:  # user的交易记录为0跳过
+            self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
+            # 从user的Trade中筛选出该策略的记录
             self.__dfQryTradeStrategy = self.__dfQryTrade[self.__dfQryTrade.StrategyID == int(self.__strategy_id)]
+        if len(self.__dfQryTradeStrategy) > 0:  # strategy的交易记录为0跳过
             # 遍历本策略的trade记录，更新今仓
             for i in self.__dfQryTradeStrategy.index:
                 # A成交
@@ -176,17 +194,24 @@ class Strategy:
                           self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today,
                           self.__position_b_sell_yesterday,
                           self.__position_b_sell)
-        elif len(self.__dfQryTrade) == 0:  # 记录为空
-            pass
-
         self.__init_finished = True  # 当前策略初始化完成
+
+        """
         # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
-        if self.__user.get_CTPManager().get_list_strategy()[-1].get_strategy_id() == self.get_strategy_id()\
-                and self.__user.get_CTPManager().get_list_strategy()[-1].get_user_id() == self.get_user_id():
-            print("Strategy.init_today_position() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示")
+        lastStrategyInfo = self.__user.get_CTPManager().get_ClientMain().get_listStrategyInfo()[-1]
+
+        if len(self.__user.get_CTPManager().get_ClientMain().get_listStrategyInfo()) > 0:
+            if lastStrategyInfo['strategy_id'] == self.__strategy_id and lastStrategyInfo['user_id'] == self.__user_id:
+                print("Strategy.init_today_position() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示, if > 0")
+                self.__init_finished = True  # 当前策略初始化完成
+                self.__user.get_CTPManager().set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
+                self.__user.get_CTPManager().get_ClientMain().create_QAccountWidget()  # 创建窗口界面
+        else:
+            print("Strategy.init_today_position() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示, if <> 0")
+            self.__init_finished = True  # 当前策略初始化完成
             self.__user.get_CTPManager().set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
             self.__user.get_CTPManager().get_ClientMain().create_QAccountWidget()  # 创建窗口界面
-
+        """
     # 获取参数
     def get_arguments(self):
         return self.__dict_arguments
@@ -315,6 +340,19 @@ class Strategy:
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
         """ 行情推送 """
+        """
+        if self.__init_finished is False:
+            print(">>> Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "策略初始化未完成，收到tick跳过")
+        else:
+            print(">>> Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id,
+                  "策略初始化完成")
+        if self.__user.get_CTPManager().get_init_finished():
+            print(">>> Strategy.OnRtnDepthMarketData()user_id=", self.__user_id, "strategy_id=", self.__strategy_id,"CTPManager内核策略初始化完成")
+        else:
+            print(">>> Strategy.OnRtnDepthMarketData()user_id=", self.__user_id, "strategy_id=", self.__strategy_id,
+                  "CTPManager内核策略初始化未完成")
+        """
+
         if tick is None:
             return
         if isinstance(tick['BidPrice1'], float) is False:
@@ -326,6 +364,8 @@ class Strategy:
         if isinstance(tick['AskVolume1'], int) is False:
             return
 
+        # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
+
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__list_instrument_id[1]:
             self.__instrument_b_tick = copy.deepcopy(tick)
@@ -335,12 +375,21 @@ class Strategy:
             self.__instrument_a_tick = copy.deepcopy(tick)
             # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
 
-        # 初始化未完成，跳过
+        # 策略初始化未完成，跳过
         if self.__init_finished is False:
             # print("Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "策略初始化未完成")
             return
+        if self.__user.get_CTPManager().get_init_finished() is False:
+            return
 
-        self.market_spread()  # 更新市场价差值
+
+        # 计算市场盘口价差、量
+        if self.__instrument_a_tick is None or self.__instrument_b_tick is None:
+            return
+        self.__spread_long = self.__instrument_a_tick['BidPrice1'] - self.__instrument_b_tick['AskPrice1']
+        self.__spread_long_volume = min(self.__instrument_a_tick['BidVolume1'], self.__instrument_b_tick['AskVolume1'])
+        self.__spread_short = self.__instrument_a_tick['AskPrice1'] - self.__instrument_b_tick['BidPrice1']
+        self.__spread_short_volume = min(self.__instrument_a_tick['AskVolume1'], self.__instrument_b_tick['BidVolume1'])
 
         # 没有下单任务执行中，进入下单算法
         if not self.__trade_tasking:
@@ -349,6 +398,9 @@ class Strategy:
         elif self.__trade_tasking:
             dict_arguments = {'flag': 'tick', 'tick': tick}
             self.trade_task(dict_arguments)
+
+        if self.__spread_to_ui_locked is False:
+            self.spread_to_ui()
 
     def OnRspOrderInsert(self, InputOrder, RspInfo, RequestID, IsLast):
         """ 报单录入请求响应 """
@@ -440,32 +492,21 @@ class Strategy:
         else:
             print("Strategy.select_order_algorithm() 没有选择下单算法")
 
-    # 更新市场价差值
-    def market_spread(self):
-        # 计算市场盘口价差、量
-        if self.__instrument_a_tick is None or self.__instrument_b_tick is None:
-            return
-
-        self.__spread_long = self.__instrument_a_tick['BidPrice1'] - self.__instrument_b_tick['AskPrice1']
-        self.__spread_long_volume = min(self.__instrument_a_tick['BidVolume1'],
-                                        self.__instrument_b_tick['AskVolume1'])
-        self.__spread_short = self.__instrument_a_tick['AskPrice1'] - self.__instrument_b_tick['BidPrice1']
-        self.__spread_short_volume = min(self.__instrument_a_tick['AskVolume1'],
-                                         self.__instrument_b_tick['BidVolume1'])
-        # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
+    # 价差显示到界面
+    def spread_to_ui(self):
+        self.__spread_to_ui_locked = True  # 上锁
+        
+        print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
 
         # 总账户窗口中刷新价差行情
         if self.__show_widget_name == "总账户":
             if self.__clicked_total:
-                print(">>> Strategy.self.__QAccountWidgetTotal address memory =", self.__QAccountWidgetTotal)
-                # self.__QAccountWidgetTotal.update_groupBox_spread(self)
-                self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_long, self.__spread_short)
+                self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
         # 单账户窗口中刷新价差行情
         elif self.__show_widget_name == self.__user_id:
             if self.__clicked:
-                print(">>> Strategy.self.__QAccountWidget address memory =", self.__QAccountWidget)
-                # self.__QAccountWidget.update_groupBox_spread(self)
-                self.__QAccountWidget.update_groupBox_spread(self.__spread_long, self.__spread_short)
+                self.__QAccountWidget.update_groupBox_spread(self.__spread_short, self.__spread_long)
+        self.__spread_to_ui_locked = False  # 解锁
 
     # 下单算法1：A合约以对手价发单，B合约以对手价发单
     def order_algorithm_one(self):

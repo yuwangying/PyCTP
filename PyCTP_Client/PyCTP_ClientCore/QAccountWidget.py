@@ -69,8 +69,10 @@ class QAccountWidget(QWidget, Ui_Form):
         if self.__widget_name == "总账户":
             for i in self.__list_user:
                 row_number += len(i.get_list_strategy())
+            print(">>> QAccountWidget.__init__() 总账户", "row_number=", row_number)
         else:
             row_number = len(self.__user.get_list_strategy())
+            print(">>> QAccountWidget.__init__() 单账户", self.__user.get_user_id(), "row_number=", row_number)
         self.tableWidget_Trade_Args.setRowCount(row_number)
         self.tableWidget_Trade_Args.setColumnCount(16)
         self.tableWidget_Trade_Args.setCurrentCell(0, 0)
@@ -89,7 +91,6 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__ClientMain.set_show_widget_name(self.__widget_name)
         for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
             i_strategy.set_show_widget_name(self.__widget_name)
-        pass
 
     def hideEvent(self, QHideEvent):
         print(">>> hideEvent()", self.objectName(), "widget_name=", self.__widget_name)
@@ -414,18 +415,14 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新“策略参数”框价差，（仅更新鼠标所选中的单一策略）
     # def update_groupBox_spread(self, obj_strategy):
     def update_groupBox_spread(self, spread_long, spread_short):
-        print(">>> QAccountWidget.update_groupBox_spread widget_name=", self.__widget_name)
-        print(">>> QAccountWidget.update_groupBox_spread address memory =", self.update_groupBox_spread)
-        print(">>> QAccountWidget.lineEdit_kongtoujiacha address memory =", self.lineEdit_kongtoujiacha)
-        print(">>> QAccountWidget.lineEdit_duotoujiacha address memory =", self.lineEdit_duotoujiacha)
-        # print(">>> QAccountWidget.obj_strategy address memory =", obj_strategy)
-        # print(">>> QAccountWidget.update_groupBox_spread() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'], '(', str("%.2f" % float(obj_strategy.get_spread_short())), str("%.2f" % float(obj_strategy.get_spread_long())), ')')
-        for i in range(3):
-            self.lineEdit_kongtoujiacha.setText(str("%.2f" % float("0")))
-            self.lineEdit_duotoujiacha.setText(str("%.2f" % float()))
-        # self.lineEdit_kongtoujiacha.setText("short")
-        # self.lineEdit_duotoujiacha.setText("long")
-
+        # print(">>> QAccountWidget.update_groupBox_spread widget_name=", self.__widget_name)
+        # print(">>> QAccountWidget.update_groupBox_spread address memory =", self.update_groupBox_spread)
+        # print(">>> QAccountWidget.lineEdit_kongtoujiacha address memory =", self.lineEdit_kongtoujiacha)
+        # print(">>> QAccountWidget.lineEdit_duotoujiacha address memory =", self.lineEdit_duotoujiacha)
+        # print(">>> QAccountWidget.update_groupBox_spread() short=", "%.2f" % spread_short)
+        # print(">>> QAccountWidget.update_groupBox_spread() long=", "%.2f" % spread_long)
+        self.lineEdit_kongtoujiacha.setText("%.2f" % spread_short)
+        self.lineEdit_duotoujiacha.setText("%.2f" % spread_long)
 
     # 更新界面：“策略参数”框，    groupBox_trade_args
     def update_groupBox_trade_args(self):

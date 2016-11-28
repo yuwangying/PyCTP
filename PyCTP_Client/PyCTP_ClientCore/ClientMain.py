@@ -44,6 +44,7 @@ class ClientMain(QtCore.QObject):
         self.__CTPManager = obj_CTPManager
 
     def create_QAccountWidget(self):
+        print(">>> ClientMain.create_QAccountWidget() ...")
         # 如果内核初始化完成，隐藏登录窗口，显示主窗口
         self.__QLoginForm.hide()  # 隐藏登录窗口
         self.__QCTP.show()  # 显示主窗口
@@ -162,6 +163,14 @@ class ClientMain(QtCore.QObject):
                 print("ClientMain.slot_output_message() MsgType=3", buff)  # 输出错误消息
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.__listStrategyInfo = buff['Info']  # 转存策略信息到本类的属性里
+                    self.QryYesterdayPosition()
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    pass
+            elif buff['MsgType'] == 10:  # 查询策略昨仓，MsgType=10
+                print("ClientMain.slot_output_message() MsgType=10", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    self.__listYesterdayPosition = buff['Info']  # 所有策略昨仓的list
+                    self.__CTPManager.set_YesterdayPosition(buff['Info'])  # 所有策略昨仓的list设置为CTPManager属性
                     if self.__CTPManager.get_init_finished() is False:
                         self.__CTPManager.init()  # 跳转到开始初始化程序，有CTPManager开始初始化
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -182,20 +191,6 @@ class ClientMain(QtCore.QObject):
                 print("ClientMain.slot_output_message() MsgType=7", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     pass
-                elif buff['MsgResult'] == 1:  # 消息结果失败
-                    pass
-            elif buff['MsgType'] == 10:  # 查询策略昨仓，MsgType=10
-                print("ClientMain.slot_output_message() MsgType=10", buff)
-                if buff['MsgResult'] == 0:  # 消息结果成功
-                    for i in self.__CTPManager.get_list_user():  # 遍历user对象列表
-                        if i.get_user_id().decode() == buff['UserID']:  # 找到对应的user对象
-                            if len(i.get_list_strategy()) == 0:
-                                continue
-                            for j in i.get_list_strategy():  # 遍历strategy对象列表
-                                if j.get_strategy_id() == buff['StrategyID']:  # 找到对应的strategy对象
-                                    j.OnRspQryStrategyYesterdayPosition(buff['Info'][0])  # 将查询结果给到Strategy的回调函数
-                                    print(">>> ClientMain.slot_output_message() ")
-                                    j.init_yesterday_position()  # 初始化策略昨仓
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     pass
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
@@ -248,6 +243,18 @@ class ClientMain(QtCore.QObject):
         json_QryStrategyInfo = json.dumps(dict_QryStrategyInfo)
         self.get_SocketManager().send_msg(json_QryStrategyInfo)
 
+    # 查询策略昨仓
+    def QryYesterdayPosition(self):
+        dict_QryYesterdayPosition = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 10,  # 查询策略昨仓
+            'TraderID': self.__CTPManager.get_TraderID(),
+            'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的策略
+            }
+        json_QryYesterdayPosition = json.dumps(dict_QryYesterdayPosition)
+        self.get_SocketManager().send_msg(json_QryYesterdayPosition)
 
 if __name__ == '__main__':
 
