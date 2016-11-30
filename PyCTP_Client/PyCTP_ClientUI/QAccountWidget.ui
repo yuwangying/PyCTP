@@ -702,7 +702,7 @@
         <widget class="QLabel" name="label_celuebianhao">
          <property name="geometry">
           <rect>
-           <x>220</x>
+           <x>218</x>
            <y>30</y>
            <width>60</width>
            <height>16</height>
@@ -715,9 +715,9 @@
         <widget class="QComboBox" name="comboBox_celuebianhao">
          <property name="geometry">
           <rect>
-           <x>282</x>
+           <x>280</x>
            <y>30</y>
-           <width>40</width>
+           <width>45</width>
            <height>21</height>
           </rect>
          </property>
@@ -728,7 +728,7 @@
         <widget class="QLabel" name="label_xiadansuanfa">
          <property name="geometry">
           <rect>
-           <x>220</x>
+           <x>218</x>
            <y>60</y>
            <width>60</width>
            <height>16</height>
@@ -772,6 +772,9 @@
            <width>120</width>
            <height>21</height>
           </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
          </property>
          <property name="text">
           <string/>
@@ -1300,6 +1303,9 @@
          </property>
         </widget>
         <widget class="QPushButton" name="pushButton_query_strategy">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>304</x>
@@ -1317,13 +1323,16 @@
          <property name="text">
           <string>查询</string>
          </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
         </widget>
         <widget class="QComboBox" name="comboBox_xiadansuanfa">
          <property name="geometry">
           <rect>
-           <x>282</x>
+           <x>280</x>
            <y>60</y>
-           <width>40</width>
+           <width>45</width>
            <height>21</height>
           </rect>
          </property>

@@ -191,15 +191,17 @@ class User:
         obj_strategy.set_user(self)  # 将user设置为strategy属性
 
     # 添加合约代码到user类的self.__dict_instrument_action_counter
-    def add_instrument_id_action_counter(self, list_instrument_id):
-        for i in list_instrument_id:
-            if i not in self.__dict_instrument_action_counter:
-                self.__dict_instrument_action_counter[i] = 0
+    # def add_instrument_id_action_counter(self, list_instrument_id):
+    #     for i in list_instrument_id:
+    #         if i not in self.__dict_instrument_action_counter:
+    #             self.__dict_instrument_action_counter[i] = 0
 
     # 撤单计数
     def action_counter(self, instrument_id):
-        if instrument_id in self.__dict_instrument_action_counter:
+        if instrument_id in self.__dict_instrument_action_counter:  # 已经存在的合约，撤单次数加+1
             self.__dict_instrument_action_counter[instrument_id] += 1
+        else:
+            self.__dict_instrument_action_counter[instrument_id] = 1  # 不存在的合约，撤单次数设置为1
 
     # 删除交易策略实例，从self.__list_strategy
     def del_strategy(self, strategy_id):

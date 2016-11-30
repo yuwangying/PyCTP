@@ -16,15 +16,29 @@ import time
 import Utils
 from pandas import DataFrame, Series
 import pandas as pd
+from PyQt4 import QtCore
 
 
-class Strategy:
+class Strategy(QtCore.QObject):
+    # 定义信号，必须放到__init__之前
+    signal_UI_spread_short = QtCore.pyqtSignal(str)  # 定义信号，设置单账户窗口空头价差值
+    signal_UI_spread_long = QtCore.pyqtSignal(str)
+    signal_UI_spread_short_total = QtCore.pyqtSignal(str)
+    signal_UI_spread_long_total = QtCore.pyqtSignal(str)
+    signal_UI_spread_short_change_color = QtCore.pyqtSignal(str)  # 定义信号，设置单账户窗口空头价差颜色
+    signal_UI_spread_long_change_color = QtCore.pyqtSignal(str)
+    signal_UI_spread_short_total_change_color = QtCore.pyqtSignal(str)
+    signal_UI_spread_long_total_change_color = QtCore.pyqtSignal(str)
+
+    signal_UI_change_color = QtCore.pyqtSignal(str)  # 定义信号，改变颜色
+
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
-    def __init__(self, dict_arguments, obj_user, obj_DBM):
-        print('Strategy.__init__() 创建交易策略，user_id=', dict_arguments['user_id'], 'strategy_id=', dict_arguments['strategy_id'])
+    def __init__(self, dict_args, obj_user, obj_DBM, parent=None):
+        super(Strategy, self).__init__(parent)  # 初始化父类
+        print('Strategy.__init__() 创建交易策略，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
         self.__DBM = obj_DBM  # 数据库连接实例
         self.__user = obj_user  # user实例
-        self.__dict_arguments = dict_arguments  # 转存形参到类的私有变量
+        self.__dict_args = dict_args  # 转存形参到类的私有变量
         self.__TradingDay = self.__user.GetTradingDay()  # 获取交易日
         self.__init_finished = False  # strategy初始化状态
         self.__trade_tasking = False  # 交易任务进行中
@@ -57,12 +71,19 @@ class Strategy:
         self.__position_b_sell_yesterday = 0
         self.__clicked_total = False  # 策略在主窗口中被选中的标志
         self.__clicked = False  # 策略在单账户窗口中被选中的标志
-        self.__spread_to_ui_locked = False  # 方法调用锁，初始化时打开 : 上锁True，解锁False
         self.__dfQryTradeStrategy = DataFrame()  # 本策略的查询当天交易记录
         self.__dfQryOrderStrategy = DataFrame()  # 本策略的查询当天委托记录
+        self.__last_spread_short_total = 9999999999  # 最后价差值初始值
+        self.__last_spread_long_total = 9999999999
+        self.__last_spread_short = 9999999999
+        self.__last_spread_long = 9999999999
+        self.__short_color_black_times = 0
+        self.__long_color_black_times = 0
+        self.__short_total_color_black_times = 0
+        self.__long_total_color_black_times = 0
 
-        self.set_arguments(dict_arguments)  # 设置策略参数
-        self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的合约列表
+        self.set_arguments(dict_args)  # 设置策略参数
+        # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
         self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
         self.init_yesterday_position()  # 初始化策略昨仓
@@ -70,32 +91,61 @@ class Strategy:
         # self.init_statistics()  # 初始化统计指标
 
     # 设置参数
-    def set_arguments(self, dict_arguments):
-        self.__dict_arguments = dict_arguments  # 将形参转存为私有变量
-        self.__DBM.update_strategy(dict_arguments)  # 更新数据库
+    def set_arguments(self, dict_args):
+        self.__dict_args = dict_args  # 将形参转存为私有变量
+        self.__DBM.update_strategy(dict_args)  # 更新数据库
 
-        self.__trader_id = dict_arguments['trader_id']
-        self.__user_id = dict_arguments['user_id']
-        self.__strategy_id = dict_arguments['strategy_id']
-        self.__trade_model = dict_arguments['trade_model']  # 交易模型
-        self.__order_algorithm = dict_arguments['order_algorithm']  # 下单算法选择标志位
-        self.__list_instrument_id = dict_arguments['list_instrument_id']  # 合约列表
-        self.__buy_open = dict_arguments['buy_open']  # 触发买开（开多单）
-        self.__sell_close = dict_arguments['sell_close']  # 触发卖平（平多单）
-        self.__sell_open = dict_arguments['sell_open']  # 触发卖开（开空单）
-        self.__buy_close = dict_arguments['buy_close']  # 触发买平（平空单）
-        self.__spread_shift = dict_arguments['spread_shift']  # 价差让价（超价触发）
-        self.__a_wait_price_tick = dict_arguments['a_wait_price_tick']  # A合约挂单等待最小跳数
-        self.__b_wait_price_tick = dict_arguments['b_wait_price_tick']  # B合约挂单等待最小跳数
-        self.__stop_loss = dict_arguments['stop_loss']  # 止损，单位为最小跳数
-        self.__lots = dict_arguments['lots']  # 总手
-        self.__lots_batch = dict_arguments['lots_batch']  # 每批下单手数
-        self.__a_order_action_limit = dict_arguments['a_order_action_limit']  # A合约撤单次数限制
-        self.__a_order_action_limit = dict_arguments['b_order_action_limit']  # B合约撤单次数限制
-        self.__on_off = dict_arguments['StrategyOnoff']  # 策略开关，0关、1开
-        self.__only_close = dict_arguments['only_close']  # 只平，0关、1开
+        self.__trader_id = dict_args['trader_id']
+        self.__user_id = dict_args['user_id']
+        self.__strategy_id = dict_args['strategy_id']
+        self.__trade_model = dict_args['trade_model']  # 交易模型
+        self.__order_algorithm = dict_args['order_algorithm']  # 下单算法选择标志位
+        self.__list_instrument_id = dict_args['list_instrument_id']  # 合约列表
+        self.__buy_open = dict_args['buy_open']  # 触发买开（开多单）
+        self.__sell_close = dict_args['sell_close']  # 触发卖平（平多单）
+        self.__sell_open = dict_args['sell_open']  # 触发卖开（开空单）
+        self.__buy_close = dict_args['buy_close']  # 触发买平（平空单）
+        self.__spread_shift = dict_args['spread_shift']  # 价差让价（超价触发）
+        self.__a_wait_price_tick = dict_args['a_wait_price_tick']  # A合约挂单等待最小跳数
+        self.__b_wait_price_tick = dict_args['b_wait_price_tick']  # B合约挂单等待最小跳数
+        self.__stop_loss = dict_args['stop_loss']  # 止损，单位为最小跳数
+        self.__lots = dict_args['lots']  # 总手
+        self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
+        self.__a_order_action_limit = dict_args['a_order_action_limit']  # A合约撤单次数限制
+        self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
+        self.__on_off = dict_args['StrategyOnoff']  # 策略开关，0关、1开
+        self.__only_close = dict_args['only_close']  # 只平，0关、1开
 
-        self.__user.add_instrument_id_action_counter(dict_arguments['list_instrument_id'])  # 将合约代码添加到user类的统计撤单次数的合约列表
+        # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的统计撤单次数的合约列表
+    
+    # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
+    def set_arguments_query_strategy_info(self, dict_args):
+        print(">>> Strategy.set_arguments_query_strategy_info() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
+        self.__dict_args = dict_args  # 将形参转存为私有变量
+        # self.__DBM.update_strategy(dict_args)  # 更新数据库
+
+        self.__trader_id = dict_args['trader_id']
+        self.__user_id = dict_args['user_id']
+        self.__strategy_id = dict_args['strategy_id']
+        self.__trade_model = dict_args['trade_model']  # 交易模型
+        self.__order_algorithm = dict_args['order_algorithm']  # 下单算法选择标志位
+        self.__list_instrument_id = dict_args['list_instrument_id']  # 合约列表
+        self.__buy_open = dict_args['buy_open']  # 触发买开（开多单）
+        self.__sell_close = dict_args['sell_close']  # 触发卖平（平多单）
+        self.__sell_open = dict_args['sell_open']  # 触发卖开（开空单）
+        self.__buy_close = dict_args['buy_close']  # 触发买平（平空单）
+        self.__spread_shift = dict_args['spread_shift']  # 价差让价（超价触发）
+        self.__a_wait_price_tick = dict_args['a_wait_price_tick']  # A合约挂单等待最小跳数
+        self.__b_wait_price_tick = dict_args['b_wait_price_tick']  # B合约挂单等待最小跳数
+        self.__stop_loss = dict_args['stop_loss']  # 止损，单位为最小跳数
+        self.__lots = dict_args['lots']  # 总手
+        self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
+        self.__a_order_action_limit = dict_args['a_order_action_limit']  # A合约撤单次数限制
+        self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
+        self.__on_off = dict_args['StrategyOnoff']  # 策略开关，0关、1开
+        self.__only_close = dict_args['only_close']  # 只平，0关、1开
+
+        self.__QAccountWidget.update_groupBox_trade_args()  # 更新界面
 
     # 查询策略昨仓
     def QryStrategyYesterdayPosition(self):
@@ -196,25 +246,9 @@ class Strategy:
                           self.__position_b_sell)
         self.__init_finished = True  # 当前策略初始化完成
 
-        """
-        # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
-        lastStrategyInfo = self.__user.get_CTPManager().get_ClientMain().get_listStrategyInfo()[-1]
-
-        if len(self.__user.get_CTPManager().get_ClientMain().get_listStrategyInfo()) > 0:
-            if lastStrategyInfo['strategy_id'] == self.__strategy_id and lastStrategyInfo['user_id'] == self.__user_id:
-                print("Strategy.init_today_position() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示, if > 0")
-                self.__init_finished = True  # 当前策略初始化完成
-                self.__user.get_CTPManager().set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
-                self.__user.get_CTPManager().get_ClientMain().create_QAccountWidget()  # 创建窗口界面
-        else:
-            print("Strategy.init_today_position() 最后一个strategy初始化今仓完成，跳转到界面初始化或显示, if <> 0")
-            self.__init_finished = True  # 当前策略初始化完成
-            self.__user.get_CTPManager().set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
-            self.__user.get_CTPManager().get_ClientMain().create_QAccountWidget()  # 创建窗口界面
-        """
     # 获取参数
     def get_arguments(self):
-        return self.__dict_arguments
+        return self.__dict_args
     
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
@@ -314,6 +348,10 @@ class Strategy:
     # QAccountWidegt设置为属性
     def set_QAccountWidget(self, obj_QAccountWidget):
         self.__QAccountWidget = obj_QAccountWidget
+        self.signal_UI_spread_long.connect(self.__QAccountWidget.lineEdit_duotoujiacha.setText)  # 信号绑定，刷新单账户窗口多头价差值
+        self.signal_UI_spread_short.connect(self.__QAccountWidget.lineEdit_kongtoujiacha.setText)  # 信号绑定，刷新单账户窗口空头价差值
+        self.signal_UI_spread_long_change_color.connect(self.__QAccountWidget.lineEdit_duotoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口空头价差颜色
+        self.signal_UI_spread_short_change_color.connect(self.__QAccountWidget.lineEdit_kongtoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口多头价差颜色
 
     def get_QAccountWidget(self):
         return self.__QAccountWidget
@@ -321,6 +359,10 @@ class Strategy:
     # QAccountWidegtTotal设置为属性（总账户的窗口）
     def set_QAccountWidgetTotal(self, obj_QAccountWidgetTotal):
         self.__QAccountWidgetTotal = obj_QAccountWidgetTotal
+        self.signal_UI_spread_long_total.connect(self.__QAccountWidgetTotal.lineEdit_duotoujiacha.setText)  # 信号槽绑定
+        self.signal_UI_spread_short_total.connect(self.__QAccountWidgetTotal.lineEdit_kongtoujiacha.setText)  # 信号槽绑定
+        self.signal_UI_spread_long_total_change_color.connect(self.__QAccountWidgetTotal.lineEdit_duotoujiacha.setStyleSheet)
+        self.signal_UI_spread_short_total_change_color.connect(self.__QAccountWidgetTotal.lineEdit_kongtoujiacha.setStyleSheet)
 
     def get_QAccountWidgetTotal(self):
         return self.__QAccountWidgetTotal
@@ -328,7 +370,7 @@ class Strategy:
     # 设置当前界面显示的窗口名称
     def set_show_widget_name(self, str_widget_name):
         self.__show_widget_name = str_widget_name
-        print(">>> Strategy.set_show_widget_name() user_id=", self.__user_id, "strategy_id=", self.__strategy_id , "show_widget_name=", self.__show_widget_name)
+        # print(">>> Strategy.set_show_widget_name() user_id=", self.__user_id, "strategy_id=", self.__strategy_id , "show_widget_name=", self.__show_widget_name)
 
     def get_show_widget_name(self):
         return self.__show_widget_name
@@ -340,19 +382,7 @@ class Strategy:
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
         """ 行情推送 """
-        """
-        if self.__init_finished is False:
-            print(">>> Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "策略初始化未完成，收到tick跳过")
-        else:
-            print(">>> Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id,
-                  "策略初始化完成")
-        if self.__user.get_CTPManager().get_init_finished():
-            print(">>> Strategy.OnRtnDepthMarketData()user_id=", self.__user_id, "strategy_id=", self.__strategy_id,"CTPManager内核策略初始化完成")
-        else:
-            print(">>> Strategy.OnRtnDepthMarketData()user_id=", self.__user_id, "strategy_id=", self.__strategy_id,
-                  "CTPManager内核策略初始化未完成")
-        """
-
+        # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
         if tick is None:
             return
         if isinstance(tick['BidPrice1'], float) is False:
@@ -364,7 +394,16 @@ class Strategy:
         if isinstance(tick['AskVolume1'], int) is False:
             return
 
-        # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
+        # 策略初始化未完成，跳过
+        if self.__init_finished is False:
+            # print("Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "策略初始化未完成")
+            return
+        # CTPManager初始化未完成，跳过
+        if self.__user.get_CTPManager().get_init_finished() is False:
+            return
+        # 窗口创建完成
+        if self.__user.get_CTPManager().get_ClientMain().get_create_QAccountWidget_finished() is False:
+            return
 
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__list_instrument_id[1]:
@@ -375,14 +414,6 @@ class Strategy:
             self.__instrument_a_tick = copy.deepcopy(tick)
             # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
 
-        # 策略初始化未完成，跳过
-        if self.__init_finished is False:
-            # print("Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "策略初始化未完成")
-            return
-        if self.__user.get_CTPManager().get_init_finished() is False:
-            return
-
-
         # 计算市场盘口价差、量
         if self.__instrument_a_tick is None or self.__instrument_b_tick is None:
             return
@@ -391,39 +422,39 @@ class Strategy:
         self.__spread_short = self.__instrument_a_tick['AskPrice1'] - self.__instrument_b_tick['BidPrice1']
         self.__spread_short_volume = min(self.__instrument_a_tick['AskVolume1'], self.__instrument_b_tick['BidVolume1'])
 
-        # 没有下单任务执行中，进入下单算法
+        # 没有下单任务执行中，进入选择下单算法
         if not self.__trade_tasking:
             self.select_order_algorithm(self.__order_algorithm)
-        # 有下单任务执行中，行情跟踪
+        # 有下单任务执行中，跟踪交易任务
         elif self.__trade_tasking:
-            dict_arguments = {'flag': 'tick', 'tick': tick}
-            self.trade_task(dict_arguments)
+            dict_args = {'flag': 'tick', 'tick': tick}
+            self.trade_task(dict_args)
 
-        if self.__spread_to_ui_locked is False:
-            self.spread_to_ui()
+        # 刷新界面
+        self.spread_to_ui()
 
     def OnRspOrderInsert(self, InputOrder, RspInfo, RequestID, IsLast):
         """ 报单录入请求响应 """
         # 报单错误时响应
         if Utils.Strategy_print:
             print('Strategy.OnRspOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo, 'RequestID:', RequestID, 'IsLast:', IsLast)
-        dict_arguments = {'flag': 'OnRspOrderInsert',
+        dict_args = {'flag': 'OnRspOrderInsert',
                           'InputOrder': InputOrder,
                           'RspInfo': RspInfo,
                           'RequestID': RequestID,
                           'IsLast': IsLast}
-        self.trade_task(dict_arguments)  # 转到交易任务处理
+        self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRspOrderAction(self, InputOrderAction, RspInfo, RequestID, IsLast):
         """报单操作请求响应:撤单操作响应"""
         if Utils.Strategy_print:
             print('Strategy.OnRspOrderAction()', 'OrderRef:', InputOrderAction['OrderRef'], 'InputOrderAction:', InputOrderAction, 'RspInfo:', RspInfo, 'RequestID:', RequestID, 'IsLast:', IsLast)
-        dict_arguments = {'flag': 'OnRspOrderAction',
+        dict_args = {'flag': 'OnRspOrderAction',
                           'InputOrderAction': InputOrderAction,
                           'RspInfo': RspInfo,
                           'RequestID': RequestID,
                           'IsLast': IsLast}
-        self.trade_task(dict_arguments)  # 转到交易任务处理
+        self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnOrder(self, Order):
         """报单回报"""
@@ -431,15 +462,15 @@ class Strategy:
         if Utils.Strategy_print:
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
 
-        dict_arguments = {'flag': 'OnRtnOrder',
+        dict_args = {'flag': 'OnRtnOrder',
                           'Order': Order}
 
-        self.update_list_order_pending(dict_arguments)  # 更新挂单list
+        self.update_list_order_pending(dict_args)  # 更新挂单list
         self.update_task_status()  # 更新任务状态
-        # self.update_position(dict_arguments)  # 更新持仓量变量（放到OnRtnTrade回调中）
+        # self.update_position(dict_args)  # 更新持仓量变量（放到OnRtnTrade回调中）
 
-        self.__user.action_counter(dict_arguments['Order']['InstrumentID'])  # 撤单次数添加到user类的撤单计数器
-        self.trade_task(dict_arguments)  # 转到交易任务处理
+        self.__user.action_counter(dict_args['Order']['InstrumentID'])  # 撤单次数添加到user类的撤单计数器
+        self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
@@ -448,31 +479,31 @@ class Strategy:
 
         self.update_list_position_detail(Trade)  # 更新持仓明细list
 
-        dict_arguments = {'flag': 'OnRtnTrade',
+        dict_args = {'flag': 'OnRtnTrade',
                           'Trade': Trade}
 
         self.update_position(Trade)  # 更新持仓量变量
         self.update_task_status()  # 更新任务状态
         
-        self.trade_task(dict_arguments)  # 转到交易任务处理
+        self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
         if Utils.Strategy_print:
             print('Strategy.OnErrRtnOrderAction()', 'OrderRef:', OrderAction['OrderRef'], 'OrderAction:', OrderAction, 'RspInfo:', RspInfo)
-        dict_arguments = {'flag': 'OnErrRtnOrderAction',
+        dict_args = {'flag': 'OnErrRtnOrderAction',
                           'OrderAction': OrderAction,
                           'RspInfo': RspInfo}
-        self.trade_task(dict_arguments)  # 转到交易任务处理
+        self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""
         if Utils.Strategy_print:
             print('Strategy.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
-        dict_arguments = {'flag': 'OnErrRtnOrderInsert',
+        dict_args = {'flag': 'OnErrRtnOrderInsert',
                           'InputOrder': InputOrder,
                           'RspInfo': RspInfo}
-        self.trade_task(dict_arguments)  # 转到交易任务处理
+        self.trade_task(dict_args)  # 转到交易任务处理
 
     # 选择下单算法
     def select_order_algorithm(self, flag):
@@ -494,19 +525,88 @@ class Strategy:
 
     # 价差显示到界面
     def spread_to_ui(self):
-        self.__spread_to_ui_locked = True  # 上锁
-        
-        print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
-
+        # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
+        # 最新值与前值相同不更新、最新值大于前值红色显示、最新值小于前值绿色显示
         # 总账户窗口中刷新价差行情
         if self.__show_widget_name == "总账户":
             if self.__clicked_total:
-                self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
+                # self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
+                # 刷新空头价差显示
+                if self.__last_spread_short_total == 9999999999:  # 初始值，第一个价差显示为黑色
+                    self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
+                    self.signal_UI_spread_short_total_change_color.emit("color: rgb(0, 0, 0);")
+                else:
+                    # print(">>> self.__spread_short == self.__last_spread_short_total", self.__spread_short, self.__last_spread_short_total)
+                    # if self.__spread_short == self.__last_spread_short_total:
+                    #     self.__short_color_black_times += 1
+                    #     if self.__short_color_black_times == 8:
+                    #         self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
+                    #         self.signal_UI_spread_short_total_change_color.emit("color: black;")
+                    #         self.__short_color_black_times = 0
+                    # el
+                    if self.__spread_short > self.__last_spread_short_total:
+                        self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
+                        self.signal_UI_spread_short_total_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
+                    elif self.__spread_short < self.__last_spread_short_total:
+                        self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
+                        self.signal_UI_spread_short_total_change_color.emit("color: rgb(0, 170, 0);font-weight:bold;")
+                # 刷新多头价差显示
+                if self.__last_spread_long_total == 9999999999:  # 初始值，第一个价差显示为黑色
+                    self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
+                    self.signal_UI_change_color.emit("color: rgb(0, 0, 0);")
+                else:
+                    # if self.__spread_long == self.__last_spread_long_total:
+                    #     # self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
+                    #     self.signal_UI_spread_long_total_change_color.emit("color: black;")
+                    # el
+                    if self.__spread_long > self.__last_spread_long_total:
+                        self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
+                        self.signal_UI_spread_long_total_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
+                    elif self.__spread_long < self.__last_spread_long_total:
+                        self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
+                        self.signal_UI_spread_long_total_change_color.emit("color: rgb(0, 170, 0);font-weight:bold;")
+                # 更新最后一次价差值
+                self.__last_spread_short_total = self.__spread_short  # 总账户窗口中最后的空头价差
+                self.__last_spread_long_total = self.__spread_long  # 总账户窗口中最后的空头价差
+
         # 单账户窗口中刷新价差行情
         elif self.__show_widget_name == self.__user_id:
             if self.__clicked:
-                self.__QAccountWidget.update_groupBox_spread(self.__spread_short, self.__spread_long)
-        self.__spread_to_ui_locked = False  # 解锁
+                # self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
+                # 刷新空头价差显示
+                if self.__last_spread_short == 9999999999:  # 初始值，第一个价差显示为黑色
+                    self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))
+                    self.signal_UI_spread_short_change_color.emit("color: rgb(0, 0, 0);")
+                else:
+                    # print(">>> self.__spread_short == self.__last_spread_short", self.__spread_short, self.__last_spread_short)
+                    # if self.__spread_short == self.__last_spread_short:
+                    #     self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))
+                    #     self.signal_UI_spread_short_change_color.emit("color: black;")
+                    # el
+                    if self.__spread_short > self.__last_spread_short:
+                        self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))
+                        self.signal_UI_spread_short_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
+                    elif self.__spread_short < self.__last_spread_short:
+                        self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))
+                        self.signal_UI_spread_short_change_color.emit("color: rgb(0, 170, 0);font-weight:bold;")
+                # 刷新多头价差显示
+                if self.__last_spread_long == 9999999999:  # 初始值，第一个价差显示为黑色
+                    self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
+                    self.signal_UI_change_color.emit("color: rgb(0, 0, 0);")
+                else:
+                    # if self.__spread_long == self.__last_spread_long:
+                    #     # self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
+                    #     self.signal_UI_spread_long_change_color.emit("color: black;")
+                    # el
+                    if self.__spread_long > self.__last_spread_long:
+                        self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
+                        self.signal_UI_spread_long_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
+                    elif self.__spread_long < self.__last_spread_long:
+                        self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
+                        self.signal_UI_spread_long_change_color.emit("color: rgb(0, 170, 0);font-weight:bold;")
+                # 更新最后一次价差值
+                self.__last_spread_short = self.__spread_short  # 总账户窗口中最后的空头价差
+                self.__last_spread_long = self.__spread_long  # 总账户窗口中最后的空头价差
 
     # 下单算法1：A合约以对手价发单，B合约以对手价发单
     def order_algorithm_one(self):
@@ -740,45 +840,45 @@ class Strategy:
             print("Strategy.order_algorithm_three()")
         pass
 
-    def trade_task(self, dict_arguments):
+    def trade_task(self, dict_args):
         """"交易任务执行"""
         # 报单
-        if dict_arguments['flag'] == 'OrderInsert':
+        if dict_args['flag'] == 'OrderInsert':
             """交易任务开始入口"""
             if Utils.Strategy_print:
-                print('Strategy.trade_task() A合约报单，OrderRef=', dict_arguments['OrderRef'], '报单参数：', dict_arguments)
-            self.__user.get_trade().OrderInsert(dict_arguments)  # A合约报单
+                print('Strategy.trade_task() A合约报单，OrderRef=', dict_args['OrderRef'], '报单参数：', dict_args)
+            self.__user.get_trade().OrderInsert(dict_args)  # A合约报单
         # 报单录入请求响应
-        elif dict_arguments['flag'] == 'OnRspOrderInsert':
+        elif dict_args['flag'] == 'OnRspOrderInsert':
             if Utils.Strategy_print:
                 print("Strategy.trade_task() 报单录入请求响应")
             pass
         # 报单操作请求响应
-        elif dict_arguments['flag'] == 'OnRspOrderAction':
+        elif dict_args['flag'] == 'OnRspOrderAction':
             if Utils.Strategy_print:
                 print("Strategy.trade_task() 报单操作请求响应")
             pass
         # 报单回报
-        elif dict_arguments['flag'] == 'OnRtnOrder':
+        elif dict_args['flag'] == 'OnRtnOrder':
             # A成交回报，B发送等量的报单(OrderInsert)
-            if dict_arguments['Order']['InstrumentID'] == self.__list_instrument_id[0] \
-                    and dict_arguments['Order']['OrderStatus'] in ['0', '1']:  # OrderStatus全部成交或部分成交
+            if dict_args['Order']['InstrumentID'] == self.__list_instrument_id[0] \
+                    and dict_args['Order']['OrderStatus'] in ['0', '1']:  # OrderStatus全部成交或部分成交
                 # 无挂单，当前报单回报中的VolumeTrade就是本次成交量
                 if len(self.__list_order_pending) == 0:
-                    self.__b_order_insert_args['VolumeTotalOriginal'] = dict_arguments['Order']['VolumeTraded']
+                    self.__b_order_insert_args['VolumeTotalOriginal'] = dict_args['Order']['VolumeTraded']
                 # 有挂单，从挂单列表中查找是否有相同的OrderRef
                 else:
                     b_fined = False  # 是否找到的初始值
                     for i in self.__list_order_pending:
                         # 从挂单列表中找到相同的OrderRef记录，当前回报的VolumeTraded减去上一条回报中VolumeTrade等于本次成交量
-                        if i['OrderRef'] == dict_arguments['Order']['OrderRef']:
+                        if i['OrderRef'] == dict_args['Order']['OrderRef']:
                             self.__b_order_insert_args['VolumeTotalOriginal'] = \
-                                dict_arguments['Order']['VolumeTraded'] - i['VolumeTraded']  # B发单量等于本次回报A的成交量
+                                dict_args['Order']['VolumeTraded'] - i['VolumeTraded']  # B发单量等于本次回报A的成交量
                             b_fined = True  # 找到了，赋值为真
                             break
                     # 未在挂单列表中找到相同的OrderRef记录，当前报单回报中的VolumeTraded就是本次成交量
                     if not b_fined:
-                        self.__b_order_insert_args['VolumeTotalOriginal'] = dict_arguments['Order']['VolumeTraded']
+                        self.__b_order_insert_args['VolumeTotalOriginal'] = dict_args['Order']['VolumeTraded']
 
                 self.__order_ref_b = self.add_order_ref()  # B报单引用
                 self.__order_ref_last = self.__order_ref_b  # 实际最后使用的报单引用
@@ -787,46 +887,46 @@ class Strategy:
                     print('Strategy.trade_task() B合约报单，OrderRef=', self.__b_order_insert_args['OrderRef'], '报单参数：', self.__b_order_insert_args)
                 self.__user.get_trade().OrderInsert(self.__b_order_insert_args)  # B合约报单
             # B成交回报
-            elif dict_arguments['Order']['InstrumentID'] == self.__list_instrument_id[1] \
-                    and dict_arguments['Order']['OrderStatus'] in ['0', '1']:  # OrderStatus全部成交或部分成交
+            elif dict_args['Order']['InstrumentID'] == self.__list_instrument_id[1] \
+                    and dict_args['Order']['OrderStatus'] in ['0', '1']:  # OrderStatus全部成交或部分成交
                 pass
             # B撤单回报，启动B重新发单一定成交策略
-            elif dict_arguments['Order']['InstrumentID'] == self.__list_instrument_id[1] \
-                    and dict_arguments['Order']['OrderStatus'] == '5' \
-                    and len(dict_arguments['Order']['OrderSysID']) == 12:
+            elif dict_args['Order']['InstrumentID'] == self.__list_instrument_id[1] \
+                    and dict_args['Order']['OrderStatus'] == '5' \
+                    and len(dict_args['Order']['OrderSysID']) == 12:
                 if Utils.Strategy_print:
                     print("Strategy.trade_task() 策略编号：", self.__user_id+self.__strategy_id, "收到B撤单回报，启动B重新发单一定成交策略")
                 self.__order_ref_b = self.add_order_ref()  # B报单引用
                 self.__order_ref_last = self.__order_ref_b  # 实际最后使用的报单引用
-                if dict_arguments['Order']['Direction'] == '0':
+                if dict_args['Order']['Direction'] == '0':
                     LimitPrice = self.__instrument_b_tick['AskPrice1']  # B报单价格，找市场最新对手价
-                elif dict_arguments['Order']['Direction'] == '1':
+                elif dict_args['Order']['Direction'] == '1':
                     LimitPrice = self.__instrument_b_tick['BidPrice1']
                 self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                               'OrderRef': self.__order_ref_b,  # 报单引用
                                               'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码
                                               'LimitPrice': LimitPrice,  # 限价
-                                              'VolumeTotalOriginal': dict_arguments['Order']['VolumeTotal'],  # 撤单回报中的剩余未成交数量
-                                              'Direction': dict_arguments['Order']['Direction'].encode(),  # 买卖，0买,1卖
-                                              'CombOffsetFlag': dict_arguments['Order']['CombOffsetFlag'].encode(),  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
-                                              'CombHedgeFlag': dict_arguments['Order']['CombHedgeFlag'].encode(),  # 组合投机套保标志:1投机、2套利、3保值
+                                              'VolumeTotalOriginal': dict_args['Order']['VolumeTotal'],  # 撤单回报中的剩余未成交数量
+                                              'Direction': dict_args['Order']['Direction'].encode(),  # 买卖，0买,1卖
+                                              'CombOffsetFlag': dict_args['Order']['CombOffsetFlag'].encode(),  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
+                                              'CombHedgeFlag': dict_args['Order']['CombHedgeFlag'].encode(),  # 组合投机套保标志:1投机、2套利、3保值
                                               }
 
                 if Utils.Strategy_print:
                     print('Strategy.trade_task() B合约报单，OrderRef=', self.__b_order_insert_args['OrderRef'], '报单参数：', self.__b_order_insert_args)
                 self.__user.get_trade().OrderInsert(self.__b_order_insert_args)  # B合约报单
         # 报单录入错误回报
-        elif dict_arguments['flag'] == 'OnErrRtnOrderInsert':
+        elif dict_args['flag'] == 'OnErrRtnOrderInsert':
             if Utils.Strategy_print:
                 print("Strategy.trade_task() 报单录入错误回报")
             pass
         # 报单操作错误回报
-        elif dict_arguments['flag'] == 'OnErrRtnOrderAction':
+        elif dict_args['flag'] == 'OnErrRtnOrderAction':
             if Utils.Strategy_print:
                 print("Strategy.trade_task() 报单操作错误回报")
             pass
         # 行情回调，并且交易任务进行中
-        elif dict_arguments['flag'] == 'tick' and self.__trade_tasking:
+        elif dict_args['flag'] == 'tick' and self.__trade_tasking:
             """当交易任务进行中时，判断是否需要撤单"""
             # print("Strategy.trade_task() tick驱动判断是否需要撤单")
             # 遍历挂单列表
@@ -834,12 +934,12 @@ class Strategy:
                 # A有挂单，判断是否需要撤单
                 if i['InstrumentID'] == self.__list_instrument_id[0]:
                     # 通过A最新tick判断A合约是否需要撤单
-                    if dict_arguments['tick']['InstrumentID'] == self.__list_instrument_id[0]:
+                    if dict_args['tick']['InstrumentID'] == self.__list_instrument_id[0]:
                         # A挂单的买卖方向为买
                         if i['Direction'] == '0':
                             # 挂单价格与盘口买一价比较，如果与盘口价格差距n个最小跳以上，撤单
                             # print("Strategy.trade_task()self.__a_wait_price_tick * self.__a_price_tick", self.__a_wait_price_tick, self.__a_price_tick,type(self.__a_wait_price_tick), type(self.__a_price_tick))
-                            if dict_arguments['tick']['BidPrice1'] > (i['LimitPrice'] + self.__a_wait_price_tick*self.__a_price_tick):
+                            if dict_args['tick']['BidPrice1'] > (i['LimitPrice'] + self.__a_wait_price_tick*self.__a_price_tick):
                                 if Utils.Strategy_print:
                                     print("Strategy.trade_task() 通过A最新tick判断A合约买挂单符合撤单条件")
                                 # A合约撤单
@@ -853,7 +953,7 @@ class Strategy:
                         elif i['Direction'] == '1':
                             # 挂单价格与盘口卖一价比较，如果与盘口价格差距n个最小跳以上，撤单
                             # print("Strategy.trade_task()self.__a_wait_price_tick * self.__a_price_tick", self.__a_wait_price_tick, self.__a_price_tick,type(self.__a_wait_price_tick), type(self.__a_price_tick))
-                            if dict_arguments['tick']['AskPrice1'] <= (i['LimitPrice'] - self.__a_wait_price_tick * self.__a_price_tick):
+                            if dict_args['tick']['AskPrice1'] <= (i['LimitPrice'] - self.__a_wait_price_tick * self.__a_price_tick):
                                 if Utils.Strategy_print:
                                     print("Strategy.trade_task() 通过A最新tick判断A合约卖挂单符合撤单条件")
                                 # A合约撤单
@@ -864,11 +964,11 @@ class Strategy:
                                     print('Strategy.trade_task()A合约撤单，OrderRef=', i['OrderRef'], '撤单参数：', order_action_arguments)
                                 self.__user.get_trade().OrderAction(order_action_arguments)
                     # 通过B最新tick判断A合约是否需要撤单
-                    elif dict_arguments['tick']['InstrumentID'] == self.__list_instrument_id[1]:
+                    elif dict_args['tick']['InstrumentID'] == self.__list_instrument_id[1]:
                         # A挂单的买卖方向为买
                         if i['Direction'] == '0':
                             # B最新tick的对手价如果与开仓信号触发时B的tick对手价发生不利变化则A撤单
-                            if dict_arguments['tick']['BidPrice1'] < self.__instrument_b_tick_after_tasking['BidPrice1']:
+                            if dict_args['tick']['BidPrice1'] < self.__instrument_b_tick_after_tasking['BidPrice1']:
                                 if Utils.Strategy_print:
                                     print("Strategy.trade_task() 通过B最新tick判断A合约买挂单符合撤单条件")
                                 # A合约撤单
@@ -881,7 +981,7 @@ class Strategy:
                         # A挂单的买卖方向为卖
                         elif i['Direction'] == '1':
                             # B最新tick的对手价如果与开仓信号触发时B的tick对手价发生不利变化则A撤单
-                            if dict_arguments['tick']['AskPrice1'] > self.__instrument_b_tick_after_tasking['AskPrice1']:
+                            if dict_args['tick']['AskPrice1'] > self.__instrument_b_tick_after_tasking['AskPrice1']:
                                 if Utils.Strategy_print:
                                     print("Strategy.trade_task()通过B最新tick判断A合约卖挂单符合撤单条件")
                                 # A合约撤单
@@ -894,13 +994,13 @@ class Strategy:
                 # B有挂单，判断是否需要撤单，并启动B合约一定成交策略
                 if i['InstrumentID'] == self.__list_instrument_id[1]:
                     # 通过B最新tick判断B合约是否需要撤单
-                    if dict_arguments['tick']['InstrumentID'] == self.__list_instrument_id[1]:
+                    if dict_args['tick']['InstrumentID'] == self.__list_instrument_id[1]:
                         # B挂单的买卖方向为买
                         if i['Direction'] == '0':
                             # 挂单价格与盘口买一价比较，如果与盘口价格差距n个最小跳以上，撤单
                             if Utils.Strategy_print:
                                 print("Strategy.trade_task() self.__b_wait_price_tick * self.__b_price_tick", self.__b_wait_price_tick, self.__b_price_tick, type(self.__b_wait_price_tick), type(self.__b_price_tick))
-                            if dict_arguments['tick']['BidPrice1'] >= (i['LimitPrice'] + self.__b_wait_price_tick * self.__b_price_tick):
+                            if dict_args['tick']['BidPrice1'] >= (i['LimitPrice'] + self.__b_wait_price_tick * self.__b_price_tick):
                                 if Utils.Strategy_print:
                                     print("Strategy.trade_task() 通过B最新tick判断B合约买挂单符合撤单条件")
                                 # B合约撤单
@@ -915,7 +1015,7 @@ class Strategy:
                             # 挂单价格与盘口卖一价比较，如果与盘口价格差距n个最小跳以上，撤单
                             if Utils.Strategy_print:
                                 print("Strategy.trade_task() self.__b_wait_price_tick * self.__b_price_tick", self.__b_wait_price_tick, self.__b_price_tick, type(self.__b_wait_price_tick), type(self.__b_price_tick))
-                            if dict_arguments['tick']['AskPrice1'] <= (i['LimitPrice'] - self.__b_wait_price_tick * self.__b_price_tick):
+                            if dict_args['tick']['AskPrice1'] <= (i['LimitPrice'] - self.__b_wait_price_tick * self.__b_price_tick):
                                 if Utils.Strategy_print:
                                     print("Strategy.trade_task() 通过B最新tick判断B合约卖挂单符合撤单条件")
                                 # B合约撤单
@@ -942,56 +1042,56 @@ class Strategy:
     THOST_FTDC_OST_Touched = b'c'  # 已触发
     '''
     # 更新挂单列表
-    def update_list_order_pending(self, dict_arguments):
+    def update_list_order_pending(self, dict_args):
         if Utils.Strategy_print:
             print("Strategy.update_list_order_pending() 更新前self.__list_order_pending=", self.__list_order_pending)
         # 交易所返回的报单回报，处理以上九种状态
-        if len(dict_arguments['Order']['OrderSysID']) == 12:
+        if len(dict_args['Order']['OrderSysID']) == 12:
             # 挂单列表为空时直接添加挂单到list中
             if len(self.__list_order_pending) == 0:
-                self.__list_order_pending.append(dict_arguments['Order'])
+                self.__list_order_pending.append(dict_args['Order'])
                 return
             # 挂单列表不为空时
             for i in range(len(self.__list_order_pending)):  # 遍历挂单列表
                 # 找到回报与挂单列表中OrderRef相同的记录
-                if self.__list_order_pending[i]['OrderRef'] == dict_arguments['Order']['OrderRef']:
-                    if dict_arguments['Order']['OrderStatus'] == '0':  # 全部成交
+                if self.__list_order_pending[i]['OrderRef'] == dict_args['Order']['OrderRef']:
+                    if dict_args['Order']['OrderStatus'] == '0':  # 全部成交
                         self.__list_order_pending.remove(self.__list_order_pending[i])  # 将全部成交单从挂单列表删除
-                    elif dict_arguments['Order']['OrderStatus'] == '1':  # 部分成交还在队列中
-                        # i = dict_arguments['Order']  # 更新挂单列表
-                        self.__list_order_pending[i] = dict_arguments['Order']  # 更新挂单列表
+                    elif dict_args['Order']['OrderStatus'] == '1':  # 部分成交还在队列中
+                        # i = dict_args['Order']  # 更新挂单列表
+                        self.__list_order_pending[i] = dict_args['Order']  # 更新挂单列表
                         if Utils.Strategy_print:
                             print("Strategy.update_list_order_pending() 报单状态：部分成交还在队列中")
-                    elif dict_arguments['Order']['OrderStatus'] == '2':  # 部分成交不在队列中
+                    elif dict_args['Order']['OrderStatus'] == '2':  # 部分成交不在队列中
                         if Utils.Strategy_print:
                             print("Strategy.update_list_order_pending() 报单状态：部分成交不在队列中")
-                    elif dict_arguments['Order']['OrderStatus'] == '3':  # 未成交还在队列中
-                        # i = dict_arguments['Order']  # 更新挂单列表
-                        self.__list_order_pending[i] = dict_arguments['Order']  # 更新挂单列表
+                    elif dict_args['Order']['OrderStatus'] == '3':  # 未成交还在队列中
+                        # i = dict_args['Order']  # 更新挂单列表
+                        self.__list_order_pending[i] = dict_args['Order']  # 更新挂单列表
                         if Utils.Strategy_print:
                             print("Strategy.update_list_order_pending() 报单状态：未成交还在队列中")
-                    elif dict_arguments['Order']['OrderStatus'] == '4':  # 未成交不在队列中
+                    elif dict_args['Order']['OrderStatus'] == '4':  # 未成交不在队列中
                         if Utils.Strategy_print:
                             print("Strategy.update_list_order_pending() 报单状态：未成交不在队列中")
-                    elif dict_arguments['Order']['OrderStatus'] == '5':  # 撤单
+                    elif dict_args['Order']['OrderStatus'] == '5':  # 撤单
                         if Utils.Strategy_print:
-                            print("Strategy.update_list_order_pending() 报单状态：撤单，合约：", dict_arguments['Order']['InstrumentID'])
+                            print("Strategy.update_list_order_pending() 报单状态：撤单，合约：", dict_args['Order']['InstrumentID'])
                         self.__list_order_pending.remove(self.__list_order_pending[i])  # 将全部成交单从挂单列表删除
-                    elif dict_arguments['Order']['OrderStatus'] == 'a':  # 未知
+                    elif dict_args['Order']['OrderStatus'] == 'a':  # 未知
                         if Utils.Strategy_print:
                             print("Strategy.update_list_order_pending() 报单状态：未知")
-                    elif dict_arguments['Order']['OrderStatus'] == 'b':  # 尚未触发
+                    elif dict_args['Order']['OrderStatus'] == 'b':  # 尚未触发
                         if Utils.Strategy_print:
                             print("Strategy.update_list_order_pending() 报单状态：尚未触发")
-                    elif dict_arguments['Order']['OrderStatus'] == 'c':  # 已触发
+                    elif dict_args['Order']['OrderStatus'] == 'c':  # 已触发
                         if Utils.Strategy_print:
                             print("Strategy.update_list_order_pending() 报单状态：已触发")
                     if Utils.Strategy_print:
                         print("Strategy.update_list_order_pending() 更新后self.__list_order_pending=", self.__list_order_pending)
                     return
             # 挂单列表中找不到对应的OrderRef记录时，新添加挂单到self.__list_order_pending
-            if dict_arguments['Order']['OrderStatus'] in ['1', '3']:
-                self.__list_order_pending.append(dict_arguments['Order'])
+            if dict_args['Order']['OrderStatus'] in ['1', '3']:
+                self.__list_order_pending.append(dict_args['Order'])
                 if Utils.Strategy_print:
                     print("Strategy.update_list_order_pending() 报单状态：部分成交还在队列中，未成交还在队列中")
         if Utils.Strategy_print:
@@ -1014,45 +1114,45 @@ class Strategy:
 
     """
     # 更新持仓量变量，共12个变量
-    def update_position(self, dict_arguments):
+    def update_position(self, dict_args):
         if Utils.Strategy_print:
             print("Strategy.update_position() 更新持仓量:")
         # A成交
-        if dict_arguments['Order']['InstrumentID'] == self.__list_instrument_id[0]:
-            if dict_arguments['Order']['CombOffsetFlag'] == '0':  # A开仓成交回报
-                if dict_arguments['Order']['Direction'] == '0':  # A买开仓成交回报
-                    self.__position_a_buy_today += dict_arguments['Order']['VolumeTraded']  # 更新持仓
-                elif dict_arguments['Order']['Direction'] == '1':  # A卖开仓成交回报
-                    self.__position_a_sell_today += dict_arguments['Order']['VolumeTraded']  # 更新持仓
-            elif dict_arguments['Order']['CombOffsetFlag'] == '3':  # A平今成交回报
-                if dict_arguments['Order']['Direction'] == '0':  # A买平今成交回报
-                    self.__position_a_sell_today -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
-                elif dict_arguments['Order']['Direction'] == '1':  # A卖平今成交回报
-                    self.__position_a_buy_today -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
-            elif dict_arguments['Order']['CombOffsetFlag'] == '4':  # A平昨成交回报
-                if dict_arguments['Order']['Direction'] == '0':  # A买平昨成交回报
-                    self.__position_a_sell_yesterday -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
-                elif dict_arguments['Order']['Direction'] == '1':  # A卖平昨成交回报
-                    self.__position_a_buy_yesterday -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
+        if dict_args['Order']['InstrumentID'] == self.__list_instrument_id[0]:
+            if dict_args['Order']['CombOffsetFlag'] == '0':  # A开仓成交回报
+                if dict_args['Order']['Direction'] == '0':  # A买开仓成交回报
+                    self.__position_a_buy_today += dict_args['Order']['VolumeTraded']  # 更新持仓
+                elif dict_args['Order']['Direction'] == '1':  # A卖开仓成交回报
+                    self.__position_a_sell_today += dict_args['Order']['VolumeTraded']  # 更新持仓
+            elif dict_args['Order']['CombOffsetFlag'] == '3':  # A平今成交回报
+                if dict_args['Order']['Direction'] == '0':  # A买平今成交回报
+                    self.__position_a_sell_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
+                elif dict_args['Order']['Direction'] == '1':  # A卖平今成交回报
+                    self.__position_a_buy_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
+            elif dict_args['Order']['CombOffsetFlag'] == '4':  # A平昨成交回报
+                if dict_args['Order']['Direction'] == '0':  # A买平昨成交回报
+                    self.__position_a_sell_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
+                elif dict_args['Order']['Direction'] == '1':  # A卖平昨成交回报
+                    self.__position_a_buy_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
             self.__position_a_buy = self.__position_a_buy_today + self.__position_a_buy_yesterday
             self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
         # B成交
-        elif dict_arguments['Order']['InstrumentID'] == self.__list_instrument_id[1]:
-            if dict_arguments['Order']['CombOffsetFlag'] == '0':  # B开仓成交回报
-                if dict_arguments['Order']['Direction'] == '0':  # B买开仓成交回报
-                    self.__position_b_buy_today += dict_arguments['Order']['VolumeTraded']  # 更新持仓
-                elif dict_arguments['Order']['Direction'] == '1':  # B卖开仓成交回报
-                    self.__position_b_sell_today += dict_arguments['Order']['VolumeTraded']  # 更新持仓
-            elif dict_arguments['Order']['CombOffsetFlag'] == '3':  # B平今成交回报
-                if dict_arguments['Order']['Direction'] == '0':  # B买平今成交回报
-                    self.__position_b_sell_today -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
-                elif dict_arguments['Order']['Direction'] == '1':  # B卖平今成交回报
-                    self.__position_b_buy_today -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
-            elif dict_arguments['Order']['CombOffsetFlag'] == '4':  # B平昨成交回报
-                if dict_arguments['Order']['Direction'] == '0':  # B买平昨成交回报
-                    self.__position_b_sell_yesterday -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
-                elif dict_arguments['Order']['Direction'] == '1':  # B卖平昨成交回报
-                    self.__position_b_buy_yesterday -= dict_arguments['Order']['VolumeTraded']  # 更新持仓
+        elif dict_args['Order']['InstrumentID'] == self.__list_instrument_id[1]:
+            if dict_args['Order']['CombOffsetFlag'] == '0':  # B开仓成交回报
+                if dict_args['Order']['Direction'] == '0':  # B买开仓成交回报
+                    self.__position_b_buy_today += dict_args['Order']['VolumeTraded']  # 更新持仓
+                elif dict_args['Order']['Direction'] == '1':  # B卖开仓成交回报
+                    self.__position_b_sell_today += dict_args['Order']['VolumeTraded']  # 更新持仓
+            elif dict_args['Order']['CombOffsetFlag'] == '3':  # B平今成交回报
+                if dict_args['Order']['Direction'] == '0':  # B买平今成交回报
+                    self.__position_b_sell_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
+                elif dict_args['Order']['Direction'] == '1':  # B卖平今成交回报
+                    self.__position_b_buy_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
+            elif dict_args['Order']['CombOffsetFlag'] == '4':  # B平昨成交回报
+                if dict_args['Order']['Direction'] == '0':  # B买平昨成交回报
+                    self.__position_b_sell_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
+                elif dict_args['Order']['Direction'] == '1':  # B卖平昨成交回报
+                    self.__position_b_buy_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
             self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
             self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         if Utils.Strategy_print:
@@ -1165,24 +1265,24 @@ class Strategy:
     # 统计指标
     def statistics(self):
         # 以一天的盘面为周期的统计指标
-        # self.__today_profit = dict_arguments['today_profit']  # 平仓盈利
-        # self.__today_commission = dict_arguments['today_commission']  # 手续费
-        # self.__today_trade_volume = dict_arguments['commission']  # 成交量
-        # self.__today_sum_slippage = dict_arguments['today_sum_slippage']  # 总滑价
-        # self.__today_average_slippage = dict_arguments['today_average_slippage']  # 平均滑价
+        # self.__today_profit = dict_args['today_profit']  # 平仓盈利
+        # self.__today_commission = dict_args['today_commission']  # 手续费
+        # self.__today_trade_volume = dict_args['commission']  # 成交量
+        # self.__today_sum_slippage = dict_args['today_sum_slippage']  # 总滑价
+        # self.__today_average_slippage = dict_args['today_average_slippage']  # 平均滑价
         #
-        # self.__position_a_buy_today = dict_arguments['position_a_buy_today']  # A合约买持仓今仓
-        # self.__position_a_buy_yesterday = dict_arguments['position_a_buy_yesterday']  # A合约买持仓昨仓
-        # self.__position_a_buy = dict_arguments['position_a_buy']  # A合约买持仓总仓位
-        # self.__position_a_sell_today = dict_arguments['position_a_sell_today']  # A合约卖持仓今仓
-        # self.__position_a_sell_yesterday = dict_arguments['position_a_sell_yesterday']  # A合约卖持仓昨仓
-        # self.__position_a_sell = dict_arguments['position_a_sell']  # A合约卖持仓总仓位
-        # self.__position_b_buy_today = dict_arguments['position_b_buy_today']  # B合约买持仓今仓
-        # self.__position_b_buy_yesterday = dict_arguments['position_b_buy_yesterday']  # B合约买持仓昨仓
-        # self.__position_b_buy = dict_arguments['position_b_buy']  # B合约买持仓总仓位
-        # self.__position_b_sell_today = dict_arguments['position_b_sell_today']  # B合约卖持仓今仓
-        # self.__position_b_sell_yesterday = dict_arguments['position_b_sell_yesterday']  # B合约卖持仓昨仓
-        # self.__position_b_sell = dict_arguments['position_b_sell']  # B合约卖持仓总仓位
+        # self.__position_a_buy_today = dict_args['position_a_buy_today']  # A合约买持仓今仓
+        # self.__position_a_buy_yesterday = dict_args['position_a_buy_yesterday']  # A合约买持仓昨仓
+        # self.__position_a_buy = dict_args['position_a_buy']  # A合约买持仓总仓位
+        # self.__position_a_sell_today = dict_args['position_a_sell_today']  # A合约卖持仓今仓
+        # self.__position_a_sell_yesterday = dict_args['position_a_sell_yesterday']  # A合约卖持仓昨仓
+        # self.__position_a_sell = dict_args['position_a_sell']  # A合约卖持仓总仓位
+        # self.__position_b_buy_today = dict_args['position_b_buy_today']  # B合约买持仓今仓
+        # self.__position_b_buy_yesterday = dict_args['position_b_buy_yesterday']  # B合约买持仓昨仓
+        # self.__position_b_buy = dict_args['position_b_buy']  # B合约买持仓总仓位
+        # self.__position_b_sell_today = dict_args['position_b_sell_today']  # B合约卖持仓今仓
+        # self.__position_b_sell_yesterday = dict_args['position_b_sell_yesterday']  # B合约卖持仓昨仓
+        # self.__position_b_sell = dict_args['position_b_sell']  # B合约卖持仓总仓位
         pass
 
 if __name__ == '__main__':

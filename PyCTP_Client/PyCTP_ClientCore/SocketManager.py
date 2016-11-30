@@ -18,6 +18,7 @@ class SocketManager(QtCore.QThread):
     #定义一个发送消息的信号
     signal_send_message = QtCore.pyqtSignal(dict)
 
+
     def __init__(self, ip_address, port, parent = None):
         # threading.Thread.__init__(self)
         super(SocketManager, self).__init__(parent)
@@ -106,6 +107,7 @@ class SocketManager(QtCore.QThread):
         return checknum
 
     # 发送数据
+    @QtCore.pyqtSlot(str)
     def send_msg(self, buff):  # sockfd为socket套接字，buff为消息体json数据
         # 构造Message
         m = Message("gmqh_sh_2016", 0, buff)
