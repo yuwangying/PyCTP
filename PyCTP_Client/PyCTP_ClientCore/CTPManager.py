@@ -66,6 +66,7 @@ class CTPManager:
     # 创建trader
     def create_trader(self, dict_arguments):
         self.__trader = Trader(dict_arguments)
+        self.__trader_id = self.__trader.get_trader_id()
 
     # 创建user(期货账户)
     def create_user(self, dict_arguments):
@@ -210,6 +211,9 @@ class CTPManager:
     def get_YesterdayPosition(self):
         return self.__listYesterdayPosition
 
+    def get_trader_id(self):
+        return self.__trader_id
+
     # 新增trader_id下面的某个期货账户
     def add_user(self, trader_id, broker_id, front_address, user_id, password):
         print('add_user(): trader_id=', trader_id, 'broker_id=', broker_id, 'user_id=', user_id)
@@ -244,6 +248,12 @@ class CTPManager:
     # 获得交易员id
     def get_TraderID(self):
         return self.__TraderID
+
+    def set_TraderName(self, str_TraderName):
+        self.__TraderName = str_TraderName
+
+    def get_TraderName(self):
+        return self.__TraderName
 
     # 设置客户端的交易开关，0关、1开
     def set_on_off(self, int_on_off):

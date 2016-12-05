@@ -13,12 +13,17 @@ import Utils
 # 交易员类
 class Trader:
     def __init__(self, dict_argument):  # trader_id, trader_name, password, is_active):
-        # print('创建Trader: trader_id=', dict_argument['trader_id'], 'BrokerID=', ['broker_id'], 'user_id=', ['user_id'])
         self.__trader_id = dict_argument['trader_id']
         self.__trader_name = dict_argument['trader_name']
-        self.__password = dict_argument['password']
+        # self.__password = dict_argument['password']
         # self.__is_active = dict_argument['is_active']
-        self.__list_user = list()  # 保存交易员名下的期货账户列表
+        # self.__list_user = list()  # 保存交易员名下的期货账户列表
+
+    def set_list_user(self, list_obj_user):
+        self.__list_user = list_obj_user
+
+    def get_list_user(self):
+        return self.__list_user
 
     # 获取trader_id
     def get_trader_id(self):

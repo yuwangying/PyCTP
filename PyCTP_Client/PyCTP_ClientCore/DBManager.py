@@ -303,22 +303,3 @@ class DBManger:
         return list_strategy
 
 
-if __name__ == '__main__':
-    db = DBManger()
-    # trader = {"tradername": "ypf", "trader_id": "800901", "password": "119991", "is_active": "1"}
-    # db.create_trader({"tradername": "ypf", "trader_id": "800901", "password": "111111", "is_active": "1"})
-    # db.delete_trader(trader)
-    # db.update_trader(trader)
-    # print(db.SearchTraderByName())
-    db.check_admin('ywy', '123')  # 验证管理员
-    db.check_trader('1601', '123456')  # 验证交易员
-    trader1 = {"trader_id": "1601", "trader_name": "余汪应", "password": "123456", "is_active": "1"}
-    trader2 = {"trader_id": "1602", "trader_name": "尹家兴", "password": "123456", "is_active": "1"}
-    # db.create_trader(trader1)
-    # db.create_trader(trader2)
-    # db.delete_trader('1601')
-    # db.update_trader(trader1)
-    # print(db.get_trader())
-    print(db.get_trader())
-    print(db.get_user())
-

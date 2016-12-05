@@ -55,8 +55,8 @@ class ClientMain(QtCore.QObject):
         self.__QCTP.show()  # 显示主窗口
 
         # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里，总账户窗口初始化函数内部将总账户窗口对象设置为各user对象的属性。
-        tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user())
-        tmpQ.set_ClientMain(self)  # ClientMain设置为窗口对象的属性
+        tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user(), ClientMain=self)
+        # tmpQ.set_ClientMain(self)  # ClientMain设置为窗口对象的属性
         # 总账户窗口实例设置为所有策略的属性
         for i_strategy in self.get_CTPManager().get_list_strategy():
             i_strategy.set_QAccountWidgetTotal(tmpQ)
@@ -66,9 +66,10 @@ class ClientMain(QtCore.QObject):
         # 创建单个账户窗口，将user对象设置为其属性，将窗口对象存放到list里
         for i_user in self.get_CTPManager().get_list_user():
             tmpQ = QAccountWidget(str_widget_name=i_user.get_user_id().decode(),
-                                  obj_user=i_user)  # 创建窗口，并将user设置为其属性
+                                  obj_user=i_user,
+                                  ClientMain=self)  # 创建窗口，并将user设置为其属性
             i_user.set_QAccountWidget(tmpQ)  # 窗口实例设置为user的对象
-            tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
+            # tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
             # 单账户窗口实例设置为对应期货账户下面所有策略的属性
             for i_strategy in tmpQ.get_user().get_list_strategy():
                 i_strategy.set_QAccountWidget(tmpQ)
@@ -79,6 +80,7 @@ class ClientMain(QtCore.QObject):
         for i in self.__list_QAccountWidget:
             self.get_QCTP().tab_accounts.addTab(i, i.get_widget_name())
             self.signal_pushButton_query_strategy_setEnabled.connect(i.pushButton_query_strategy.setEnabled)
+            i.signal_update_groupBox_trade_args_for_query.connect(i.update_groupBox_trade_args_for_query)
 
         self.__create_QAccountWidget_finished = True
         print(">>> ClientMain.create_QAccountWidget() 创建窗口完成")
@@ -113,7 +115,7 @@ class ClientMain(QtCore.QObject):
     def get_list_QAccountWidget(self):
         return self.__list_QAccountWidget
 
-    def get_listAlgorithmWidget(self):
+    def get_listAlgorithmInfo(self):
         return self.__listAlgorithmInfo
 
     # 设置鼠标点击状态，信息包含:item所在行、item所在列、widget_name、user_id、strategy_id
@@ -123,6 +125,7 @@ class ClientMain(QtCore.QObject):
     def get_clicked_status(self):
         return self.__clicked_status
 
+    # 显示在最前端窗口名称
     def set_show_widget_name(self, str_widget_name):
         self.__show_widget_name = str_widget_name
 
@@ -131,6 +134,15 @@ class ClientMain(QtCore.QObject):
 
     def get_create_QAccountWidget_finished(self):
         return self.__create_QAccountWidget_finished
+
+    def get_TraderID(self):
+        return self.__TraderID
+
+    def get_TraderName(self):
+        return self.__TraderName
+
+    def get__TraderName(self):
+        return self.__TraderName
 
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
@@ -145,8 +157,10 @@ class ClientMain(QtCore.QObject):
                         # self.get_QLoginForm().label_login_error.setText(buff['MsgErrorReason'])  # 界面提示信息
                         self.get_QLoginForm().label_login_error.setText('登陆成功，初始化中...')  # 界面提示信息
                         self.__CTPManager.set_TraderID(buff['TraderID'])  # 将TraderID设置为CTPManager的属性
-                        self.__TraderID = self.__QLoginForm.get_dict_login()['TraderID']
-                        self.__Password = self.__QLoginForm.get_dict_login()['Password']
+                        self.__CTPManager.set_TraderName(buff['TraderName'])  # 将TraderID设置为CTPManager的属性
+                        # self.__CTPManager.create_trader({"trader_id": buff['TraderID'], "trader_name": buff['TraderName']})
+                        self.__TraderID = buff['TraderID']
+                        self.__TraderName = buff['TraderName']
                         self.QryMarketInfo()  # 查询行情配置
                         # self.__sm.signal_send_message.emit(self.slot_output_message)  # 绑定自定义信号槽
                     elif buff['MsgResult'] == 1:  # 验证不通过
@@ -197,13 +211,28 @@ class ClientMain(QtCore.QObject):
                         self.__listStrategyInfoOnce = buff['Info']  # 转存策略信息到本类的属性里(单次查询)
                         # 遍历查询到的消息结果列表
                         for i_Info in self.__listStrategyInfoOnce:
-                            # 遍历策略对象列表，将服务器查询到的策略参数传递给策略，并调用set_arguments方法更新内核参数值，且刷新界面显示
+                            # 遍历策略对象列表，将服务器查询到的策略参数传递给策略，并调用set_arguments方法更新内核参数值
                             for i_strategy in self.__CTPManager.get_list_strategy():
                                 # 找到对应的策略
                                 if i_Info['user_id'] == i_strategy.get_user_id() and i_Info['strategy_id'] == i_strategy.get_strategy_id():
-                                    print(">>> ClientMain.slot_output_message() user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id(), "回调消息找到对应的策略实例")
-                                    i_strategy.set_arguments_query_strategy_info(i_Info)  # 将查询参数结果设置到策略内核
+                                    # print(">>> ClientMain.slot_output_message() user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id(), "回调消息找到对应的策略实例")
+                                    i_strategy.set_arguments(i_Info)  # 将查询参数结果设置到策略内核
                                     break
+                        # 遍历窗口实例，找到显示在最前端的窗口
+                        for i_widget in self.__list_QAccountWidget:
+                            if i_widget.get_widget_name() == self.get_show_widget_name():
+                                # print(">>> 找到显示在最前的窗口， widget_name=", self.get_show_widget_name())
+                                # 遍历策略实例
+                                for i_strategy in self.__CTPManager.get_list_strategy():
+                                    # 找到被鼠标选中的策略
+                                    # if i_strategy.get_user_id() == i_widget.get_clicked_status()['user_id'] and i_strategy.get_strategy_id() == i_widget.get_clicked_status()['strategy_id']:
+                                    # 找到groupBox中显示的策略
+                                    if i_strategy.get_user_id() == i_widget.comboBox_qihuozhanghao.currentText() \
+                                            and i_strategy.get_strategy_id() == i_widget.comboBox_celuebianhao.currentText():
+                                        # 通过信号槽，将策略参数传递给界面对象，更新参数框
+                                        i_widget.signal_update_groupBox_trade_args_for_query.emit(i_strategy.get_arguments())
+                                        break
+                                break
                         self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         pass
@@ -216,6 +245,13 @@ class ClientMain(QtCore.QObject):
                 elif buff['MsgType'] == 5:  # 修改策略，MsgType=5
                     print("ClientMain.slot_output_message() MsgType=5", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
+                        # 待续：更新内核中的策略参数
+                        for i_strategy in self.__CTPManager.get_list_strategy():
+                            if i_strategy.get_user_id() == buff['Info'][0]['user_id'] \
+                                    and i_strategy.get_strategy_id() == buff['Info'][0]['strategy_id']:
+                                i_strategy.set_arguments(buff['Info'][0])
+                            break
+                        # 待续：刷新界面参数值update_groupBox_trade_args_for_query
                         pass
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         pass

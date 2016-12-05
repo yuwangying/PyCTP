@@ -137,7 +137,6 @@ class QLoginForm(QWidget, Ui_LoginForm):
     # 获得交易员登录信息
     def get_dict_login(self):
         return self.__dict_login
-
     
     @pyqtSlot()
     def on_pushButton_cancel_clicked(self):

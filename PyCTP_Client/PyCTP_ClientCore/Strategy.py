@@ -93,14 +93,14 @@ class Strategy(QtCore.QObject):
     # 设置参数
     def set_arguments(self, dict_args):
         self.__dict_args = dict_args  # 将形参转存为私有变量
-        self.__DBM.update_strategy(dict_args)  # 更新数据库
+        # self.__DBM.update_strategy(dict_args)  # 更新数据库
 
         self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
         self.__strategy_id = dict_args['strategy_id']
+        self.__list_instrument_id = dict_args['list_instrument_id']  # 合约列表
         self.__trade_model = dict_args['trade_model']  # 交易模型
         self.__order_algorithm = dict_args['order_algorithm']  # 下单算法选择标志位
-        self.__list_instrument_id = dict_args['list_instrument_id']  # 合约列表
         self.__buy_open = dict_args['buy_open']  # 触发买开（开多单）
         self.__sell_close = dict_args['sell_close']  # 触发卖平（平多单）
         self.__sell_open = dict_args['sell_open']  # 触发卖开（开空单）
@@ -115,9 +115,23 @@ class Strategy(QtCore.QObject):
         self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
         self.__on_off = dict_args['StrategyOnoff']  # 策略开关，0关、1开
         self.__only_close = dict_args['only_close']  # 只平，0关、1开
+        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
 
-        # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的统计撤单次数的合约列表
-    
+    # 设置持仓
+    def set_position(self, dict_args):
+        self.__position_a_buy = dict_args['position_a_buy']
+        self.__position_a_buy_today = dict_args['position_a_buy_today']
+        self.__position_a_buy_yesterday = dict_args['position_a_buy_yesterday']
+        self.__position_a_sell = dict_args['position_a_sell']
+        self.__position_a_sell_today = dict_args['position_a_sell_today']
+        self.__position_a_sell_yesterday = dict_args['position_a_sell_yesterday']
+        self.__position_b_buy = dict_args['position_b_buy']
+        self.__position_b_buy_today = dict_args['position_b_buy_today']
+        self.__position_b_buy_yesterday = dict_args['position_b_buy_yesterday']
+        self.__position_b_sell = dict_args['position_b_sell']
+        self.__position_b_sell_today = dict_args['position_b_sell_today']
+        self.__position_b_sell_yesterday = dict_args['position_b_sell_yesterday']
+
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):
         print(">>> Strategy.set_arguments_query_strategy_info() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
@@ -144,8 +158,6 @@ class Strategy(QtCore.QObject):
         self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
         self.__on_off = dict_args['StrategyOnoff']  # 策略开关，0关、1开
         self.__only_close = dict_args['only_close']  # 只平，0关、1开
-
-        self.__QAccountWidget.update_groupBox_trade_args()  # 更新界面
 
     # 查询策略昨仓
     def QryStrategyYesterdayPosition(self):
@@ -521,7 +533,8 @@ class Strategy(QtCore.QObject):
         elif flag == '03':
             self.order_algorithm_three()
         else:
-            print("Strategy.select_order_algorithm() 没有选择下单算法")
+            # print("Strategy.select_order_algorithm() 没有选择下单算法")
+            pass
 
     # 价差显示到界面
     def spread_to_ui(self):
@@ -831,14 +844,14 @@ class Strategy(QtCore.QObject):
     # 下单算法2：A合约以最新成交价发单，B合约以对手价发单
     def order_algorithm_two(self):
         if Utils.Strategy_print:
-            print("Strategy.order_algorithm_two()")
-        pass
+            # print("Strategy.order_algorithm_two()")
+            pass
 
     # 下单算法3：A合约以挂单价发单，B合约以对手价发单
     def order_algorithm_three(self):
         if Utils.Strategy_print:
-            print("Strategy.order_algorithm_three()")
-        pass
+            # print("Strategy.order_algorithm_three()")
+            pass
 
     def trade_task(self, dict_args):
         """"交易任务执行"""
