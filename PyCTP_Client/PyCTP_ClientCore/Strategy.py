@@ -115,10 +115,11 @@ class Strategy(QtCore.QObject):
         self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
         self.__on_off = dict_args['StrategyOnoff']  # 策略开关，0关、1开
         self.__only_close = dict_args['only_close']  # 只平，0关、1开
-        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
+        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
 
     # 设置持仓
     def set_position(self, dict_args):
+        # self.__DBM.update_strategy(dict_args)  # 更新数据库
         self.__position_a_buy = dict_args['position_a_buy']
         self.__position_a_buy_today = dict_args['position_a_buy_today']
         self.__position_a_buy_yesterday = dict_args['position_a_buy_yesterday']
@@ -131,6 +132,7 @@ class Strategy(QtCore.QObject):
         self.__position_b_sell = dict_args['position_b_sell']
         self.__position_b_sell_today = dict_args['position_b_sell_today']
         self.__position_b_sell_yesterday = dict_args['position_b_sell_yesterday']
+        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
 
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):

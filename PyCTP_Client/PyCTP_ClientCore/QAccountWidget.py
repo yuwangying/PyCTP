@@ -86,6 +86,8 @@ class QAccountWidget(QWidget, Ui_Form):
         # self.on_tableWidget_Trade_Args_cellClicked(0, 0)
         self.init_groupBox_trade_args_trade_algorithm(self.__ClientMain.get_listAlgorithmInfo())
 
+        self.__signal_pushButton_set_position_setEnabled_connected = False  # 信号槽绑定标志，初始值为False
+
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):
@@ -98,10 +100,11 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__ClientMain.set_show_widget_name(self.__widget_name)
         for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
             i_strategy.set_show_widget_name(self.__widget_name)
+        self.__ClientMain.set_showQAccountWidget(self)  # 将当前显示在最前端窗口对象设置为ClienMain类的属性
 
     def hideEvent(self, QHideEvent):
         print(">>> hideEvent()", self.objectName(), "widget_name=", self.__widget_name)
-        pass
+        self.__ClientMain.set_hideQAccountWidget(self)  # 将当前隐藏的窗口对象设置为ClienMain类的属性
 
     def set_ClientMain(self, obj_ClientMain):
         print(">>> QAccountWidget.set_ClientMain() ")
@@ -144,6 +147,14 @@ class QAccountWidget(QWidget, Ui_Form):
             if obj_tableWidget.horizontalHeaderItem(i).text() == str_column_name:
                 return i
         return -1
+
+    # 设置信号槽连接状态的标志位
+    def set_signal_pushButton_set_position_setEnabled_connected(self, bool_input):
+        self.__signal_pushButton_set_position_setEnabled_connected = bool_input
+        print(">>> QAccountWidget.set_signal_pushButton_set_position_setEnabled_connected() widget_name=", self.__widget_name, "信号槽连接状态设置为", self.__signal_pushButton_set_position_setEnabled_connected)
+
+    def get_signal_pushButton_set_position_setEnabled_connected(self):
+        return self.__signal_pushButton_set_position_setEnabled_connected
 
     # 判断当前窗口是否单账户
     def is_single_user(self):
@@ -488,41 +499,10 @@ class QAccountWidget(QWidget, Ui_Form):
         dict_args = {
             "MsgRef": self.__ClientMain.get_SocketManager().msg_ref_add(),
             "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
-            "MsgType": 12,  # 修改单条策略持仓
+            "MsgType": 5,  # 修改单条策略持仓
             "TraderID": self.__ClientMain.get_TraderID(),  # trader_id
             "UserID": self.comboBox_qihuozhanghao.currentText(),  # user_id
-            "strategy_id": self.comboBox_celuebianhao.currentText(),  # strategy_id
-            "MsgSrc": 0,
-            "Info": [{
-                "trader_id": self.__ClientMain.get_TraderID(),  # trader_id
-                "user_id": self.comboBox_qihuozhanghao.currentText(),  # user_id
-                "strategy_id": self.comboBox_celuebianhao.currentText(),  # strategy_id
-                "position_a_buy": 0,
-                "position_a_buy_today": 0,
-                "position_a_buy_yesterday": 0,
-                "position_a_sell": int(self.lineEdit_Azongsell.text()),  # A总卖
-                "position_a_sell_today": int(self.lineEdit_Ajinsell.text()),  # A今卖
-                "position_a_sell_yesterday": 0,
-                "position_b_buy": 0,
-                "position_b_buy_today": 0,
-                "position_b_buy_yesterday": 0,
-                "position_b_sell": 0,
-                "position_b_sell_today": 0,
-                "position_b_sell_yesterday": 0
-            }]
-        }
-        json_StrategyEditWithoutPosition = json.dumps(dict_args)
-        self.__ClientMain.signal_send_msg.emit(json_StrategyEditWithoutPosition)
-        # 待续：将ClienMain中所有的send_msg()改为signal_send_msg
-
-    @pyqtSlot()
-    def on_pushButton_set_position_clicked(self):
-        dict_setPosition = {
-            "MsgRef": self.__ClientMain.get_SocketManager().msg_ref_add(),
-            "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
-            "MsgType": 5,  # 修改策略参数，不含持仓信息
-            "TraderID": self.__ClientMain.get_TraderID(),  # trader_id
-            "UserID": self.comboBox_qihuozhanghao.currentText(),
+            "StrategyID": self.comboBox_celuebianhao.currentText(),  # strategy_id
             "MsgSrc": 0,
             "Info": [{
                 "trader_id": self.__ClientMain.get_TraderID(),  # trader_id
@@ -532,20 +512,82 @@ class QAccountWidget(QWidget, Ui_Form):
                 "order_algorithm": self.comboBox_xiadansuanfa.currentText(),  # 下单算法
                 "lots": int(self.lineEdit_zongshou.text()),  # 总手
                 "lots_batch": int(self.lineEdit_meifen.text()),  # 每份
-                "stop_loss": float(self.spinBox_zhisun.value()),  # 止损
-                "spread_shift": float(self.spinBox_rangjia.value()),  # 超价触发
-                "a_wait_price_tick": float(self.spinBox_Adengdai.value()),  # A等待
-                "b_wait_price_tick": float(self.spinBox_Bdengdai.value()),  # B等待
-                "a_order_action_limit": int(self.lineEdit_Achedanxianzhi.text()),  # A撤单限制次数
-                "b_order_action_limit": int(self.lineEdit_Bchedanxianzhi.text()),  # B撤单限制次数
+                "stop_loss": float(self.spinBox_zhisun.text()),  # 止损跳数
+                "spread_shift": float(self.spinBox_rangjia.text()),  # 超价发单跳数
+                "a_wait_price_tick": float(self.spinBox_Adengdai.text()),  # A撤单等待跳数
+                "b_wait_price_tick": float(self.spinBox_Bdengdai.text()),  # B撤单等待跳数
+                "a_order_action_limit": int(self.lineEdit_Achedanxianzhi.text()),  # A撤单限制
+                "b_order_action_limit": int(self.lineEdit_Bchedanxianzhi.text()),  # B撤单限制
                 "sell_open": self.doubleSpinBox_kongtoukai.value(),  # 价差卖开触发参数
                 "buy_close": self.doubleSpinBox_kongtouping.value(),  # 价差买平触发参数
                 "sell_close": self.doubleSpinBox_duotouping.value(),  # 价差卖平触发参数
                 "buy_open": self.doubleSpinBox_duotoukai.value(),  # 价差买开触发参数
             }]
         }
-        json_setPosition = json.dumps(dict_setPosition)
-        self.__ClientMain.signal_send_msg.emit(json_setPosition)
+        json_StrategyEditWithoutPosition = json.dumps(dict_args)
+        self.__ClientMain.signal_send_msg.emit(json_StrategyEditWithoutPosition)
+        # 待续：将ClienMain中所有的send_msg()改为signal_send_msg
+
+    @pyqtSlot()
+    def on_pushButton_set_position_clicked(self):
+        print(">>> QAccountWidget.on_pushButton_set_position_clicked() widget_name=", self.__widget_name, "self.pushButton_set_position.text()=", self.pushButton_set_position.text())
+        if self.pushButton_set_position.text() == "设置持仓":
+            self.pushButton_set_position.setText("发送持仓")  # 修改按钮显示的字符
+            # 解禁仓位显示lineEdit，允许编辑
+            self.lineEdit_Azongbuy.setEnabled(True)
+            self.lineEdit_Ajinbuy.setEnabled(True)
+            self.lineEdit_Azongsell.setEnabled(True)
+            self.lineEdit_Ajinsell.setEnabled(True)
+            self.lineEdit_Bzongbuy.setEnabled(True)
+            self.lineEdit_Bjinbuy.setEnabled(True)
+            self.lineEdit_Bzongsell.setEnabled(True)
+            self.lineEdit_Bjinsell.setEnabled(True)
+        elif self.pushButton_set_position.text() == "发送持仓":
+            self.lineEdit_Azongbuy.setEnabled(False)
+            self.lineEdit_Ajinbuy.setEnabled(False)
+            self.lineEdit_Azongsell.setEnabled(False)
+            self.lineEdit_Ajinsell.setEnabled(False)
+            self.lineEdit_Bzongbuy.setEnabled(False)
+            self.lineEdit_Bjinbuy.setEnabled(False)
+            self.lineEdit_Bzongsell.setEnabled(False)
+            self.lineEdit_Bjinsell.setEnabled(False)
+            self.pushButton_set_position.setEnabled(False)  # 禁用按钮
+            dict_setPosition = {
+                "MsgRef": self.__ClientMain.get_SocketManager().msg_ref_add(),
+                "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
+                "MsgType": 12,  # 修改单条策略持仓
+                "TraderID": self.__ClientMain.get_TraderID(),  # trader_id
+                "UserID": self.comboBox_qihuozhanghao.currentText(),  # user_id
+                "StrategyID": self.comboBox_celuebianhao.currentText(),  # strategy_id
+                "MsgSrc": 0,
+                "Info": [{
+                    "trader_id": self.__ClientMain.get_TraderID(),  # trader_id
+                    "user_id": self.comboBox_qihuozhanghao.currentText(),  # user_id
+                    "strategy_id": self.comboBox_celuebianhao.currentText(),  # strategy_id
+                    "position_a_buy": int(self.lineEdit_Azongbuy.text()),  # A总买
+                    "position_a_buy_today": int(self.lineEdit_Ajinbuy.text()),  # A今买
+                    "position_a_buy_yesterday": int(self.lineEdit_Azongbuy.text()) - int(self.lineEdit_Ajinbuy.text()), # A昨买
+                    "position_a_sell": int(self.lineEdit_Azongsell.text()),  # A总卖
+                    "position_a_sell_today": int(self.lineEdit_Ajinsell.text()),  # A今卖
+                    "position_a_sell_yesterday": int(self.lineEdit_Azongsell.text()) - int(self.lineEdit_Ajinsell.text()), # A昨卖
+                    "position_b_buy": int(self.lineEdit_Bzongbuy.text()),  # B总买
+                    "position_b_buy_today": int(self.lineEdit_Bjinbuy.text()),  # B今买
+                    "position_b_buy_yesterday": int(self.lineEdit_Bzongbuy.text()) - int(self.lineEdit_Bjinbuy.text()), # B昨买
+                    "position_b_sell": int(self.lineEdit_Bzongsell.text()),  # B总卖
+                    "position_b_sell_today": int(self.lineEdit_Bjinsell.text()),  # B今卖
+                    "position_b_sell_yesterday": int(self.lineEdit_Bzongsell.text()) - int(self.lineEdit_Bjinsell.text()), # B昨卖
+                }]
+            }
+            json_setPosition = json.dumps(dict_setPosition)
+            self.__ClientMain.signal_send_msg.emit(json_setPosition)
+
+    # 激活设置持仓按钮，禁用仓位输入框
+    @QtCore.pyqtSlot()
+    def on_pushButton_set_position_active(self):
+        print(">>> QAccountWidget.on_pushButton_set_position_active() called, widget_name=", self.__widget_name)
+        self.pushButton_set_position.setText("设置持仓")
+        self.pushButton_set_position.setEnabled(True)
+        # self.lineEdit_Azongbuy.
 
     @pyqtSlot()
     def on_pushButton_query_strategy_clicked(self):
