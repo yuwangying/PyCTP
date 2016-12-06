@@ -282,10 +282,10 @@ class ClientMain(QtCore.QObject):
                         self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         pass
-                elif buff['MsgType'] == 6:  # 新增策略，MsgType=6
+                elif buff['MsgType'] == 6:  # 新建策略，MsgType=6
                     print("ClientMain.slot_output_message() MsgType=6", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        pass
+                        self.get_CTPManager().create_strategy(buff['Info'][0])  # 内核创建策略对象
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         pass
                 elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
@@ -382,6 +382,22 @@ class ClientMain(QtCore.QObject):
             }
         json_QryYesterdayPosition = json.dumps(dict_QryYesterdayPosition)
         self.get_SocketManager().send_msg(json_QryYesterdayPosition)
+
+    # 新建策略
+    def CreateStrategy(self, dict_info):
+        dict_CreateStrategy = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 6,  # 新建策略
+            'TraderID': self.get_TraderID(),
+            'UserID': dict_info['user_id'],
+            'Info': [dict_info]
+        }
+        json_CreateStrategy = json.dumps(dict_CreateStrategy)
+        # self.get_SocketManager().send_msg(json_CreateStrategy)
+        self.signal_send_msg.emit(json_CreateStrategy)
+
 
 if __name__ == '__main__':
 

@@ -77,20 +77,20 @@ class NewStrategy(QWidget, Ui_NewStrategy):
             self.label_error_msg.setText(str_output)
             return
 
-        # 输入验证通过，创建策略
+        # 输入验证通过，向服务端发送创建策略指令
         str_output = "正在创建策略：" + self.lineEdit_strategy_id.text()
         self.label_error_msg.setText(str_output)
-        dict_args = {
+        dict_info = {
             'trader_id': self.__ClientMain.get_TraderID(),
             'user_id': self.comboBox_user_id.currentText(),
             'strategy_id': self.lineEdit_strategy_id.text(),
             'list_instrument_id': [self.lineEdit_a_instrument.text(), self.lineEdit_b_instrument.text()],
             'trade_model': '',  # 交易模型
-            'order_algorithm': self.__ClientMain.get_listAlgorithmInfo()[0],  # 下单算法
+            'order_algorithm': self.__ClientMain.get_listAlgorithmInfo()[0]['name'],  # 下单算法
             'buy_open': 0.0,
-            'sell_close': 0.0,
-            'sell_open': 0.0,
-            'buy_close': 0.0,
+            'sell_close': 0,
+            'sell_open': 0,
+            'buy_close': 0,
             'spread_shift': 0,
             'a_wait_price_tick': 0,
             'b_wait_price_tick': 0,
@@ -100,8 +100,32 @@ class NewStrategy(QWidget, Ui_NewStrategy):
             'a_order_action_limit': 400,
             'b_order_action_limit': 400,
             'StrategyOnoff': 0,
-            'only_close': 0}
-        self.__ClientMain.get_CTPManager().create_strategy(dict_args)
+            'only_close': 0,
+
+            "position_a_sell_today": 0,
+            "position_b_sell": 0,
+            "position_b_sell_today": 0,
+            "position_b_buy_today": 0,
+            "position_a_sell": 0,
+            "position_b_buy_yesterday": 0,
+            "is_active": 1,
+            "position_b_sell_yesterday": 0,
+            "position_b_buy": 0,
+            "position_a_buy": 0,
+            "hold_profit": 0,
+            "close_profit": 0,
+            "commission": 0,
+            "position": 0,
+            "position_buy": 0,
+            "position_sell": 0,
+            "trade_volume": 0,
+            "amount": 0.0,
+            "average_shift": 0.0,
+            "position_a_buy_yesterday": 0,
+            "position_a_buy_today": 0,
+            "position_a_sell_yesterday": 0
+        }
+        self.__ClientMain.CreateStrategy(dict_info)
 
     # 判断显示窗口是否是"总账户"
     def is_all_account_widget(self):

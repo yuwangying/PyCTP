@@ -115,7 +115,6 @@ class CTPManager:
         if self.__init_finished is False:
             # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
             lastStrategyInfo = self.__ClientMain.get_listStrategyInfo()[-1]
-
             if len(lastStrategyInfo) > 0:
                 if lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id():
                     # self.__init_finished = True  # 当前策略初始化完成
@@ -125,8 +124,9 @@ class CTPManager:
                 # self.__init_finished = True  # 当前策略初始化完成
                 self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
                 self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
-        elif self.__init_finished:  # 程序运行中、初始化已经完成，相界面策略列表框内添加一行
-            pass
+        elif self.__init_finished:  # 程序运行中、初始化已经完成，在界面策略列表框内添加一行
+            print(">>> CTPManager.create_strategy() 程序运行中、初始化已经完成，在界面策略列表框内添加一行策略id为", dict_arguments['strategy_id'])
+
     # 删除strategy
     def delete_strategy(self, dict_arguments):
         # 判断数据库中是否存在trader_id
