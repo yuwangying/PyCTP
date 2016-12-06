@@ -2,6 +2,7 @@ import sys
 from CTPManager import CTPManager
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+from PyQt4.QtGui import QApplication, QCompleter, QLineEdit, QStringListModel
 import QLogin  # from QLogin import QLoginForm
 from QCTP import QCTP
 from QAccountWidget import QAccountWidget
@@ -57,7 +58,7 @@ class ClientMain(QtCore.QObject):
         if self.__showQAccountWidget.get_signal_pushButton_set_position_setEnabled_connected() is False:
             self.signal_pushButton_set_position_setEnabled.connect(self.__showQAccountWidget.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
             self.__showQAccountWidget.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定状态设置为True
-            print(">>> ClientMain.set_showQAccountWidget() 绑定信号槽，widget_name=", self.__showQAccountWidget.get_widget_name())
+            # print(">>> ClientMain.set_showQAccountWidget() 绑定信号槽，widget_name=", self.__showQAccountWidget.get_widget_name())
 
     def get_showQAccountWidget(self):
         return self.__showQAccountWidget
@@ -68,16 +69,13 @@ class ClientMain(QtCore.QObject):
         if self.__hideQAccountWidget.get_signal_pushButton_set_position_setEnabled_connected():
             self.signal_pushButton_set_position_setEnabled.disconnect(self.__hideQAccountWidget.on_pushButton_set_position_active)
             self.__hideQAccountWidget.set_signal_pushButton_set_position_setEnabled_connected(False)  # 信号槽绑定状态设置为False
-            print(">>> ClientMain.set_hideQAccountWidget() 解绑信号槽，widget_name=", self.__hideQAccountWidget.get_widget_name())
+            # print(">>> ClientMain.set_hideQAccountWidget() 解绑信号槽，widget_name=", self.__hideQAccountWidget.get_widget_name())
 
     def get_hideQAccountWidget(self):
         return self.__hideQAccountWidget
 
     def create_QAccountWidget(self):
-        print(">>> ClientMain.create_QAccountWidget() 开始创建窗口")
-        # 如果内核初始化完成，隐藏登录窗口，显示主窗口
-        self.__QLoginForm.hide()  # 隐藏登录窗口
-        self.__QCTP.show()  # 显示主窗口
+        print(">>> ClientMain.create_QAccountWidget() CTPManager内核初始化完成，开始创建窗口")
 
         # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里，总账户窗口初始化函数内部将总账户窗口对象设置为各user对象的属性。
         tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user(), ClientMain=self)
@@ -111,8 +109,23 @@ class ClientMain(QtCore.QObject):
             self.signal_pushButton_query_strategy_setEnabled.connect(i.pushButton_query_strategy.setEnabled)
             i.signal_update_groupBox_trade_args_for_query.connect(i.update_groupBox_trade_args_for_query)
 
-        self.__create_QAccountWidget_finished = True
-        print(">>> ClientMain.create_QAccountWidget() 创建窗口完成")
+        # 创建“新建策略”弹窗
+        q_new_strategy = NewStrategy()
+        completer = QCompleter()
+        model = QStringListModel()
+        model.setStringList(self.__CTPManager.get_list_instrument_id())
+        completer.setModel(model)
+        q_new_strategy.lineEdit_a_instrument.setCompleter(completer)
+        q_new_strategy.lineEdit_b_instrument.setCompleter(completer)
+        q_new_strategy.set_ClientMain(self)  # ClientMain设置为其属性
+        self.set_QNewStrategy(q_new_strategy)  # 设置为ClientMain属性
+
+        self.__create_QAccountWidget_finished = True  # 界面初始化完成标志位
+
+        self.__QLoginForm.hide()  # 隐藏登录窗口
+        self.__QCTP.show()  # 显示主窗口
+
+        print(">>> ClientMain.create_QAccountWidget() 界面初始化完成")
 
     def get_SocketManager(self):
         return self.__sm
@@ -395,8 +408,6 @@ if __name__ == '__main__':
     q_login_form.set_QCTP(q_ctp)
     q_client_main.set_QCTP(q_ctp)
 
-    q_new_strategy = NewStrategy()  # 创建“创建策略”窗口
-    q_client_main.set_QNewStrategy(q_new_strategy)  # 设置为ClientMain属性
     # q_login_form.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为LoginForm的属性
     # q_client_main.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为ClientMain的属性
     # q_ctp.tab_accounts.addTab(dict_QAccountWidget['总账户'], '总账户')  # 账户窗口添加到QCTP窗口的tab

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>347</width>
-    <height>288</height>
+    <width>326</width>
+    <height>294</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -74,18 +74,8 @@
   <widget class="QComboBox" name="comboBox_user_id">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>160</x>
      <y>40</y>
-     <width>117</width>
-     <height>21</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="comboBox_strategy_id">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>80</y>
      <width>117</width>
      <height>21</height>
     </rect>
@@ -94,7 +84,7 @@
   <widget class="QLineEdit" name="lineEdit_a_instrument">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>160</x>
      <y>120</y>
      <width>117</width>
      <height>21</height>
@@ -104,7 +94,7 @@
   <widget class="QLineEdit" name="lineEdit_b_instrument">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>160</x>
      <y>160</y>
      <width>117</width>
      <height>21</height>
@@ -114,9 +104,9 @@
   <widget class="QPushButton" name="pushButton_cancel">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>167</x>
      <y>240</y>
-     <width>117</width>
+     <width>110</width>
      <height>28</height>
     </rect>
    </property>
@@ -129,7 +119,7 @@
     <rect>
      <x>40</x>
      <y>240</y>
-     <width>117</width>
+     <width>110</width>
      <height>28</height>
     </rect>
    </property>
@@ -140,10 +130,10 @@
   <widget class="QLabel" name="label_error_msg">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>200</y>
-     <width>295</width>
-     <height>16</height>
+     <x>42</x>
+     <y>192</y>
+     <width>237</width>
+     <height>37</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -153,10 +143,28 @@
     <string/>
    </property>
    <property name="alignment">
-    <set>Qt::AlignCenter</set>
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_strategy_id">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>80</y>
+     <width>117</width>
+     <height>21</height>
+    </rect>
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>comboBox_user_id</tabstop>
+  <tabstop>lineEdit_strategy_id</tabstop>
+  <tabstop>lineEdit_a_instrument</tabstop>
+  <tabstop>lineEdit_b_instrument</tabstop>
+  <tabstop>pushButton_ok</tabstop>
+  <tabstop>pushButton_cancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

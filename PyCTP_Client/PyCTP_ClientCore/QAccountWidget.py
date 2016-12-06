@@ -119,14 +119,12 @@ class QAccountWidget(QWidget, Ui_Form):
         return self.__user
 
     def get_widget_name(self):
-        print(">>> QAccountWidget.get_widget_name() widget_name=", self.__widget_name, 'user_id=',
-              self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
+        # print(">>> QAccountWidget.get_widget_name() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
         return self.__widget_name
 
     # 设置窗口名称
     def set_widget_name(self, str_name):
-        print(">>> QAccountWidget.set_widget_name() widget_name=", self.__widget_name, 'user_id=',
-              self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
+        # print(">>> QAccountWidget.set_widget_name() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
         self.__widget_name = str_name
 
     # 设置鼠标点击状态，信息包含:item所在行、item所在列、widget_name、user_id、strategy_id
@@ -440,14 +438,15 @@ class QAccountWidget(QWidget, Ui_Form):
     # 鼠标右击弹出菜单中的“添加策略”
     @pyqtSlot()
     def slot_action_add_strategy(self):
-        print("slot_action_add_strategy was actived!")
+        print(">>> QAccountWidget.slot_action_add_strategy() called")
+        self.__ClientMain.get_QNewStrategy().update_comboBox_user_id_menu()  # 更新新建策略框中的期货账号可选项菜单
         self.__ClientMain.get_QNewStrategy().show()
         # todo...
 
     # 鼠标右击弹出菜单中的“删除策略”
     @pyqtSlot()
     def slot_action_del_strategy(self):
-        print("slot_action_del_strategy was actived!")
+        print(">>> QAccountWidgetslot_action_del_strategy() called")
         # todo...
     
     @pyqtSlot()

@@ -92,20 +92,16 @@ class CTPManager:
     # 创建strategy
     def create_strategy(self, dict_arguments):
         # 不允许重复创建策略实例
-        print("CTPManager.create_strategy() user_id=", dict_arguments['user_id'], "strategy_id=",
-              dict_arguments['strategy_id'])
         if len(self.__list_strategy) > 0:
             for i in self.__list_strategy:
                 if i.get_strategy_id() == dict_arguments['strategy_id'] and i.get_user_id() == dict_arguments['user_id']:
-                    print("CTPManager.create_strategy()已经存在strategy_id为", dict_arguments['strategy_id'], "的实例，不允许重复创建")
+                    print("CTPManager.create_strategy() 不能重复创建，已经存在的strategy_id=", dict_arguments['strategy_id'])
                     return False
 
-        print('===========================')
-        print("CTPManager.create_strategy() 创建策略实例", dict_arguments)
+        print("CTPManager.create_strategy() user_id=", dict_arguments['user_id'], "strategy_id=", dict_arguments['strategy_id'])
         for i in self.__list_user:
             if i.get_user_id().decode() == dict_arguments['user_id']:  # 找到策略所属的user实例
                 obj_strategy = Strategy(dict_arguments, i, self.__DBManager)  # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
-                # print("CTPManager.create_strategy() user_id=", i.get_user_id().decode(), "strategy_id=", dict_arguments['strategy_id'])
                 i.add_strategy(obj_strategy)               # 将策略实例添加到user的策略列表
                 self.__list_strategy.append(obj_strategy)  # 将策略实例添加到CTP_Manager的策略列表
 
@@ -115,20 +111,22 @@ class CTPManager:
             list_instrument_id.append(i.encode())  # 将合约代码转码为二进制字符串
         self.__MarketManager.sub_market(list_instrument_id, dict_arguments['user_id'], dict_arguments['strategy_id'])
 
-        # 最后一个策略初始化完成
-        # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
-        lastStrategyInfo = self.__ClientMain.get_listStrategyInfo()[-1]
+        # 判断内核是否初始化完成
+        if self.__init_finished is False:
+            # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
+            lastStrategyInfo = self.__ClientMain.get_listStrategyInfo()[-1]
 
-        if len(lastStrategyInfo) > 0:
-            if lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id():
+            if len(lastStrategyInfo) > 0:
+                if lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id():
+                    # self.__init_finished = True  # 当前策略初始化完成
+                    self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
+                    self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
+            else:
                 # self.__init_finished = True  # 当前策略初始化完成
-                self.set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
+                self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
                 self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
-        else:
-            # self.__init_finished = True  # 当前策略初始化完成
-            self.set_init_finished(True)  # CTPManager初始化完成，跳转到界面初始化或显示
-            self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
-
+        elif self.__init_finished:  # 程序运行中、初始化已经完成，相界面策略列表框内添加一行
+            pass
     # 删除strategy
     def delete_strategy(self, dict_arguments):
         # 判断数据库中是否存在trader_id
@@ -274,10 +272,17 @@ class CTPManager:
     # 设置合约信息
     def set_instrument_info(self, input_list):
         self.__list_instrument_info = input_list
+        self.__list_instrument_id = list()
+        for i in self.__list_instrument_info:
+            self.__list_instrument_id.append(i['InstrumentID'])
 
     # 获取合约信息
     def get_instrument_info(self):
         return self.__list_instrument_info
+
+    # 获取期货合约代码列表
+    def get_list_instrument_id(self):
+        return self.__list_instrument_id
 
 
 
