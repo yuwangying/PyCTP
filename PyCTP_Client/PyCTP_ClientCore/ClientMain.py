@@ -5,6 +5,7 @@ from PyQt4 import QtCore
 import QLogin  # from QLogin import QLoginForm
 from QCTP import QCTP
 from QAccountWidget import QAccountWidget
+from QStrategySetting import NewStrategy
 from SocketManager import SocketManager
 import json
 import Utils
@@ -171,6 +172,12 @@ class ClientMain(QtCore.QObject):
 
     def get__TraderName(self):
         return self.__TraderName
+
+    def set_QNewStrategy(self, obj_QNewStrategy):
+        self.__QNewStrategy = obj_QNewStrategy
+
+    def get_QNewStrategy(self):
+        return self.__QNewStrategy
 
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
@@ -388,6 +395,8 @@ if __name__ == '__main__':
     q_login_form.set_QCTP(q_ctp)
     q_client_main.set_QCTP(q_ctp)
 
+    q_new_strategy = NewStrategy()  # 创建“创建策略”窗口
+    q_client_main.set_QNewStrategy(q_new_strategy)  # 设置为ClientMain属性
     # q_login_form.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为LoginForm的属性
     # q_client_main.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为ClientMain的属性
     # q_ctp.tab_accounts.addTab(dict_QAccountWidget['总账户'], '总账户')  # 账户窗口添加到QCTP窗口的tab

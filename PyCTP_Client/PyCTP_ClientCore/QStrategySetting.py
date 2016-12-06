@@ -31,7 +31,7 @@ class NewStrategy(QWidget, Ui_NewStrategy):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_ok_clicked(self):
@@ -39,7 +39,7 @@ class NewStrategy(QWidget, Ui_NewStrategy):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        # raise NotImplementedError
 
 if __name__ == '__main__':
     import sys

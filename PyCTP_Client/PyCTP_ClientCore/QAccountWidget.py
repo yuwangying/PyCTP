@@ -10,6 +10,7 @@ from PyQt4.QtCore import QPoint
 from Ui_QAccountWidget import Ui_Form
 import json
 
+
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -87,7 +88,6 @@ class QAccountWidget(QWidget, Ui_Form):
         self.init_groupBox_trade_args_trade_algorithm(self.__ClientMain.get_listAlgorithmInfo())
 
         self.__signal_pushButton_set_position_setEnabled_connected = False  # 信号槽绑定标志，初始值为False
-
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):
@@ -441,6 +441,7 @@ class QAccountWidget(QWidget, Ui_Form):
     @pyqtSlot()
     def slot_action_add_strategy(self):
         print("slot_action_add_strategy was actived!")
+        self.__ClientMain.get_QNewStrategy().show()
         # todo...
 
     # 鼠标右击弹出菜单中的“删除策略”
@@ -530,11 +531,11 @@ class QAccountWidget(QWidget, Ui_Form):
 
     @pyqtSlot()
     def on_pushButton_set_position_clicked(self):
-        print(">>> QAccountWidget.on_pushButton_set_position_clicked() widget_name=", self.__widget_name, "self.pushButton_set_position.text()=", self.pushButton_set_position.text())
+        # print(">>> QAccountWidget.on_pushButton_set_position_clicked() widget_name=", self.__widget_name, "self.pushButton_set_position.text()=", self.pushButton_set_position.text())
         if self.pushButton_set_position.text() == "设置持仓":
             self.pushButton_set_position.setText("发送持仓")  # 修改按钮显示的字符
             # 解禁仓位显示lineEdit，允许编辑
-            self.lineEdit_Azongbuy.setEnabled(True)
+            self.lineEdit_Azongbuy.setEnabled(True)  # 文本框允许编辑
             self.lineEdit_Ajinbuy.setEnabled(True)
             self.lineEdit_Azongsell.setEnabled(True)
             self.lineEdit_Ajinsell.setEnabled(True)
@@ -543,7 +544,7 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzongsell.setEnabled(True)
             self.lineEdit_Bjinsell.setEnabled(True)
         elif self.pushButton_set_position.text() == "发送持仓":
-            self.lineEdit_Azongbuy.setEnabled(False)
+            self.lineEdit_Azongbuy.setEnabled(False)  # 禁用文本框
             self.lineEdit_Ajinbuy.setEnabled(False)
             self.lineEdit_Azongsell.setEnabled(False)
             self.lineEdit_Ajinsell.setEnabled(False)
@@ -551,7 +552,7 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bjinbuy.setEnabled(False)
             self.lineEdit_Bzongsell.setEnabled(False)
             self.lineEdit_Bjinsell.setEnabled(False)
-            self.pushButton_set_position.setEnabled(False)  # 禁用按钮
+            # self.pushButton_set_position.setEnabled(False)  # 禁用按钮
             dict_setPosition = {
                 "MsgRef": self.__ClientMain.get_SocketManager().msg_ref_add(),
                 "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
@@ -586,8 +587,7 @@ class QAccountWidget(QWidget, Ui_Form):
     def on_pushButton_set_position_active(self):
         print(">>> QAccountWidget.on_pushButton_set_position_active() called, widget_name=", self.__widget_name)
         self.pushButton_set_position.setText("设置持仓")
-        self.pushButton_set_position.setEnabled(True)
-        # self.lineEdit_Azongbuy.
+        self.pushButton_set_position.setEnabled(True)  # 激活按钮
 
     @pyqtSlot()
     def on_pushButton_query_strategy_clicked(self):
@@ -770,6 +770,7 @@ class QAccountWidget(QWidget, Ui_Form):
     # 鼠标右击捕获事件
     @pyqtSlot(QPoint)
     def on_tableWidget_Trade_Args_customContextMenuRequested(self, pos):
+        print("QAccountWidget.on_tableWidget_Trade_Args_customContextMenuRequested() called")
         """
         Slot documentation goes here.
         
