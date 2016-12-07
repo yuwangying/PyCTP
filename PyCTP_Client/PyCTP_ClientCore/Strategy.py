@@ -86,6 +86,10 @@ class Strategy(QtCore.QObject):
         # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
         self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
+        # 窗口初始化完成、程序运行中创建的策略，将显示前端窗口名称设置为其属性
+        if self.__user.get_CTPManager().get_ClientMain().get_create_QAccountWidget_finished():
+            self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
+            self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
         self.init_yesterday_position()  # 初始化策略昨仓
         # self.init_today_position()  # 初始化策略持仓
         # self.init_statistics()  # 初始化统计指标
@@ -309,9 +313,6 @@ class Strategy(QtCore.QObject):
         for i in self.__user.get_CTPManager().get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['PriceTick']
-        # for i in self.__user.get_instrument_info():
-        #     if i['InstrumentID'] == instrument_id:
-        #         return i['PriceTick']
 
     # 获取策略开关
     def get_on_off(self):
@@ -418,6 +419,9 @@ class Strategy(QtCore.QObject):
         # 窗口创建完成
         if self.__user.get_CTPManager().get_ClientMain().get_create_QAccountWidget_finished() is False:
             return
+        # 没有任何一个窗口显示，跳过
+        if self.__user.get_CTPManager().get_ClientMain().get_showEvent() is False:
+            return
 
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__list_instrument_id[1]:
@@ -444,7 +448,7 @@ class Strategy(QtCore.QObject):
             dict_args = {'flag': 'tick', 'tick': tick}
             self.trade_task(dict_args)
 
-        # 刷新界面
+        # 刷新界面价差
         self.spread_to_ui()
 
     def OnRspOrderInsert(self, InputOrder, RspInfo, RequestID, IsLast):
@@ -453,10 +457,10 @@ class Strategy(QtCore.QObject):
         if Utils.Strategy_print:
             print('Strategy.OnRspOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo, 'RequestID:', RequestID, 'IsLast:', IsLast)
         dict_args = {'flag': 'OnRspOrderInsert',
-                          'InputOrder': InputOrder,
-                          'RspInfo': RspInfo,
-                          'RequestID': RequestID,
-                          'IsLast': IsLast}
+                     'InputOrder': InputOrder,
+                     'RspInfo': RspInfo,
+                     'RequestID': RequestID,
+                     'IsLast': IsLast}
         self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRspOrderAction(self, InputOrderAction, RspInfo, RequestID, IsLast):
@@ -464,10 +468,10 @@ class Strategy(QtCore.QObject):
         if Utils.Strategy_print:
             print('Strategy.OnRspOrderAction()', 'OrderRef:', InputOrderAction['OrderRef'], 'InputOrderAction:', InputOrderAction, 'RspInfo:', RspInfo, 'RequestID:', RequestID, 'IsLast:', IsLast)
         dict_args = {'flag': 'OnRspOrderAction',
-                          'InputOrderAction': InputOrderAction,
-                          'RspInfo': RspInfo,
-                          'RequestID': RequestID,
-                          'IsLast': IsLast}
+                     'InputOrderAction': InputOrderAction,
+                     'RspInfo': RspInfo,
+                     'RequestID': RequestID,
+                     'IsLast': IsLast}
         self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnOrder(self, Order):
@@ -476,14 +480,11 @@ class Strategy(QtCore.QObject):
         if Utils.Strategy_print:
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
 
-        dict_args = {'flag': 'OnRtnOrder',
-                          'Order': Order}
+        dict_args = {'flag': 'OnRtnOrder', 'Order': Order}
 
         self.update_list_order_pending(dict_args)  # 更新挂单list
         self.update_task_status()  # 更新任务状态
-        # self.update_position(dict_args)  # 更新持仓量变量（放到OnRtnTrade回调中）
-
-        self.__user.action_counter(dict_args['Order']['InstrumentID'])  # 撤单次数添加到user类的撤单计数器
+        self.__user.action_counter(dict_args['Order']['InstrumentID'])  # 更新撤单计数
         self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnTrade(self, Trade):
@@ -493,21 +494,17 @@ class Strategy(QtCore.QObject):
 
         self.update_list_position_detail(Trade)  # 更新持仓明细list
 
-        dict_args = {'flag': 'OnRtnTrade',
-                          'Trade': Trade}
+        dict_args = {'flag': 'OnRtnTrade', 'Trade': Trade}
 
         self.update_position(Trade)  # 更新持仓量变量
         self.update_task_status()  # 更新任务状态
-        
         self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
         if Utils.Strategy_print:
             print('Strategy.OnErrRtnOrderAction()', 'OrderRef:', OrderAction['OrderRef'], 'OrderAction:', OrderAction, 'RspInfo:', RspInfo)
-        dict_args = {'flag': 'OnErrRtnOrderAction',
-                          'OrderAction': OrderAction,
-                          'RspInfo': RspInfo}
+        dict_args = {'flag': 'OnErrRtnOrderAction', 'OrderAction': OrderAction, 'RspInfo': RspInfo}
         self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
@@ -515,8 +512,8 @@ class Strategy(QtCore.QObject):
         if Utils.Strategy_print:
             print('Strategy.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
         dict_args = {'flag': 'OnErrRtnOrderInsert',
-                          'InputOrder': InputOrder,
-                          'RspInfo': RspInfo}
+                     'InputOrder': InputOrder,
+                     'RspInfo': RspInfo}
         self.trade_task(dict_args)  # 转到交易任务处理
 
     # 选择下单算法
@@ -551,14 +548,6 @@ class Strategy(QtCore.QObject):
                     self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
                     self.signal_UI_spread_short_total_change_color.emit("color: rgb(0, 0, 0);")
                 else:
-                    # print(">>> self.__spread_short == self.__last_spread_short_total", self.__spread_short, self.__last_spread_short_total)
-                    # if self.__spread_short == self.__last_spread_short_total:
-                    #     self.__short_color_black_times += 1
-                    #     if self.__short_color_black_times == 8:
-                    #         self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
-                    #         self.signal_UI_spread_short_total_change_color.emit("color: black;")
-                    #         self.__short_color_black_times = 0
-                    # el
                     if self.__spread_short > self.__last_spread_short_total:
                         self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
                         self.signal_UI_spread_short_total_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
@@ -570,10 +559,6 @@ class Strategy(QtCore.QObject):
                     self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
                     self.signal_UI_change_color.emit("color: rgb(0, 0, 0);")
                 else:
-                    # if self.__spread_long == self.__last_spread_long_total:
-                    #     # self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
-                    #     self.signal_UI_spread_long_total_change_color.emit("color: black;")
-                    # el
                     if self.__spread_long > self.__last_spread_long_total:
                         self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
                         self.signal_UI_spread_long_total_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
@@ -593,11 +578,6 @@ class Strategy(QtCore.QObject):
                     self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))
                     self.signal_UI_spread_short_change_color.emit("color: rgb(0, 0, 0);")
                 else:
-                    # print(">>> self.__spread_short == self.__last_spread_short", self.__spread_short, self.__last_spread_short)
-                    # if self.__spread_short == self.__last_spread_short:
-                    #     self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))
-                    #     self.signal_UI_spread_short_change_color.emit("color: black;")
-                    # el
                     if self.__spread_short > self.__last_spread_short:
                         self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))
                         self.signal_UI_spread_short_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
@@ -609,10 +589,6 @@ class Strategy(QtCore.QObject):
                     self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
                     self.signal_UI_change_color.emit("color: rgb(0, 0, 0);")
                 else:
-                    # if self.__spread_long == self.__last_spread_long:
-                    #     # self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
-                    #     self.signal_UI_spread_long_change_color.emit("color: black;")
-                    # el
                     if self.__spread_long > self.__last_spread_long:
                         self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
                         self.signal_UI_spread_long_change_color.emit("color: rgb(255, 0, 0);font-weight:bold;")
@@ -625,7 +601,6 @@ class Strategy(QtCore.QObject):
 
     # 下单算法1：A合约以对手价发单，B合约以对手价发单
     def order_algorithm_one(self):
-
         # 有任何一个合约是无效行情则跳过
         if self.__instrument_a_tick is not None or self.__instrument_b_tick is not None:
             return

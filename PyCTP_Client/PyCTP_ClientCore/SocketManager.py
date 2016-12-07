@@ -27,6 +27,7 @@ class SocketManager(QtCore.QThread):
         self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__event = threading.Event()  # 初始化协程threading.Event()
         self.__msg_ref = 0  # 发送消息引用
+        self.__RecvN = True  # RecvN方法运行状态，True正常，False异常
 
     def set_ClientMain(self, obj_ClientMain):
         self.__ClientMain = obj_ClientMain
@@ -81,11 +82,17 @@ class SocketManager(QtCore.QThread):
     # RecvN
     #     recv N bytes to target
     # ------------------------------------------------------
-    def RecvN(self, socket, n):
+    def RecvN(self, socketd, n):
         totalContent = b''
         totalRecved = 0
         while totalRecved < n:
-            onceContent = socket.recv(n - totalRecved)
+            try:
+                onceContent = socketd.recv(n - totalRecved)
+                # self.__RecvN = True
+            except socket.error as e:
+                self.__RecvN = False
+                print("SocketManager.RecvN()", e, n, totalRecved)
+                return None
             # print("onceContent", onceContent)
             totalContent += onceContent
             totalRecved = len(totalContent)
@@ -122,7 +129,23 @@ class SocketManager(QtCore.QThread):
         data = struct.pack(">13s1B" + str(len(m.buff.encode()) + 1) + "s", m.head.encode(), m.checknum, m.buff.encode())
 
         print("SocketManager.send_msg()", data)
-        size = self.__sockfd.send(data)  # 发送数据
+        """
+        try:
+            buf = s.recv(2048)
+            except socket.error, e:
+            print "Error receiving data: %s" % e
+            sys.exit(1)
+        try:
+            s.send("Hello, World!")
+            ...
+        except socket.timeout:
+            # whatever you need to do when the connection is dropped
+
+        """
+        try:
+            size = self.__sockfd.send(data)  # 发送数据
+        except socket.timeout as e:
+            print("SocketManager.send_msg()", e)
         self.__event.clear()
         return size if self.__event.wait(2.0) else -1
 
@@ -132,35 +155,38 @@ class SocketManager(QtCore.QThread):
 
     def run(self):
         while True:
-            try:
-                # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
-                # data = self.__sockfd.recv(30 * 1024 + 14)
-                data = self.RecvN(self.__sockfd, 30 * 1024 + 14)
-            except socket.error as e:
-                print(e)
+            if self.__RecvN:  # RecvN状态正常
+                try:
+                    # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
+                    # data = self.__sockfd.recv(30 * 1024 + 14)
+                    data = self.RecvN(self.__sockfd, 30 * 1024 + 14)
+                except socket.error as e:
+                    print(e)
 
-            # 解包数据
-            head, checknum, buff = struct.unpack(">13s1B" + str(len(data) - 14) + "s", data)
-            # print(head, checknum, buff, '\n')
-            # 将解包的数据封装为Message结构体
-            m = Message(head.decode().split('\x00')[0], checknum, buff.decode())
-            tmp_checknum = self.msg_check(m)
-            m = Message(head.decode().split('\x00')[0], tmp_checknum, buff.decode().split('\x00')[0])
+                # 解包数据
+                if data is None:
+                    return
+                head, checknum, buff = struct.unpack(">13s1B" + str(len(data) - 14) + "s", data)
+                # print(head, checknum, buff, '\n')
+                # 将解包的数据封装为Message结构体
+                m = Message(head.decode().split('\x00')[0], checknum, buff.decode())
+                tmp_checknum = self.msg_check(m)
+                m = Message(head.decode().split('\x00')[0], tmp_checknum, buff.decode().split('\x00')[0])
 
-            # 将收到的标志位与收到数据重新计算的标志位进行对比+head内容对比
-            if (m.checknum == checknum) and (m.head == "gmqh_sh_2016"):
-                # 打印接收到的数据
-                dict_buff = eval(m.buff)  # str to dict
-                # print("SocketManager.run() 调用self.signal_send_message.emit(dict_buff)之前")
-                self.signal_send_message.emit(dict_buff)
-                # print("SocketManager.run() 调用self.signal_send_message.emit(dict_buff)之后")
-                # time.sleep(5.0)
-                if dict_buff['MsgRef'] == self.__msg_ref:  # 收到服务端发送的收到消息回报
-                    self.__event.set()
-                    print("SocketManager.run() 收到数据，解除收发数据协程锁")
-            else:
-                print("SocketManager.run() 接收到的数据有误", m.buff)
-                continue
+                # 将收到的标志位与收到数据重新计算的标志位进行对比+head内容对比
+                if (m.checknum == checknum) and (m.head == "gmqh_sh_2016"):
+                    # 打印接收到的数据
+                    dict_buff = eval(m.buff)  # str to dict
+                    # print("SocketManager.run() 调用self.signal_send_message.emit(dict_buff)之前")
+                    self.signal_send_message.emit(dict_buff)
+                    # print("SocketManager.run() 调用self.signal_send_message.emit(dict_buff)之后")
+                    # time.sleep(5.0)
+                    if dict_buff['MsgRef'] == self.__msg_ref:  # 收到服务端发送的收到消息回报
+                        self.__event.set()
+                        print("SocketManager.run() 收到数据，解除收发数据协程锁")
+                else:
+                    print("SocketManager.run() 接收到的数据有误", m.buff)
+                    continue
 
 
     """

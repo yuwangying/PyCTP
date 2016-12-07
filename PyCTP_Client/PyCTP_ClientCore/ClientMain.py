@@ -27,6 +27,7 @@ class ClientMain(QtCore.QObject):
         super(ClientMain, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
         self.__list_QAccountWidget = list()  # 存放账户窗口
         self.__create_QAccountWidget_finished = False  # 窗口创建完成
+        self.__showEvent = False  # 有任何一个QAccountWidget窗口显示
 
     def set_SocketManager(self, obj_sm):
         self.__sm = obj_sm
@@ -103,11 +104,12 @@ class ClientMain(QtCore.QObject):
             self.signal_pushButton_set_position_setEnabled.connect(tmpQ.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
             tmpQ.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定标志设置为True
 
-        # 账户窗口添加到QCTP窗口的tab
+        # 账户窗口创建完成，账户窗口添加到QCTP窗口的tab
         for i in self.__list_QAccountWidget:
             self.get_QCTP().tab_accounts.addTab(i, i.get_widget_name())
             self.signal_pushButton_query_strategy_setEnabled.connect(i.pushButton_query_strategy.setEnabled)
             i.signal_update_groupBox_trade_args_for_query.connect(i.update_groupBox_trade_args_for_query)
+            self.__CTPManager.signal_insert_row_table_widget.connect(i.insert_row_table_widget)
 
         # 创建“新建策略”弹窗
         q_new_strategy = NewStrategy()
@@ -119,6 +121,7 @@ class ClientMain(QtCore.QObject):
         q_new_strategy.lineEdit_b_instrument.setCompleter(completer)
         q_new_strategy.set_ClientMain(self)  # ClientMain设置为其属性
         self.set_QNewStrategy(q_new_strategy)  # 设置为ClientMain属性
+        self.__CTPManager.signal_hide_new_strategy.connect(self.get_QNewStrategy().hide)  # 绑定信号槽，新创建策略成功后隐藏“新建策略弹窗”
 
         self.__create_QAccountWidget_finished = True  # 界面初始化完成标志位
 
@@ -191,6 +194,20 @@ class ClientMain(QtCore.QObject):
 
     def get_QNewStrategy(self):
         return self.__QNewStrategy
+
+    # 最后新建的策略设置为其属性
+    def set_obj_new_strategy(self, obj_strategy):
+        self.__obj_new_strategy = obj_strategy
+
+    def get_obj_new_strategy(self):
+        return self.__obj_new_strategy
+
+    # 是否有任何窗口showEvent
+    def set_showEvent(self, bool_input):
+        self.__showEvent = bool_input
+
+    def get_showEvent(self):
+        return self.__showEvent
 
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
@@ -287,7 +304,7 @@ class ClientMain(QtCore.QObject):
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.get_CTPManager().create_strategy(buff['Info'][0])  # 内核创建策略对象
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        pass
+                        print("ClientMain.slot_output_message() ", buff['MsgErrorReason'])
                 elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
                     print("ClientMain.slot_output_message() MsgType=5", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功

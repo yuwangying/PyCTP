@@ -9,6 +9,7 @@ import time
 import os
 import threading
 import chardet
+from PyQt4 import QtCore
 import pandas as pd
 from pandas import Series, DataFrame
 from pymongo import MongoClient
@@ -25,8 +26,12 @@ import socket
 import struct
 
 
-class CTPManager:
-    def __init__(self):
+class CTPManager(QtCore.QObject):
+    signal_insert_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法insert_row_table_widget
+    signal_hide_new_strategy = QtCore.pyqtSignal()  # 隐藏创建策略的小弹窗
+
+    def __init__(self, parent=None):
+        super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
         self.__DBManager = DBManger()  # 创建数据库连接
         self.__MarketManager = None  # 行情管理实例，MarketManager
         self.__trader = None  # 交易员实例
@@ -117,15 +122,15 @@ class CTPManager:
             lastStrategyInfo = self.__ClientMain.get_listStrategyInfo()[-1]
             if len(lastStrategyInfo) > 0:
                 if lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id():
-                    # self.__init_finished = True  # 当前策略初始化完成
                     self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
                     self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
             else:
-                # self.__init_finished = True  # 当前策略初始化完成
                 self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
                 self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
         elif self.__init_finished:  # 程序运行中、初始化已经完成，在界面策略列表框内添加一行
             print(">>> CTPManager.create_strategy() 程序运行中、初始化已经完成，在界面策略列表框内添加一行策略id为", dict_arguments['strategy_id'])
+            self.signal_insert_row_table_widget.emit()  # 在界面策略列表中显示添加的策略
+            self.signal_hide_new_strategy.emit()  # 隐藏创建策略的小弹窗
 
     # 删除strategy
     def delete_strategy(self, dict_arguments):

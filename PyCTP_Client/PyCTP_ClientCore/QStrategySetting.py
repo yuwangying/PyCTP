@@ -54,16 +54,8 @@ class NewStrategy(QWidget, Ui_NewStrategy):
         # TODO: not implemented yet
         # raise NotImplementedError
 
-        # strategy_id除重判断，针对当前user_id的已经存在的策略判断
-        for i_user in self.__ClientMain.get_CTPManager().get_list_user():
-            if i_user.get_user_id().decode() == self.comboBox_user_id.currentText():
-                for i_strategy in i_user.get_list_strategy():
-                    if i_strategy.get_strategy_id() == self.lineEdit_strategy_id.text():
-                        str_output = "不能重复创建策略:" + self.lineEdit_strategy_id.text()
-                        self.label_error_msg.setText(str_output)
-                        return
-            break  # 找到对应的user对象，跳出循环
 
+        # 检查合约代码
         if self.lineEdit_a_instrument.text() not in self.__ClientMain.get_CTPManager().get_list_instrument_id():
             str_output = "不存在合约代码:" + self.lineEdit_a_instrument.text()
             self.label_error_msg.setText(str_output)
@@ -78,12 +70,28 @@ class NewStrategy(QWidget, Ui_NewStrategy):
             return
 
         # 输入验证通过，向服务端发送创建策略指令
+        if len(self.lineEdit_strategy_id.text()) == 1:
+            str_strategy_id = '0' + self.lineEdit_strategy_id.text()
+            self.lineEdit_strategy_id.setText(str_strategy_id)
+        elif len(self.lineEdit_strategy_id.text()) == 2:
+            str_strategy_id = self.lineEdit_strategy_id.text()
+
+        # strategy_id除重判断，针对当前user_id的已经存在的策略判断
+        for i_user in self.__ClientMain.get_CTPManager().get_list_user():
+            if i_user.get_user_id().decode() == self.comboBox_user_id.currentText():
+                for i_strategy in i_user.get_list_strategy():
+                    if i_strategy.get_strategy_id() == str_strategy_id:
+                        str_output = "不能重复创建策略:" + str_strategy_id
+                        self.label_error_msg.setText(str_output)
+                        return
+            break  # 找到对应的user对象，跳出循环
+
         str_output = "正在创建策略：" + self.lineEdit_strategy_id.text()
         self.label_error_msg.setText(str_output)
         dict_info = {
             'trader_id': self.__ClientMain.get_TraderID(),
             'user_id': self.comboBox_user_id.currentText(),
-            'strategy_id': self.lineEdit_strategy_id.text(),
+            'strategy_id': str_strategy_id,
             'list_instrument_id': [self.lineEdit_a_instrument.text(), self.lineEdit_b_instrument.text()],
             'trade_model': '',  # 交易模型
             'order_algorithm': self.__ClientMain.get_listAlgorithmInfo()[0]['name'],  # 下单算法
