@@ -28,6 +28,7 @@ import struct
 
 class CTPManager(QtCore.QObject):
     signal_insert_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法insert_row_table_widget
+    signal_remove_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法remove_row_table_widget
     signal_hide_new_strategy = QtCore.pyqtSignal()  # 隐藏创建策略的小弹窗
 
     def __init__(self, parent=None):
@@ -39,7 +40,8 @@ class CTPManager(QtCore.QObject):
         self.__list_strategy = list()  # 交易策略实例list
         self.__list_instrument_info = list()  # 期货合约信息
         self.__got_list_instrument_info = False  # 获得了期货合约信息
-        self.__on_off = 1  # 策略开关，初始值为关
+        self.__on_off = 0  # 交易员的交易开关，初始值为关
+        self.__only_close = 0  # 交易员的只平，初始值为关
         self.__init_finished = False  # 初始化完成
 
     # 初始化
@@ -134,33 +136,30 @@ class CTPManager(QtCore.QObject):
 
     # 删除strategy
     def delete_strategy(self, dict_arguments):
-        # 判断数据库中是否存在trader_id
-        if self.__DBManager.get_trader(dict_arguments['trader_id']) is None:
-            print("CTPManager.delete_strategy() 数据库中不存在该交易员")
-            return False
-        # 判断数据库中是否存在user_id
-        if self.__DBManager.get_user(dict_arguments['user_id']) is None:
-            print("CTPManager.delete_strategy() 数据库中不存在该期货账户")
-            return False
-        # 判断数据库中是否存在strategy_id
-        if self.__DBManager.get_strategy(dict_arguments) is None:
-            print("CTPManager.delete_strategy() 数据库中不存在该策略")
-            return False
+        print("CTPManager.delete_strategy() 删除策略对象", dict_arguments)
 
-        print('===========================')
-        print("CTPManager.delete_strategy() 删除策略实例", dict_arguments)
-
-        # 将obj_strategy从user实例的list_strategy中删除
-        for i in self.__list_user:
-            if i.get_user_id().decode('utf-8') == dict_arguments['user_id']:
-                i.del_strategy(dict_arguments['strategy_id'])
-
-        # 将obj_strategy从MultiUserSys实例的list_strategy中删除
-        for i in self.__list_strategy:
-            if i.get_strategy_id() == dict_arguments['strategy_id']:
+        # 将obj_strategy从CTPManager的self.__list_strategy中删除
+        for i_strategy in self.__list_strategy:
+            if i_strategy.get_user_id() == dict_arguments['user_id']:
                 # 退订该策略的行情
-                self.__MarketManager.un_sub_market(i.get_list_instrument_id(), dict_arguments['user_id'], dict_arguments['strategy_id'])
-                self.__list_strategy.remove(i)
+                self.__MarketManager.un_sub_market(i_strategy.get_list_instrument_id(),
+                                                   dict_arguments['user_id'],
+                                                   dict_arguments['strategy_id'])
+                self.__list_strategy.remove(i_strategy)
+                print(">>> CTPManager.delete_strategy() 从CTPManager的策略列表中删除策略", dict_arguments)
+                break
+
+        # 将obj_strategy从user中的list_strategy中删除
+        for i_user in self.__list_user:
+            if i_user.get_user_id().decode() == dict_arguments['user_id']:
+                for i_strategy in i_user.get_list_strategy():
+                    if i_strategy.get_strategy_id() == dict_arguments['strategy_id']:
+                        i_user.get_list_strategy().remove(i_strategy)
+                        print(">>> CTPManager.delete_strategy() 从user的策略列表中删除策略", dict_arguments)
+                        break
+
+        # 内核删除策略成功，通知界面删除策略
+        self.signal_remove_row_table_widget.emit()  # 在界面策略列表中删除策略
 
     # 创建数据库连接实例
     def create_DBManager(self):
@@ -214,9 +213,6 @@ class CTPManager(QtCore.QObject):
     def get_YesterdayPosition(self):
         return self.__listYesterdayPosition
 
-    def get_trader_id(self):
-        return self.__trader_id
-
     # 新增trader_id下面的某个期货账户
     def add_user(self, trader_id, broker_id, front_address, user_id, password):
         print('add_user(): trader_id=', trader_id, 'broker_id=', broker_id, 'user_id=', user_id)
@@ -245,17 +241,17 @@ class CTPManager(QtCore.QObject):
         return self.__DBManager.check_trader(trader_id, password)
 
     # 设置交易员id
-    def set_TraderID(self, str_TraderID):
+    def set_trader_id(self, str_TraderID):
         self.__TraderID = str_TraderID
 
     # 获得交易员id
-    def get_TraderID(self):
+    def get_trader_id(self):
         return self.__TraderID
 
-    def set_TraderName(self, str_TraderName):
+    def set_trader_name(self, str_TraderName):
         self.__TraderName = str_TraderName
 
-    def get_TraderName(self):
+    def get_trader_name(self):
         return self.__TraderName
 
     # 设置客户端的交易开关，0关、1开
@@ -265,6 +261,14 @@ class CTPManager(QtCore.QObject):
     # 获取客户端的交易开关，0关、1开
     def get_on_off(self):
         return self.__on_off
+
+    # 设置交易开关，0关、1开
+    def set_only_close(self, int_only_close):
+        self.__only_close = int_only_close
+
+    # 获取交易开关，0关、1开
+    def get_only_close(self):
+        return self.__only_close
 
     # 设置“已经获取到合约信息的状态”
     def set_got_list_instrument_info(self, bool_status):

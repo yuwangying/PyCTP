@@ -370,13 +370,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_only_close">
-        <property name="text">
-         <string>只能平仓</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="pushButton_start_strategy">
         <property name="text">
          <string>开始策略</string>

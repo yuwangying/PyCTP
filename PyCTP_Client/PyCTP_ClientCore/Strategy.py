@@ -117,8 +117,12 @@ class Strategy(QtCore.QObject):
         self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
         self.__a_order_action_limit = dict_args['a_order_action_limit']  # A合约撤单次数限制
         self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
-        self.__on_off = dict_args['StrategyOnoff']  # 策略开关，0关、1开
+        self.__on_off = dict_args['strategy_on_off']  # 策略开关，0关、1开
         self.__only_close = dict_args['only_close']  # 只平，0关、1开
+        self.__sell_open_on_off = dict_args['sell_open_on_off']    # 价差卖开，开关，初始值为1，状态开
+        self.__buy_close_on_off = dict_args['buy_close_on_off']    # 价差买平，开关，初始值为1，状态开
+        self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
+        self.__buy_open_on_off = dict_args['buy_close_on_off']     # 价差买开，开关，初始值为1，状态开
         print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
 
     # 设置持仓
@@ -162,7 +166,7 @@ class Strategy(QtCore.QObject):
         self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
         self.__a_order_action_limit = dict_args['a_order_action_limit']  # A合约撤单次数限制
         self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
-        self.__on_off = dict_args['StrategyOnoff']  # 策略开关，0关、1开
+        self.__on_off = dict_args['strategy_on_off']  # 策略开关，0关、1开
         self.__only_close = dict_args['only_close']  # 只平，0关、1开
 
     # 查询策略昨仓
@@ -316,6 +320,9 @@ class Strategy(QtCore.QObject):
 
     # 获取策略开关
     def get_on_off(self):
+        return self.__on_off
+
+    def set_on_off(self):
         return self.__on_off
 
     def get_spread_short(self):
@@ -1099,57 +1106,6 @@ class Strategy(QtCore.QObject):
             self.__trade_tasking = False
         else:
             self.__trade_tasking = True
-        # if Utils.Strategy_print:
-        #     print("Strategy.update_task_status() 更新后self.__trade_tasking=", self.__trade_tasking)
-
-    """
-    # 更新持仓量变量，共12个变量
-    def update_position(self, dict_args):
-        if Utils.Strategy_print:
-            print("Strategy.update_position() 更新持仓量:")
-        # A成交
-        if dict_args['Order']['InstrumentID'] == self.__list_instrument_id[0]:
-            if dict_args['Order']['CombOffsetFlag'] == '0':  # A开仓成交回报
-                if dict_args['Order']['Direction'] == '0':  # A买开仓成交回报
-                    self.__position_a_buy_today += dict_args['Order']['VolumeTraded']  # 更新持仓
-                elif dict_args['Order']['Direction'] == '1':  # A卖开仓成交回报
-                    self.__position_a_sell_today += dict_args['Order']['VolumeTraded']  # 更新持仓
-            elif dict_args['Order']['CombOffsetFlag'] == '3':  # A平今成交回报
-                if dict_args['Order']['Direction'] == '0':  # A买平今成交回报
-                    self.__position_a_sell_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
-                elif dict_args['Order']['Direction'] == '1':  # A卖平今成交回报
-                    self.__position_a_buy_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
-            elif dict_args['Order']['CombOffsetFlag'] == '4':  # A平昨成交回报
-                if dict_args['Order']['Direction'] == '0':  # A买平昨成交回报
-                    self.__position_a_sell_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
-                elif dict_args['Order']['Direction'] == '1':  # A卖平昨成交回报
-                    self.__position_a_buy_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
-            self.__position_a_buy = self.__position_a_buy_today + self.__position_a_buy_yesterday
-            self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
-        # B成交
-        elif dict_args['Order']['InstrumentID'] == self.__list_instrument_id[1]:
-            if dict_args['Order']['CombOffsetFlag'] == '0':  # B开仓成交回报
-                if dict_args['Order']['Direction'] == '0':  # B买开仓成交回报
-                    self.__position_b_buy_today += dict_args['Order']['VolumeTraded']  # 更新持仓
-                elif dict_args['Order']['Direction'] == '1':  # B卖开仓成交回报
-                    self.__position_b_sell_today += dict_args['Order']['VolumeTraded']  # 更新持仓
-            elif dict_args['Order']['CombOffsetFlag'] == '3':  # B平今成交回报
-                if dict_args['Order']['Direction'] == '0':  # B买平今成交回报
-                    self.__position_b_sell_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
-                elif dict_args['Order']['Direction'] == '1':  # B卖平今成交回报
-                    self.__position_b_buy_today -= dict_args['Order']['VolumeTraded']  # 更新持仓
-            elif dict_args['Order']['CombOffsetFlag'] == '4':  # B平昨成交回报
-                if dict_args['Order']['Direction'] == '0':  # B买平昨成交回报
-                    self.__position_b_sell_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
-                elif dict_args['Order']['Direction'] == '1':  # B卖平昨成交回报
-                    self.__position_b_buy_yesterday -= dict_args['Order']['VolumeTraded']  # 更新持仓
-            self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
-            self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
-        if Utils.Strategy_print:
-            print("     B合约：今买、昨买、总买", self.__position_b_buy_today, self.__position_b_buy_yesterday, self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today, self.__position_b_sell_yesterday, self.__position_b_sell)
-        if Utils.Strategy_print:
-            print("     A合约：今买、昨买、总买", self.__position_a_buy_today, self.__position_a_buy_yesterday, self.__position_a_buy, "今卖、昨卖、总卖", self.__position_a_sell_today, self.__position_a_sell_yesterday, self.__position_a_sell)
-    """
     
     # 更新持仓量变量，共12个变量
     def update_position(self, Trade):

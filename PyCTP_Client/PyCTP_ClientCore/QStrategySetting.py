@@ -158,8 +158,8 @@ class NewStrategy(QWidget, Ui_NewStrategy):
                     self.comboBox_user_id.setCurrentIndex(i_row)
         else:  # 单账户窗口
             self.comboBox_user_id.clear()  # 清空菜单选项
-            if self.comboBox_user_id.findText(self.__ClientMain.get_showQAccountWidget().get_clicked_status()['user_id'], QtCore.Qt.MatchExactly) == -1:
-                self.comboBox_user_id.insertItem(0, self.__ClientMain.get_showQAccountWidget().get_clicked_status()['user_id'])
+            if self.comboBox_user_id.findText(self.__ClientMain.get_showQAccountWidget().get_widget_name(), QtCore.Qt.MatchExactly) == -1:
+                self.comboBox_user_id.insertItem(0, self.__ClientMain.get_showQAccountWidget().get_widget_name())
 
         # 清空lineEdit
         self.lineEdit_strategy_id.clear()

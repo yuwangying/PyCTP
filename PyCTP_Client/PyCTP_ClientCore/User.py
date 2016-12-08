@@ -67,7 +67,8 @@ class User:
         self.__session_id = self.__trade.get_session_id()  # 获取会话编号
         self.__TradingDay = self.__trade.GetTradingDay().decode()  # 获取交易日
 
-        self.__on_off = 1  # 策略交易开关，0关、1开
+        self.__on_off = 0  # user的交易开关，初始值为关
+        self.__only_close = 0  # user的只平，初始值为关
 
         self.__init_finished = False  # 初始化完成
 
@@ -166,6 +167,14 @@ class User:
     # 获取user的交易开关，0关、1开
     def get_on_off(self):
         return self.__on_off
+
+    # 设置user的交易开关，0关、1开
+    def set_only_close(self, int_only_close):
+        self.__only_close = int_only_close
+
+    # 获取user的交易开关，0关、1开
+    def get_only_close(self):
+        return self.__only_close
 
     # 设置user初始化状态
     def set_init_finished(self, bool_input):

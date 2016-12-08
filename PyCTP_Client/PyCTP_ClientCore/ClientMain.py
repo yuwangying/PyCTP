@@ -110,6 +110,7 @@ class ClientMain(QtCore.QObject):
             self.signal_pushButton_query_strategy_setEnabled.connect(i.pushButton_query_strategy.setEnabled)
             i.signal_update_groupBox_trade_args_for_query.connect(i.update_groupBox_trade_args_for_query)
             self.__CTPManager.signal_insert_row_table_widget.connect(i.insert_row_table_widget)
+            self.__CTPManager.signal_remove_row_table_widget.connect(i.remove_row_table_widget)
 
         # 创建“新建策略”弹窗
         q_new_strategy = NewStrategy()
@@ -221,8 +222,8 @@ class ClientMain(QtCore.QObject):
                     if buff['MsgResult'] == 0:  # 验证通过
                         # self.get_QLoginForm().label_login_error.setText(buff['MsgErrorReason'])  # 界面提示信息
                         self.get_QLoginForm().label_login_error.setText('登陆成功，初始化中...')  # 界面提示信息
-                        self.__CTPManager.set_TraderID(buff['TraderID'])  # 将TraderID设置为CTPManager的属性
-                        self.__CTPManager.set_TraderName(buff['TraderName'])  # 将TraderID设置为CTPManager的属性
+                        self.__CTPManager.set_trader_id(buff['TraderID'])  # 将TraderID设置为CTPManager的属性
+                        self.__CTPManager.set_trader_name(buff['TraderName'])  # 将TraderID设置为CTPManager的属性
                         # self.__CTPManager.create_trader({"trader_id": buff['TraderID'], "trader_name": buff['TraderName']})
                         self.__TraderID = buff['TraderID']
                         self.__TraderName = buff['TraderName']
@@ -298,7 +299,7 @@ class ClientMain(QtCore.QObject):
                                 break
                         self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        pass
+                        print("ClientMain.slot_output_message() MsgType=3 查询策略失败")
                 elif buff['MsgType'] == 6:  # 新建策略，MsgType=6
                     print("ClientMain.slot_output_message() MsgType=6", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
@@ -313,10 +314,8 @@ class ClientMain(QtCore.QObject):
                                     and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_arguments(buff['Info'][0])
                             break
-                        # 待续：刷新界面参数值update_groupBox_trade_args_for_query
-                        pass
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        pass
+                        print("ClientMain.slot_output_message() MsgType=5 修改策略参数失败")
                 elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
                     print("ClientMain.slot_output_message() MsgType=12", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
@@ -329,13 +328,14 @@ class ClientMain(QtCore.QObject):
                         self.signal_pushButton_set_position_setEnabled.emit()  # 激活设置持仓按钮，禁用仓位输入框
                         pass
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        pass
+                        print("ClientMain.slot_output_message() MsgType=12 修改策略持仓失败")
                 elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
                     print("ClientMain.slot_output_message() MsgType=7", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        pass
+                        dict_args = {'user_id': buff['UserID'], 'strategy_id': buff['StrategyID']}
+                        self.__CTPManager.delete_strategy(dict_args)
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        pass
+                        print("ClientMain.slot_output_message() MsgType=7 删除策略失败")
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
@@ -394,7 +394,7 @@ class ClientMain(QtCore.QObject):
             'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
             'MsgSrc': 0,  # 消息源，客户端0，服务端1
             'MsgType': 10,  # 查询策略昨仓
-            'TraderID': self.__CTPManager.get_TraderID(),
+            'TraderID': self.__CTPManager.get_trader_id(),
             'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的策略
             }
         json_QryYesterdayPosition = json.dumps(dict_QryYesterdayPosition)
