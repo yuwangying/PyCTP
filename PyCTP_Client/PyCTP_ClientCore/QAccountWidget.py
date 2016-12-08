@@ -221,7 +221,6 @@ class QAccountWidget(QWidget, Ui_Form):
                     self.tableWidget_Trade_Args.setItem(i_row, 13, item_average_shift)  # 平均滑点
                     self.tableWidget_Trade_Args.setItem(i_row, 14, item_trade_model)  # 交易模型
                     self.tableWidget_Trade_Args.setItem(i_row, 15, item_order_algorithm)  # 下单算法
-                    # self.update_tableWidget_Trade_Args(i_strategy)
                 self.on_tableWidget_Trade_Args_cellClicked(0, 0)
         else:  # 总账户窗口
             i_row = -1  # table的行标
@@ -430,11 +429,9 @@ class QAccountWidget(QWidget, Ui_Form):
         for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():  # 遍历所有策略
             for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历行
                 # 策略与行对应
-                print(">>> QAccountWidget.update_tableWidget_Trade_Args_init() self.tableWidget_Trade_Args.item(i_row, 2).text() == i_strategy.get_user_id()", self.tableWidget_Trade_Args.item(i_row, 2).text(), i_strategy.get_user_id(), type(self.tableWidget_Trade_Args.item(i_row, 2).text()), type(i_strategy.get_user_id()))
                 if self.tableWidget_Trade_Args.item(i_row, 2).text() == i_strategy.get_user_id() and self.tableWidget_Trade_Args.item(i_row, 3).text() == i_strategy.get_strategy_id():
                     position = i_strategy.get_position()['position_a_buy'] + i_strategy.get_position()['position_a_sell']
                     self.tableWidget_Trade_Args.item(i_row, 7).setText(str(position))
-                    print(">>> QAccountWidget.update_tableWidget_Trade_Args_init() position=", position)
 
     # 初始化界面：策略参数框中的下单算法选项
     def init_groupBox_trade_args_trade_algorithm(self, list_algorithm):

@@ -32,6 +32,9 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
         MainWindow.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/img/rocket.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        MainWindow.setWindowIcon(icon)
         self.centralWidget = QtGui.QWidget(MainWindow)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -92,6 +95,7 @@ class Ui_MainWindow(object):
         self.menu_report.setTitle(_translate("MainWindow", "报告", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
 
+import image_rc
 
 if __name__ == "__main__":
     import sys

@@ -22,6 +22,10 @@
   <property name="windowTitle">
    <string>QCTP</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../PyCTP_ClientCore/image.qrc">
+    <normaloff>:/img/rocket.ico</normaloff>:/img/rocket.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -105,7 +109,9 @@
    </attribute>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../PyCTP_ClientCore/image.qrc"/>
+ </resources>
  <connections/>
  <designerdata>
   <property name="gridDeltaX">

@@ -284,11 +284,8 @@ class ClientMain(QtCore.QObject):
                         # 遍历窗口实例，找到显示在最前端的窗口
                         for i_widget in self.__list_QAccountWidget:
                             if i_widget.get_widget_name() == self.get_show_widget_name():
-                                # print(">>> 找到显示在最前的窗口， widget_name=", self.get_show_widget_name())
                                 # 遍历策略实例
                                 for i_strategy in self.__CTPManager.get_list_strategy():
-                                    # 找到被鼠标选中的策略
-                                    # if i_strategy.get_user_id() == i_widget.get_clicked_status()['user_id'] and i_strategy.get_strategy_id() == i_widget.get_clicked_status()['strategy_id']:
                                     # 找到groupBox中显示的策略
                                     if i_strategy.get_user_id() == i_widget.comboBox_qihuozhanghao.currentText() \
                                             and i_strategy.get_strategy_id() == i_widget.comboBox_celuebianhao.currentText():
@@ -415,6 +412,25 @@ class ClientMain(QtCore.QObject):
         # self.get_SocketManager().send_msg(json_CreateStrategy)
         self.signal_send_msg.emit(json_CreateStrategy)
 
+    # 所有窗口中更新单个策略的参数显示，一个策略对应两个窗口（总账户窗口、策略所属的单账户窗口）
+    def update_tableWidget_Trade_Args(self, obj_strategy):
+        # 遍历窗口
+        for i_widget in self.__list_QAccountWidget:
+            if i_widget.get_widget_name() in [obj_strategy.get_user_id(), "所有账户"]:
+                for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历界面的策略参数表
+                    # 找到行的user_id、strategy_id与策略实例一致
+                    if i_widget.tableWidget_Trade_Args.item(i_row, 2).text() == obj_strategy.get_user_id() and i_widget.tableWidget_Trade_Args.item(i_row, 3).text() == obj_strategy.get_strategy_id():
+                        position = obj_strategy.get_position()['position_a_buy'] + obj_strategy.get_position()['position_a_sell']
+                        i_widget.tableWidget_Trade_Args.item(i_row, 5).setText(str(position))  # 总持仓
+                        i_widget.tableWidget_Trade_Args.item(i_row, 6).setText(str(obj_strategy.get_position()['position_a_buy']))  # 买持仓
+                        i_widget.tableWidget_Trade_Args.item(i_row, 7).setText(str(obj_strategy.get_position()['position_a_sell']))  # 卖持仓
+                        i_widget.tableWidget_Trade_Args.item(i_row, 8).setText('shouxufei')  # 持仓盈亏
+                        i_widget.tableWidget_Trade_Args.item(i_row, 9).setText('shouxufei')  # 平仓盈亏
+                        i_widget.tableWidget_Trade_Args.item(i_row, 10).setText('shouxufei')  # 手续费
+                        i_widget.tableWidget_Trade_Args.item(i_row, 11).setText('chengjiaoliang')  # 成交量
+                        i_widget.tableWidget_Trade_Args.item(i_row, 12).setText("chengjiaojin'e")  # 成交金额
+                        i_widget.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
+                        # 缺少统计类指标。。。待续
 
 if __name__ == '__main__':
 
