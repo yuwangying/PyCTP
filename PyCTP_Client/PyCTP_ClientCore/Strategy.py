@@ -318,12 +318,19 @@ class Strategy(QtCore.QObject):
             if i['InstrumentID'] == instrument_id:
                 return i['PriceTick']
 
-    # 获取策略开关
+    # 获取策略交易开关
     def get_on_off(self):
         return self.__on_off
 
-    def set_on_off(self):
-        return self.__on_off
+    def set_on_off(self, int_input):
+        self.__on_off = int_input
+
+    # 获取策略只平开关
+    def get_only_close(self):
+        return self.__only_close
+
+    def set_only_close(self, int_input):
+        self.__only_close = int_input
 
     def get_spread_short(self):
         return self.__spread_short

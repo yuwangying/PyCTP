@@ -32,6 +32,9 @@ class Ui_LoginForm(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(LoginForm.sizePolicy().hasHeightForWidth())
         LoginForm.setSizePolicy(sizePolicy)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/image/bee.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        LoginForm.setWindowIcon(icon)
         LoginForm.setStyleSheet(_fromUtf8(""))
         self.verticalLayout = QtGui.QVBoxLayout(LoginForm)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
@@ -73,8 +76,8 @@ class Ui_LoginForm(object):
         LoginForm.setTabOrder(self.pushButton_login, self.pushButton_cancel)
 
     def retranslateUi(self, LoginForm):
-        LoginForm.setWindowTitle(_translate("LoginForm", "Form", None))
-        self.groupBox_login_form.setTitle(_translate("LoginForm", "登录项", None))
+        LoginForm.setWindowTitle(_translate("LoginForm", "登录", None))
+        self.groupBox_login_form.setTitle(_translate("LoginForm", "登录", None))
         self.pushButton_login.setText(_translate("LoginForm", "登录", None))
         self.pushButton_login.setShortcut(_translate("LoginForm", "Return", None))
         self.pushButton_cancel.setText(_translate("LoginForm", "取消", None))
@@ -83,6 +86,7 @@ class Ui_LoginForm(object):
         self.label_trader_password.setText(_translate("LoginForm", "交易员密码", None))
         self.checkBox_isoffline.setText(_translate("LoginForm", "脱机登录", None))
 
+import img_rc
 
 if __name__ == "__main__":
     import sys

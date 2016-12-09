@@ -23,8 +23,8 @@
    <string>QCTP</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../PyCTP_ClientCore/image.qrc">
-    <normaloff>:/img/rocket.ico</normaloff>:/img/rocket.ico</iconset>
+   <iconset resource="img.qrc">
+    <normaloff>:/image/bee.ico</normaloff>:/image/bee.ico</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
@@ -110,7 +110,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../PyCTP_ClientCore/image.qrc"/>
+  <include location="img.qrc"/>
  </resources>
  <connections/>
  <designerdata>

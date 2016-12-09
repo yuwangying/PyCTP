@@ -210,6 +210,19 @@ class ClientMain(QtCore.QObject):
     def get_showEvent(self):
         return self.__showEvent
 
+    # 被鼠标点击的策略实例对象为该类属性，全局唯一
+    def set_clicked_strategy(self, obj_strategy):
+        self.__clicked_strategy = obj_strategy
+
+    def get_clicked_strategy(self):
+        return self.__clicked_strategy
+
+    def set_clicked_item(self, obj_item):
+        self.__clicked_item = obj_item
+
+    def get_clicked_item(self):
+        return self.__clicked_item
+
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
     def slot_output_message(self, buff):
@@ -333,6 +346,30 @@ class ClientMain(QtCore.QObject):
                         self.__CTPManager.delete_strategy(dict_args)
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=7 删除策略失败")
+                elif buff['MsgType'] == 13:  # 修改策略交易开关
+                    print("ClientMain.slot_output_message() MsgType=13", buff)
+                    if buff['MsgResult'] == 0:  # 消息结果成功
+                        for i_strategy in self.__CTPManager.get_list_strategy():
+                            print(">>> if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:", i_strategy.get_user_id(), buff['UserID'], i_strategy.get_strategy_id(), buff['StrategyID'])
+                            if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
+                                i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
+                                # 更新界面item的文本
+                                # 设置当前item的状态属性(与操作)
+                                self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
+                                break
+                    elif buff['MsgResult'] == 1:  # 消息结果失败
+                        print("ClientMain.slot_output_message() MsgType=13 修改策略交易开关失败")
+                elif buff['MsgType'] == 14:  # 修改策略只平开关
+                    print("ClientMain.slot_output_message() MsgType=14", buff)
+                    if buff['MsgResult'] == 0:  # 消息结果成功
+                        for i_strategy in self.__CTPManager.get_list_strategy():
+                            print(">>> if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:", i_strategy.get_user_id(), buff['UserID'], i_strategy.get_strategy_id(), buff['StrategyID'])
+                            if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
+                                i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
+                                # 待续，将界面中的item解禁
+                                break
+                    elif buff['MsgResult'] == 1:  # 消息结果失败
+                        print("ClientMain.slot_output_message() MsgType=14 修改策略只平开关失败")
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
@@ -412,6 +449,66 @@ class ClientMain(QtCore.QObject):
         # self.get_SocketManager().send_msg(json_CreateStrategy)
         self.signal_send_msg.emit(json_CreateStrategy)
 
+    # 交易员的交易开关
+    def SendTraderOnOff(self, dict_info):
+        dict_CreateStrategy = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 6,  # 期货账户的交易开关
+            'TraderID': self.get_TraderID(),
+            'UserID': dict_info['user_id'],
+            'Info': [dict_info]
+        }
+        json_CreateStrategy = json.dumps(dict_CreateStrategy)
+        # self.get_SocketManager().send_msg(json_CreateStrategy)
+        self.signal_send_msg.emit(json_CreateStrategy)
+
+    # 期货账户的交易开关
+    def SendUserOnOff(self, dict_info):
+        dict_CreateStrategy = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 6,  # 期货账户的交易开关
+            'TraderID': self.get_TraderID(),
+            'UserID': dict_info['user_id'],
+            'Info': [dict_info]
+        }
+        json_CreateStrategy = json.dumps(dict_CreateStrategy)
+        # self.get_SocketManager().send_msg(json_CreateStrategy)
+        self.signal_send_msg.emit(json_CreateStrategy)
+
+    # 策略交易开关
+    def SendStrategyOnOff(self, dict_args):
+        dict_SendStrategyOnOff = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 13,  # 策略交易开关
+            'TraderID': self.get_TraderID(),
+            'UserID': dict_args['user_id'],
+            'StrategyID': dict_args['strategy_id'],
+            'OnOff': dict_args['on_off']
+        }
+        json_SendStrategyOnOff = json.dumps(dict_SendStrategyOnOff)
+        self.signal_send_msg.emit(json_SendStrategyOnOff)
+
+    # 策略只平开关
+    def SendStrategyOnlyClose(self, dict_args):
+        dict_StrategyOnlyClose = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 14,  # 策略只平开关
+            'TraderID': self.get_TraderID(),
+            'UserID': dict_args['user_id'],
+            'StrategyID': dict_args['strategy_id'],
+            'OnOff': dict_args['on_off']
+        }
+        json_StrategyOnlyClose = json.dumps(dict_StrategyOnlyClose)
+        self.signal_send_msg.emit(json_StrategyOnlyClose)
+
     # 所有窗口中更新单个策略的参数显示，一个策略对应两个窗口（总账户窗口、策略所属的单账户窗口）
     def update_tableWidget_Trade_Args(self, obj_strategy):
         # 遍历窗口
@@ -432,6 +529,17 @@ class ClientMain(QtCore.QObject):
                         i_widget.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
                         # 缺少统计类指标。。。待续
 
+    # 更新策略开关在Item中的显示文字“开”或者“关”，一个策略对应两个窗口（总账户窗口、策略所属的单账户窗口）
+    def update_tableWidgetItem_Onoff(self, obj_strategy):
+        # 遍历窗口
+        for i_widget in self.__list_QAccountWidget:
+            if i_widget.get_widget_name() in [obj_strategy.get_user_id(), "所有账户"]:
+                for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历界面的策略参数表
+                    # 找到行的user_id、strategy_id与策略实例一致
+                    if i_widget.tableWidget_Trade_Args.item(i_row, 2).text() == obj_strategy.get_user_id() \
+                            and i_widget.tableWidget_Trade_Args.item(i_row, 3).text() == obj_strategy.get_strategy_id():
+                        pass
+
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
@@ -441,7 +549,6 @@ if __name__ == '__main__':
     file.open(QtCore.QFile.ReadOnly)
     styleSheet = file.readAll().data().decode("utf-8")
     file.close()
-    # QtGui.qApp.setStyleSheet(styleSheet)
 
     q_client_main = ClientMain()  # 创建客户端主界面实例
     ctp_manager = CTPManager()  # 创建客户端内核管理实例
@@ -456,15 +563,6 @@ if __name__ == '__main__':
     q_ctp = QCTP()  # 创建最外围的大窗口
     q_login_form.set_QCTP(q_ctp)
     q_client_main.set_QCTP(q_ctp)
-
-    # q_login_form.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为LoginForm的属性
-    # q_client_main.set_dict_QAccountWidget(dict_QAccountWidget)  # 账户窗口字典设置为ClientMain的属性
-    # q_ctp.tab_accounts.addTab(dict_QAccountWidget['总账户'], '总账户')  # 账户窗口添加到QCTP窗口的tab
-    # print('>>>>>>>>>>>len(ctp_manager.get_list_user()=', len(ctp_manager.get_list_user()))
-    # for i in ctp_manager.get_list_user():
-    #     tmp = QAccountWidget()
-    #     dict_QAccountWidget = {i.get_user_id(): tmp}  # 创建单个账户QAccountWidget，键名为user_id
-    #     q_ctp.tab_accounts.addTab(dict_QAccountWidget[i.get_user_id()], i.get_user_id())  # 账户窗口添加到QCTP窗口的tab
 
     print("if __name__ == '__main__'")
     sys.exit(app.exec_())
