@@ -140,7 +140,7 @@ class Strategy(QtCore.QObject):
         self.__position_b_sell = dict_args['position_b_sell']
         self.__position_b_sell_today = dict_args['position_b_sell_today']
         self.__position_b_sell_yesterday = dict_args['position_b_sell_yesterday']
-        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
+        print(">>> Strategy.set_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
 
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):

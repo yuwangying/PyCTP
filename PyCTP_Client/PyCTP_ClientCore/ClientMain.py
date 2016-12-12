@@ -223,6 +223,12 @@ class ClientMain(QtCore.QObject):
     def get_clicked_item(self):
         return self.__clicked_item
 
+    def set_show_widget(self, obj_widget):
+        self.__show_widget = obj_widget
+
+    def get_show_widget(self):
+        return self.__show_widget
+
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
     def slot_output_message(self, buff):
@@ -298,15 +304,12 @@ class ClientMain(QtCore.QObject):
                         for i_widget in self.__list_QAccountWidget:
                             if i_widget.get_widget_name() == self.get_show_widget_name():
                                 # 遍历策略实例
+                                # 找到groupBox中显示的策略
                                 for i_strategy in self.__CTPManager.get_list_strategy():
-                                    # 找到groupBox中显示的策略
-                                    if i_strategy.get_user_id() == i_widget.comboBox_qihuozhanghao.currentText() \
-                                            and i_strategy.get_strategy_id() == i_widget.comboBox_celuebianhao.currentText():
+                                    if i_strategy.get_user_id() == i_widget.comboBox_qihuozhanghao.currentText() and i_strategy.get_strategy_id() == self.__show_widget.comboBox_celuebianhao.currentText():
                                         # 通过信号槽，将策略参数传递给界面对象，更新参数框
-                                        print(">>> ClientMain.slot_output_message() i_strategy.get_arguments()=", i_strategy.get_arguments())
-                                        i_widget.signal_update_groupBox_trade_args_for_query.emit(i_strategy.get_arguments())
+                                        i_widget.signal_update_groupBox_trade_args_for_query.emit(i_strategy)
                                         break
-                                break
                         self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=3 查询策略失败")
@@ -324,6 +327,8 @@ class ClientMain(QtCore.QObject):
                                     and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_arguments(buff['Info'][0])
                             break
+                        for i_widget in self.__list_QAccountWidget:
+                            i_widget.update_groupBox_trade_args_for_set()  # 更新策略参数框goupBox
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=5 修改策略参数失败")
                 elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12

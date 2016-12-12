@@ -9,6 +9,7 @@ from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtCore import QPoint
 from Ui_QAccountWidget import Ui_Form
 import json
+import Strategy
 
 
 try:
@@ -31,7 +32,7 @@ class QAccountWidget(QWidget, Ui_Form):
     Class documentation goes here.
     """
     Signal_SendMsg = QtCore.pyqtSignal(str)  # 自定义信号
-    signal_update_groupBox_trade_args_for_query = QtCore.pyqtSignal(dict)  # 定义信号：更新界面参数框
+    signal_update_groupBox_trade_args_for_query = QtCore.pyqtSignal(Strategy.Strategy)  # 定义信号：更新界面参数框
 
     def __init__(self, str_widget_name, obj_user=None, list_user=None, parent=None, ClientMain=None):
         print("QAccountWidget.__init__() obj_user=", obj_user, "list_user=", list_user)
@@ -98,7 +99,8 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def showEvent(self, QShowEvent):
         # print(">>> showEvent()", self.objectName(), "widget_name=", self.__widget_name)
-        self.__ClientMain.set_show_widget_name(self.__widget_name)
+        self.__ClientMain.set_show_widget(self)  # 显示在最前端的窗口设置为ClientMain的属性，全局唯一
+        self.__ClientMain.set_show_widget_name(self.__widget_name)  # 显示在最前端的窗口名称设置为ClientMain的属性，全局唯一
         self.__ClientMain.set_showEvent(True)  # 是否有任何窗口显示了
         for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
             i_strategy.set_show_widget_name(self.__widget_name)  # 前端窗口名称设置为strategy的属性
@@ -455,8 +457,8 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.tableWidget_Trade_Args.item(i_row, 12).setText("chengjiaojin'e")  # 成交金额
                 self.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
 
-    # 更新界面：“策略参数”框（groupBox_trade_args）
-    def update_groupBox_trade_args(self):
+    # 更新界面：“策略参数”框（groupBox_trade_args），更新策略参数框-鼠标点击策略列表中策略事件，一次最多更新一个窗口的groupBox
+    def update_groupBox(self):
         # print(">>> QAccountWidget.update_groupBox_trade_args() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
         # 设置期货账号选项
         if self.is_single_user():  # 单账户页面
@@ -499,7 +501,6 @@ class QAccountWidget(QWidget, Ui_Form):
                         if self.comboBox_celuebianhao.findText(i_strategy.get_strategy_id(), QtCore.Qt.MatchExactly) == -1:
                             i_row += 1
                             self.comboBox_celuebianhao.insertItem(i_row, i_strategy.get_strategy_id())
-
             # item中显示当前鼠标所选中的strategy_id
             for i_row in range(self.comboBox_celuebianhao.count()):
                 if self.comboBox_celuebianhao.itemText(i_row) == self.__clicked_status['strategy_id']:
@@ -514,44 +515,110 @@ class QAccountWidget(QWidget, Ui_Form):
                         self.comboBox_xiadansuanfa.setCurrentIndex(i_row)
                 break
 
-        # 设置固定参数：总手、每份、止损、超价触发、A等待、B等待、A限制、B限制、空头开、空头平、多头开、多头平、A总卖、A今卖、B总买、B今买、A总买、A总买、B总卖、B总卖
-        # if self.is_single_user():  # 单账户页面
-        # else:  # 总账户页面
-        # 在当前窗口，显示鼠标选中策略的参数框
+        # 交易参数和持仓
         for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
             if self.__clicked_status['user_id'] == i_strategy.get_user_id() and self.__clicked_status['strategy_id'] == i_strategy.get_strategy_id():
                 # print(">>> QAccountWidget.update_groupBox_trade_args() widget_name=", self.__widget_name, "user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id(), "刷新策略参数框的参数")
-                self.lineEdit_zongshou.setText(str(i_strategy.get_arguments()['lots']))  # 总手
-                self.lineEdit_meifen.setText(str(i_strategy.get_arguments()['lots_batch']))  # 每份
-                self.spinBox_zhisun.setValue(i_strategy.get_arguments()['stop_loss'])  # 止损
-                self.spinBox_rangjia.setValue(i_strategy.get_arguments()['spread_shift'])  # 超价触发
-                self.spinBox_Adengdai.setValue(i_strategy.get_arguments()['a_wait_price_tick'])  # A等待
-                self.spinBox_Bdengdai.setValue(i_strategy.get_arguments()['b_wait_price_tick'])  # B等待
-                self.lineEdit_Achedanxianzhi.setText(str(i_strategy.get_arguments()['a_order_action_limit']))  # A限制（撤单次数）
-                self.lineEdit_Bchedanxianzhi.setText(str(i_strategy.get_arguments()['b_order_action_limit']))  # B限制（撤单次数）
-                self.doubleSpinBox_kongtoukai.setValue(i_strategy.get_arguments()['sell_open'])  # 空头开（卖开价差）
-                self.doubleSpinBox_kongtouping.setValue(i_strategy.get_arguments()['buy_close'])  # 空头平（买平价差）
-                self.doubleSpinBox_duotoukai.setValue(i_strategy.get_arguments()['buy_open'])  # 多头开（买开价差）
-                self.doubleSpinBox_duotouping.setValue(i_strategy.get_arguments()['sell_close'])  # 多头平（卖平价差）
-                self.lineEdit_Azongsell.setText(str(i_strategy.get_position()['position_a_sell']))  # A总卖
-                self.lineEdit_Ajinsell.setText(str(i_strategy.get_position()['position_a_sell_today']))  # A今卖
-                self.lineEdit_Bzongbuy.setText(str(i_strategy.get_position()['position_b_buy']))  # B总买
-                self.lineEdit_Bjinbuy.setText(str(i_strategy.get_position()['position_b_buy_today']))  # B今买
-                self.lineEdit_Azongbuy.setText(str(i_strategy.get_position()['position_a_buy']))  # A总买
-                self.lineEdit_Ajinbuy.setText(str(i_strategy.get_position()['position_a_buy_today']))  # A今买
-                self.lineEdit_Bzongsell.setText(str(i_strategy.get_position()['position_b_sell']))  # B总卖
-                self.lineEdit_Bjinsell.setText(str(i_strategy.get_position()['position_b_sell_today']))  # B今卖
+                # 更新交易参数
+                dict_args = i_strategy.get_arguments()
+                self.lineEdit_zongshou.setText(str(dict_args['lots']))  # 总手
+                self.lineEdit_meifen.setText(str(dict_args['lots_batch']))  # 每份
+                self.spinBox_zhisun.setValue(dict_args['stop_loss'])  # 止损
+                self.spinBox_rangjia.setValue(dict_args['spread_shift'])  # 超价触发
+                self.spinBox_Adengdai.setValue(dict_args['a_wait_price_tick'])  # A等待
+                self.spinBox_Bdengdai.setValue(dict_args['b_wait_price_tick'])  # B等待
+                self.lineEdit_Achedanxianzhi.setText(str(dict_args['a_order_action_limit']))  # A限制（撤单次数）
+                self.lineEdit_Bchedanxianzhi.setText(str(dict_args['b_order_action_limit']))  # B限制（撤单次数）
+                self.doubleSpinBox_kongtoukai.setValue(dict_args['sell_open'])  # 空头开（卖开价差）
+                self.doubleSpinBox_kongtouping.setValue(dict_args['buy_close'])  # 空头平（买平价差）   
+                self.doubleSpinBox_duotoukai.setValue(dict_args['buy_open'])  # 多头开（买开价差）
+                self.doubleSpinBox_duotouping.setValue(dict_args['sell_close'])  # 多头平（卖平价差）
+                if dict_args['sell_open_on_off'] == 0:
+                    self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)  # 空头开-开关
+                elif dict_args['sell_open_on_off'] == 1:
+                    self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)  # 空头开-开关
+                if dict_args['buy_close_on_off'] == 0:
+                    self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)  # 空头平-开关
+                elif dict_args['buy_close_on_off'] == 1:
+                    self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)  # 空头平-开关
+                if dict_args['buy_open_on_off'] == 0:
+                    self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)  # 多头开-开关
+                elif dict_args['buy_open_on_off'] == 1:
+                    self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)  # 多头开-开关
+                if dict_args['sell_close_on_off'] == 0:
+                    self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)  # 多头平-开关
+                elif dict_args['sell_close_on_off'] == 1:
+                    self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)  # 多头平-开关
+                # 更新持仓
+                dict_position = i_strategy.get_position()
+                self.lineEdit_Azongsell.setText(str(dict_position['position_a_sell']))  # A总卖
+                self.lineEdit_Ajinsell.setText(str(dict_position['position_a_sell_today']))  # A今卖
+                self.lineEdit_Bzongbuy.setText(str(dict_position['position_b_buy']))  # B总买
+                self.lineEdit_Bjinbuy.setText(str(dict_position['position_b_buy_today']))  # B今买
+                self.lineEdit_Azongbuy.setText(str(dict_position['position_a_buy']))  # A总买
+                self.lineEdit_Ajinbuy.setText(str(dict_position['position_a_buy_today']))  # A今买
+                self.lineEdit_Bzongsell.setText(str(dict_position['position_b_sell']))  # B总卖
+                self.lineEdit_Bjinsell.setText(str(dict_position['position_b_sell_today']))  # B今卖
+
+    # 点击“发送”按钮后的参数更新，要更新的策略为goupBox中显示的user_id、strategy_id对应的
+    def update_groupBox_trade_args_for_set(self):
+        # 遍历策略列表，找到与界面显示相同的策略对象实例
+        for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
+            if i_strategy.get_user_id() == self.comboBox_qihuozhanghao.currentText() and i_strategy.get_strategy_id() == self.comboBox_celuebianhao.currentText():
+                dict_args = i_strategy.get_arguments()
+                self.lineEdit_zongshou.setText(str(dict_args['lots']))  # 总手
+                self.lineEdit_meifen.setText(str(dict_args['lots_batch']))  # 每份
+                self.spinBox_zhisun.setValue(dict_args['stop_loss'])  # 止损
+                self.spinBox_rangjia.setValue(dict_args['spread_shift'])  # 超价触发
+                self.spinBox_Adengdai.setValue(dict_args['a_wait_price_tick'])  # A等待
+                self.spinBox_Bdengdai.setValue(dict_args['b_wait_price_tick'])  # B等待
+                self.lineEdit_Achedanxianzhi.setText(str(dict_args['a_order_action_limit']))  # A限制（撤单次数）
+                self.lineEdit_Bchedanxianzhi.setText(str(dict_args['b_order_action_limit']))  # B限制（撤单次数）
+                self.doubleSpinBox_kongtoukai.setValue(dict_args['sell_open'])  # 空头开（卖开价差）
+                self.doubleSpinBox_kongtouping.setValue(dict_args['buy_close'])  # 空头平（买平价差）
+                self.doubleSpinBox_duotoukai.setValue(dict_args['buy_open'])  # 多头开（买开价差）
+                self.doubleSpinBox_duotouping.setValue(dict_args['sell_close'])  # 多头平（卖平价差）
+                if dict_args['sell_open_on_off'] == 0:
+                    self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)  # 空头开-开关
+                elif dict_args['sell_open_on_off'] == 1:
+                    self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)  # 空头开-开关
+                if dict_args['buy_close_on_off'] == 0:
+                    self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)  # 空头平-开关
+                elif dict_args['buy_close_on_off'] == 1:
+                    self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)  # 空头平-开关
+                if dict_args['buy_open_on_off'] == 0:
+                    self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)  # 多头开-开关
+                elif dict_args['buy_open_on_off'] == 1:
+                    self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)  # 多头开-开关
+                if dict_args['sell_close_on_off'] == 0:
+                    self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)  # 多头平-开关
+                elif dict_args['sell_close_on_off'] == 1:
+                    self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)  # 多头平-开关
+
+                # dict_position = i_strategy.get_position()
+                # self.lineEdit_Azongsell.setText(str(dict_position['position_a_sell']))  # A总卖
+                # self.lineEdit_Ajinsell.setText(str(dict_position['position_a_sell_today']))  # A今卖
+                # self.lineEdit_Bzongbuy.setText(str(dict_position['position_b_buy']))  # B总买
+                # self.lineEdit_Bjinbuy.setText(str(dict_position['position_b_buy_today']))  # B今买
+                # self.lineEdit_Azongbuy.setText(str(dict_position['position_a_buy']))  # A总买
+                # self.lineEdit_Ajinbuy.setText(str(dict_position['position_a_buy_today']))  # A今买
+                # self.lineEdit_Bzongsell.setText(str(dict_position['position_b_sell']))  # B总卖
+                # self.lineEdit_Bjinsell.setText(str(dict_position['position_b_sell_today']))  # B今卖
+                break
 
     # 更新界面：“策略参数”框（groupBox_trade_args），点击界面“查询”操作
-    def update_groupBox_trade_args_for_query(self, dict_arguments):
+    @pyqtSlot(Strategy.Strategy)
+    def update_groupBox_trade_args_for_query(self, obj_strategy):
+        dict_arguments = obj_strategy.get_arguments()
+        dict_position = obj_strategy.get_position()
         print("QAccountWidget.update_groupBox_trade_args_for_query() called")
-        # 获取交易模型在组件中的index
+        # 显示交易模型
         index_jiaoyimoxing = self.comboBox_jiaoyimoxing.findText(dict_arguments['trade_model'], QtCore.Qt.MatchExactly)
         if index_jiaoyimoxing != -1:
             self.comboBox_jiaoyimoxing.setCurrentIndex(index_jiaoyimoxing)
         elif index_jiaoyimoxing == -1:
             print("QAccountWidget.update_groupBox_trade_args_for_query() 更新界面时出错，comboBox_jiaoyimoxing组件中不存在交易模型", dict_arguments['trade_model'])
-        # 获取交易算法在组件中的index
+        # 显示交易算法
         index_xiadansuanfa = self.comboBox_xiadansuanfa.findText(dict_arguments['order_algorithm'], QtCore.Qt.MatchExactly)
         if index_xiadansuanfa != -1:
             self.comboBox_xiadansuanfa.setCurrentIndex(index_xiadansuanfa)
@@ -569,14 +636,31 @@ class QAccountWidget(QWidget, Ui_Form):
         self.doubleSpinBox_kongtouping.setValue(dict_arguments['buy_close'])  # 空头平（买平价差）
         self.doubleSpinBox_duotoukai.setValue(dict_arguments['buy_open'])  # 多头开（买开价差）
         self.doubleSpinBox_duotouping.setValue(dict_arguments['sell_close'])  # 多头平（卖平价差）
-        # self.lineEdit_Azongsell.setText(str(i_strategy.get_position()['position_a_sell']))  # A总卖
-        # self.lineEdit_Ajinsell.setText(str(i_strategy.get_position()['position_a_sell_today']))  # A今卖
-        # self.lineEdit_Bzongbuy.setText(str(i_strategy.get_position()['position_b_buy']))  # B总买
-        # self.lineEdit_Bjinbuy.setText(str(i_strategy.get_position()['position_b_buy_today']))  # B今买
-        # self.lineEdit_Azongbuy.setText(str(i_strategy.get_position()['position_a_buy']))  # A总买
-        # self.lineEdit_Ajinbuy.setText(str(i_strategy.get_position()['position_a_buy_today']))  # A今买
-        # self.lineEdit_Bzongsell.setText(str(i_strategy.get_position()['position_b_sell']))  # B总卖
-        # self.lineEdit_Bjinsell.setText(str(i_strategy.get_position()['position_b_sell_today']))  # B今卖
+        if dict_arguments['sell_open_on_off'] == 0:
+            self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)  # 空头开-开关
+        elif dict_arguments['sell_open_on_off'] == 1:
+            self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)  # 空头开-开关
+        if dict_arguments['buy_close_on_off'] == 0:
+            self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)  # 空头平-开关
+        elif dict_arguments['buy_close_on_off'] == 1:
+            self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)  # 空头平-开关
+        if dict_arguments['buy_open_on_off'] == 0:
+            self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)  # 多头开-开关
+        elif dict_arguments['buy_open_on_off'] == 1:
+            self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)  # 多头开-开关
+        if dict_arguments['sell_close_on_off'] == 0:
+            self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)  # 多头平-开关
+        elif dict_arguments['sell_close_on_off'] == 1:
+            self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)  # 多头平-开关
+
+        self.lineEdit_Azongsell.setText(str(dict_position['position_a_sell']))  # A总卖
+        self.lineEdit_Ajinsell.setText(str(dict_position['position_a_sell_today']))  # A今卖
+        self.lineEdit_Bzongbuy.setText(str(dict_position['position_b_buy']))  # B总买
+        self.lineEdit_Bjinbuy.setText(str(dict_position['position_b_buy_today']))  # B今买
+        self.lineEdit_Azongbuy.setText(str(dict_position['position_a_buy']))  # A总买
+        self.lineEdit_Ajinbuy.setText(str(dict_position['position_a_buy_today']))  # A今买
+        self.lineEdit_Bzongsell.setText(str(dict_position['position_b_sell']))  # B总卖
+        self.lineEdit_Bjinsell.setText(str(dict_position['position_b_sell_today']))  # B今卖
 
     # 更新界面：“账户资金”框，panel_show_account
     def update_panel_show_account(self, dict_args):
@@ -593,10 +677,12 @@ class QAccountWidget(QWidget, Ui_Form):
     # 鼠标右击弹出菜单中的“删除策略”
     @pyqtSlot()
     def slot_action_del_strategy(self):
-        print(">>> QAccountWidgetslot_action_del_strategy() called")
+        print(">>> QAccountWidget.slot_action_del_strategy() called")
         # 找到将要删除的策略对象
         for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
+            print(">>> QAccountWidget.slot_action_del_strategy() i_strategy.get_user_id()=", i_strategy.get_user_id(), "i_strategy.get_strategy_id()=", i_strategy.get_strategy_id(), "self.__clicked_status['user_id']=", self.__clicked_status['user_id'], "self.__clicked_status['strategy_id']=", self.__clicked_status['strategy_id'])
             if i_strategy.get_user_id() == self.__clicked_status['user_id'] and i_strategy.get_strategy_id() == self.__clicked_status['strategy_id']:
+                # print(">>> QAccountWidget.slot_action_del_strategy() 将要删除的策略user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id())
                 # 判断持仓：有持仓，跳出
                 dict_position = i_strategy.get_position()
                 for i in dict_position:
@@ -618,9 +704,10 @@ class QAccountWidget(QWidget, Ui_Form):
                                         'StrategyID': i_strategy.get_strategy_id()
                                         }
                 json_delete_strategy = json.dumps(dict_delete_strategy)
+                # print(">>> QAccountWidget.slot_action_del_strategy() json_delete_strategy=", json_delete_strategy)
                 self.Signal_SendMsg.emit(json_delete_strategy)
-                # 从内核CTPManager删除策略
-                # self.__ClientMain.get_CTPManager().delete_strategy(i_strategy.get_arguments())
+
+                break
         # todo...
 
     @pyqtSlot()
@@ -1014,7 +1101,7 @@ class QAccountWidget(QWidget, Ui_Form):
                     i_strategy.set_clicked_total(True)  # 策略在总账户窗口中被鼠标选中
                 else:
                     i_strategy.set_clicked_total(False)  # 策略在总账户窗口中未被鼠标选中
-        self.update_groupBox_trade_args()  # 更新策略参数框
+        self.update_groupBox()  # 更新策略参数框-鼠标点击策略列表中策略事件，一次最多更新一个窗口的groupBox
 
         # 窗口初始化完成
         if self.__ClientMain.get_create_QAccountWidget_finished():

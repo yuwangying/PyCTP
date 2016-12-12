@@ -55,8 +55,12 @@ class CTPManager(QtCore.QObject):
 
         # 创建策略
         print("CTPManager.init() self.__ClientMain.get_listStrategyInfo()=", self.__ClientMain.get_listStrategyInfo())
-        for i in self.__ClientMain.get_listStrategyInfo():
-            self.create_strategy(i)
+        if len(self.__ClientMain.get_listStrategyInfo()) > 0:
+            for i in self.__ClientMain.get_listStrategyInfo():
+                self.create_strategy(i)
+        elif len(self.__ClientMain.get_listStrategyInfo()) == 0:
+            self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
+            self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
 
     # 创建MD
     def create_md(self, dict_arguments):
