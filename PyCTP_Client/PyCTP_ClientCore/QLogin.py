@@ -39,24 +39,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         self.__sockfd = None  # socket_file_description
         self.__sm = None  # SocketManager对象
 
-    """
-    def set_login_message(self, str_buff):
-        print("set_login_message(self, str_buff):json_buff=", type(str_buff), str_buff)
-        dict_buff = eval(str_buff)  # str to dict
-        if not isinstance(dict_buff, dict):
-            print("QLogin.set_login_message() 客户端收到的消息转换成dict出错")
-            return
-        if 'MsgResult' not in dict_buff:
-            print("QLogin.set_login_message() 客户端收到的消息中不包含字段MsgResult")
-            return
-        if dict_buff['MsgResult'] == 0:  # 服务端返回登录成功消息
-            self.label_login_error.setText("登录成功")
-            #self.setVisible(False)
-        elif dict_buff['MsgResult'] == 1:  # 服务端发挥登录失败消息
-            self.label_login_error.setText("登录失败")
-            self.label_login_error.setText(dict_buff['MsgErrorReason'])
-            self.pushButton_login.setEnabled(True)  # 激活登录按钮，可以重新登录
-    """
+        self.lineEdit_trader_password.setEchoMode(QtGui.QLineEdit.Password)  # 密码框暗文
 
     def set_sockfd(self, socket_file_description):
         self.__sockfd = socket_file_description

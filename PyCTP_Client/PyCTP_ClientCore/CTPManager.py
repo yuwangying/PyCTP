@@ -256,6 +256,7 @@ class CTPManager(QtCore.QObject):
 
     # 设置客户端的交易开关，0关、1开
     def set_on_off(self, int_on_off):
+        print(">>> CTPManager.set_on_off()", int_on_off)
         self.__on_off = int_on_off
 
     # 获取客户端的交易开关，0关、1开

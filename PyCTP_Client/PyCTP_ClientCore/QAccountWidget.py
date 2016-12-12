@@ -648,12 +648,24 @@ class QAccountWidget(QWidget, Ui_Form):
         # raise NotImplementedError
         print("QAccountWidget.on_pushButton_start_strategy_clicked() widget_name=", self.__widget_name)
         if self.is_single_user():  # 单账户窗口
-            pass
+            print(">>> QAccountWidget.on_pushButton_start_strategy_clicked()", self.pushButton_start_strategy.text(), self.__user.get_on_off())
+            if self.pushButton_start_strategy.text() == '开始策略' and self.__user.get_on_off() == 0:
+                self.pushButton_start_strategy.setEnabled(False)  # 将按钮禁用
+                # 发送命令：将期货账户开关修改为开，值为1
+                self.__ClientMain.SendUserOnoff({'on_off': 1, 'user_id': self.__widget_name})
+            elif self.pushButton_start_strategy.text() == '停止策略' and self.__user.get_on_off() == 1:
+                self.pushButton_start_strategy.setEnabled(False)  # 将按钮禁用
+                # 发送命令：将期货账户开关修改为关，值为0
+                self.__ClientMain.SendUserOnoff({'on_off': 0, 'user_id': self.__widget_name})
         else:  # 总账户窗口
             if self.pushButton_start_strategy.text() == '开始策略' and self.__ClientMain.get_CTPManager().get_on_off() == 0:
                 self.pushButton_start_strategy.setEnabled(False)  # 将按钮禁用
                 # 发送命令：将交易员开关修改为开，值为1
-                # self.__ClientMain.SendStrategyOnlyClose(dict_args)
+                self.__ClientMain.SendTraderOnoff({'on_off': 1})
+            elif self.pushButton_start_strategy.text() == '停止策略' and self.__ClientMain.get_CTPManager().get_on_off() == 1:
+                self.pushButton_start_strategy.setEnabled(False)  # 将按钮禁用
+                # 发送命令：将交易员开关修改为关，值为0
+                self.__ClientMain.SendTraderOnoff({'on_off': 0})
 
     
     @pyqtSlot()

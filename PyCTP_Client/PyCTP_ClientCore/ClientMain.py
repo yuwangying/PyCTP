@@ -379,23 +379,40 @@ class ClientMain(QtCore.QObject):
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=14 修改策略只平开关失败")
                 elif buff['MsgType'] == 8:  # 修改交易员开关
-                    print("ClientMain.slot_output_message() MsgType=14", buff)
+                    print("ClientMain.slot_output_message() MsgType=8", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        for i_strategy in self.__CTPManager.get_list_strategy():
-                            if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff[
-                                'StrategyID']:
-                                i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
-                                # 待续，将界面中的item解禁
-                                # 设置当前item的状态属性(与操作)
-                                if buff['OnOff'] == 0:
-                                    self.get_clicked_item().setText('关')
-                                elif buff['OnOff'] == 1:
-                                    self.get_clicked_item().setText('开')
-                                self.get_clicked_item().setFlags(
-                                    self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
+                        # 更新界面
+                        for i_widget in self.__list_QAccountWidget:
+                            if i_widget.get_widget_name() == "总账户":
+                                self.get_CTPManager().set_on_off(buff['OnOff'])  # 设置内核值
+                                # 界面按钮文字显示
+                                if buff['OnOff'] == 1:
+                                    i_widget.pushButton_start_strategy.setText("停止策略")
+                                elif buff['OnOff'] == 0:
+                                    i_widget.pushButton_start_strategy.setText("开始策略")
+                                i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮setEnabled
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("ClientMain.slot_output_message() MsgType=14 修改交易员开关")
+                        print("ClientMain.slot_output_message() MsgType=8 修改交易员开关失败")
+                elif buff['MsgType'] == 9:  # 修改期货账户开关
+                    print("ClientMain.slot_output_message() MsgType=9", buff)
+                    if buff['MsgResult'] == 0:  # 消息结果成功
+                        # 更新界面
+                        for i_widget in self.__list_QAccountWidget:
+                            if i_widget.get_widget_name() == buff['UserID']:
+                                # 设置内核设值
+                                for i_user in self.get_CTPManager().get_list_user():
+                                    if i_user.get_user_id().decode() == buff['UserID']:
+                                        i_user.set_on_off(buff['OnOff'])
+                                # 界面按钮文字显示
+                                if buff['OnOff'] == 1:
+                                    i_widget.pushButton_start_strategy.setText("停止策略")
+                                elif buff['OnOff'] == 0:
+                                    i_widget.pushButton_start_strategy.setText("开始策略")
+                                i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮
+                                break
+                    elif buff['MsgResult'] == 1:  # 消息结果失败
+                        print("ClientMain.slot_output_message() MsgType=9 修改期货账户开关失败")
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
@@ -555,7 +572,8 @@ class ClientMain(QtCore.QObject):
             'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
             'MsgSrc': 0,  # 消息源，客户端0，服务端1
             'MsgType': 9,  # 期货账户交易开关
-            'TraderID': self.get_UserID(),
+            'TraderID': self.get_TraderID(),
+            'UserID': dict_args['user_id'],
             'OnOff': dict_args['on_off']
         }
         json_UserOnoff = json.dumps(dict_UserOnoff)

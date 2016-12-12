@@ -162,6 +162,7 @@ class User:
 
     # 设置user的交易开关，0关、1开
     def set_on_off(self, int_on_off):
+        print(">>>User.set_on_off() user_id=", self.__user_id, int_on_off)
         self.__on_off = int_on_off
 
     # 获取user的交易开关，0关、1开
