@@ -88,6 +88,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.init_groupBox_trade_args_trade_algorithm(self.__ClientMain.get_listAlgorithmInfo())
 
         self.__signal_pushButton_set_position_setEnabled_connected = False  # 信号槽绑定标志，初始值为False
+
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):
@@ -645,6 +646,15 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+        print("QAccountWidget.on_pushButton_start_strategy_clicked() widget_name=", self.__widget_name)
+        if self.is_single_user():  # 单账户窗口
+            pass
+        else:  # 总账户窗口
+            if self.pushButton_start_strategy.text() == '开始策略' and self.__ClientMain.get_CTPManager().get_on_off() == 0:
+                self.pushButton_start_strategy.setEnabled(False)  # 将按钮禁用
+                # 发送命令：将交易员开关修改为开，值为1
+                # self.__ClientMain.SendStrategyOnlyClose(dict_args)
+
     
     @pyqtSlot()
     def on_pushButton_liandongjia_clicked(self):
@@ -1011,6 +1021,7 @@ class QAccountWidget(QWidget, Ui_Form):
             elif column == 1:
                 only_close_checkState = 0 if item.checkState() == 0 else 1
                 if only_close_checkState != self.__ClientMain.get_clicked_strategy().get_only_close():
+                    item.setFlags(item.flags() & (~QtCore.Qt.ItemIsEnabled))  # 设置当前item的状态属性(与操作)
                     dict_args = {'user_id': self.__ClientMain.get_clicked_strategy().get_user_id(),
                                  'strategy_id': self.__ClientMain.get_clicked_strategy().get_strategy_id(),
                                  'on_off': only_close_checkState}

@@ -350,11 +350,14 @@ class ClientMain(QtCore.QObject):
                     print("ClientMain.slot_output_message() MsgType=13", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__CTPManager.get_list_strategy():
-                            print(">>> if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:", i_strategy.get_user_id(), buff['UserID'], i_strategy.get_strategy_id(), buff['StrategyID'])
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
                                 # 更新界面item的文本
                                 # 设置当前item的状态属性(与操作)
+                                if buff['OnOff'] == 0:
+                                    self.get_clicked_item().setText('关')
+                                elif buff['OnOff'] == 1:
+                                    self.get_clicked_item().setText('开')
                                 self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -363,13 +366,36 @@ class ClientMain(QtCore.QObject):
                     print("ClientMain.slot_output_message() MsgType=14", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__CTPManager.get_list_strategy():
-                            print(">>> if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:", i_strategy.get_user_id(), buff['UserID'], i_strategy.get_strategy_id(), buff['StrategyID'])
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
                                 # 待续，将界面中的item解禁
+                                # 设置当前item的状态属性(与操作)
+                                if buff['OnOff'] == 0:
+                                    self.get_clicked_item().setText('关')
+                                elif buff['OnOff'] == 1:
+                                    self.get_clicked_item().setText('开')
+                                self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=14 修改策略只平开关失败")
+                elif buff['MsgType'] == 8:  # 修改交易员开关
+                    print("ClientMain.slot_output_message() MsgType=14", buff)
+                    if buff['MsgResult'] == 0:  # 消息结果成功
+                        for i_strategy in self.__CTPManager.get_list_strategy():
+                            if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff[
+                                'StrategyID']:
+                                i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
+                                # 待续，将界面中的item解禁
+                                # 设置当前item的状态属性(与操作)
+                                if buff['OnOff'] == 0:
+                                    self.get_clicked_item().setText('关')
+                                elif buff['OnOff'] == 1:
+                                    self.get_clicked_item().setText('开')
+                                self.get_clicked_item().setFlags(
+                                    self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
+                                break
+                    elif buff['MsgResult'] == 1:  # 消息结果失败
+                        print("ClientMain.slot_output_message() MsgType=14 修改交易员开关")
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
@@ -508,6 +534,32 @@ class ClientMain(QtCore.QObject):
         }
         json_StrategyOnlyClose = json.dumps(dict_StrategyOnlyClose)
         self.signal_send_msg.emit(json_StrategyOnlyClose)
+
+    # 交易员交易开关
+    def SendTraderOnoff(self, dict_args):
+        dict_TraderOnoff = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 8,  # 交易员交易开关
+            'TraderID': self.get_TraderID(),
+            'OnOff': dict_args['on_off']
+        }
+        json_TraderOnoff = json.dumps(dict_TraderOnoff)
+        self.signal_send_msg.emit(json_TraderOnoff)
+
+    # 期货账户交易开关
+    def SendUserOnoff(self, dict_args):
+        dict_UserOnoff = {
+            'MsgRef': self.__sm.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 9,  # 期货账户交易开关
+            'TraderID': self.get_UserID(),
+            'OnOff': dict_args['on_off']
+        }
+        json_UserOnoff = json.dumps(dict_UserOnoff)
+        self.signal_send_msg.emit(json_UserOnoff)
 
     # 所有窗口中更新单个策略的参数显示，一个策略对应两个窗口（总账户窗口、策略所属的单账户窗口）
     def update_tableWidget_Trade_Args(self, obj_strategy):
