@@ -20,7 +20,7 @@
    <enum>Qt::DefaultContextMenu</enum>
   </property>
   <property name="windowTitle">
-   <string>QCTP</string>
+   <string>黄蜂套利交易系统</string>
   </property>
   <property name="windowIcon">
    <iconset resource="img.qrc">

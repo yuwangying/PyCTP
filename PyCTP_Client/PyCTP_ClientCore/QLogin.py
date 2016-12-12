@@ -90,7 +90,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
             # stockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket套接字
 
             if not self.__sm:
-                sm = SocketManager("10.0.0.28", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
+                sm = SocketManager("10.0.0.5", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
                 sm.connect()
                 sm.start()
                 self.set_SocketManager(sm)  # SocketManager对象设置为QLoginForm对象的属性

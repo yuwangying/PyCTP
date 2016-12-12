@@ -638,6 +638,7 @@ if __name__ == '__main__':
     q_ctp = QCTP()  # 创建最外围的大窗口
     q_login_form.set_QCTP(q_ctp)
     q_client_main.set_QCTP(q_ctp)
+    q_ctp.set_ClientMain(q_client_main)
 
     print("if __name__ == '__main__'")
     sys.exit(app.exec_())
