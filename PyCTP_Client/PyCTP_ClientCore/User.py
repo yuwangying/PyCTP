@@ -25,11 +25,10 @@ class User:
 
         self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
         self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
-        self.__list_order_ing = []  # 以OrderRef为单个交易单元，还未执行完成的订单列表，临时存放较少的数据
         self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
         self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
         # self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，
-        self.__dict_instrument_action_counter = dict()  # 记录合约撤单次数的字典,撤单操作时添加次数，交易日换日时初始化值
+        self.__dict_action_counter = dict()  # 记录合约撤单次数的字典,撤单操作时添加次数，交易日换日时初始化值
         self.__order_ref_part2 = 0  # 所有策略共用报单引用编号
 
         # 联机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
@@ -200,18 +199,20 @@ class User:
         self.__trade.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
         obj_strategy.set_user(self)  # 将user设置为strategy属性
 
-    # 添加合约代码到user类的self.__dict_instrument_action_counter
+    # 添加合约代码到user类的self.__dict_action_counter
     # def add_instrument_id_action_counter(self, list_instrument_id):
     #     for i in list_instrument_id:
-    #         if i not in self.__dict_instrument_action_counter:
-    #             self.__dict_instrument_action_counter[i] = 0
+    #         if i not in self.__dict_action_counter:
+    #             self.__dict_action_counter[i] = 0
 
     # 撤单计数
-    def action_counter(self, instrument_id):
-        if instrument_id in self.__dict_instrument_action_counter:  # 已经存在的合约，撤单次数加+1
-            self.__dict_instrument_action_counter[instrument_id] += 1
+    def action_counter(self, Order):
+        if len(Order['OrderSysID']) == 0:  # 只统计有交易所编码的order
+            return
+        if Order['instrument_id'] in self.__dict_action_counter:  # 已经存在的合约，撤单次数加+1
+            self.__dict_action_counter[Order['instrument_id']] += 1
         else:
-            self.__dict_instrument_action_counter[instrument_id] = 1  # 不存在的合约，撤单次数设置为1
+            self.__dict_action_counter[Order['instrument_id']] = 1  # 不存在的合约，撤单次数设置为1
 
     # 删除交易策略实例，从self.__list_strategy
     def del_strategy(self, strategy_id):
@@ -224,8 +225,8 @@ class User:
         return self.__list_strategy
 
     # 获取合约撤单次数的字典
-    def get_dict_instrument_action_counter(self):
-        return self.__dict_instrument_action_counter
+    def get_dict_action(self):
+        return self.__dict_action_counter
 
     # 查询行情
     def qry_depth_market_data(self, instrument_id):
@@ -252,6 +253,13 @@ class User:
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
         # print("User.OnRtnOrder()", 'OrderRef:', Order['OrderRef'], 'Order:', Order)
+        self.action_counter(Order)  # 更新撤单计数字典
+        for i in self.__list_strategy:  # 转到strategy回调函数
+            i.update_action_count()  # 更新策略内合约撤单计数变量
+            if Order['OrderRef'][-2:] == i.get_strategy_id():  # 后两位数为策略id，找到对应的
+                i.OnRtnOrder(Order)
+
+        # 行情数据存档
         t = datetime.datetime.now()
         Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Order['StrategyID'] = Order['OrderRef'][-2:]  # 报单引用末两位是策略编号

@@ -154,6 +154,9 @@ class SocketManager(QtCore.QThread):
         # return size
 
     def run(self):
+        thread = threading.current_thread()
+        print(">>> SocketManager.run() thread.getName()=", thread.getName())
+
         while True:
             if self.__RecvN:  # RecvN状态正常
                 try:

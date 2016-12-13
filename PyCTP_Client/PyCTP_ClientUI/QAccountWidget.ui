@@ -1149,10 +1149,10 @@ background-color: rgb(255, 255, 255);</string>
           </rect>
          </property>
          <property name="text">
-          <string>A今卖</string>
+          <string>A昨卖</string>
          </property>
         </widget>
-        <widget class="QLineEdit" name="lineEdit_Ajinsell">
+        <widget class="QLineEdit" name="lineEdit_Azuosell">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -1188,10 +1188,10 @@ background-color: rgb(255, 255, 255);</string>
           </rect>
          </property>
          <property name="text">
-          <string>B今买</string>
+          <string>B昨买</string>
          </property>
         </widget>
-        <widget class="QLineEdit" name="lineEdit_Bjinbuy">
+        <widget class="QLineEdit" name="lineEdit_Bzuobuy">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -1227,10 +1227,10 @@ background-color: rgb(255, 255, 255);</string>
           </rect>
          </property>
          <property name="text">
-          <string>A今买</string>
+          <string>A昨买</string>
          </property>
         </widget>
-        <widget class="QLineEdit" name="lineEdit_Ajinbuy">
+        <widget class="QLineEdit" name="lineEdit_Azuobuy">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -1266,10 +1266,10 @@ background-color: rgb(255, 255, 255);</string>
           </rect>
          </property>
          <property name="text">
-          <string>B今卖</string>
+          <string>B昨卖</string>
          </property>
         </widget>
-        <widget class="QLineEdit" name="lineEdit_Bjinsell">
+        <widget class="QLineEdit" name="lineEdit_Bzuosell">
          <property name="enabled">
           <bool>false</bool>
          </property>

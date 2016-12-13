@@ -14,6 +14,7 @@ import socket
 import json
 import QCTP
 import ClientMain
+import threading
 
 from Ui_QLogin import Ui_LoginForm
 
@@ -77,6 +78,8 @@ class QLoginForm(QWidget, Ui_LoginForm):
     
     @pyqtSlot()
     def on_pushButton_login_clicked(self):
+        thread = threading.current_thread()
+        print(">>> QLogin.on_pushButton_login_clicked() thread.getName()=", thread.getName())
         """
         Slot documentation goes here.
         """
@@ -90,7 +93,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
             # stockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket套接字
 
             if not self.__sm:
-                sm = SocketManager("10.0.0.5", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
+                sm = SocketManager("10.0.0.28", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
                 sm.connect()
                 sm.start()
                 self.set_SocketManager(sm)  # SocketManager对象设置为QLoginForm对象的属性

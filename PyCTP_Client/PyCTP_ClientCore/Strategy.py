@@ -56,7 +56,7 @@ class Strategy(QtCore.QObject):
         self.__order_ref_a = None  # A合约报单引用
         self.__order_ref_b = None  # B合约报单引用
         self.__order_ref_last = None  # 最后一次实际使用的报单引用
-        self.__dictYesterdayPositoin = dict()  # 本策略昨仓
+        self.__dictYesterdayPosition = dict()  # 本策略昨仓
         self.__position_a_buy = 0  # 策略持仓初始值为0
         self.__position_a_buy_today = 0
         self.__position_a_buy_yesterday = 0
@@ -103,6 +103,8 @@ class Strategy(QtCore.QObject):
         self.__user_id = dict_args['user_id']
         self.__strategy_id = dict_args['strategy_id']
         self.__list_instrument_id = dict_args['list_instrument_id']  # 合约列表
+        self.__a_instrument_id = self.__list_instrument_id[0]  # A合约代码
+        self.__b_instrument_id = self.__list_instrument_id[1]  # B合约代码
         self.__trade_model = dict_args['trade_model']  # 交易模型
         self.__order_algorithm = dict_args['order_algorithm']  # 下单算法选择标志位
         self.__buy_open = dict_args['buy_open']  # 触发买开（开多单）
@@ -192,19 +194,19 @@ class Strategy(QtCore.QObject):
         # 所有策略昨仓的list中无数据
         for i in self.__user.get_CTPManager().get_YesterdayPosition():
             if i['user_id'] == self.__user_id and i['strategy_id'] == self.__strategy_id:
-                self.__dictYesterdayPositoin = copy.deepcopy(i)
-                self.__position_a_buy = self.__dictYesterdayPositoin['position_a_buy']
+                self.__dictYesterdayPosition = copy.deepcopy(i)
+                self.__position_a_buy = self.__dictYesterdayPosition['position_a_buy']
                 self.__position_a_buy_today = 0
-                self.__position_a_buy_yesterday = self.__dictYesterdayPositoin['position_a_buy']
-                self.__position_a_sell = self.__dictYesterdayPositoin['position_a_sell']
+                self.__position_a_buy_yesterday = self.__dictYesterdayPosition['position_a_buy']
+                self.__position_a_sell = self.__dictYesterdayPosition['position_a_sell']
                 self.__position_a_sell_today = 0
-                self.__position_a_sell_yesterday = self.__dictYesterdayPositoin['position_a_sell']
-                self.__position_b_buy = self.__dictYesterdayPositoin['position_b_buy']
+                self.__position_a_sell_yesterday = self.__dictYesterdayPosition['position_a_sell']
+                self.__position_b_buy = self.__dictYesterdayPosition['position_b_buy']
                 self.__position_b_buy_today = 0
-                self.__position_b_buy_yesterday = self.__dictYesterdayPositoin['position_b_buy']
-                self.__position_b_sell = self.__dictYesterdayPositoin['position_b_sell']
+                self.__position_b_buy_yesterday = self.__dictYesterdayPosition['position_b_buy']
+                self.__position_b_sell = self.__dictYesterdayPosition['position_b_sell']
                 self.__position_b_sell_today = 0
-                self.__position_b_sell_yesterday = self.__dictYesterdayPositoin['position_b_sell']
+                self.__position_b_sell_yesterday = self.__dictYesterdayPosition['position_b_sell']
         self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
 
     # 初始化今仓，从当天成交回报数据计算
@@ -317,6 +319,18 @@ class Strategy(QtCore.QObject):
         for i in self.__user.get_CTPManager().get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['PriceTick']
+    
+    # 更新撤单次数，在user类中的order回调中调用，第一时间更新撤单计数
+    def update_action_count(self):
+        self.__a_action_count = self.__user.get_dict_action()[self.__a_instrument_id]
+        self.__b_action_count = self.__user.get_dict_action()[self.__b_instrument_id]
+
+    # 获取合约撤单次数
+    def get_a_action_count(self):
+        return self.__a_action_count
+
+    def get_b_action_count(self):
+        return self.__b_action_count
 
     # 获取策略交易开关
     def get_on_off(self):

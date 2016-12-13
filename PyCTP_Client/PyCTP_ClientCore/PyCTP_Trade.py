@@ -589,13 +589,11 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             print('PyCTP_Trade_API.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
-            if True:  # self.__rsp_OrderInsert['InputOrder']['OrderRef'].decode() == Order['OrderRef']:
-                self.__user.OnRtnOrder(Order)  # 转到user回调函数
-                for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-                    if Order['OrderRef'][-2:] == i.get_strategy_id():  # 后两位数为策略id，找到对应的
-                        i.OnRtnOrder(Order)
-                # self.__rsp_OrderInsert['event'].set()  # 协程解锁
-                        # 交易所返回的报单回报，处理以上九种状态
+            self.__user.OnRtnOrder(Order)  # 转到user回调函数
+            # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+            #     i.set_action_count()  # 更新策略内合约撤单计数变量
+            #     if Order['OrderRef'][-2:] == i.get_strategy_id():  # 后两位数为策略id，找到对应的
+            #         i.OnRtnOrder(Order)
 
     def OnRtnTrade(self, Trade):
         """成交回报"""

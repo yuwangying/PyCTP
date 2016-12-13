@@ -75,7 +75,7 @@ class Ui_LoginForm(object):
         LoginForm.setTabOrder(self.pushButton_login, self.pushButton_cancel)
 
     def retranslateUi(self, LoginForm):
-        LoginForm.setWindowTitle(_translate("LoginForm", "黄蜂套利交易系统", None))
+        LoginForm.setWindowTitle(_translate("LoginForm", "小蜜蜂套利交易系统", None))
         self.groupBox_login_form.setTitle(_translate("LoginForm", "登录", None))
         self.pushButton_login.setText(_translate("LoginForm", "登录", None))
         self.pushButton_login.setShortcut(_translate("LoginForm", "Return", None))

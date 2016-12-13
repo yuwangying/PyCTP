@@ -87,7 +87,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "黄蜂套利交易系统", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "小蜜蜂套利交易系统", None))
         self.menu_file.setTitle(_translate("MainWindow", "文件", None))
         self.menu_account.setTitle(_translate("MainWindow", "账户", None))
         self.menu_market.setTitle(_translate("MainWindow", "行情", None))
