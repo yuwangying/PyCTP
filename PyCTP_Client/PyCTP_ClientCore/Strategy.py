@@ -81,6 +81,8 @@ class Strategy(QtCore.QObject):
         self.__long_color_black_times = 0
         self.__short_total_color_black_times = 0
         self.__long_total_color_black_times = 0
+        self.__a_action_count = 0
+        self.__b_action_count = 0
 
         self.set_arguments(dict_args)  # 设置策略参数
         # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
