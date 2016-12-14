@@ -29,8 +29,8 @@ class Strategy(QtCore.QObject):
     signal_UI_spread_long_change_color = QtCore.pyqtSignal(str)
     signal_UI_spread_short_total_change_color = QtCore.pyqtSignal(str)
     signal_UI_spread_long_total_change_color = QtCore.pyqtSignal(str)
-
     signal_UI_change_color = QtCore.pyqtSignal(str)  # 定义信号，改变颜色
+    signal_UI_update_strategy = QtCore.pyqtSignal(object)  # 改写
 
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
     def __init__(self, dict_args, obj_user, obj_DBM, parent=None):
@@ -120,14 +120,45 @@ class Strategy(QtCore.QObject):
         self.__lots = dict_args['lots']  # 总手
         self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
         self.__a_order_action_limit = dict_args['a_order_action_limit']  # A合约撤单次数限制
-        self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
+        self.__b_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
         self.__on_off = dict_args['strategy_on_off']  # 策略开关，0关、1开
         self.__only_close = dict_args['only_close']  # 只平，0关、1开
         self.__sell_open_on_off = dict_args['sell_open_on_off']    # 价差卖开，开关，初始值为1，状态开
         self.__buy_close_on_off = dict_args['buy_close_on_off']    # 价差买平，开关，初始值为1，状态开
         self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
-        self.__buy_open_on_off = dict_args['buy_close_on_off']     # 价差买开，开关，初始值为1，状态开
-        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
+        self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
+        # print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
+
+    # 获取参数
+    def get_arguments(self):
+        self.__dict_args = {
+            'trader_id': self.__trader_id,
+            'user_id': self.__user_id,
+            'strategy_id': self.__strategy_id,
+            'list_instrument_id': self.__list_instrument_id,
+            'trade_model': self.__trade_model,
+            'order_algorithm': self.__order_algorithm,
+            'buy_open': self.__buy_open,
+            'sell_close': self.__sell_close,
+            'sell_open': self.__sell_open,
+            'buy_close': self.__buy_close,
+            'spread_shift': self.__spread_shift,
+            'a_wait_price_tick': self.__a_wait_price_tick,
+            'b_wait_price_tick': self.__b_wait_price_tick,
+            'stop_loss': self.__stop_loss,
+            'lots': self.__lots,
+            'lots_batch': self.__lots_batch,
+            'a_order_action_limit': self.__a_order_action_limit,
+            'b_order_action_limit': self.__b_order_action_limit,
+            'strategy_on_off': self.__on_off,
+            'only_close': self.__only_close,
+            'sell_open_on_off': self.__sell_open_on_off,
+            'buy_close_on_off': self.__buy_close_on_off,
+            'sell_close_on_off': self.__sell_close_on_off,
+            'buy_open_on_off': self.__buy_open_on_off
+        }
+        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_args=", self.__dict_args)
+        return self.__dict_args
 
     # 设置持仓
     def set_position(self, dict_args):
@@ -271,10 +302,6 @@ class Strategy(QtCore.QObject):
                           self.__position_b_sell_yesterday,
                           self.__position_b_sell)
         self.__init_finished = True  # 当前策略初始化完成
-
-    # 获取参数
-    def get_arguments(self):
-        return self.__dict_args
     
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
@@ -340,6 +367,7 @@ class Strategy(QtCore.QObject):
 
     def set_on_off(self, int_input):
         self.__on_off = int_input
+        self.signal_UI_update_strategy.emit(self)
 
     # 获取策略只平开关
     def get_only_close(self):
@@ -347,6 +375,7 @@ class Strategy(QtCore.QObject):
 
     def set_only_close(self, int_input):
         self.__only_close = int_input
+        self.signal_UI_update_strategy.emit(self)
 
     def get_spread_short(self):
         return self.__spread_short

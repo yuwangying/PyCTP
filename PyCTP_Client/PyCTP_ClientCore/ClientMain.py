@@ -116,6 +116,8 @@ class ClientMain(QtCore.QObject):
             self.__CTPManager.signal_remove_row_table_widget.connect(i_widget.remove_row_table_widget)
             self.signal_update_strategy.connect(i_widget.update_strategy)  # 改写，更新策略在界面的显示
             self.signal_insert_strategy.connect(i_widget.insert_strategy)  # 改写，界面插入策略
+            for i_strategy in self.__CTPManager.get_list_strategy():
+                i_strategy.signal_UI_update_strategy.connect(i_widget.update_strategy)  # 改写
 
         # 初始化QAccountWidget界面显示
         for i_strategy in self.__CTPManager.get_list_strategy():
@@ -311,19 +313,6 @@ class ClientMain(QtCore.QObject):
                                     i_strategy.set_arguments(i_Info)  # 将查询参数结果设置到策略内核，所有的策略
                                     self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
                                     break
-                        """
-                        # 遍历窗口实例，找到显示在最前端的窗口
-                        for i_widget in self.__list_QAccountWidget:
-                            if i_widget.get_widget_name() == self.get_show_widget_name():
-                                # 遍历策略实例
-                                # 找到groupBox中显示的策略
-                                for i_strategy in self.__CTPManager.get_list_strategy():
-                                    if i_strategy.get_user_id() == i_widget.comboBox_qihuozhanghao.currentText() and i_strategy.get_strategy_id() == self.__show_widget.comboBox_celuebianhao.currentText():
-                                        # 通过信号槽，将策略参数传递给界面对象，更新参数框
-                                        i_widget.signal_update_groupBox_trade_args_for_query.emit(i_strategy)
-                                        break
-                        """
-
                         self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=3 查询策略失败")
@@ -371,12 +360,7 @@ class ClientMain(QtCore.QObject):
                         for i_strategy in self.__CTPManager.get_list_strategy():
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
-                                # 更新界面item的文本
-                                # 设置当前item的状态属性(与操作)
-                                if buff['OnOff'] == 0:
-                                    self.get_clicked_item().setText('关')
-                                elif buff['OnOff'] == 1:
-                                    self.get_clicked_item().setText('开')
+                                # self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示
                                 self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -387,12 +371,7 @@ class ClientMain(QtCore.QObject):
                         for i_strategy in self.__CTPManager.get_list_strategy():
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
-                                # 待续，将界面中的item解禁
-                                # 设置当前item的状态属性(与操作)
-                                if buff['OnOff'] == 0:
-                                    self.get_clicked_item().setText('关')
-                                elif buff['OnOff'] == 1:
-                                    self.get_clicked_item().setText('开')
+                                # self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示
                                 self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
