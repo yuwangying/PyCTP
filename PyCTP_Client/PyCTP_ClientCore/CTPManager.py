@@ -29,7 +29,10 @@ import struct
 class CTPManager(QtCore.QObject):
     signal_insert_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法insert_row_table_widget
     signal_remove_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法remove_row_table_widget
+    signal_UI_remove_strategy = QtCore.pyqtSignal(object)  # 改写，信号：删除界面策略
+    signal_UI_insert_strategy = QtCore.pyqtSignal(object)  # 改写，信号：添加界面策略
     signal_hide_new_strategy = QtCore.pyqtSignal()  # 隐藏创建策略的小弹窗
+    signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 改写，信号：更新界面“开始策略”按钮
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -123,7 +126,7 @@ class CTPManager(QtCore.QObject):
         self.__MarketManager.sub_market(list_instrument_id, dict_arguments['user_id'], dict_arguments['strategy_id'])
 
         # 判断内核是否初始化完成
-        if self.__init_finished is False:
+        if self.__init_finished is False:  # 内核初始化未完成
             # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
             lastStrategyInfo = self.__ClientMain.get_listStrategyInfo()[-1]
             if len(lastStrategyInfo) > 0:
@@ -133,10 +136,11 @@ class CTPManager(QtCore.QObject):
             else:
                 self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
                 self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
-        elif self.__init_finished:  # 程序运行中、初始化已经完成，在界面策略列表框内添加一行
+        elif self.__init_finished:  # 内核初始化完成且界面初始化完成，在界面策略列表框内添加一行
             print(">>> CTPManager.create_strategy() 程序运行中、初始化已经完成，在界面策略列表框内添加一行策略id为", dict_arguments['strategy_id'])
-            self.signal_insert_row_table_widget.emit()  # 在界面策略列表中显示添加的策略
+            # self.signal_insert_row_table_widget.emit()  # 在界面策略列表中显示添加的策略
             self.signal_hide_new_strategy.emit()  # 隐藏创建策略的小弹窗
+            self.signal_UI_insert_strategy.emit(obj_strategy)  # 界面初始化完成，内核向界面插入策略
 
     # 删除strategy
     def delete_strategy(self, dict_arguments):
@@ -160,10 +164,11 @@ class CTPManager(QtCore.QObject):
                     if i_strategy.get_strategy_id() == dict_arguments['strategy_id']:
                         i_user.get_list_strategy().remove(i_strategy)
                         print(">>> CTPManager.delete_strategy() 从user的策略列表中删除策略", dict_arguments)
+                        self.signal_UI_remove_strategy.emit(i_strategy)  # 界面删除策略
                         break
 
         # 内核删除策略成功，通知界面删除策略
-        self.signal_remove_row_table_widget.emit()  # 在界面策略列表中删除策略
+        # self.signal_remove_row_table_widget.emit()  # 在界面策略列表中删除策略
 
     # 创建数据库连接实例
     def create_DBManager(self):
@@ -262,6 +267,7 @@ class CTPManager(QtCore.QObject):
     def set_on_off(self, int_on_off):
         print(">>> CTPManager.set_on_off()", int_on_off)
         self.__on_off = int_on_off
+        self.signal_UI_update_pushButton_start_strategy.emit({'MsgType': 8, 'OnOff': self.__on_off})  # 更新界面“开始策略”按钮
 
     # 获取客户端的交易开关，0关、1开
     def get_on_off(self):

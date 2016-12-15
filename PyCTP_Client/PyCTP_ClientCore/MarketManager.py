@@ -35,7 +35,6 @@ class MarketManager:
         self.__front_address = front_address.encode()
         self.__user_id = user_id.encode()
         self.__password = password.encode()
-        print('===========================')
         print('MarketManager.__init__() 连接行情前置', Utils.code_transform(self.__market.Connect(self.__front_address)))
         print('MarketManager.__init__() 登陆行情账号', Utils.code_transform(self.__market.Login(self.__broker_id, self.__user_id, self.__password)))
         # 已经订阅行情的合约列表，为每一个合约创建一个字典，键名为instrument_id，键值为list，list元素为user_id+strategy_id
@@ -65,7 +64,6 @@ class MarketManager:
             if not bool_subscribed:
                 self.__list_instrument_subscribed_detail.append({instrument_id: [user_id+strategy_id]})
 
-        print('===========================')
         if len(list_instrument_id_to_sub) > 0:
             time.sleep(1.0)
             print('MarketManager.sub_market() 请求订阅行情', Utils.code_transform(self.__market.SubMarketData(list_instrument_id_to_sub)))

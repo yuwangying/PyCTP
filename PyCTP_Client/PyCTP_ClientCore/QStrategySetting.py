@@ -147,6 +147,7 @@ class NewStrategy(QWidget, Ui_NewStrategy):
         # 设置期货账号选项
         if self.is_all_account_widget():  # 总账户页面
             # 插入所有user_id到item
+            self.comboBox_user_id.clear()  # 清空菜单选项
             i_row = -1
             for i_user in self.__ClientMain.get_CTPManager().get_list_user():
                 if self.comboBox_user_id.findText(i_user.get_user_id().decode(), QtCore.Qt.MatchExactly) == -1:

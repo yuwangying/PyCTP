@@ -157,7 +157,7 @@ class Strategy(QtCore.QObject):
             'sell_close_on_off': self.__sell_close_on_off,
             'buy_open_on_off': self.__buy_open_on_off
         }
-        print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_args=", self.__dict_args)
+        print(">>> Strategy.get_arguments() self.sender()=", self.sender(), " user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_args=", self.__dict_args)
         return self.__dict_args
 
     # 设置持仓
@@ -176,6 +176,7 @@ class Strategy(QtCore.QObject):
         self.__position_b_sell_today = dict_args['position_b_sell_today']
         self.__position_b_sell_yesterday = dict_args['position_b_sell_yesterday']
         print(">>> Strategy.set_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
+        self.signal_UI_update_strategy.emit(self)
 
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):

@@ -22,8 +22,9 @@ class ClientMain(QtCore.QObject):
     signal_send_msg = QtCore.pyqtSignal(str)  # 定义信号：发送到服务端的json格式数据
     signal_pushButton_query_strategy_setEnabled = QtCore.pyqtSignal(bool)  # 定义信号：控制查询是否可用
     signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()  # 定义信号：按钮设置为可用
-    signal_update_strategy = QtCore.pyqtSignal(Strategy)  # 改写，定义信号：形参为用户自定义类Strategy，界面中刷新策略
-    signal_insert_strategy = QtCore.pyqtSignal(Strategy)  # 改写，定义信号：形参为用户自定义类Strategy，界面中插入策略
+    signal_UI_update_strategy = QtCore.pyqtSignal(Strategy)  # 改写，定义信号：形参为用户自定义类Strategy，界面中刷新策略
+    signal_UI_insert_strategy = QtCore.pyqtSignal(Strategy)  # 改写，定义信号：形参为用户自定义类Strategy，界面中插入策略
+    signal_UI_set_on_tableWidget_Trade_Args_cellClicked = QtCore.pyqtSignal(int, int)  # 改写，信号：触发鼠标点击事件
 
     def __init__(self, parent=None):
         super(ClientMain, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -114,14 +115,27 @@ class ClientMain(QtCore.QObject):
             i_widget.signal_update_groupBox_trade_args_for_query.connect(i_widget.update_groupBox_trade_args_for_query)
             self.__CTPManager.signal_insert_row_table_widget.connect(i_widget.insert_row_table_widget)
             self.__CTPManager.signal_remove_row_table_widget.connect(i_widget.remove_row_table_widget)
-            self.signal_update_strategy.connect(i_widget.update_strategy)  # 改写，更新策略在界面的显示
-            self.signal_insert_strategy.connect(i_widget.insert_strategy)  # 改写，界面插入策略
+            self.__CTPManager.signal_UI_update_pushButton_start_strategy.connect(i_widget.update_pushButton_start_strategy)
+            # 改写，更新界面策略，将所有ClientMain的信号signal_UI_update_strategy连接到所有QAccountWidget对象的槽update_strategy
+            self.signal_UI_update_strategy.connect(i_widget.update_strategy)  # 改写，更新策略在界面的显示
+            # 改写，向界面插入策略，将ClientMain的信号signal_insert_strategy连接到所有QAccountWidget对象的槽insert_strategy
+            self.signal_UI_insert_strategy.connect(i_widget.insert_strategy)
+            # 改写，向界面插入策略，将CTPManager的信号signal_UI_insert_strategy连接到所有QAccountWidget对象的槽insert_strategy
+            self.__CTPManager.signal_UI_insert_strategy.connect(i_widget.insert_strategy)
+            # 改写，从界面删除策略，将CTPManager的信号signal_UI_remove_strategy连接到所有QAccountWidget对象的槽remove_strategy
+            self.__CTPManager.signal_UI_remove_strategy.connect(i_widget.remove_strategy)
+            # 改写，将所有策略对象的信号signal_UI_update_strategy分别连接到所有QAccountWidget对象的槽update_strategy
             for i_strategy in self.__CTPManager.get_list_strategy():
-                i_strategy.signal_UI_update_strategy.connect(i_widget.update_strategy)  # 改写
+                i_strategy.signal_UI_update_strategy.connect(i_widget.update_strategy)
+            # 设置鼠标点击事件
+            self.signal_UI_set_on_tableWidget_Trade_Args_cellClicked.connect(i_widget.set_on_tableWidget_Trade_Args_cellClicked)
 
         # 初始化QAccountWidget界面显示
         for i_strategy in self.__CTPManager.get_list_strategy():
-            self.signal_insert_strategy.emit(i_strategy)
+            self.signal_UI_insert_strategy.emit(i_strategy)
+
+        # 初始化鼠标点击位置
+        self.signal_UI_set_on_tableWidget_Trade_Args_cellClicked.emit(0, 0)
 
         # 创建“新建策略”弹窗
         q_new_strategy = NewStrategy()
@@ -311,7 +325,7 @@ class ClientMain(QtCore.QObject):
                             for i_strategy in self.__CTPManager.get_list_strategy():
                                 if i_Info['user_id'] == i_strategy.get_user_id() and i_Info['strategy_id'] == i_strategy.get_strategy_id():
                                     i_strategy.set_arguments(i_Info)  # 将查询参数结果设置到策略内核，所有的策略
-                                    self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
+                                    self.signal_UI_update_strategy.emit(i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
                                     break
                         self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
                     elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -329,6 +343,7 @@ class ClientMain(QtCore.QObject):
                             if i_strategy.get_user_id() == buff['UserID'] \
                                     and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_arguments(buff['Info'][0])
+                                self.signal_UI_update_strategy.emit(i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
                             break
                         for i_widget in self.__list_QAccountWidget:
                             i_widget.update_groupBox_trade_args_for_set()  # 更新策略参数框goupBox
