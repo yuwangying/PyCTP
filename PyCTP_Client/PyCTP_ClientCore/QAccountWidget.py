@@ -140,6 +140,10 @@ class QAccountWidget(QWidget, Ui_Form):
         for i_strategy in self.__ClientMain.get_CTPManager().get_list_strategy():
             i_strategy.set_show_widget_name(self.__widget_name)  # 前端窗口名称设置为strategy的属性
         self.__ClientMain.set_showQAccountWidget(self)  # 将当前显示在最前端窗口对象设置为ClienMain类的属性
+        # 切换窗口的同时触发clicked事件
+        i_row = self.tableWidget_Trade_Args.currentRow()
+        i_column = self.tableWidget_Trade_Args.currentColumn()
+        self.set_on_tableWidget_Trade_Args_cellClicked(i_row, i_column)
 
     def hideEvent(self, QHideEvent):
         # print(">>> hideEvent()", self.objectName(), "widget_name=", self.__widget_name)
@@ -1468,11 +1472,13 @@ class QAccountWidget(QWidget, Ui_Form):
             if self.is_single_user_widget():  # 单账户窗口
                 if i_strategy.get_user_id() == clicked_item_info['user_id'] and i_strategy.get_strategy_id() == clicked_item_info['strategy_id']:
                     i_strategy.set_clicked(True)
+                    print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() 鼠标点击单账户窗口，user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id())
                 else:
                     i_strategy.set_clicked(False)
             else:  # 总账户窗口
                 if i_strategy.get_user_id() == clicked_item_info['user_id'] and i_strategy.get_strategy_id() == clicked_item_info['strategy_id']:
                     i_strategy.set_clicked_total(True)
+                    print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() 鼠标点击总账户窗口，user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id())
                 else:
                     i_strategy.set_clicked_total(False)
 

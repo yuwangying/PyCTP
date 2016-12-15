@@ -409,7 +409,7 @@ class Strategy(QtCore.QObject):
     # 设置当前策略在单账户窗口被选中的状态，True：被选中，False：未被选中
     def set_clicked(self, in_bool):
         self.__clicked = in_bool
-        # print(">>> Strategy.set_clicked() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked)
+        print(">>> Strategy.set_clicked() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked)
 
     def get_clicked(self):
         return self.__clicked
