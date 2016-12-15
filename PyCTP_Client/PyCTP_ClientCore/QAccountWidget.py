@@ -871,24 +871,26 @@ class QAccountWidget(QWidget, Ui_Form):
         # dict_input = {'spread_long': int, 'spread_short': int}
         # 更新多头价差显示
         if self.__spread_long is None:  # 初始值
-            self.lineEdit_duotoujiacha.setText(dict_input['spread_long'])
+            self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
             self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
         elif dict_input['spread_long'] > self.__spread_long:  # 最新值大于前值
-            self.lineEdit_duotoujiacha.setText(dict_input['spread_long'])
+            self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
             self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
         elif dict_input['spread_long'] < self.__spread_long:  # 最新值小于前值
-            self.lineEdit_duotoujiacha.setText(dict_input['spread_long'])
+            self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
             self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
         # 更新空头价差显示
         if self.__spread_short is None:  # 初始值
-            self.lineEdit_kongtoujiacha.setText(dict_input['spread_short'])
+            self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
             self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
         elif dict_input['spread_short'] > self.__spread_short:  # 最新值大于前值
-            self.lineEdit_kongtoujiacha.setText(dict_input['spread_short'])
+            self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
             self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
         elif dict_input['spread_short'] < self.__spread_short:  # 最新值小于前值
-            self.lineEdit_kongtoujiacha.setText(dict_input['spread_short'])
+            self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
             self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
+        self.__spread_long = dict_input['spread_long']
+        self.__spread_short = dict_input['spread_short']
 
     # 点击“发送”按钮后的参数更新，要更新的策略为goupBox中显示的user_id、strategy_id对应的
     def update_groupBox_trade_args_for_set(self):

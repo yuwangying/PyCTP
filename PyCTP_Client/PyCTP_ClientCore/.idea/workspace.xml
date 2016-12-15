@@ -22,7 +22,7 @@
     <SUITE FILE_PATH="coverage/PyCTP_API_TEST$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469003425934" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$PyCTP_Market.coverage" NAME="PyCTP_Market Coverage Results" MODIFIED="1479975147534" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_API$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469161407258" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1481811127320" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1481811355147" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$test__1_.coverage" NAME="test (1) Coverage Results" MODIFIED="1469457199918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$Strategy.coverage" NAME="Strategy Coverage Results" MODIFIED="1479007717240" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1469458721210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -98,12 +98,12 @@
       <file leaf-file-name="QAccountWidget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/QAccountWidget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="237">
-              <caret line="868" column="25" selection-start-line="868" selection-start-column="25" selection-end-line="868" selection-end-column="25" />
+            <state relative-caret-position="527">
+              <caret line="891" column="54" selection-start-line="891" selection-start-column="54" selection-end-line="891" selection-end-column="54" />
               <folding>
                 <element signature="e#69#100#0" expanded="true" />
                 <element signature="e#25595#28232#0" expanded="false" />
-                <marker date="1481811127289" expanded="false" signature="48697:55691" placeholder="..." />
+                <marker date="1481811355133" expanded="false" signature="48697:55691" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -122,12 +122,11 @@
       <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="431" column="82" selection-start-line="431" selection-start-column="82" selection-end-line="431" selection-end-column="82" />
+            <state relative-caret-position="194">
+              <caret line="645" column="56" selection-start-line="645" selection-start-column="53" selection-end-line="645" selection-end-column="83" />
               <folding>
                 <element signature="e#90#101#0" expanded="true" />
                 <element signature="e#31195#33101#1" expanded="false" />
-                <element signature="e#33557#35361#1" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -709,7 +708,6 @@
           <folding>
             <element signature="e#90#101#0" expanded="true" />
             <element signature="e#31195#33101#1" expanded="false" />
-            <element signature="e#33557#35361#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -793,7 +791,6 @@
           <folding>
             <element signature="e#90#101#0" expanded="true" />
             <element signature="e#31195#33101#1" expanded="false" />
-            <element signature="e#33557#35361#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1091,24 +1088,23 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Strategy.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="431" column="82" selection-start-line="431" selection-start-column="82" selection-end-line="431" selection-end-column="82" />
+        <state relative-caret-position="194">
+          <caret line="645" column="56" selection-start-line="645" selection-start-column="53" selection-end-line="645" selection-end-column="83" />
           <folding>
             <element signature="e#90#101#0" expanded="true" />
             <element signature="e#31195#33101#1" expanded="false" />
-            <element signature="e#33557#35361#1" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/QAccountWidget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="237">
-          <caret line="868" column="25" selection-start-line="868" selection-start-column="25" selection-end-line="868" selection-end-column="25" />
+        <state relative-caret-position="527">
+          <caret line="891" column="54" selection-start-line="891" selection-start-column="54" selection-end-line="891" selection-end-column="54" />
           <folding>
             <element signature="e#69#100#0" expanded="true" />
             <element signature="e#25595#28232#0" expanded="false" />
-            <marker date="1481811127289" expanded="false" signature="48697:55691" placeholder="..." />
+            <marker date="1481811355133" expanded="false" signature="48697:55691" placeholder="..." />
           </folding>
         </state>
       </provider>
