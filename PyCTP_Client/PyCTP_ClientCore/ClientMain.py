@@ -115,6 +115,7 @@ class ClientMain(QtCore.QObject):
             i_widget.signal_update_groupBox_trade_args_for_query.connect(i_widget.update_groupBox_trade_args_for_query)
             self.__CTPManager.signal_insert_row_table_widget.connect(i_widget.insert_row_table_widget)
             self.__CTPManager.signal_remove_row_table_widget.connect(i_widget.remove_row_table_widget)
+            # 改写，更新界面“开始策略”按钮，将CTPManager的信号signal_UI_update_pushButton_start_strategy连接到所有QAccountWidget对象的槽update_pushButton_start_strategy
             self.__CTPManager.signal_UI_update_pushButton_start_strategy.connect(i_widget.update_pushButton_start_strategy)
             # 改写，更新界面策略，将所有ClientMain的信号signal_UI_update_strategy连接到所有QAccountWidget对象的槽update_strategy
             self.signal_UI_update_strategy.connect(i_widget.update_strategy)  # 改写，更新策略在界面的显示
@@ -129,6 +130,9 @@ class ClientMain(QtCore.QObject):
                 i_strategy.signal_UI_update_strategy.connect(i_widget.update_strategy)
             # 设置鼠标点击事件
             self.signal_UI_set_on_tableWidget_Trade_Args_cellClicked.connect(i_widget.set_on_tableWidget_Trade_Args_cellClicked)
+            # 改写，更新界面“开始策略”按钮，将所有User的信号signal_UI_update_pushButton_start_strategy连接到所有QAccountWidget对象的槽update_pushButton_start_strategy
+            for i_user in self.__CTPManager.get_list_user():
+                i_user.signal_UI_update_pushButton_start_strategy.connect(i_widget.update_pushButton_start_strategy)
 
         # 初始化QAccountWidget界面显示
         for i_strategy in self.__CTPManager.get_list_strategy():
@@ -399,11 +403,11 @@ class ClientMain(QtCore.QObject):
                             if i_widget.get_widget_name() == "总账户":
                                 self.get_CTPManager().set_on_off(buff['OnOff'])  # 设置内核值
                                 # 界面按钮文字显示
-                                if buff['OnOff'] == 1:
-                                    i_widget.pushButton_start_strategy.setText("停止策略")
-                                elif buff['OnOff'] == 0:
-                                    i_widget.pushButton_start_strategy.setText("开始策略")
-                                i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮setEnabled
+                                # if buff['OnOff'] == 1:
+                                #     i_widget.pushButton_start_strategy.setText("停止策略")
+                                # elif buff['OnOff'] == 0:
+                                #     i_widget.pushButton_start_strategy.setText("开始策略")
+                                # i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮setEnabled
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=8 修改交易员开关失败")
@@ -418,11 +422,11 @@ class ClientMain(QtCore.QObject):
                                     if i_user.get_user_id().decode() == buff['UserID']:
                                         i_user.set_on_off(buff['OnOff'])
                                 # 界面按钮文字显示
-                                if buff['OnOff'] == 1:
-                                    i_widget.pushButton_start_strategy.setText("停止策略")
-                                elif buff['OnOff'] == 0:
-                                    i_widget.pushButton_start_strategy.setText("开始策略")
-                                i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮
+                                # if buff['OnOff'] == 1:
+                                #     i_widget.pushButton_start_strategy.setText("停止策略")
+                                # elif buff['OnOff'] == 0:
+                                #     i_widget.pushButton_start_strategy.setText("开始策略")
+                                # i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=9 修改期货账户开关失败")

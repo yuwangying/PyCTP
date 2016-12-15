@@ -30,7 +30,9 @@ class Strategy(QtCore.QObject):
     signal_UI_spread_short_total_change_color = QtCore.pyqtSignal(str)
     signal_UI_spread_long_total_change_color = QtCore.pyqtSignal(str)
     signal_UI_change_color = QtCore.pyqtSignal(str)  # 定义信号，改变颜色
-    signal_UI_update_strategy = QtCore.pyqtSignal(object)  # 改写
+    signal_UI_update_strategy = QtCore.pyqtSignal(object)  # 改写，所有策略对象的信号signal_UI_update_strategy分别连接到所有QAccountWidget对象的槽update_strategy
+    signal_UI_update_spread_signal = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_signal连接到策略所属的单账户窗口
+    signal_UI_update_spread_total = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_total连接到总账户窗口和所属的单账户窗口
 
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
     def __init__(self, dict_args, obj_user, obj_DBM, parent=None):
@@ -427,6 +429,7 @@ class Strategy(QtCore.QObject):
         self.signal_UI_spread_short.connect(self.__QAccountWidget.lineEdit_kongtoujiacha.setText)  # 信号绑定，刷新单账户窗口空头价差值
         self.signal_UI_spread_long_change_color.connect(self.__QAccountWidget.lineEdit_duotoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口空头价差颜色
         self.signal_UI_spread_short_change_color.connect(self.__QAccountWidget.lineEdit_kongtoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口多头价差颜色
+        self.signal_UI_update_spread_signal.connect(self.__QAccountWidget.update_spread)  # 改写
 
     def get_QAccountWidget(self):
         return self.__QAccountWidget
@@ -438,6 +441,7 @@ class Strategy(QtCore.QObject):
         self.signal_UI_spread_short_total.connect(self.__QAccountWidgetTotal.lineEdit_kongtoujiacha.setText)  # 信号槽绑定
         self.signal_UI_spread_long_total_change_color.connect(self.__QAccountWidgetTotal.lineEdit_duotoujiacha.setStyleSheet)
         self.signal_UI_spread_short_total_change_color.connect(self.__QAccountWidgetTotal.lineEdit_kongtoujiacha.setStyleSheet)
+        self.signal_UI_update_spread_total.connect(self.__QAccountWidgetTotal.update_spread)  # 改写
 
     def get_QAccountWidgetTotal(self):
         return self.__QAccountWidgetTotal
@@ -602,6 +606,7 @@ class Strategy(QtCore.QObject):
         # 总账户窗口中刷新价差行情
         if self.__show_widget_name == "总账户":
             if self.__clicked_total:
+                """
                 # self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
                 # 刷新空头价差显示
                 if self.__last_spread_short_total == 9999999999:  # 初始值，第一个价差显示为黑色
@@ -625,6 +630,8 @@ class Strategy(QtCore.QObject):
                     elif self.__spread_long < self.__last_spread_long_total:
                         self.signal_UI_spread_long_total.emit(("%.2f" % self.__spread_long))
                         self.signal_UI_spread_long_total_change_color.emit("color: rgb(0, 170, 0);font-weight:bold;")
+                """
+                self.signal_UI_update_spread_total.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
                 # 更新最后一次价差值
                 self.__last_spread_short_total = self.__spread_short  # 总账户窗口中最后的空头价差
                 self.__last_spread_long_total = self.__spread_long  # 总账户窗口中最后的空头价差
@@ -632,6 +639,7 @@ class Strategy(QtCore.QObject):
         # 单账户窗口中刷新价差行情
         elif self.__show_widget_name == self.__user_id:
             if self.__clicked:
+                """
                 # self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
                 # 刷新空头价差显示
                 if self.__last_spread_short == 9999999999:  # 初始值，第一个价差显示为黑色
@@ -655,6 +663,8 @@ class Strategy(QtCore.QObject):
                     elif self.__spread_long < self.__last_spread_long:
                         self.signal_UI_spread_long.emit(("%.2f" % self.__spread_long))
                         self.signal_UI_spread_long_change_color.emit("color: rgb(0, 170, 0);font-weight:bold;")
+                """
+                self.signal_UI_update_spread_signal.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
                 # 更新最后一次价差值
                 self.__last_spread_short = self.__spread_short  # 总账户窗口中最后的空头价差
                 self.__last_spread_long = self.__spread_long  # 总账户窗口中最后的空头价差

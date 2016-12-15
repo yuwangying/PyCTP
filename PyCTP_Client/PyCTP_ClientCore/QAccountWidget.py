@@ -106,6 +106,9 @@ class QAccountWidget(QWidget, Ui_Form):
         self.tableWidget_Trade_Args.setColumnWidth(14, 90)  # 交易模型
         self.tableWidget_Trade_Args.setColumnWidth(15, 90)  # 下单算法
 
+        self.__spread_long = None  # 界面价差初始值
+        self.__spread_short = None  # 界面价差初始值
+
         # 设置table行数
         # row_number = 0
         # if self.__widget_name == "总账户":
@@ -278,7 +281,7 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新按钮“开始策略”显示
     @QtCore.pyqtSlot(dict)
     def update_pushButton_start_strategy(self, dict_args):
-        print(">>> QAccountWidget.update_pushButton_start_strategy() self.sender()=", self.sender(), "widget_name=", self.__widget_name)
+        print(">>> QAccountWidget.update_pushButton_start_strategy() self.sender()=", self.sender(), "widget_name=", self.__widget_name, "dict_args=", dict_args)
         # {'OnOff': 1, 'MsgType': 8, 'MsgRef': 9, 'MsgSrc': 0, 'MsgSendFlag': 1, 'MsgResult': 0, 'MsgErrorReason': '', 'TraderID': '1601'}
         if dict_args['MsgType'] == 8:  # 修改交易员开关，更新总账户窗口的“开始策略”按钮状态
             if self.is_single_user_widget() is False:
@@ -289,7 +292,8 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.pushButton_start_strategy.setEnabled(True)  # 解禁按钮setEnabled
         # {'OnOff': 1, 'MsgType': 9, 'MsgRef': 10, 'UserID': '063802', 'MsgSrc': 0, 'MsgSendFlag': 1, 'MsgResult': 0, 'MsgErrorReason': '', 'TraderID': '1601'}
         elif dict_args['MsgType'] == 9:  # 修改单个期货账户交易开关，更新单账户窗口的“开始策略”按钮状态
-            if self.__widget_name() == dict_args['UserID']:
+            print(">>> if self.__widget_name == dict_args['UserID']:", self.__widget_name, dict_args['UserID'], type(self.__widget_name), type(dict_args['UserID']))
+            if self.__widget_name == dict_args['UserID']:
                 if dict_args['OnOff'] == 1:
                     self.pushButton_start_strategy.setText("停止策略")
                 elif dict_args['OnOff'] == 0:
@@ -744,19 +748,19 @@ class QAccountWidget(QWidget, Ui_Form):
             self.comboBox_xiadansuanfa.insertItem(i_row, list_algorithm[i]['name'])
 
     # 更新“策略列表”（tableWidget_Trade_Args）
-    def update_tableWidget_Trade_Args(self, obj_strategy):
-        for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历行
-            if self.tableWidget_Trade_Args.item(i_row, 2).text() == obj_strategy.get_user_id() and self.tableWidget_Trade_Args.item(i_row, 3).text() == obj_strategy.get_strategy_id():
-                position = dict_position['position_a_buy'] + dict_position['position_a_sell']
-                self.tableWidget_Trade_Args.item(i_row, 5).setText(str(position))  # 总持仓
-                self.tableWidget_Trade_Args.item(i_row, 6).setText(str(dict_position['position_a_buy']))  # 买持仓
-                self.tableWidget_Trade_Args.item(i_row, 7).setText(str(dict_position['position_a_sell']))  # 卖持仓
-                self.tableWidget_Trade_Args.item(i_row, 8).setText('shouxufei')  # 持仓盈亏
-                self.tableWidget_Trade_Args.item(i_row, 9).setText('shouxufei')  # 平仓盈亏
-                self.tableWidget_Trade_Args.item(i_row, 10).setText('shouxufei')  # 手续费
-                self.tableWidget_Trade_Args.item(i_row, 11).setText('chengjiaoliang')  # 成交量
-                self.tableWidget_Trade_Args.item(i_row, 12).setText("chengjiaojin'e")  # 成交金额
-                self.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
+    # def update_tableWidget_Trade_Args(self, obj_strategy):
+        # for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历行
+        #     if self.tableWidget_Trade_Args.item(i_row, 2).text() == obj_strategy.get_user_id() and self.tableWidget_Trade_Args.item(i_row, 3).text() == obj_strategy.get_strategy_id():
+        #         position = dict_position['position_a_buy'] + dict_position['position_a_sell']
+        #         self.tableWidget_Trade_Args.item(i_row, 5).setText(str(position))  # 总持仓
+        #         self.tableWidget_Trade_Args.item(i_row, 6).setText(str(dict_position['position_a_buy']))  # 买持仓
+        #         self.tableWidget_Trade_Args.item(i_row, 7).setText(str(dict_position['position_a_sell']))  # 卖持仓
+        #         self.tableWidget_Trade_Args.item(i_row, 8).setText('shouxufei')  # 持仓盈亏
+        #         self.tableWidget_Trade_Args.item(i_row, 9).setText('shouxufei')  # 平仓盈亏
+        #         self.tableWidget_Trade_Args.item(i_row, 10).setText('shouxufei')  # 手续费
+        #         self.tableWidget_Trade_Args.item(i_row, 11).setText('chengjiaoliang')  # 成交量
+        #         self.tableWidget_Trade_Args.item(i_row, 12).setText("chengjiaojin'e")  # 成交金额
+        #         self.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
 
     # 更新界面：“策略参数”框（groupBox_trade_args），更新策略参数框-鼠标点击策略列表中策略事件，一次最多更新一个窗口的groupBox
     def update_groupBox(self):
@@ -860,6 +864,31 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.lineEdit_Azuobuy.setText(str(dict_position['position_a_buy_yesterday']))  # A今买
                 self.lineEdit_Bzongsell.setText(str(dict_position['position_b_sell']))  # B总卖
                 self.lineEdit_Bzuosell.setText(str(dict_position['position_b_sell_yesterday']))  # B今卖
+
+    # 更新界面：价差行情
+    @QtCore.pyqtSlot(dict)
+    def update_spread(self, dict_input):
+        # dict_input = {'spread_long': int, 'spread_short': int}
+        # 更新多头价差显示
+        if self.__spread_long is None:  # 初始值
+            self.lineEdit_duotoujiacha.setText(dict_input['spread_long'])
+            self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
+        elif dict_input['spread_long'] > self.__spread_long:  # 最新值大于前值
+            self.lineEdit_duotoujiacha.setText(dict_input['spread_long'])
+            self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
+        elif dict_input['spread_long'] < self.__spread_long:  # 最新值小于前值
+            self.lineEdit_duotoujiacha.setText(dict_input['spread_long'])
+            self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
+        # 更新空头价差显示
+        if self.__spread_short is None:  # 初始值
+            self.lineEdit_kongtoujiacha.setText(dict_input['spread_short'])
+            self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
+        elif dict_input['spread_short'] > self.__spread_short:  # 最新值大于前值
+            self.lineEdit_kongtoujiacha.setText(dict_input['spread_short'])
+            self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
+        elif dict_input['spread_short'] < self.__spread_short:  # 最新值小于前值
+            self.lineEdit_kongtoujiacha.setText(dict_input['spread_short'])
+            self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
 
     # 点击“发送”按钮后的参数更新，要更新的策略为goupBox中显示的user_id、strategy_id对应的
     def update_groupBox_trade_args_for_set(self):

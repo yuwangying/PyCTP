@@ -11,12 +11,16 @@ from pymongo import MongoClient
 from PyCTP_Trade import PyCTP_Trader_API
 import Utils
 from pandas import DataFrame, Series
+from PyQt4 import QtCore
 
 
-class User:
+class User(QtCore.QObject):
+    signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 定义信号：更新界面“开始策略”按钮
+
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
-    def __init__(self, dict_arguments):
+    def __init__(self, dict_arguments, parent=None):
         print('User.__init__()', dict_arguments)
+        super(User, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
         self.__trader_id = dict_arguments['traderid'].encode()
         self.__user_id = dict_arguments['userid'].encode()
         self.__BrokerID = dict_arguments['brokerid'].encode()
@@ -161,8 +165,9 @@ class User:
 
     # 设置user的交易开关，0关、1开
     def set_on_off(self, int_on_off):
-        print(">>>User.set_on_off() user_id=", self.__user_id, int_on_off)
+        # print(">>>User.set_on_off() user_id=", self.__user_id, int_on_off)
         self.__on_off = int_on_off
+        self.signal_UI_update_pushButton_start_strategy.emit({'MsgType': 9, 'UserID': self.__user_id.decode(), 'OnOff': self.__on_off})  # 更新界面“开始策略”按钮
 
     # 获取user的交易开关，0关、1开
     def get_on_off(self):
