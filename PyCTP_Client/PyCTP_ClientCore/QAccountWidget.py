@@ -758,28 +758,16 @@ class QAccountWidget(QWidget, Ui_Form):
                     position = i_strategy.get_position()['position_a_buy'] + i_strategy.get_position()['position_a_sell']
                     self.tableWidget_Trade_Args.item(i_row, 7).setText(str(position))
 
+    """
     # 初始化界面：策略参数框中的下单算法选项
     def init_groupBox_trade_args_trade_algorithm(self, list_algorithm):
         i_row = -1
         for i in range(len(list_algorithm)):
             i_row += 1
             self.comboBox_xiadansuanfa.insertItem(i_row, list_algorithm[i]['name'])
+    """
 
-    # 更新“策略列表”（tableWidget_Trade_Args）
-    # def update_tableWidget_Trade_Args(self, obj_strategy):
-        # for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历行
-        #     if self.tableWidget_Trade_Args.item(i_row, 2).text() == obj_strategy.get_user_id() and self.tableWidget_Trade_Args.item(i_row, 3).text() == obj_strategy.get_strategy_id():
-        #         position = dict_position['position_a_buy'] + dict_position['position_a_sell']
-        #         self.tableWidget_Trade_Args.item(i_row, 5).setText(str(position))  # 总持仓
-        #         self.tableWidget_Trade_Args.item(i_row, 6).setText(str(dict_position['position_a_buy']))  # 买持仓
-        #         self.tableWidget_Trade_Args.item(i_row, 7).setText(str(dict_position['position_a_sell']))  # 卖持仓
-        #         self.tableWidget_Trade_Args.item(i_row, 8).setText('shouxufei')  # 持仓盈亏
-        #         self.tableWidget_Trade_Args.item(i_row, 9).setText('shouxufei')  # 平仓盈亏
-        #         self.tableWidget_Trade_Args.item(i_row, 10).setText('shouxufei')  # 手续费
-        #         self.tableWidget_Trade_Args.item(i_row, 11).setText('chengjiaoliang')  # 成交量
-        #         self.tableWidget_Trade_Args.item(i_row, 12).setText("chengjiaojin'e")  # 成交金额
-        #         self.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
-
+    """
     # 更新界面：“策略参数”框（groupBox_trade_args），更新策略参数框-鼠标点击策略列表中策略事件，一次最多更新一个窗口的groupBox
     def update_groupBox(self):
         # print(">>> QAccountWidget.update_groupBox_trade_args() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
@@ -882,6 +870,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.lineEdit_Azuobuy.setText(str(dict_position['position_a_buy_yesterday']))  # A今买
                 self.lineEdit_Bzongsell.setText(str(dict_position['position_b_sell']))  # B总卖
                 self.lineEdit_Bzuosell.setText(str(dict_position['position_b_sell_yesterday']))  # B今卖
+    """
 
     # 更新界面：价差行情
     @QtCore.pyqtSlot(dict)

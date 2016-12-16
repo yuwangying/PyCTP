@@ -347,10 +347,10 @@ class ClientMain(QtCore.QObject):
                             if i_strategy.get_user_id() == buff['UserID'] \
                                     and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_arguments(buff['Info'][0])
-                                self.signal_UI_update_strategy.emit(i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
+                                # self.signal_UI_update_strategy.emit(i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
                             break
-                        for i_widget in self.__list_QAccountWidget:
-                            i_widget.update_groupBox_trade_args_for_set()  # 更新策略参数框goupBox
+                        # for i_widget in self.__list_QAccountWidget:
+                        #     i_widget.update_groupBox_trade_args_for_set()  # 更新策略参数框goupBox
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=5 修改策略参数失败")
                 elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
