@@ -32,7 +32,6 @@ class CTPManager(QtCore.QObject):
     signal_UI_remove_strategy = QtCore.pyqtSignal(object)  # 改写，信号：删除界面策略
     signal_UI_insert_strategy = QtCore.pyqtSignal(object)  # 改写，信号：添加界面策略
     signal_hide_new_strategy = QtCore.pyqtSignal()  # 隐藏创建策略的小弹窗
-    signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 改写，信号：更新界面“开始策略”按钮
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制

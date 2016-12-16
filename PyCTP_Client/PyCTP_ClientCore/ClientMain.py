@@ -19,18 +19,21 @@ from Strategy import Strategy
 
 
 class ClientMain(QtCore.QObject):
+
     signal_send_msg = QtCore.pyqtSignal(str)  # 定义信号：发送到服务端的json格式数据
     signal_pushButton_query_strategy_setEnabled = QtCore.pyqtSignal(bool)  # 定义信号：控制查询是否可用
     signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()  # 定义信号：按钮设置为可用
     signal_UI_update_strategy = QtCore.pyqtSignal(Strategy)  # 改写，定义信号：形参为用户自定义类Strategy，界面中刷新策略
     signal_UI_insert_strategy = QtCore.pyqtSignal(Strategy)  # 改写，定义信号：形参为用户自定义类Strategy，界面中插入策略
     signal_UI_set_on_tableWidget_Trade_Args_cellClicked = QtCore.pyqtSignal(int, int)  # 改写，信号：触发鼠标点击事件
+    signal_slot_output_message = QtCore.pyqtSignal(dict)  # 收到socketManager之后，发送处理消息信号
 
     def __init__(self, parent=None):
         super(ClientMain, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
         self.__list_QAccountWidget = list()  # 存放账户窗口
         self.__create_QAccountWidget_finished = False  # 窗口创建完成
         self.__showEvent = False  # 有任何一个QAccountWidget窗口显示
+        self.signal_slot_output_message.connect(self.run)
 
     def set_SocketManager(self, obj_sm):
         self.__sm = obj_sm
