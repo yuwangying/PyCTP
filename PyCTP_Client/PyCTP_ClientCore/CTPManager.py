@@ -27,8 +27,8 @@ import struct
 
 
 class CTPManager(QtCore.QObject):
-    signal_insert_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法insert_row_table_widget
-    signal_remove_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法remove_row_table_widget
+    # signal_insert_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法insert_row_table_widget
+    # signal_remove_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法remove_row_table_widget
     signal_UI_remove_strategy = QtCore.pyqtSignal(object)  # 改写，信号：删除界面策略
     signal_UI_insert_strategy = QtCore.pyqtSignal(object)  # 改写，信号：添加界面策略
     signal_hide_new_strategy = QtCore.pyqtSignal()  # 隐藏创建策略的小弹窗

@@ -108,6 +108,8 @@ class QAccountWidget(QWidget, Ui_Form):
 
         self.__spread_long = None  # 界面价差初始值
         self.__spread_short = None  # 界面价差初始值
+        self.__item_on_off_status = None  # 策略开关item的状态，dict
+        self.__item_only_close_status = None  # 策略开关item的状态，dict
 
         # 设置table行数
         # row_number = 0
@@ -304,6 +306,7 @@ class QAccountWidget(QWidget, Ui_Form):
                     self.pushButton_start_strategy.setText("开始策略")
                 self.pushButton_start_strategy.setEnabled(True)  # 解禁按钮setEnabled
 
+    """
     # 初始化界面：策略列表，tableWidget_Trade_Args
     def init_table_widget(self):
         print(">>> QAccountWidget.init_table_widget()")
@@ -420,6 +423,7 @@ class QAccountWidget(QWidget, Ui_Form):
                         self.tableWidget_Trade_Args.setItem(i_row, 14, item_trade_model)  # 交易模型
                         self.tableWidget_Trade_Args.setItem(i_row, 15, item_order_algorithm)  # 下单算法
                     self.on_tableWidget_Trade_Args_cellClicked(0, 0)
+    """
 
     # 更新单个策略的界面显示，调用情景：鼠标点击tableWidget、发送参数、发送持仓、查询
     @QtCore.pyqtSlot(object)
@@ -440,17 +444,19 @@ class QAccountWidget(QWidget, Ui_Form):
                 # 开关
                 item_on_off = self.tableWidget_Trade_Args.item(i_row, 0)
                 if dict_strategy_args['strategy_on_off'] == 0:
-                    print(">>> QAccountWidget.update_strategy() 更新tableWidget，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "策略开关设置：关")
+                    # print(">>> QAccountWidget.update_strategy() 更新tableWidget，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "策略开关设置：关")
                     item_on_off.setText("关")
                     item_on_off.setCheckState(QtCore.Qt.Unchecked)
                 elif dict_strategy_args['strategy_on_off'] == 1:
-                    print(">>> QAccountWidget.update_strategy() 更新tableWidget，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "策略开关设置：开")
+                    # print(">>> QAccountWidget.update_strategy() 更新tableWidget，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "策略开关设置：开")
                     item_on_off.setText("开")
                     item_on_off.setCheckState(QtCore.Qt.Checked)
                 else:
-                    print("QAccountWidget.update_strategy() user_id=", obj_strategy.get_user_id(),
-                          "strategy_id=", obj_strategy.get_strategy_id(), "策略参数strategy_on_off值异常",
-                          dict_strategy_args['strategy_on_off'])
+                    print("QAccountWidget.update_strategy() user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "策略参数strategy_on_off值异常", dict_strategy_args['strategy_on_off'])
+                if self.__item_on_off_status is not None:
+                    if self.__item_on_off_status['enable'] == 0:
+                        item_on_off.setFlags(item_on_off.flags() ^ (QtCore.Qt.ItemIsEnabled))  # 激活item
+                        self.__item_on_off_status['enable'] = 1  # 0禁用、1激活
                 # 只平
                 item_only_close = self.tableWidget_Trade_Args.item(i_row, 1)
                 if dict_strategy_args['only_close'] == 0:
@@ -461,6 +467,10 @@ class QAccountWidget(QWidget, Ui_Form):
                     item_only_close.setCheckState(QtCore.Qt.Checked)
                 else:
                     print("QAccountWidget.update_strategy() user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "策略参数only_close值异常", dict_strategy_args['only_close'])
+                if self.__item_only_close_status is not None:
+                    if self.__item_only_close_status['enable'] == 0:
+                        item_only_close.setFlags(item_only_close.flags() ^ (QtCore.Qt.ItemIsEnabled))  # 激活item
+                        self.__item_only_close_status['enable'] = 1  # 0禁用、1激活
                 # 交易模型
                 item_trade_model = self.tableWidget_Trade_Args.item(i_row, 14)
                 item_trade_model.setText(dict_strategy_args['trade_model'])
@@ -590,7 +600,8 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))
             # B昨卖
             self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))
-        
+
+    """
     # 往策略列表中添加新建的策略
     @QtCore.pyqtSlot()
     def insert_row_table_widget(self):
@@ -710,7 +721,9 @@ class QAccountWidget(QWidget, Ui_Form):
             self.tableWidget_Trade_Args.setItem(i_row, 13, item_average_shift)  # 平均滑点
             self.tableWidget_Trade_Args.setItem(i_row, 14, item_trade_model)  # 交易模型
             self.tableWidget_Trade_Args.setItem(i_row, 15, item_order_algorithm)  # 下单算法
+    """
 
+    """
     # 从策略列表中删除策略
     @QtCore.pyqtSlot()
     def remove_row_table_widget(self):
@@ -734,6 +747,7 @@ class QAccountWidget(QWidget, Ui_Form):
                     print(">>> QAccountWidget.remove_row_table_widget() 从总账户窗口中删除策略行")
                     self.tableWidget_Trade_Args.removeRow(i_row)
                     break
+    """
 
     # 初始化界面：策略统计类指标（统计代码在Strategy类中实现，界面层的类仅负责显示）
     def init_table_widget_statistics(self):
@@ -1445,6 +1459,10 @@ class QAccountWidget(QWidget, Ui_Form):
                 print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked()", on_off_checkState, self.__ClientMain.get_clicked_strategy().get_on_off())
                 if on_off_checkState != self.__ClientMain.get_clicked_strategy().get_on_off():
                     item.setFlags(item.flags() & (~QtCore.Qt.ItemIsEnabled))  # 设置当前item的状态属性(与操作)
+                    self.__item_on_off_status = {'widget_name': self.__widget_name,
+                                                 'user_id': self.tableWidget_Trade_Args.item(row, 2).text(),
+                                                 'strategy_id': self.tableWidget_Trade_Args.item(row, 3).text(),
+                                                 'enable': 0}  # enable值为1启用、0禁用
                     dict_args = {'user_id': self.__ClientMain.get_clicked_strategy().get_user_id(),
                                  'strategy_id': self.__ClientMain.get_clicked_strategy().get_strategy_id(),
                                  'on_off': on_off_checkState}
@@ -1455,6 +1473,10 @@ class QAccountWidget(QWidget, Ui_Form):
                 only_close_checkState = 0 if item.checkState() == 0 else 1
                 if only_close_checkState != self.__ClientMain.get_clicked_strategy().get_only_close():
                     item.setFlags(item.flags() & (~QtCore.Qt.ItemIsEnabled))  # 设置当前item的状态属性(与操作)
+                    self.__item_only_close_status = {'widget_name': self.__widget_name,
+                                                     'user_id': self.tableWidget_Trade_Args.item(row, 2).text(),
+                                                     'strategy_id': self.tableWidget_Trade_Args.item(row, 3).text(),
+                                                     'enable': 0}  # enable值为1启用、0禁用
                     dict_args = {'user_id': self.__ClientMain.get_clicked_strategy().get_user_id(),
                                  'strategy_id': self.__ClientMain.get_clicked_strategy().get_strategy_id(),
                                  'on_off': only_close_checkState}

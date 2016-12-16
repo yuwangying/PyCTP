@@ -113,8 +113,8 @@ class ClientMain(QtCore.QObject):
             self.get_QCTP().tab_accounts.addTab(i_widget, i_widget.get_widget_name())
             self.signal_pushButton_query_strategy_setEnabled.connect(i_widget.pushButton_query_strategy.setEnabled)
             i_widget.signal_update_groupBox_trade_args_for_query.connect(i_widget.update_groupBox_trade_args_for_query)
-            self.__CTPManager.signal_insert_row_table_widget.connect(i_widget.insert_row_table_widget)
-            self.__CTPManager.signal_remove_row_table_widget.connect(i_widget.remove_row_table_widget)
+            # self.__CTPManager.signal_insert_row_table_widget.connect(i_widget.insert_row_table_widget)
+            # self.__CTPManager.signal_remove_row_table_widget.connect(i_widget.remove_row_table_widget)
             # 改写，更新界面“开始策略”按钮，将CTPManager的信号signal_UI_update_pushButton_start_strategy连接到所有QAccountWidget对象的槽update_pushButton_start_strategy
             self.__CTPManager.signal_UI_update_pushButton_start_strategy.connect(i_widget.update_pushButton_start_strategy)
             # 改写，更新界面策略，将所有ClientMain的信号signal_UI_update_strategy连接到所有QAccountWidget对象的槽update_strategy
@@ -380,7 +380,7 @@ class ClientMain(QtCore.QObject):
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
                                 # self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示
-                                self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
+                                # self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=13 修改策略交易开关失败")
@@ -391,7 +391,7 @@ class ClientMain(QtCore.QObject):
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
                                 # self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示
-                                self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
+                                # self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("ClientMain.slot_output_message() MsgType=14 修改策略只平开关失败")
