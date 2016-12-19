@@ -50,20 +50,20 @@ class CTPManager(QtCore.QObject):
     # 初始化
     def init(self):
         # 创建行情实例
-        self.create_md(self.__ClientMain.get_listMarketInfo()[0])
+        self.create_md(self.__client_main.get_listMarketInfo()[0])
 
         # 创建期货账户
-        for i in self.__ClientMain.get_listUserInfo():
+        for i in self.__client_main.get_listUserInfo():
             self.create_user(i)
 
         # 创建策略
-        print("CTPManager.init() self.__ClientMain.get_listStrategyInfo()=", self.__ClientMain.get_listStrategyInfo())
-        if len(self.__ClientMain.get_listStrategyInfo()) > 0:
-            for i in self.__ClientMain.get_listStrategyInfo():
+        print("CTPManager.init() self.__client_main.get_listStrategyInfo()=", self.__client_main.get_listStrategyInfo())
+        if len(self.__client_main.get_listStrategyInfo()) > 0:
+            for i in self.__client_main.get_listStrategyInfo():
                 self.create_strategy(i)
-        elif len(self.__ClientMain.get_listStrategyInfo()) == 0:
+        elif len(self.__client_main.get_listStrategyInfo()) == 0:
             self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
-            self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
+            self.__client_main.create_QAccountWidget()  # 创建窗口界面
 
     # 创建MD
     def create_md(self, dict_arguments):
@@ -128,14 +128,14 @@ class CTPManager(QtCore.QObject):
         # 判断内核是否初始化完成
         if self.__init_finished is False:  # 内核初始化未完成
             # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
-            lastStrategyInfo = self.__ClientMain.get_listStrategyInfo()[-1]
+            lastStrategyInfo = self.__client_main.get_listStrategyInfo()[-1]
             if len(lastStrategyInfo) > 0:
                 if lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id():
                     self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
-                    self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
+                    self.__client_main.create_QAccountWidget()  # 创建窗口界面
             else:
                 self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
-                self.__ClientMain.create_QAccountWidget()  # 创建窗口界面
+                self.__client_main.create_QAccountWidget()  # 创建窗口界面
         elif self.__init_finished:  # 内核初始化完成且界面初始化完成，在界面策略列表框内添加一行
             print(">>> CTPManager.create_strategy() 程序运行中、初始化已经完成，在界面策略列表框内添加一行策略id为", dict_arguments['strategy_id'])
             # self.signal_insert_row_table_widget.emit()  # 在界面策略列表中显示添加的策略
@@ -210,10 +210,10 @@ class CTPManager(QtCore.QObject):
                 return i
 
     def set_ClientMain(self, obj_ClientMain):
-        self.__ClientMain = obj_ClientMain
+        self.__client_main = obj_ClientMain
 
     def get_ClientMain(self):
-        return self.__ClientMain
+        return self.__client_main
 
     def set_SocketManager(self, obj_SocketManager):
         self.__socket_manager = obj_SocketManager
@@ -232,6 +232,18 @@ class CTPManager(QtCore.QObject):
 
     def get_QCTP(self):
         return self.__q_ctp
+
+    def set_list_market_info(self, list_input):
+        self.__list_market_info = list_input
+
+    def get_list_market_info(self):
+        return self.__list_market_info
+        
+    def set_list_user_info(self, list_input):
+        self.__list_user_info = list_input
+
+    def get_list_user_info(self):
+        return self.__list_user_info
 
     # 所有策略的昨仓保存到一个list，从服务端查询获得
     def set_YesterdayPosition(self, listYesterdayPosition):

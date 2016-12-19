@@ -35,8 +35,6 @@ class QLoginForm(QWidget, Ui_LoginForm):
         super(QLoginForm, self).__init__(parent)
         self.setupUi(self)
 
-        self.Signal_SendMsg.connect(self.slot_SendMsg)  # 绑定信号、槽函数
-
         self.__sockfd = None  # socket_file_description
         self.__socket_manager = None  # SocketManager对象
 
@@ -52,10 +50,10 @@ class QLoginForm(QWidget, Ui_LoginForm):
         return self.__socket_manager
 
     def set_QCTP(self, obj_QCTP):
-        self.__QCTP = obj_QCTP
+        self.__q_ctp = obj_QCTP
 
     def get_QCTP(self):
-        return self.__QCTP
+        return self.__q_ctp
     
     def set_CTPManager(self, obj_CTPManager):
         self.__ctp_manager = obj_CTPManager
@@ -117,7 +115,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         # raise NotImplementedError
         self.close()
     
-    
+
     @pyqtSlot(bool)
     def on_checkBox_isoffline_clicked(self, checked):
         """
