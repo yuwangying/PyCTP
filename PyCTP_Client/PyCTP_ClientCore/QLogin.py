@@ -24,7 +24,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
     Class documentation goes here.
     """
 
-    Signal_SendMsg = QtCore.pyqtSignal(str)  # 自定义信号
+    signal_send_msg = QtCore.pyqtSignal(str)  # 信号：绑定到SocketManager的send_msg函数
 
     def __init__(self, parent=None):
         """
@@ -38,7 +38,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         self.Signal_SendMsg.connect(self.slot_SendMsg)  # 绑定信号、槽函数
 
         self.__sockfd = None  # socket_file_description
-        self.__sm = None  # SocketManager对象
+        self.__socket_manager = None  # SocketManager对象
 
         self.lineEdit_trader_password.setEchoMode(QtGui.QLineEdit.Password)  # 密码框暗文
 
@@ -46,16 +46,22 @@ class QLoginForm(QWidget, Ui_LoginForm):
         self.__sockfd = socket_file_description
 
     def set_SocketManager(self, obj_sm):
-        self.__sm = obj_sm
+        self.__socket_manager = obj_sm
 
     def get_SocketManager(self):
-        return self.__sm
+        return self.__socket_manager
 
     def set_QCTP(self, obj_QCTP):
         self.__QCTP = obj_QCTP
 
     def get_QCTP(self):
         return self.__QCTP
+    
+    def set_CTPManager(self, obj_CTPManager):
+        self.__ctp_manager = obj_CTPManager
+    
+    def get_CTPManager(self):
+        return self.__ctp_manager
 
     def set_QAccountWidget(self, obj_QAccountWidget):
         self.__QAccountWidget = obj_QAccountWidget
@@ -66,15 +72,18 @@ class QLoginForm(QWidget, Ui_LoginForm):
     def set_QOrderWidget(self, obj_QOrderWidget):
         self.__QOrderWidget = obj_QOrderWidget
 
-    def set_QClientMain(self, qclientmain):
-        self.__QClientMain = qclientmain
+    def set_ClientMain(self, obj_ClientMain):
+        self.__client_main = obj_ClientMain
+
+    def get_ClientMain(self):
+        return self.__client_main
 
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):
         # print("QLogin.slot_SendMsg()", msg)
         # send json to server
-        self.__sm.send_msg(msg)
+        self.__socket_manager.send_msg(msg)
     
     @pyqtSlot()
     def on_pushButton_login_clicked(self):
@@ -84,41 +93,16 @@ class QLoginForm(QWidget, Ui_LoginForm):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-
         self.pushButton_login.setEnabled(False)  # 点击后按钮灰显不可用，收到登录失败重新激活
-
-        # 未勾选脱机登录
-        if self.checkBox_isoffline.checkState() == PyQt4.QtCore.Qt.Unchecked:
-            print("on_pushButton_login_clicked() 未勾选脱机登录")
-            # stockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket套接字
-
-            if not self.__sm:
-                sm = SocketManager("10.0.0.28", 8888)  # 创建SocketManager实例，公司网络ip"10.0.0.37"，家里网络ip"192.168.5.17"
-                sm.connect()
-                sm.start()
-                self.set_SocketManager(sm)  # SocketManager对象设置为QLoginForm对象的属性
-                sm.set_ClientMain(self.__QClientMain)
-                # self.__QClientMain.set_SocketManager(sm)  # SocketManager对象设置为QClientMain对象的属性
-                self.__QClientMain.set_QLoginForm(self)  # QLoginForm对象设置为QClientMain对象的属性
-                self.__QClientMain.set_QCTP(self.get_QCTP())  # QCTP对象设置为QClientMain对象的属性
-                self.__QClientMain.set_SocketManager(sm)  # sm(SoketManager)对象设置为QClientMain对象的属性
-                # 绑定信号:sm的signal_send_message到ClientMain.slot_output_message
-                # sm.signal_send_message.connect(self.__QClientMain.slot_output_message)
-                sm.set_QLogin(self)  # QLoginForm对象设置为SocketManager对象的属性
-
-            self.__dict_login = {'MsgRef': self.__sm.msg_ref_add(),
-                          'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
-                          'MsgSrc': 0,  # 消息源，客户端0，服务端1
-                          'MsgType': 1,  # 消息类型为trader登录验证
-                          'TraderID': self.lineEdit_trader_id.text(),
-                          'Password': self.lineEdit_trader_password.text()
-                          }
-
-            json_login = json.dumps(self.__dict_login)
-            self.Signal_SendMsg.emit(json_login)
-        # 勾选脱机登录
-        elif self.checkBox_isoffline.checkState() == PyQt4.QtCore.Qt.Checked:
-            pass
+        self.__dict_login = {'MsgRef': self.__socket_manager.msg_ref_add(),
+                             'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                             'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                             'MsgType': 1,  # 消息类型为trader登录验证
+                             'TraderID': self.lineEdit_trader_id.text(),
+                             'Password': self.lineEdit_trader_password.text()
+                             }
+        json_login = json.dumps(self.__dict_login)
+        self.signal_send_msg.emit(json_login)
 
     # 获得交易员登录信息
     def get_dict_login(self):
@@ -132,6 +116,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         # TODO: not implemented yet
         # raise NotImplementedError
         self.close()
+    
     
     @pyqtSlot(bool)
     def on_checkBox_isoffline_clicked(self, checked):

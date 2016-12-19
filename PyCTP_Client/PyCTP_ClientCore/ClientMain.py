@@ -16,6 +16,7 @@ from MarketManager import MarketManager
 from Trader import Trader
 from User import User
 from Strategy import Strategy
+from SocketManager import SocketManager
 
 
 class ClientMain(QtCore.QObject):
@@ -31,14 +32,14 @@ class ClientMain(QtCore.QObject):
     def __init__(self, parent=None):
         super(ClientMain, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
         self.__list_QAccountWidget = list()  # 存放账户窗口
-        self.__create_QAccountWidget_finished = False  # 窗口创建完成
+        self.__init_UI_finished = False  # 窗口创建完成
         self.__showEvent = False  # 有任何一个QAccountWidget窗口显示
-        self.signal_slot_output_message.connect(self.run)
+        # self.signal_slot_output_message.connect(self.run)
 
     def set_SocketManager(self, obj_sm):
         self.__sm = obj_sm
-        self.__sm.signal_send_message.connect(self.slot_output_message)  # 绑定信号槽函数:
-        self.signal_send_msg.connect(self.__sm.send_msg)  # 绑定信号槽函数
+        # self.__sm.signal_send_message.connect(self.slot_output_message)  # 绑定信号槽函数:
+        # self.signal_send_msg.connect(self.__sm.send_msg)  # 绑定信号槽函数
 
     def set_QLoginForm(self, qloginform):
         self.__QLoginForm = qloginform
@@ -156,7 +157,7 @@ class ClientMain(QtCore.QObject):
         self.set_QNewStrategy(q_new_strategy)  # 设置为ClientMain属性
         self.__CTPManager.signal_hide_new_strategy.connect(self.get_QNewStrategy().hide)  # 绑定信号槽，新创建策略成功后隐藏“新建策略弹窗”
 
-        self.__create_QAccountWidget_finished = True  # 界面初始化完成标志位
+        self.__init_UI_finished = True  # 界面初始化完成标志位
 
         self.__QLoginForm.hide()  # 隐藏登录窗口
         self.__QCTP.show()  # 显示主窗口
@@ -210,8 +211,11 @@ class ClientMain(QtCore.QObject):
     def get_show_widget_name(self):
         return self.__show_widget_name
 
-    def get_create_QAccountWidget_finished(self):
-        return self.__create_QAccountWidget_finished
+    def set_init_UI_finished(self, bool_input):
+        self.__init_UI_finished = bool_input
+
+    def get_init_UI_finished(self):
+        return self.__init_UI_finished
 
     def get_TraderID(self):
         return self.__TraderID
@@ -261,6 +265,7 @@ class ClientMain(QtCore.QObject):
     def get_show_widget(self):
         return self.__show_widget
 
+    """
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
     def slot_output_message(self, buff):
@@ -435,6 +440,7 @@ class ClientMain(QtCore.QObject):
                         print("ClientMain.slot_output_message() MsgType=9 修改期货账户开关失败")
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
+    """
 
     # 查询行情信息
     def QryMarketInfo(self):
@@ -646,20 +652,46 @@ if __name__ == '__main__':
     styleSheet = file.readAll().data().decode("utf-8")
     file.close()
 
-    q_client_main = ClientMain()  # 创建客户端主界面实例
-    ctp_manager = CTPManager()  # 创建客户端内核管理实例
-    ctp_manager.set_ClientMain(q_client_main)  # 客户端界面实例与内核管理实例相互设置为对方的属性
-    q_client_main.set_CTPManager(ctp_manager)
-
-    q_login_form = QLogin.QLoginForm()  # 创建登录界面
-    q_login_form.set_QClientMain(q_client_main)  # 登录界面与客户端主界面相互设置为对方的属性
-    q_client_main.set_QLoginForm(q_login_form)
-    q_login_form.show()
-
+    """创建对象"""
+    client_main = ClientMain()  # 创建客户端管理类对象
+    ctp_manager = CTPManager()  # 创建内核管理类对象
+    socket_manager = SocketManager("10.0.0.4", 8888)  # 创建SocketManager对象
+    socket_manager.connect()
+    socket_manager.start()
+    q_login = QLogin.QLoginForm()  # 创建登录界面
     q_ctp = QCTP()  # 创建最外围的大窗口
-    q_login_form.set_QCTP(q_ctp)
-    q_client_main.set_QCTP(q_ctp)
-    q_ctp.set_ClientMain(q_client_main)
+
+    """设置属性"""
+    client_main.set_CTPManager(ctp_manager)
+    client_main.set_SocketManager(socket_manager)
+    client_main.set_QLoginForm(q_login)
+    client_main.set_QCTP(q_ctp)
+    ctp_manager.set_ClientMain(client_main)
+    ctp_manager.set_SocketManager(socket_manager)
+    ctp_manager.set_QLoginForm(q_login)
+    ctp_manager.set_QCTP(q_ctp)
+    socket_manager.set_ClientMain(client_main)
+    socket_manager.set_CTPManager(ctp_manager)
+    socket_manager.set_QLogin(q_login)
+    socket_manager.set_QCTP(q_ctp)
+    q_login.set_ClientMain(client_main)
+    q_login.set_CTPManager(ctp_manager)
+    q_login.set_SocketManager(socket_manager)
+    q_login.set_QCTP(q_ctp)
+    q_ctp.set_ClientMain(client_main)
+    q_ctp.set_CTPManager(ctp_manager)
+    q_ctp.set_SocketManager(socket_manager)
+    q_ctp.set_QLogin(q_login)
+
+    """绑定信号槽"""
+    q_login.signal_send_msg.connect(socket_manager.send_msg)
+
+    """显示界面"""
+    q_login.show()  # 显示登录界面
+
+    ctp_manager.set_ClientMain(client_main)
+    socket_manager.set_CTPManager(ctp_manager)
+    q_ctp.set_ClientMain(client_main)
 
     print("if __name__ == '__main__'")
     sys.exit(app.exec_())

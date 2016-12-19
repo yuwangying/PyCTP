@@ -41,5 +41,26 @@ class QCTP(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
     def set_ClientMain(self, obj_ClientMain):
-        self.__ClientMain = obj_ClientMain
+        self.__client_main = obj_ClientMain
+
+    def get_ClientMain(self):
+        return self.__client_main
+
+    def set_CTPManager(self, obj_CTPManager):
+        self.__ctp_manager = obj_CTPManager
+
+    def get_CTPManager(self):
+        return self.__ctp_manager
+
+    def set_QLogin(self, obj_QLogin):
+        self.__q_login = obj_QLogin
+
+    def get_QLogin(self):
+        return self.__q_login
+
+    def set_SocketManager(self, obj_SocketManager):
+        self.__socket_manager = obj_SocketManager
+
+    def get_SocketManager(self):
+        return self.__socket_manager
 

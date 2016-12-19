@@ -479,8 +479,10 @@ class QAccountWidget(QWidget, Ui_Form):
                 item_order_algorithm.setText(dict_strategy_args['order_algorithm'])
                 break
         """更新groupBox"""
-        if True:
-            # print(">>> QAccountWidget.update_strategy() 更新groupBox，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
+        if self.__ClientMain.get_init_UI_finished() and \
+                ((obj_strategy.get_clicked() and self.is_single_user_widget() and self.__widget_name == dict_strategy_args['user_id']) or (obj_strategy.get_clicked_total() and self.is_single_user_widget() == False)):
+            # 只更新被鼠标选中的策略
+            print(">>> QAccountWidget.update_strategy() 更新groupBox，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
 
             # 初始化comboBox_qihuozhanghao可选项，先清空comboBox内选项item，后添加可选项item
             self.comboBox_qihuozhanghao.clear()
@@ -1439,7 +1441,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 break
 
         """监测交易开关、只平开关变化，并触发修改指令"""
-        if self.__ClientMain.get_create_QAccountWidget_finished():
+        if self.__ClientMain.get_init_UI_finished():
             self.tableWidget_Trade_Args.setCurrentItem(item)
             # 判断策略开关item的checkState()状态变化
             if column == 0:

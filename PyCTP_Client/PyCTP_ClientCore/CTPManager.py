@@ -32,6 +32,7 @@ class CTPManager(QtCore.QObject):
     signal_UI_remove_strategy = QtCore.pyqtSignal(object)  # 改写，信号：删除界面策略
     signal_UI_insert_strategy = QtCore.pyqtSignal(object)  # 改写，信号：添加界面策略
     signal_hide_new_strategy = QtCore.pyqtSignal()  # 隐藏创建策略的小弹窗
+    signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 更新界面“开始策略”按钮
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -213,6 +214,24 @@ class CTPManager(QtCore.QObject):
 
     def get_ClientMain(self):
         return self.__ClientMain
+
+    def set_SocketManager(self, obj_SocketManager):
+        self.__socket_manager = obj_SocketManager
+
+    def get_SocketManager(self):
+        return self.__socket_manager
+
+    def set_QLoginForm(self, obj_QLoginForm):
+        self.__q_login = obj_QLoginForm
+
+    def get_QLoginForm(self):
+        return self.__q_login
+
+    def set_QCTP(self, obj_QCTP):
+        self.__q_ctp = obj_QCTP
+
+    def get_QCTP(self):
+        return self.__q_ctp
 
     # 所有策略的昨仓保存到一个list，从服务端查询获得
     def set_YesterdayPosition(self, listYesterdayPosition):

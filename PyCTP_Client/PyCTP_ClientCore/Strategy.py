@@ -91,7 +91,7 @@ class Strategy(QtCore.QObject):
         self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
         # 窗口初始化完成、程序运行中创建的策略，将显示前端窗口名称设置为其属性
-        if self.__user.get_CTPManager().get_ClientMain().get_create_QAccountWidget_finished():
+        if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
             self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
             self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
         self.init_yesterday_position()  # 初始化策略昨仓
@@ -485,7 +485,7 @@ class Strategy(QtCore.QObject):
         if self.__user.get_CTPManager().get_init_finished() is False:
             return
         # 窗口创建完成
-        if self.__user.get_CTPManager().get_ClientMain().get_create_QAccountWidget_finished() is False:
+        if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished() is False:
             return
         # 没有任何一个窗口显示，跳过
         if self.__user.get_CTPManager().get_ClientMain().get_showEvent() is False:
