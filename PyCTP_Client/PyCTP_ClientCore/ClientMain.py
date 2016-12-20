@@ -182,20 +182,20 @@ class ClientMain(QtCore.QObject):
     def get_CTPManager(self):
         return self.__ctp_manager
 
-    def get_listMarketInfo(self):
-        return self.__listMarketInfo
-
-    def get_listUserInfo(self):
-        return self.__listUserInfo
-
-    def get_listStrategyInfo(self):
-        return self.__listStrategyInfo
-
-    def get_list_QAccountWidget(self):
-        return self.__list_QAccountWidget
-
-    def get_listAlgorithmInfo(self):
-        return self.__listAlgorithmInfo
+    # def get_listMarketInfo(self):
+    #     return self.__listMarketInfo
+    #
+    # def get_listUserInfo(self):
+    #     return self.__listUserInfo
+    #
+    # def get_listStrategyInfo(self):
+    #     return self.__listStrategyInfo
+    #
+    # def get_list_QAccountWidget(self):
+    #     return self.__list_QAccountWidget
+    #
+    # def get_listAlgorithmInfo(self):
+    #     return self.__listAlgorithmInfo
 
     # 设置鼠标点击状态，信息包含:item所在行、item所在列、widget_name、user_id、strategy_id
     def set_clicked_status(self, in_dict):
@@ -658,7 +658,7 @@ if __name__ == '__main__':
     """创建对象"""
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
-    socket_manager = SocketManager("10.0.0.4", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager("10.0.0.28", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 创建登录界面
@@ -688,10 +688,14 @@ if __name__ == '__main__':
 
     """绑定信号槽"""
     q_login.signal_send_msg.connect(socket_manager.send_msg)
-    # 连接信号槽：设置q_login消息框文本
+    # 绑定信号槽：设置q_login消息框文本
     socket_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
-    # 连接信号槽：设置q_login的登录按钮是否可用
+    # 绑定信号槽：设置q_login的登录按钮是否可用
     socket_manager.signal_pushButton_login_set_enabled.connect(q_login.pushButton_login.setEnabled)
+    # 绑定信号槽：调用CTPManager的初始化方法
+    socket_manager.signal_ctp_manager_init.connect(ctp_manager.init)
+    # 绑定信号槽：调用创建窗口create_QAccountWidget
+    ctp_manager.signal_create_QAccountWidget.connect(client_main.create_QAccountWidget)
 
     """显示界面"""
     q_login.show()

@@ -88,22 +88,22 @@ class User(QtCore.QObject):
 
     # 查询合约信息
     def qry_instrument_info(self):
-        if self.__CTPManager.get_got_list_instrument_info() is False:
+        if self.__ctp_manager.get_got_list_instrument_info() is False:
             self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
-            self.__CTPManager.set_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
+            self.__ctp_manager.set_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
             if len(self.__instrument_info) > 0:
-                self.__CTPManager.set_got_list_instrument_info(True)  # 将获取合约信息的状态设置为真，获取成功
+                self.__ctp_manager.set_got_list_instrument_info(True)  # 将获取合约信息的状态设置为真，获取成功
 
     # time.sleep(1.0)
     # print("User.__init__.self.__instrument_info=", self.__instrument_info)
 
     # 将CTPManager类设置为user的属性
     def set_CTPManager(self, obj_CTPManager):
-        self.__CTPManager = obj_CTPManager
+        self.__ctp_manager = obj_CTPManager
 
     # 获取CTPManager属性
     def get_CTPManager(self):
-        return self.__CTPManager
+        return self.__ctp_manager
 
     # 设置数据库管理类DBManager为该类对象
     def set_DBManager(self, obj_DBManager):

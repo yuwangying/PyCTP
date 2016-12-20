@@ -68,7 +68,7 @@ class MarketManager:
             time.sleep(1.0)
             print('MarketManager.sub_market() 请求订阅行情', Utils.code_transform(self.__market.SubMarketData(list_instrument_id_to_sub)))
             MarketManager.list_instrument_subscribed.extend(list_instrument_id_to_sub)
-        print('MarketManager.sub_market() 订阅行情详情', self.__list_instrument_subscribed_detail)
+        print('MarketManager.sub_market() 已订阅行情详情', self.__list_instrument_subscribed_detail)
 
     # 退订行情，策略退订某一合约行情的时候需考虑是否有其他账户策略正在订阅此合约的行情
     def un_sub_market(self, list_instrument_id, user_id, strategy_id):

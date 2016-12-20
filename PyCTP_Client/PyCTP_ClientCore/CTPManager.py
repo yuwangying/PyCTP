@@ -10,6 +10,7 @@ import os
 import threading
 import chardet
 from PyQt4 import QtCore
+from PyQt4.QtGui import QApplication, QCompleter, QLineEdit, QStringListModel
 import pandas as pd
 from pandas import Series, DataFrame
 from pymongo import MongoClient
@@ -21,18 +22,19 @@ from Trader import Trader
 from User import User
 from Strategy import Strategy
 from MarketManager import MarketManager
+from QAccountWidget import QAccountWidget
+from QStrategySetting import NewStrategy
 from collections import namedtuple  # Socket所需package
 import socket
 import struct
 
 
 class CTPManager(QtCore.QObject):
-    # signal_insert_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法insert_row_table_widget
-    # signal_remove_row_table_widget = QtCore.pyqtSignal()  # 定义信号：调用ClientMain中的方法remove_row_table_widget
-    signal_UI_remove_strategy = QtCore.pyqtSignal(object)  # 改写，信号：删除界面策略
-    signal_UI_insert_strategy = QtCore.pyqtSignal(object)  # 改写，信号：添加界面策略
-    signal_hide_new_strategy = QtCore.pyqtSignal()  # 隐藏创建策略的小弹窗
-    signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 更新界面“开始策略”按钮
+    signal_UI_remove_strategy = QtCore.pyqtSignal(object)  # 定义信号：删除界面策略
+    signal_UI_insert_strategy = QtCore.pyqtSignal(object)  # 定义信号：添加界面策略
+    signal_hide_new_strategy = QtCore.pyqtSignal()  # 定义信号：隐藏创建策略的小弹窗
+    signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 定义信号：更新界面“开始策略”按钮
+    signal_create_QAccountWidget = QtCore.pyqtSignal()  # 定义信号：创建QAccountWidget窗口
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -45,25 +47,37 @@ class CTPManager(QtCore.QObject):
         self.__got_list_instrument_info = False  # 获得了期货合约信息
         self.__on_off = 0  # 交易员的交易开关，初始值为关
         self.__only_close = 0  # 交易员的只平，初始值为关
-        self.__init_finished = False  # 初始化完成
+        self.__init_finished = False  # 初始化完成状态，False为完成、True完成
 
-    # 初始化
+        self.__thread_init = threading.Thread(target=self.start_init)  # 创建初始化内核方法线程
+
+    @QtCore.pyqtSlot()
     def init(self):
+        self.__thread_init.start()
+
+    # 初始化（独立线程）
+    def start_init(self):
+        thread = threading.current_thread()
+        print(">>> CTPManager.start_init() thread.getName()=", thread.getName())
+        
         # 创建行情实例
-        self.create_md(self.__client_main.get_listMarketInfo()[0])
+        self.create_md(self.__socket_manager.get_list_market_info()[0])
 
         # 创建期货账户
-        for i in self.__client_main.get_listUserInfo():
+        for i in self.__socket_manager.get_list_user_info():
             self.create_user(i)
 
         # 创建策略
-        print("CTPManager.init() self.__client_main.get_listStrategyInfo()=", self.__client_main.get_listStrategyInfo())
-        if len(self.__client_main.get_listStrategyInfo()) > 0:
-            for i in self.__client_main.get_listStrategyInfo():
+        self.__list_strategy_info = self.__socket_manager.get_list_strategy_info()  # 获取所有策略信息列表
+        if len(self.__list_strategy_info) > 0:
+            for i in self.__list_strategy_info:
                 self.create_strategy(i)
-        elif len(self.__client_main.get_listStrategyInfo()) == 0:
+        elif len(self.__list_strategy_info) == 0:
             self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
-            self.__client_main.create_QAccountWidget()  # 创建窗口界面
+            # self.signal_create_QAccountWidget.emit()  # 创建窗口界面
+
+        if self.__init_finished:  # 如果CTPManager初始化完成，跳转到界面初始化或显示
+            self.signal_create_QAccountWidget.emit()  # 创建窗口界面
 
     # 创建MD
     def create_md(self, dict_arguments):
@@ -74,7 +88,7 @@ class CTPManager(QtCore.QObject):
                                              dict_arguments['userid'],
                                              dict_arguments['password']
                                              )
-        print("CTPManager.create_md() 行情接口交易日", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
+        print("CTPManager.create_md() 创建行情，行情接口交易日=", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
         self.__MarketManager.get_market().set_strategy(self.__list_strategy)  # 将策略列表设置为Market_API类的属性
 
     # 创建trader
@@ -90,12 +104,12 @@ class CTPManager(QtCore.QObject):
                 if i.get_user_id() == dict_arguments['userid']:
                     print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
                     return False
-        obj_User = User(dict_arguments)
-        obj_User.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
-        obj_User.set_CTPManager(self)  # 将CTPManager类设置为user的属性
-        obj_User.qry_instrument_info()  # 查询合约信息
-        self.__list_user.append(obj_User)  # user类实例添加到列表存放
-        print("CTPManager.create_user() 创建期货账户实例", dict_arguments)
+        obj_user = User(dict_arguments)
+        obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
+        obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
+        obj_user.qry_instrument_info()  # 查询合约信息
+        self.__list_user.append(obj_user)  # user类实例添加到列表存放
+        print("CTPManager.create_user() 创建期货账户，user_id=", dict_arguments['userid'])
 
     # 将strategy对象添加到user里
     def add_strategy_to_user(self, obj_strategy):
@@ -109,37 +123,32 @@ class CTPManager(QtCore.QObject):
         if len(self.__list_strategy) > 0:
             for i in self.__list_strategy:
                 if i.get_strategy_id() == dict_arguments['strategy_id'] and i.get_user_id() == dict_arguments['user_id']:
-                    print("CTPManager.create_strategy() 不能重复创建，已经存在的strategy_id=", dict_arguments['strategy_id'])
+                    print("CTPManager.create_strategy() 不能重复创建，已经存在user_id=", dict_arguments['user_id'], "strategy_id=", dict_arguments['strategy_id'])
                     return False
 
-        print("CTPManager.create_strategy() user_id=", dict_arguments['user_id'], "strategy_id=", dict_arguments['strategy_id'])
-        for i in self.__list_user:
-            if i.get_user_id().decode() == dict_arguments['user_id']:  # 找到策略所属的user实例
-                obj_strategy = Strategy(dict_arguments, i, self.__DBManager)  # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
-                i.add_strategy(obj_strategy)               # 将策略实例添加到user的策略列表
+        # 遍历user对象列表，找到将要创建策略所属的user对象
+        for i_user in self.__list_user:
+            if i_user.get_user_id().decode() == dict_arguments['user_id']:  # 找到策略所属的user实例
+                # 创建策略
+                obj_strategy = Strategy(dict_arguments, i_user, self.__DBManager)  # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
+                i_user.add_strategy(obj_strategy)               # 将策略实例添加到user的策略列表
                 self.__list_strategy.append(obj_strategy)  # 将策略实例添加到CTP_Manager的策略列表
+                print("CTPManager.create_strategy() 创建策略，user_id=", dict_arguments['user_id'], "strategy_id=", dict_arguments['strategy_id'])
+                # 为策略订阅行情
+                list_instrument_id = list()
+                for i in dict_arguments['list_instrument_id']:
+                    list_instrument_id.append(i.encode())  # 将合约代码转码为二进制字符串
+                self.__MarketManager.sub_market(list_instrument_id, dict_arguments['user_id'], dict_arguments['strategy_id'])
 
-        # 订阅行情
-        list_instrument_id = list()
-        for i in dict_arguments['list_instrument_id']:
-            list_instrument_id.append(i.encode())  # 将合约代码转码为二进制字符串
-        self.__MarketManager.sub_market(list_instrument_id, dict_arguments['user_id'], dict_arguments['strategy_id'])
-
-        # 判断内核是否初始化完成
+        # 判断内核是否初始化完成（所有策略是否初始化完成）
         if self.__init_finished is False:  # 内核初始化未完成
             # 最后一个策略实例初始化完成，将内核初始化完成标志设置为True，跳转到界面初始化或显示
-            lastStrategyInfo = self.__client_main.get_listStrategyInfo()[-1]
-            if len(lastStrategyInfo) > 0:
-                if lastStrategyInfo['strategy_id'] == obj_strategy.get_strategy_id() and lastStrategyInfo['user_id'] == obj_strategy.get_user_id():
-                    self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
-                    self.__client_main.create_QAccountWidget()  # 创建窗口界面
-            else:
-                self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
-                self.__client_main.create_QAccountWidget()  # 创建窗口界面
-        elif self.__init_finished:  # 内核初始化完成且界面初始化完成，在界面策略列表框内添加一行
-            print(">>> CTPManager.create_strategy() 程序运行中、初始化已经完成，在界面策略列表框内添加一行策略id为", dict_arguments['strategy_id'])
-            # self.signal_insert_row_table_widget.emit()  # 在界面策略列表中显示添加的策略
-            self.signal_hide_new_strategy.emit()  # 隐藏创建策略的小弹窗
+            if self.__list_strategy_info[-1]['user_id'] == dict_arguments['user_id'] and \
+                            self.__list_strategy_info[-1]['strategy_id'] == dict_arguments['strategy_id']:
+                self.__init_finished = True  # CTPManager初始化完成
+        elif self.__init_finished:  # 内核初始化完成、程序运行中新添加策略，在界面策略列表框内添加一行
+            print(">>> CTPManager.create_strategy() 程序运行中添加策略", dict_arguments['strategy_id'])
+            self.signal_hide_new_strategy.emit()  # 隐藏创建策略的小弹窗，待续：改为创建成功后再隐藏小窗
             self.signal_UI_insert_strategy.emit(obj_strategy)  # 界面初始化完成，内核向界面插入策略
 
     # 删除strategy
@@ -169,6 +178,93 @@ class CTPManager(QtCore.QObject):
 
         # 内核删除策略成功，通知界面删除策略
         # self.signal_remove_row_table_widget.emit()  # 在界面策略列表中删除策略
+
+    # 初始化账户窗口
+    def create_QAccountWidget(self):
+        print(">>> CTPManager.create_QAccountWidget() CTPManager内核初始化完成，开始创建窗口")
+
+        # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里，总账户窗口初始化函数内部将总账户窗口对象设置为各user对象的属性。
+        tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user(), ClientMain=self)
+        # tmpQ.set_ClientMain(self)  # ClientMain设置为窗口对象的属性
+        # 总账户窗口实例设置为所有策略的属性
+        for i_strategy in self.get_CTPManager().get_list_strategy():
+            i_strategy.set_QAccountWidgetTotal(tmpQ)
+        # tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
+        self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
+        self.signal_pushButton_set_position_setEnabled.connect(
+            tmpQ.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
+        tmpQ.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定标志设置为True
+
+        # 创建单个账户窗口，将user对象设置为其属性，将窗口对象存放到list里
+        for i_user in self.get_CTPManager().get_list_user():
+            tmpQ = QAccountWidget(str_widget_name=i_user.get_user_id().decode(),
+                                  obj_user=i_user,
+                                  ClientMain=self)  # 创建窗口，并将user设置为其属性
+            i_user.set_QAccountWidget(tmpQ)  # 窗口实例设置为user的对象
+            # tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
+            # 单账户窗口实例设置为对应期货账户下面所有策略的属性
+            for i_strategy in tmpQ.get_user().get_list_strategy():
+                i_strategy.set_QAccountWidget(tmpQ)
+            # tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
+            self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
+            self.signal_pushButton_set_position_setEnabled.connect(
+                tmpQ.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
+            tmpQ.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定标志设置为True
+
+        # 账户窗口创建完成，账户窗口添加到QCTP窗口的tab
+        for i_widget in self.__list_QAccountWidget:
+            # i_widget.init_table_widget()  # 初始化QAccountWidget内所有的组件
+            self.get_QCTP().tab_accounts.addTab(i_widget, i_widget.get_widget_name())
+            self.signal_pushButton_query_strategy_setEnabled.connect(i_widget.pushButton_query_strategy.setEnabled)
+            i_widget.signal_update_groupBox_trade_args_for_query.connect(i_widget.update_groupBox_trade_args_for_query)
+            # self.__ctp_manager.signal_insert_row_table_widget.connect(i_widget.insert_row_table_widget)
+            # self.__ctp_manager.signal_remove_row_table_widget.connect(i_widget.remove_row_table_widget)
+            # 改写，更新界面“开始策略”按钮，将CTPManager的信号signal_UI_update_pushButton_start_strategy连接到所有QAccountWidget对象的槽update_pushButton_start_strategy
+            self.__ctp_manager.signal_UI_update_pushButton_start_strategy.connect(
+                i_widget.update_pushButton_start_strategy)
+            # 改写，更新界面策略，将所有ClientMain的信号signal_UI_update_strategy连接到所有QAccountWidget对象的槽update_strategy
+            self.signal_UI_update_strategy.connect(i_widget.update_strategy)  # 改写，更新策略在界面的显示
+            # 改写，向界面插入策略，将ClientMain的信号signal_insert_strategy连接到所有QAccountWidget对象的槽insert_strategy
+            self.signal_UI_insert_strategy.connect(i_widget.insert_strategy)
+            # 改写，向界面插入策略，将CTPManager的信号signal_UI_insert_strategy连接到所有QAccountWidget对象的槽insert_strategy
+            self.__ctp_manager.signal_UI_insert_strategy.connect(i_widget.insert_strategy)
+            # 改写，从界面删除策略，将CTPManager的信号signal_UI_remove_strategy连接到所有QAccountWidget对象的槽remove_strategy
+            self.__ctp_manager.signal_UI_remove_strategy.connect(i_widget.remove_strategy)
+            # 改写，将所有策略对象的信号signal_UI_update_strategy分别连接到所有QAccountWidget对象的槽update_strategy
+            for i_strategy in self.__ctp_manager.get_list_strategy():
+                i_strategy.signal_UI_update_strategy.connect(i_widget.update_strategy)
+            # 设置鼠标点击事件
+            self.signal_UI_set_on_tableWidget_Trade_Args_cellClicked.connect(
+                i_widget.set_on_tableWidget_Trade_Args_cellClicked)
+            # 改写，更新界面“开始策略”按钮，将所有User的信号signal_UI_update_pushButton_start_strategy连接到所有QAccountWidget对象的槽update_pushButton_start_strategy
+            for i_user in self.__ctp_manager.get_list_user():
+                i_user.signal_UI_update_pushButton_start_strategy.connect(i_widget.update_pushButton_start_strategy)
+
+        # 初始化QAccountWidget界面显示
+        for i_strategy in self.__ctp_manager.get_list_strategy():
+            self.signal_UI_insert_strategy.emit(i_strategy)
+
+        # 初始化鼠标点击位置
+        self.signal_UI_set_on_tableWidget_Trade_Args_cellClicked.emit(0, 0)
+
+        # 创建“新建策略”弹窗
+        q_new_strategy = NewStrategy()
+        completer = QCompleter()
+        model = QStringListModel()
+        model.setStringList(self.__ctp_manager.get_list_instrument_id())
+        completer.setModel(model)
+        q_new_strategy.lineEdit_a_instrument.setCompleter(completer)
+        q_new_strategy.lineEdit_b_instrument.setCompleter(completer)
+        q_new_strategy.set_ClientMain(self)  # ClientMain设置为其属性
+        self.set_QNewStrategy(q_new_strategy)  # 设置为ClientMain属性
+        self.__ctp_manager.signal_hide_new_strategy.connect(self.get_QNewStrategy().hide)  # 绑定信号槽，新创建策略成功后隐藏“新建策略弹窗”
+
+        self.__init_UI_finished = True  # 界面初始化完成标志位
+
+        self.__q_login_form.hide()  # 隐藏登录窗口
+        self.__q_ctp.show()  # 显示主窗口
+
+        print(">>> ClientMain.create_QAccountWidget() 界面初始化完成")
 
     # 创建数据库连接实例
     def create_DBManager(self):

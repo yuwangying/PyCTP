@@ -40,6 +40,7 @@ class Strategy(QtCore.QObject):
         print('Strategy.__init__() 创建交易策略，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
         self.__DBM = obj_DBM  # 数据库连接实例
         self.__user = obj_user  # user实例
+        self.__ctp_manager = obj_user.get_CTPManager()  # 将user的CTPManager属性设置为strategy的属性
         self.__dict_args = dict_args  # 转存形参到类的私有变量
         self.__TradingDay = self.__user.GetTradingDay()  # 获取交易日
         self.__init_finished = False  # strategy初始化状态
@@ -58,7 +59,7 @@ class Strategy(QtCore.QObject):
         self.__order_ref_a = None  # A合约报单引用
         self.__order_ref_b = None  # B合约报单引用
         self.__order_ref_last = None  # 最后一次实际使用的报单引用
-        self.__dictYesterdayPosition = dict()  # 本策略昨仓
+        self.__dict_yesterday_position = dict()  # 本策略昨仓
         self.__position_a_buy = 0  # 策略持仓初始值为0
         self.__position_a_buy_today = 0
         self.__position_a_buy_yesterday = 0
@@ -232,26 +233,28 @@ class Strategy(QtCore.QObject):
     # 初始化昨仓，从服务端获得数据计算
     def init_yesterday_position(self):
         # 所有策略昨仓的list中无数据
-        for i in self.__user.get_CTPManager().get_YesterdayPosition():
-            if i['user_id'] == self.__user_id and i['strategy_id'] == self.__strategy_id:
-                self.__dictYesterdayPosition = copy.deepcopy(i)
-                self.__position_a_buy = self.__dictYesterdayPosition['position_a_buy']
-                self.__position_a_buy_today = 0
-                self.__position_a_buy_yesterday = self.__dictYesterdayPosition['position_a_buy']
-                self.__position_a_sell = self.__dictYesterdayPosition['position_a_sell']
-                self.__position_a_sell_today = 0
-                self.__position_a_sell_yesterday = self.__dictYesterdayPosition['position_a_sell']
-                self.__position_b_buy = self.__dictYesterdayPosition['position_b_buy']
-                self.__position_b_buy_today = 0
-                self.__position_b_buy_yesterday = self.__dictYesterdayPosition['position_b_buy']
-                self.__position_b_sell = self.__dictYesterdayPosition['position_b_sell']
-                self.__position_b_sell_today = 0
-                self.__position_b_sell_yesterday = self.__dictYesterdayPosition['position_b_sell']
+        list_yesterday_position = self.__ctp_manager.get_SocketManager().get_list_yesterday_position()
+        if len(list_yesterday_position) > 0:
+            for i in list_yesterday_position:
+                if i['user_id'] == self.__user_id and i['strategy_id'] == self.__strategy_id:
+                    self.__dict_yesterday_position = copy.deepcopy(i)
+                    self.__position_a_buy = self.__dict_yesterday_position['position_a_buy']
+                    self.__position_a_buy_today = 0
+                    self.__position_a_buy_yesterday = self.__dict_yesterday_position['position_a_buy']
+                    self.__position_a_sell = self.__dict_yesterday_position['position_a_sell']
+                    self.__position_a_sell_today = 0
+                    self.__position_a_sell_yesterday = self.__dict_yesterday_position['position_a_sell']
+                    self.__position_b_buy = self.__dict_yesterday_position['position_b_buy']
+                    self.__position_b_buy_today = 0
+                    self.__position_b_buy_yesterday = self.__dict_yesterday_position['position_b_buy']
+                    self.__position_b_sell = self.__dict_yesterday_position['position_b_sell']
+                    self.__position_b_sell_today = 0
+                    self.__position_b_sell_yesterday = self.__dict_yesterday_position['position_b_sell']
         self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
 
     # 初始化今仓，从当天成交回报数据计算
     def init_today_position(self):
-        print("Strategy.init_today_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
+        # print("Strategy.init_today_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
         if len(self.__user.get_dfQryTrade()) > 0:  # user的交易记录为0跳过
             self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
             # 从user的Trade中筛选出该策略的记录
