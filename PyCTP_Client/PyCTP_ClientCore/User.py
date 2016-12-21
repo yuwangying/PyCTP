@@ -110,11 +110,11 @@ class User(QtCore.QObject):
         self.__DBManager = obj_DBManager
 
     # QAccountWidegt设置为属性
-    def set_QAccountWidget(self, obj_QAccountWidget):
-        self.__QAccountWidget = obj_QAccountWidget
+    def set_QAccountWidget_signal(self, obj_QAccountWidget):
+        self.__QAccountWidget_signal = obj_QAccountWidget
 
-    def get_QAccountWidget(self):
-        return self.__QAccountWidget
+    def get_QAccountWidget_signal(self):
+        return self.__QAccountWidget_signal
 
     # QAccountWidegtTotal设置为属性（总账户的窗口）
     def set_QAccountWidgetTotal(self, obj_QAccountWidgetTotal):

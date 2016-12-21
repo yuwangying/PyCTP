@@ -20,6 +20,7 @@ class SocketManager(QtCore.QThread):
     signal_label_login_error_text = QtCore.pyqtSignal(str)  # 定义信号：设置登录界面的消息框文本
     signal_pushButton_login_set_enabled = QtCore.pyqtSignal(bool)  # 定义信号：登录界面登录按钮设置为可用
     signal_ctp_manager_init = QtCore.pyqtSignal()  # 定义信号：调用CTPManager的初始化方法
+    signal_update_strategy = QtCore.pyqtSignal()  # 定义信号：收到服务端收到策略类的回报消息
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -179,17 +180,17 @@ class SocketManager(QtCore.QThread):
         # 打包数据(13位的head,1位校验码,不定长数据段)
         data = struct.pack(">13s1B" + str(len(m.buff.encode()) + 1) + "s", m.head.encode(), m.checknum, m.buff.encode())
 
-        print("SocketManager.send_msg()", data)
+        print("SocketManager.slot_send_msg()", data)
         try:
             size = self.__sockfd.send(data)  # 发送数据
         except socket.timeout as e:
-            print("SocketManager.send_msg()", e)
+            print("SocketManager.slot_send_msg()", e)
         self.__event.clear()
         return size if self.__event.wait(2.0) else -1
 
     # 将发送消息加入队列
     @QtCore.pyqtSlot(str)
-    def send_msg(self, buff):
+    def slot_send_msg(self, buff):
         # thread = threading.current_thread()
         # print(">>> SocketManager.run() thread.getName()=", thread.getName())
         self.__queue_send_msg.put_nowait(buff)
@@ -247,7 +248,7 @@ class SocketManager(QtCore.QThread):
             # 内核初始化未完成
             if self.__ctp_manager.get_init_finished() is False:
                 if buff['MsgType'] == 1:  # 交易员登录验证，MsgType=1
-                    print("SocketManager.send_msg() MsgType=1", buff)  # 输出错误消息
+                    print("SocketManager.slot_send_msg() MsgType=1", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 验证通过
                         self.signal_label_login_error_text.emit('登陆成功，初始化中...')
                         self.set_trader_name(buff['TraderName'])
@@ -261,7 +262,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 elif buff['MsgType'] == 4:  # 查询行情配置，MsgType=4
-                    print("SocketManager.send_msg() MsgType=4", buff)
+                    print("SocketManager.slot_send_msg() MsgType=4", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.signal_label_login_error_text.emit('查询行情配置成功')
                         self.__ctp_manager.set_list_market_info(buff['Info'])  # 将行情信息设置为ctp_manager的属性
@@ -271,7 +272,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 elif buff['MsgType'] == 2:  # 查询期货账户，MsgType=2
-                    print("SocketManager.send_msg() MsgType=2", buff)
+                    print("SocketManager.slot_send_msg() MsgType=2", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.signal_label_login_error_text.emit('查询期货账户成功')
                         self.__ctp_manager.set_list_user_info(buff['Info'])  # 将期货账户信息设置为ctp_manager的属性
@@ -281,7 +282,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 elif buff['MsgType'] == 11:  # 查询下单算法编号，MsgType=11
-                    print("SocketManager.send_msg() MsgType=11", buff)
+                    print("SocketManager.slot_send_msg() MsgType=11", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.signal_label_login_error_text.emit('查询下单算法成功')
                         self.set_list_algorithm_info(buff['Info'])
@@ -290,7 +291,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 elif buff['MsgType'] == 3:  # 查询策略，MsgType=3
-                    print("SocketManager.send_msg() MsgType=3", buff)  # 输出错误消息
+                    print("SocketManager.slot_send_msg() MsgType=3", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.signal_label_login_error_text.emit('查询策略成功')
                         self.set_list_strategy_info(buff['Info'])
@@ -299,7 +300,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 elif buff['MsgType'] == 10:  # 查询策略昨仓，MsgType=10
-                    print("SocketManager.send_msg() MsgType=10", buff)
+                    print("SocketManager.slot_send_msg() MsgType=10", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.signal_label_login_error_text.emit('查询策略昨仓成功')
                         self.set_list_yesterday_position(buff['Info'])  # 所有策略昨仓的list
@@ -310,7 +311,7 @@ class SocketManager(QtCore.QThread):
             # 内核初始化完成
             elif self.__ctp_manager.get_init_finished():
                 if buff['MsgType'] == 3:  # 查询策略，MsgType=3
-                    print("SocketManager.send_msg() MsgType=3", buff)  # 输出错误消息
+                    print("SocketManager.slot_send_msg() MsgType=3", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.__listStrategyInfoOnce = buff['Info']  # 转存策略信息到本类的属性里(单次查询)
                         # 遍历查询到的消息结果列表
@@ -324,15 +325,15 @@ class SocketManager(QtCore.QThread):
                                     break
                         self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=3 查询策略失败")
+                        print("SocketManager.slot_send_msg() MsgType=3 查询策略失败")
                 elif buff['MsgType'] == 6:  # 新建策略，MsgType=6
-                    print("SocketManager.send_msg() MsgType=6", buff)
+                    print("SocketManager.slot_send_msg() MsgType=6", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.get_CTPManager().create_strategy(buff['Info'][0])  # 内核创建策略对象
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() ", buff['MsgErrorReason'])
+                        print("SocketManager.slot_send_msg() ", buff['MsgErrorReason'])
                 elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
-                    print("SocketManager.send_msg() MsgType=5", buff)
+                    print("SocketManager.slot_send_msg() MsgType=5", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__ctp_manager.get_list_strategy():
                             if i_strategy.get_user_id() == buff['UserID'] \
@@ -343,9 +344,9 @@ class SocketManager(QtCore.QThread):
                             # for i_widget in self.__list_QAccountWidget:
                             #     i_widget.update_groupBox_trade_args_for_set()  # 更新策略参数框goupBox
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=5 修改策略参数失败")
+                        print("SocketManager.slot_send_msg() MsgType=5 修改策略参数失败")
                 elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
-                    print("SocketManager.send_msg() MsgType=12", buff)
+                    print("SocketManager.slot_send_msg() MsgType=12", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         # 更新内核中的策略持仓
                         for i_strategy in self.__ctp_manager.get_list_strategy():
@@ -356,16 +357,16 @@ class SocketManager(QtCore.QThread):
                         self.signal_pushButton_set_position_setEnabled.emit()  # 激活设置持仓按钮，禁用仓位输入框
                         pass
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=12 修改策略持仓失败")
+                        print("SocketManager.slot_send_msg() MsgType=12 修改策略持仓失败")
                 elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
-                    print("SocketManager.send_msg() MsgType=7", buff)
+                    print("SocketManager.slot_send_msg() MsgType=7", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         dict_args = {'user_id': buff['UserID'], 'strategy_id': buff['StrategyID']}
                         self.__ctp_manager.delete_strategy(dict_args)
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=7 删除策略失败")
+                        print("SocketManager.slot_send_msg() MsgType=7 删除策略失败")
                 elif buff['MsgType'] == 13:  # 修改策略交易开关
-                    print("SocketManager.send_msg() MsgType=13", buff)
+                    print("SocketManager.slot_send_msg() MsgType=13", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__ctp_manager.get_list_strategy():
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff[
@@ -375,9 +376,9 @@ class SocketManager(QtCore.QThread):
                                 # self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=13 修改策略交易开关失败")
+                        print("SocketManager.slot_send_msg() MsgType=13 修改策略交易开关失败")
                 elif buff['MsgType'] == 14:  # 修改策略只平开关
-                    print("SocketManager.send_msg() MsgType=14", buff)
+                    print("SocketManager.slot_send_msg() MsgType=14", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__ctp_manager.get_list_strategy():
                             if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff[
@@ -387,9 +388,9 @@ class SocketManager(QtCore.QThread):
                                 # self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=14 修改策略只平开关失败")
+                        print("SocketManager.slot_send_msg() MsgType=14 修改策略只平开关失败")
                 elif buff['MsgType'] == 8:  # 修改交易员开关
-                    print("SocketManager.send_msg() MsgType=8", buff)
+                    print("SocketManager.slot_send_msg() MsgType=8", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         # 更新界面
                         for i_widget in self.__list_QAccountWidget:
@@ -403,9 +404,9 @@ class SocketManager(QtCore.QThread):
                                 # i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮setEnabled
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=8 修改交易员开关失败")
+                        print("SocketManager.slot_send_msg() MsgType=8 修改交易员开关失败")
                 elif buff['MsgType'] == 9:  # 修改期货账户开关
-                    print("SocketManager.send_msg() MsgType=9", buff)
+                    print("SocketManager.slot_send_msg() MsgType=9", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         # 更新界面
                         for i_widget in self.__list_QAccountWidget:
@@ -422,7 +423,7 @@ class SocketManager(QtCore.QThread):
                                 # i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
-                        print("SocketManager.send_msg() MsgType=9 修改期货账户开关失败")
+                        print("SocketManager.slot_send_msg() MsgType=9 修改期货账户开关失败")
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
@@ -435,7 +436,7 @@ class SocketManager(QtCore.QThread):
                                 'TraderID': self.__trader_id
                                 }
         json_qry_market_info = json.dumps(dict_qry_market_info)
-        self.send_msg(json_qry_market_info)
+        self.slot_send_msg(json_qry_market_info)
 
     # 查询期货账户信息
     def qry_user_info(self):
@@ -447,7 +448,7 @@ class SocketManager(QtCore.QThread):
                               'UserID': ''
                               }
         json_qry_user_info = json.dumps(dict_qry_user_info)
-        self.send_msg(json_qry_user_info)
+        self.slot_send_msg(json_qry_user_info)
 
     # 查询下单算法
     def qry_algorithm_info(self):
@@ -458,7 +459,7 @@ class SocketManager(QtCore.QThread):
                                    'TraderID': self.__trader_id,
                                    }
         json_qry_algorithm_info = json.dumps(dict_qry_algorithm_info)
-        self.send_msg(json_qry_algorithm_info)
+        self.slot_send_msg(json_qry_algorithm_info)
 
     # 查询策略
     def qry_strategy_info(self):
@@ -471,7 +472,7 @@ class SocketManager(QtCore.QThread):
                                   'StrategyID': ''
                                   }
         json_qry_strategy_info = json.dumps(dict_qry_strategy_info)
-        self.send_msg(json_qry_strategy_info)
+        self.slot_send_msg(json_qry_strategy_info)
 
     # 查询策略昨仓
     def qry_yesterday_position(self):
@@ -484,7 +485,7 @@ class SocketManager(QtCore.QThread):
             'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的策略
         }
         json_qry_yesterday_position = json.dumps(dict_qry_yesterday_position)
-        self.send_msg(json_qry_yesterday_position)
+        self.slot_send_msg(json_qry_yesterday_position)
 
 
 if __name__ == '__main__':
@@ -500,7 +501,7 @@ if __name__ == '__main__':
         if buff == "":
             continue
         # 发送数据buff
-        sm = socket_manager.send_msg(buff)
+        sm = socket_manager.slot_send_msg(buff)
         if sm < 0:
             print("sm=", sm)
             print("buff=", buff)

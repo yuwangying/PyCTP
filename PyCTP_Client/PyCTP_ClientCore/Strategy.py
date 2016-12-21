@@ -73,7 +73,7 @@ class Strategy(QtCore.QObject):
         self.__position_b_sell_today = 0
         self.__position_b_sell_yesterday = 0
         self.__clicked_total = False  # 策略在主窗口中被选中的标志
-        self.__clicked = False  # 策略在单账户窗口中被选中的标志
+        self.__clicked_signal = False  # 策略在单账户窗口中被选中的标志
         self.__dfQryTradeStrategy = DataFrame()  # 本策略的查询当天交易记录
         self.__dfQryOrderStrategy = DataFrame()  # 本策略的查询当天委托记录
         self.__last_spread_short_total = 9999999999  # 最后价差值初始值
@@ -414,44 +414,44 @@ class Strategy(QtCore.QObject):
         return out_dict
 
     # 设置当前策略在单账户窗口被选中的状态，True：被选中，False：未被选中
-    def set_clicked(self, in_bool):
-        self.__clicked = in_bool
-        # print(">>> Strategy.set_clicked() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked)
+    def set_clicked_signal(self, bool_input):
+        self.__clicked_signal = bool_input
+        # print(">>> Strategy.set_clicked_signal() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked_signal=", self.__clicked_signal)
 
-    def get_clicked(self):
-        return self.__clicked
+    def get_clicked_signal(self):
+        return self.__clicked_signal
 
     # 设置当前策略在总账户窗口被选中的状态，True：被选中，False：未被选中
-    def set_clicked_total(self, in_bool):
-        self.__clicked_total = in_bool
+    def set_clicked_total(self, bool_input):
+        self.__clicked_total = bool_input
         # print(">>> Strategy.set_clicked_total() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked_total=", self.__clicked_total)
 
     def get_clicked_total(self):
         return self.__clicked_total
 
     # QAccountWidegt设置为属性
-    def set_QAccountWidget(self, obj_QAccountWidget):
-        self.__QAccountWidget = obj_QAccountWidget
-        self.signal_UI_spread_long.connect(self.__QAccountWidget.lineEdit_duotoujiacha.setText)  # 信号绑定，刷新单账户窗口多头价差值
-        self.signal_UI_spread_short.connect(self.__QAccountWidget.lineEdit_kongtoujiacha.setText)  # 信号绑定，刷新单账户窗口空头价差值
-        self.signal_UI_spread_long_change_color.connect(self.__QAccountWidget.lineEdit_duotoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口空头价差颜色
-        self.signal_UI_spread_short_change_color.connect(self.__QAccountWidget.lineEdit_kongtoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口多头价差颜色
-        self.signal_UI_update_spread_signal.connect(self.__QAccountWidget.update_spread)  # 改写
+    def set_QAccountWidget_signal(self, obj_QAccountWidget):
+        self.__QAccountWidget_signal = obj_QAccountWidget
+        self.signal_UI_spread_long.connect(self.__QAccountWidget_signal.lineEdit_duotoujiacha.setText)  # 信号绑定，刷新单账户窗口多头价差值
+        self.signal_UI_spread_short.connect(self.__QAccountWidget_signal.lineEdit_kongtoujiacha.setText)  # 信号绑定，刷新单账户窗口空头价差值
+        self.signal_UI_spread_long_change_color.connect(self.__QAccountWidget_signal.lineEdit_duotoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口空头价差颜色
+        self.signal_UI_spread_short_change_color.connect(self.__QAccountWidget_signal.lineEdit_kongtoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口多头价差颜色
+        self.signal_UI_update_spread_signal.connect(self.__QAccountWidget_signal.update_spread)  # 改写
 
     def get_QAccountWidget(self):
-        return self.__QAccountWidget
+        return self.__QAccountWidget_signal
 
     # QAccountWidegtTotal设置为属性（总账户的窗口）
     def set_QAccountWidgetTotal(self, obj_QAccountWidgetTotal):
-        self.__QAccountWidgetTotal = obj_QAccountWidgetTotal
-        self.signal_UI_spread_long_total.connect(self.__QAccountWidgetTotal.lineEdit_duotoujiacha.setText)  # 信号槽绑定
-        self.signal_UI_spread_short_total.connect(self.__QAccountWidgetTotal.lineEdit_kongtoujiacha.setText)  # 信号槽绑定
-        self.signal_UI_spread_long_total_change_color.connect(self.__QAccountWidgetTotal.lineEdit_duotoujiacha.setStyleSheet)
-        self.signal_UI_spread_short_total_change_color.connect(self.__QAccountWidgetTotal.lineEdit_kongtoujiacha.setStyleSheet)
-        self.signal_UI_update_spread_total.connect(self.__QAccountWidgetTotal.update_spread)  # 改写
+        self.__QAccountWidget_total = obj_QAccountWidgetTotal
+        self.signal_UI_spread_long_total.connect(self.__QAccountWidget_total.lineEdit_duotoujiacha.setText)  # 信号槽绑定
+        self.signal_UI_spread_short_total.connect(self.__QAccountWidget_total.lineEdit_kongtoujiacha.setText)  # 信号槽绑定
+        self.signal_UI_spread_long_total_change_color.connect(self.__QAccountWidget_total.lineEdit_duotoujiacha.setStyleSheet)
+        self.signal_UI_spread_short_total_change_color.connect(self.__QAccountWidget_total.lineEdit_kongtoujiacha.setStyleSheet)
+        self.signal_UI_update_spread_total.connect(self.__QAccountWidget_total.update_spread)  # 改写
 
     def get_QAccountWidgetTotal(self):
-        return self.__QAccountWidgetTotal
+        return self.__QAccountWidget_total
 
     # 设置当前界面显示的窗口名称
     def set_show_widget_name(self, str_widget_name):
@@ -608,13 +608,13 @@ class Strategy(QtCore.QObject):
 
     # 价差显示到界面
     def spread_to_ui(self):
-        # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked=", self.__clicked, "self.__clicked_total=", self.__clicked_total)
+        # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked_signal=", self.__clicked_signal, "self.__clicked_total=", self.__clicked_total)
         # 最新值与前值相同不更新、最新值大于前值红色显示、最新值小于前值绿色显示
         # 总账户窗口中刷新价差行情
         if self.__show_widget_name == "总账户":
             if self.__clicked_total:
                 """
-                # self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
+                # self.__QAccountWidget_total.update_groupBox_spread(self.__spread_short, self.__spread_long)
                 # 刷新空头价差显示
                 if self.__last_spread_short_total == 9999999999:  # 初始值，第一个价差显示为黑色
                     self.signal_UI_spread_short_total.emit(("%.2f" % self.__spread_short))
@@ -645,9 +645,9 @@ class Strategy(QtCore.QObject):
 
         # 单账户窗口中刷新价差行情
         elif self.__show_widget_name == self.__user_id:
-            if self.__clicked:
+            if self.__clicked_signal:
                 """
-                # self.__QAccountWidgetTotal.update_groupBox_spread(self.__spread_short, self.__spread_long)
+                # self.__QAccountWidget_total.update_groupBox_spread(self.__spread_short, self.__spread_long)
                 # 刷新空头价差显示
                 if self.__last_spread_short == 9999999999:  # 初始值，第一个价差显示为黑色
                     self.signal_UI_spread_short.emit(("%.2f" % self.__spread_short))

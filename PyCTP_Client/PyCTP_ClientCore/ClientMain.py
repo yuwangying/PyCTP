@@ -81,7 +81,7 @@ class ClientMain(QtCore.QObject):
 
     def get_hideQAccountWidget(self):
         return self.__hideQAccountWidget
-
+    """
     def create_QAccountWidget(self):
         print(">>> ClientMain.create_QAccountWidget() CTPManager内核初始化完成，开始创建窗口")
 
@@ -163,7 +163,7 @@ class ClientMain(QtCore.QObject):
         self.__q_ctp.show()  # 显示主窗口
 
         print(">>> ClientMain.create_QAccountWidget() 界面初始化完成")
-
+    """
     def get_SocketManager(self):
         return self.__socket_manager
 
@@ -267,6 +267,12 @@ class ClientMain(QtCore.QObject):
 
     def get_show_widget(self):
         return self.__show_widget
+
+    def set_list_QAccountWidget(self, list_obj):
+        self.__list_QAccountWidget = list_obj
+
+    def get_list_QAccountWidget(self):
+        return self.__list_QAccountWidget
 
     """
     # 处理socket_manager发来的消息
@@ -687,7 +693,7 @@ if __name__ == '__main__':
     q_ctp.set_QLogin(q_login)
 
     """绑定信号槽"""
-    q_login.signal_send_msg.connect(socket_manager.send_msg)
+    q_login.signal_send_msg.connect(socket_manager.slot_send_msg)
     # 绑定信号槽：设置q_login消息框文本
     socket_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
     # 绑定信号槽：设置q_login的登录按钮是否可用
@@ -695,9 +701,11 @@ if __name__ == '__main__':
     # 绑定信号槽：调用CTPManager的初始化方法
     socket_manager.signal_ctp_manager_init.connect(ctp_manager.init)
     # 绑定信号槽：调用创建窗口create_QAccountWidget
-    ctp_manager.signal_create_QAccountWidget.connect(client_main.create_QAccountWidget)
+    # ctp_manager.signal_create_QAccountWidget.connect(client_main.create_QAccountWidget)
+    # SocketManager收到服务端修改策略参数类回报 -> CTPManager修改策略（SocketManager.signal_update_strategy -> CTPManager.slot_update_strategy()）
+    socket_manager.signal_update_strategy.connect(ctp_manager.slot_update_strategy)
 
-    """显示界面"""
+    """显示界面登录界面"""
     q_login.show()
 
     sys.exit(app.exec_())
