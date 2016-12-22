@@ -117,11 +117,11 @@ class User(QtCore.QObject):
         return self.__QAccountWidget_signal
 
     # QAccountWidegtTotal设置为属性（总账户的窗口）
-    def set_QAccountWidgetTotal(self, obj_QAccountWidgetTotal):
-        self.__QAccountWidgetTotal = obj_QAccountWidgetTotal
+    def set_QAccountWidget_total(self, obj_QAccountWidgetTotal):
+        self.__QAccountWidget_total = obj_QAccountWidgetTotal
 
-    def get_QAccountWidgetTotal(self):
-        return self.__QAccountWidgetTotal
+    def get_QAccountWidget_total(self):
+        return self.__QAccountWidget_total
 
     # 获得数据库
     def get_mongodb_CTP(self):

@@ -266,6 +266,10 @@ class QAccountWidget(QWidget, Ui_Form):
             self.set_on_tableWidget_Trade_Args_cellClicked(i_row, 0)  # 触发鼠标左击单击该策略行
             # self.slot_update_strategy(obj_strategy)  # 更新参数在界面的显示
 
+        # 待续： 2016年12月22日21:41:54，刷新界面价差行情，slot_update_spread
+        # 绑定信号槽
+        # obj_strategy.signal_update_spread.connect()
+
     # 从界面删除策略
     @QtCore.pyqtSlot(object)
     def remove_strategy(self, obj_strategy):
@@ -474,14 +478,15 @@ class QAccountWidget(QWidget, Ui_Form):
                 break
         """更新groupBox"""
         # 待续，插入策略不能触发更新groupBox，2016年12月22日17:00:05
-        print(">>> self.__ctp_manager.get_init_UI_finished()=", self.__ctp_manager.get_init_UI_finished())
-        print(">>> obj_strategy.get_clicked_signal() and self.is_single_user_widget() and self.__widget_name == dict_strategy_args['user_id'])", obj_strategy.get_clicked_signal(), self.is_single_user_widget(), self.__widget_name, dict_strategy_args['user_id'])
-        print(">>> obj_strategy.get_clicked_total() and self.is_single_user_widget() == False=", obj_strategy.get_clicked_total(), self.is_single_user_widget())
-        if self.__ctp_manager.get_init_UI_finished() and \
-                ((obj_strategy.get_clicked_signal() and self.is_single_user_widget() and self.__widget_name == dict_strategy_args['user_id']) or (obj_strategy.get_clicked_total() and self.is_single_user_widget() == False)):
+        # print(">>> self.__ctp_manager.get_init_UI_finished()=", self.__ctp_manager.get_init_UI_finished())
+        # print(">>> obj_strategy.get_clicked_signal() and self.is_single_user_widget() and self.__widget_name == dict_strategy_args['user_id']  ", obj_strategy.get_clicked_signal(), self.is_single_user_widget(), self.__widget_name, dict_strategy_args['user_id'])
+        # print(">>> or")
+        # print(">>> obj_strategy.get_clicked_total() and self.is_single_user_widget() == False  ", obj_strategy.get_clicked_total(), self.is_single_user_widget())
+        # if ((obj_strategy.get_clicked_signal() and self.is_single_user_widget() and self.__widget_name == dict_strategy_args['user_id']) or (obj_strategy.get_clicked_total() and self.is_single_user_widget() == False)):
             # 只更新被鼠标选中的策略
+            # print(">>> QAccountWidget.slot_update_strategy() 更新groupBox，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
+        if self.__clicked_strategy == obj_strategy:
             print(">>> QAccountWidget.slot_update_strategy() 更新groupBox，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
-
             # 初始化comboBox_qihuozhanghao可选项，先清空comboBox内选项item，后添加可选项item
             self.comboBox_qihuozhanghao.clear()
             if self.is_single_user_widget():
@@ -874,7 +879,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新界面：价差行情
     @QtCore.pyqtSlot(dict)
-    def update_spread(self, dict_input):
+    def slot_update_spread(self, dict_input):
         # dict_input = {'spread_long': int, 'spread_short': int}
         # 更新多头价差显示
         if self.__spread_long is None:  # 初始值
@@ -896,7 +901,7 @@ class QAccountWidget(QWidget, Ui_Form):
         elif dict_input['spread_short'] < self.__spread_short:  # 最新值小于前值
             self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
             self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
-        self.__spread_long = dict_input['spread_long']
+        self.__spread_long = dict_input['spread_long']  # 储存最后值，与后来的值比较，如果之变化就刷新界面
         self.__spread_short = dict_input['spread_short']
 
     # 点击“发送”按钮后的参数更新，要更新的策略为goupBox中显示的user_id、strategy_id对应的
@@ -1424,7 +1429,6 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         """设置鼠标点击触发的设置属性"""
         self.__clicked_item = self.tableWidget_Trade_Args.item(row, column)  # 局部变量，鼠标点击的item设置为QAccountWidget的属性
-        print("QAccountWidget.on_tableWidget_Trade_Args_cellClicked() widget_name=", self.__widget_name, "鼠标点击位置=row %d, column %d" % (row, column), "值=", self.__clicked_item.text())
         self.__client_main.set_clicked_item(self.__clicked_item)  # 全局变量，鼠标点击的item设置为ClientMain的属性，全局唯一
         self.__clicked_status = {'row': row, 'column': column, 'widget_name': self.__widget_name, 'user_id': self.tableWidget_Trade_Args.item(row, 2).text(), 'strategy_id': self.tableWidget_Trade_Args.item(row, 3).text()}
         self.__client_main.set_clicked_status(self.__clicked_status)  # 保存鼠标点击状态到ClientMain的属性，保存全局唯一一个鼠标最后点击位置
@@ -1435,6 +1439,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.__client_main.set_clicked_strategy(i_strategy)  # 全局变量，鼠标点击的策略对象设置为ClientMain属性
                 self.__clicked_strategy = i_strategy  # 局部变量，鼠标点击的策略对象设置为QAccountWidget属性
                 break
+        print("QAccountWidget.on_tableWidget_Trade_Args_cellClicked() widget_name=", self.__widget_name, "鼠标点击位置=row %d, column %d" % (row, column), "值=", self.__clicked_item.text(), "user_id=", self.__clicked_strategy.get_user_id(), "strategy_id=", self.__clicked_strategy.get_strategy_id())
 
         """监测交易开关、只平开关变化，并触发修改指令"""
         if self.__ctp_manager.get_init_UI_finished():
@@ -1442,8 +1447,8 @@ class QAccountWidget(QWidget, Ui_Form):
             # 判断策略开关item的checkState()状态变化
             if column == 0:
                 # checkState值与内核值不同，则发送修改指令
-                on_off_checkState = 0 if self.__clicked_itemcheckState() == 0 else 1
-                print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked()", on_off_checkState, self.__client_main.get_clicked_strategy().get_on_off())
+                on_off_checkState = 0 if self.__clicked_item.checkState() == 0 else 1
+                # print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked()", on_off_checkState, self.__client_main.get_clicked_strategy().get_on_off())
                 if on_off_checkState != self.__client_main.get_clicked_strategy().get_on_off():
                     self.__clicked_itemsetFlags(self.__clicked_itemflags() & (~QtCore.Qt.ItemIsEnabled))  # 设置当前item的状态属性(与操作)
                     self.__item_on_off_status = {'widget_name': self.__widget_name,
@@ -1453,11 +1458,11 @@ class QAccountWidget(QWidget, Ui_Form):
                     dict_args = {'user_id': self.__client_main.get_clicked_strategy().get_user_id(),
                                  'strategy_id': self.__client_main.get_clicked_strategy().get_strategy_id(),
                                  'on_off': on_off_checkState}
-                    print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() 发送策略开关修改指令", dict_args)
+                    print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() 发送“开关”修改指令", dict_args)
                     self.__client_main.SendStrategyOnOff(dict_args)
             # 判断策略只平item的checkState()状态变化
             elif column == 1:
-                only_close_checkState = 0 if self.__clicked_itemcheckState() == 0 else 1
+                only_close_checkState = 0 if self.__clicked_item.checkState() == 0 else 1
                 if only_close_checkState != self.__client_main.get_clicked_strategy().get_only_close():
                     self.__clicked_itemsetFlags(self.__clicked_itemflags() & (~QtCore.Qt.ItemIsEnabled))  # 设置当前item的状态属性(与操作)
                     self.__item_only_close_status = {'widget_name': self.__widget_name,
@@ -1467,6 +1472,7 @@ class QAccountWidget(QWidget, Ui_Form):
                     dict_args = {'user_id': self.__client_main.get_clicked_strategy().get_user_id(),
                                  'strategy_id': self.__client_main.get_clicked_strategy().get_strategy_id(),
                                  'on_off': only_close_checkState}
+                    print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() 发送“只平”修改指令", dict_args)
                     self.__client_main.SendStrategyOnlyClose(dict_args)
 
         # 设置所有策略的属性，策略在当前窗口中是否被选中
