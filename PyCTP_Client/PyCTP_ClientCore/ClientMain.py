@@ -6,7 +6,7 @@ from PyQt4.QtGui import QApplication, QCompleter, QLineEdit, QStringListModel
 import QLogin  # from QLogin import QLoginForm
 from QCTP import QCTP
 from QAccountWidget import QAccountWidget
-from QStrategySetting import NewStrategy
+from QNewStrategy import QNewStrategy
 from SocketManager import SocketManager
 import json
 import Utils
@@ -230,10 +230,10 @@ class ClientMain(QtCore.QObject):
         return self.__trader_name
 
     def set_QNewStrategy(self, obj_QNewStrategy):
-        self.__QNewStrategy = obj_QNewStrategy
+        self.__q_new_strategy = obj_QNewStrategy
 
     def get_QNewStrategy(self):
-        return self.__QNewStrategy
+        return self.__q_new_strategy
 
     # 最后新建的策略设置为其属性
     def set_obj_new_strategy(self, obj_strategy):
@@ -251,6 +251,7 @@ class ClientMain(QtCore.QObject):
 
     # 被鼠标点击的策略实例对象为该类属性，全局唯一
     def set_clicked_strategy(self, obj_strategy):
+        # print(">>> ClientMain.set_clicked_strategy() user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
         self.__clicked_strategy = obj_strategy
 
     def get_clicked_strategy(self):

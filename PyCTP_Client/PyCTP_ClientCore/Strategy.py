@@ -34,6 +34,9 @@ class Strategy(QtCore.QObject):
     signal_UI_update_spread_signal = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_signal连接到策略所属的单账户窗口
     signal_UI_update_spread_total = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_total连接到总账户窗口和所属的单账户窗口
 
+    # 信号槽连接：策略对象修改策略 -> 界面刷新策略（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
+    signal_update_strategy = QtCore.pyqtSignal(object)  # 形参为Strategy对象
+
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
     def __init__(self, dict_args, obj_user, obj_DBM, parent=None):
         super(Strategy, self).__init__(parent)  # 初始化父类
@@ -134,7 +137,7 @@ class Strategy(QtCore.QObject):
         # 如果界面初始化完成、程序运行当中，每次调用该方法都触发界面类的槽函数update_strategy
         # if self.__user.get_CTPManager().get_init_finished():
         #     print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "程序运行中设置参数，刷新界面")
-        #     self.signal_UI_update_strategy.emit(self)
+        self.signal_update_strategy.emit(self)  # 信号槽连接：策略对象修改策略 -> 界面刷新策略
 
     # 获取参数
     def get_arguments(self):

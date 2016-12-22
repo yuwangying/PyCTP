@@ -7,14 +7,18 @@ Module implementing NewStrategy.
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtGui import QWidget
+import json
 
 from Ui_QStrategySetting import Ui_NewStrategy
 
 
-class NewStrategy(QWidget, Ui_NewStrategy):
+class QNewStrategy(QWidget, Ui_NewStrategy):
     """
     Class documentation goes here.
     """
+
+    signal_send_msg = QtCore.pyqtSignal(str)  # 定义信号：新建策略窗新建策略指令 -> SocketManager.slot_send_msg
+
     def __init__(self, parent=None):
         """
         Constructor
@@ -22,7 +26,7 @@ class NewStrategy(QWidget, Ui_NewStrategy):
         @param parent reference to the parent widget
         @type QWidget
         """
-        super(NewStrategy, self).__init__(parent)
+        super(QNewStrategy, self).__init__(parent)
         self.setupUi(self)
 
         reg_strategy_id = QtCore.QRegExp('[0-9][0-9]')
@@ -35,7 +39,28 @@ class NewStrategy(QWidget, Ui_NewStrategy):
         self.lineEdit_b_instrument.setValidator(validator_instrument_id)
 
     def set_ClientMain(self, obj_ClientMain):
-        self.__ClientMain = obj_ClientMain
+        self.__client_main = obj_ClientMain
+
+    def get_ClientMain(self):
+        return self.__client_main
+
+    def set_CTPManager(self, obj_CTPManager):
+        self.__ctp_manager = obj_CTPManager
+
+    def get_CTPManager(self):
+        return self.__ctp_manager
+
+    def set_SocketManager(self, obj_SocketManager):
+        self.__socket_manager = obj_SocketManager
+
+    def get_SocketManager(self):
+        return self.__socket_manager
+
+    def set_trader_id(self, str_trader_id):
+        self.__trader_id = str_trader_id
+
+    def get_trader_id(self):
+        return self.__trader_id
     
     @pyqtSlot()
     def on_pushButton_cancel_clicked(self):
@@ -56,11 +81,11 @@ class NewStrategy(QWidget, Ui_NewStrategy):
 
 
         # 检查合约代码
-        if self.lineEdit_a_instrument.text() not in self.__ClientMain.get_CTPManager().get_list_instrument_id():
+        if self.lineEdit_a_instrument.text() not in self.__ctp_manager.get_list_instrument_id():
             str_output = "不存在合约代码:" + self.lineEdit_a_instrument.text()
             self.label_error_msg.setText(str_output)
             return
-        if self.lineEdit_b_instrument.text() not in self.__ClientMain.get_CTPManager().get_list_instrument_id():
+        if self.lineEdit_b_instrument.text() not in self.__ctp_manager.get_list_instrument_id():
             str_output = "不存在合约代码:" + self.lineEdit_b_instrument.text()
             self.label_error_msg.setText(str_output)
             return
@@ -77,7 +102,7 @@ class NewStrategy(QWidget, Ui_NewStrategy):
             str_strategy_id = self.lineEdit_strategy_id.text()
 
         # strategy_id除重判断，针对当前user_id的已经存在的策略判断
-        for i_user in self.__ClientMain.get_CTPManager().get_list_user():
+        for i_user in self.__ctp_manager.get_list_user():
             if i_user.get_user_id().decode() == self.comboBox_user_id.currentText():
                 for i_strategy in i_user.get_list_strategy():
                     if i_strategy.get_strategy_id() == str_strategy_id:
@@ -88,13 +113,14 @@ class NewStrategy(QWidget, Ui_NewStrategy):
 
         str_output = "正在创建策略：" + self.lineEdit_strategy_id.text()
         self.label_error_msg.setText(str_output)
-        dict_info = {
-            'trader_id': self.__ClientMain.get_TraderID(),
+        # 新建策略参数
+        dict_strategy_args = {
+            'trader_id': self.__trader_id,
             'user_id': self.comboBox_user_id.currentText(),
             'strategy_id': str_strategy_id,
             'list_instrument_id': [self.lineEdit_a_instrument.text(), self.lineEdit_b_instrument.text()],
             'trade_model': '',  # 交易模型
-            'order_algorithm': self.__ClientMain.get_listAlgorithmInfo()[0]['name'],  # 下单算法
+            'order_algorithm': self.__socket_manager.get_list_algorithm_info()[0]['name'],  # 下单算法
             'buy_open': 0.0,
             'sell_close': 0,
             'sell_open': 0,
@@ -133,11 +159,22 @@ class NewStrategy(QWidget, Ui_NewStrategy):
             "position_a_buy_today": 0,
             "position_a_sell_yesterday": 0
         }
-        self.__ClientMain.CreateStrategy(dict_info)
+        # 拼接发送报文
+        dict_create_strategy = {
+            'MsgRef': self.__socket_manager.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 6,  # 新建策略
+            'TraderID': self.__trader_id,
+            'UserID': dict_strategy_args['user_id'],
+            'Info': [dict_strategy_args]
+        }
+        json_create_strategy = json.dumps(dict_create_strategy)
+        self.signal_send_msg.emit(json_create_strategy)  # 发送新建策略信号 -> SocketManager.slot_send_msg
 
     # 判断显示窗口是否是"总账户"
     def is_all_account_widget(self):
-        if self.__ClientMain.get_showQAccountWidget().get_widget_name() == "总账户":
+        if self.__client_main.get_show_widget_name() == "总账户":
             return True
         else:
             return False
@@ -149,18 +186,21 @@ class NewStrategy(QWidget, Ui_NewStrategy):
             # 插入所有user_id到item
             self.comboBox_user_id.clear()  # 清空菜单选项
             i_row = -1
-            for i_user in self.__ClientMain.get_CTPManager().get_list_user():
+            for i_user in self.__ctp_manager.get_list_user():
                 if self.comboBox_user_id.findText(i_user.get_user_id().decode(), QtCore.Qt.MatchExactly) == -1:
                     i_row += 1
                     self.comboBox_user_id.insertItem(i_row, i_user.get_user_id().decode())
             # item中显示当前鼠标所选中的user_id
-            for i_row in range(self.comboBox_user_id.count()):
-                if self.comboBox_user_id.itemText(i_row) == self.__ClientMain.get_showQAccountWidget().get_clicked_status()['user_id']:
-                    self.comboBox_user_id.setCurrentIndex(i_row)
+            # user_id = self.__client_main.get_clicked_strategy().get_user_id()
+            # i_row = self.comboBox_user_id.findText(user_id, QtCore.Qt.MatchExactly)
+            # self.comboBox_user_id.setCurrentIndex(i_row)
+            # for i_row in range(self.comboBox_user_id.count()):
+            #     if self.comboBox_user_id.itemText(i_row) == self.__client_main.get_showQAccountWidget().get_clicked_status()['user_id']:
+            #         self.comboBox_user_id.setCurrentIndex(i_row)
         else:  # 单账户窗口
             self.comboBox_user_id.clear()  # 清空菜单选项
-            if self.comboBox_user_id.findText(self.__ClientMain.get_showQAccountWidget().get_widget_name(), QtCore.Qt.MatchExactly) == -1:
-                self.comboBox_user_id.insertItem(0, self.__ClientMain.get_showQAccountWidget().get_widget_name())
+            if self.comboBox_user_id.findText(self.__client_main.get_show_widget_name(), QtCore.Qt.MatchExactly) == -1:
+                self.comboBox_user_id.insertItem(0, self.__client_main.get_show_widget_name())
 
         # 清空lineEdit
         self.lineEdit_strategy_id.clear()
@@ -172,7 +212,7 @@ if __name__ == '__main__':
     import sys
 
     app = QtGui.QApplication(sys.argv)
-    Form = NewStrategy()
+    Form = QNewStrategy()
     Form.show()
 
     sys.exit(app.exec_())

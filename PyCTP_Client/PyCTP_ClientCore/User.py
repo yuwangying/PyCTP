@@ -275,6 +275,7 @@ class User(QtCore.QObject):
 
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
+        # 待续，需要加入self.__listQryTrade、self.__listQryOrder查询结果失败的排错处理
         self.__listQryTrade = self.__trade.QryTrade()
         print(">>> User.QryTrade() self.__listQryTrade=", self.__listQryTrade, type(self.__listQryTrade), len(self.__listQryTrade))
         print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
