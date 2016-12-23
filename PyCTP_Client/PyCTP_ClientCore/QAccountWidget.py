@@ -579,10 +579,12 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))
             # B昨卖
             self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))
+            # 恢复发送和设置持仓按钮状态
+            self.slot_restore_groupBox_pushButton()
 
     # 绑定信号槽：收到服务端的查询策略信息 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
     @QtCore.pyqtSlot()
-    def slot_restore_groupBox(self):
+    def slot_restore_groupBox_pushButton(self):
         self.pushButton_query_strategy.setEnabled(True)  # 激活按钮
         self.pushButton_set_position.setText("设置持仓")
         self.pushButton_set_position.setEnabled(True)  # 激活按钮

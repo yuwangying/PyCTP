@@ -364,11 +364,9 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=13", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__ctp_manager.get_list_strategy():
-                            if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff[
-                                'StrategyID']:
+                            if i_strategy.get_user_id() == buff['UserID'] \
+                                    and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
-                                # self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示
-                                # self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
@@ -376,11 +374,9 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=14", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__ctp_manager.get_list_strategy():
-                            if i_strategy.get_user_id() == buff['UserID'] and i_strategy.get_strategy_id() == buff[
-                                'StrategyID']:
+                            if i_strategy.get_user_id() == buff['UserID'] \
+                                    and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
-                                # self.signal_update_strategy.emit(i_strategy)  # 更新策略在界面显示
-                                # self.get_clicked_item().setFlags(self.get_clicked_item().flags() ^ (QtCore.Qt.ItemIsEnabled))
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=14 修改策略只平开关失败")
