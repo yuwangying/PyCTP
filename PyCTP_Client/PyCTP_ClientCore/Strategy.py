@@ -31,11 +31,13 @@ class Strategy(QtCore.QObject):
     signal_UI_spread_long_total_change_color = QtCore.pyqtSignal(str)
     signal_UI_change_color = QtCore.pyqtSignal(str)  # 定义信号，改变颜色
     signal_UI_update_strategy = QtCore.pyqtSignal(object)  # 改写，所有策略对象的信号signal_UI_update_strategy分别连接到所有QAccountWidget对象的槽update_strategy
-    signal_UI_update_spread_signal = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_signal连接到策略所属的单账户窗口
-    signal_UI_update_spread_total = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_total连接到总账户窗口和所属的单账户窗口
+    signal_update_spread_signal = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_signal连接到策略所属的单账户窗口
+    signal_update_spread_total = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_total连接到总账户窗口和所属的单账户窗口
 
     # 信号槽连接：策略对象修改策略 -> 界面刷新策略（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
     signal_update_strategy = QtCore.pyqtSignal(object)  # 形参为Strategy对象
+    # 定义信号：策略发送信号 -> 修改持仓按钮设置为可用，并修改文本“发送持仓”改为“设置持仓”
+    signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()
 
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
     def __init__(self, dict_args, obj_user, obj_DBM, parent=None):
@@ -79,15 +81,13 @@ class Strategy(QtCore.QObject):
         self.__clicked_signal = False  # 策略在单账户窗口中被选中的标志
         self.__dfQryTradeStrategy = DataFrame()  # 本策略的查询当天交易记录
         self.__dfQryOrderStrategy = DataFrame()  # 本策略的查询当天委托记录
-        self.__last_spread_short_total = 9999999999  # 最后价差值初始值
-        self.__last_spread_long_total = 9999999999
-        self.__last_spread_short = 9999999999
-        self.__last_spread_long = 9999999999
-        self.__short_color_black_times = 0
-        self.__long_color_black_times = 0
-        self.__short_total_color_black_times = 0
-        self.__long_total_color_black_times = 0
-        self.__a_action_count = 0
+        self.__last_to_ui_spread_short = None  # 最后价差值初始值
+        self.__last_to_ui_spread_long = None  # 最后价差值初始值
+        # self.__short_color_black_times = 0
+        # self.__long_color_black_times = 0
+        # self.__short_total_color_black_times = 0
+        # self.__long_total_color_black_times = 0
+        self.__a_action_count = 0  # 撤单次数
         self.__b_action_count = 0
 
         self.set_arguments(dict_args)  # 设置策略参数
@@ -104,6 +104,7 @@ class Strategy(QtCore.QObject):
 
     # 设置参数
     def set_arguments(self, dict_args):
+        print(">>> Strategy.set_arguments() user_id=", dict_args['user_id'], "strategy_id=", dict_args['strategy_id'])
         self.__dict_args = dict_args  # 将形参转存为私有变量
         # self.__DBM.update_strategy(dict_args)  # 更新数据库
 
@@ -135,9 +136,9 @@ class Strategy(QtCore.QObject):
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
         # print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
         # 如果界面初始化完成、程序运行当中，每次调用该方法都触发界面类的槽函数update_strategy
-        # if self.__user.get_CTPManager().get_init_finished():
-        #     print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "程序运行中设置参数，刷新界面")
-        self.signal_update_strategy.emit(self)  # 信号槽连接：策略对象修改策略 -> 界面刷新策略
+        if self.__user.get_CTPManager().get_init_finished():
+            print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "修改策略参数，内核刷新界面")
+            self.signal_update_strategy.emit(self)  # 信号槽连接：策略对象修改策略 -> 界面刷新策略
 
     # 获取参数
     def get_arguments(self):
@@ -186,7 +187,11 @@ class Strategy(QtCore.QObject):
         self.__position_b_sell_today = dict_args['position_b_sell_today']
         self.__position_b_sell_yesterday = dict_args['position_b_sell_yesterday']
         print(">>> Strategy.set_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
-        self.signal_UI_update_strategy.emit(self)
+        # 如果界面初始化完成、程序运行当中，每次调用该方法都触发界面类的槽函数update_strategy
+        if self.__user.get_CTPManager().get_init_finished():
+            print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "修改策略参数，内核刷新界面")
+            self.signal_pushButton_set_position_setEnabled.emit()
+            self.signal_update_strategy.emit(self)  # 信号槽连接：策略对象修改策略 -> 界面刷新策略
 
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):
@@ -439,7 +444,7 @@ class Strategy(QtCore.QObject):
         # self.signal_UI_spread_short.connect(self.__QAccountWidget_signal.lineEdit_kongtoujiacha.setText)  # 信号绑定，刷新单账户窗口空头价差值
         # self.signal_UI_spread_long_change_color.connect(self.__QAccountWidget_signal.lineEdit_duotoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口空头价差颜色
         # self.signal_UI_spread_short_change_color.connect(self.__QAccountWidget_signal.lineEdit_kongtoujiacha.setStyleSheet)  # 信号绑定，刷新单账户窗口多头价差颜色
-        # self.signal_UI_update_spread_signal.connect(self.__QAccountWidget_signal.update_spread)  # 改写
+        # self.signal_update_spread_signal.connect(self.__QAccountWidget_signal.update_spread)  # 改写
 
     def get_QAccountWidget(self):
         return self.__QAccountWidget_signal
@@ -451,7 +456,7 @@ class Strategy(QtCore.QObject):
         # self.signal_UI_spread_short_total.connect(self.__QAccountWidget_total.lineEdit_kongtoujiacha.setText)  # 信号槽绑定
         # self.signal_UI_spread_long_total_change_color.connect(self.__QAccountWidget_total.lineEdit_duotoujiacha.setStyleSheet)
         # self.signal_UI_spread_short_total_change_color.connect(self.__QAccountWidget_total.lineEdit_kongtoujiacha.setStyleSheet)
-        # self.signal_UI_update_spread_total.connect(self.__QAccountWidget_total.update_spread)  # 改写
+        # self.signal_update_spread_total.connect(self.__QAccountWidget_total.update_spread)  # 改写
 
     def get_QAccountWidgetTotal(self):
         return self.__QAccountWidget_total
@@ -613,9 +618,24 @@ class Strategy(QtCore.QObject):
     def spread_to_ui(self):
         # print(">>> Strategy.market_spread() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__clicked_signal=", self.__clicked_signal, "self.__clicked_total=", self.__clicked_total)
         if self.__clicked_total:  # 在总账户窗口中被选中，向总账户窗口对象发送刷新价差信号
-            self.signal_UI_update_spread_total.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
+            # 筛选发送信号
+            # 第一个行情
+            if self.__last_to_ui_spread_short is None or self.__last_to_ui_spread_long is None:
+                self.signal_update_spread_total.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
+            # 最新价差值较前值发生变化则发送刷新界面的信号
+            elif self.__last_to_ui_spread_short != self.__spread_short or self.__last_to_ui_spread_long != self.__spread_long:
+                self.signal_update_spread_total.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
         if self.__clicked_signal:  # 在单账户窗口中被选中，向策略所属的单账户窗口对象发送刷新价差信号
-            self.signal_UI_update_spread_signal.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
+            # 筛选发送信号
+            # 第一个行情
+            if self.__last_to_ui_spread_short is None or self.__last_to_ui_spread_long is None:
+                self.signal_update_spread_signal.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
+            # 最新价差值较前值发生变化则发送刷新界面的信号
+            elif self.__last_to_ui_spread_short != self.__spread_short or self.__last_to_ui_spread_long != self.__spread_long:
+                self.signal_update_spread_signal.emit({'spread_long': self.__spread_long, 'spread_short': self.__spread_short})
+        # 最后一次向界面发送的价差值
+        self.__last_to_ui_spread_short = self.__spread_short
+        self.__last_to_ui_spread_long = self.__spread_long
 
     # 下单算法1：A合约以对手价发单，B合约以对手价发单
     def order_algorithm_one(self):

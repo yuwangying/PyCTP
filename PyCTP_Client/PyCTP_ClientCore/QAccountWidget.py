@@ -61,6 +61,17 @@ class QAccountWidget(QWidget, Ui_Form):
         super(QAccountWidget, self).__init__(parent)
         self.setupUi(self)
 
+        """设置属性"""
+        if obj_user is not None:
+            self.__user = obj_user  # 设置user为本类属性
+        if list_user is not None:  # 设置list_user为本类属性
+            self.__list_user = list_user
+        self.__widget_name = str_widget_name  # 设置窗口名称
+        self.__client_main = ClientMain  # 设置ClientMain为本类属性
+        self.__ctp_manager = CTPManager  # 设置CTPManager为本类属性
+        self.__socket_manager = SocketManager  # 设置SocketManager为本类属性
+
+        """初始化界面"""
         self.popMenu = QtGui.QMenu(self.tableWidget_Trade_Args)  # 预留菜单
 
         # 设置tableWidget列的宽度
@@ -81,6 +92,14 @@ class QAccountWidget(QWidget, Ui_Form):
         self.tableWidget_Trade_Args.setColumnWidth(14, 90)  # 交易模型
         self.tableWidget_Trade_Args.setColumnWidth(15, 90)  # 下单算法
 
+        # 初始化comboBox_jiaoyimoxing
+        # 客户端存储的交易模型可选项，服务端仅保留策略所设置交易模型，当前交易模型空白
+        # 初始化comboBox_xiadansuanfa
+        index_item = -1
+        for i in self.__socket_manager.get_list_algorithm_info():
+            index_item += 1
+            self.comboBox_xiadansuanfa.insertItem(index_item, i['name'])
+
         # 添加策略菜单
         self.action_add = QtGui.QAction("添加策略", self)
         self.action_add.triggered.connect(self.slot_action_add_strategy)
@@ -89,19 +108,12 @@ class QAccountWidget(QWidget, Ui_Form):
         self.action_del = QtGui.QAction("删除策略", self)
         self.action_del.triggered.connect(self.slot_action_del_strategy)
         self.popMenu.addAction(self.action_del)
-        
-        if obj_user is not None:
-            self.__user = obj_user  # 设置user为本类属性
-        if list_user is not None:  # 设置list_user为本类属性
-            self.__list_user = list_user
-        self.__widget_name = str_widget_name  # 设置窗口名称
-        self.__client_main = ClientMain  # 设置ClientMain为本类属性
-        self.__ctp_manager = CTPManager  # 设置CTPManager为本类属性
-        self.__socket_manager = SocketManager  # 设置SocketManager为本类属性
 
+        """信号槽绑定"""
         self.__signal_pushButton_set_position_setEnabled_connected = False  # 信号槽绑定标志，初始值为False
         self.Signal_SendMsg.connect(self.slot_SendMsg)  # 绑定信号、槽函数
 
+        """类局部变量声明"""
         self.__spread_long = None  # 界面价差初始值
         self.__spread_short = None  # 界面价差初始值
         self.__item_on_off_status = None  # 策略开关item的状态，dict
@@ -256,19 +268,31 @@ class QAccountWidget(QWidget, Ui_Form):
             self.tableWidget_Trade_Args.setItem(i_row, 14, item_trade_model)  # 交易模型
             self.tableWidget_Trade_Args.setItem(i_row, 15, item_order_algorithm)  # 下单算法
             self.tableWidget_Trade_Args.setCurrentCell(i_row, 0)  # 设置当前行为“当前行”
-            # 设置鼠标点击状态，信息包含:item所在行、item所在列、widget_name、user_id、strategy_id
-            cidt_clicked_info = {'row': i_row,
-                                 'column': 0,
-                                 'widget_name': self.__widget_name,
-                                 'user_id': self.tableWidget_Trade_Args.item(i_row, 2).text(),
-                                 'strategy_id': self.tableWidget_Trade_Args.item(i_row, 3).text()}
-            # self.set_clicked_status(cidt_clicked_info)  # 设置鼠标点击位置为现插入的策略行
-            self.set_on_tableWidget_Trade_Args_cellClicked(i_row, 0)  # 触发鼠标左击单击该策略行
-            # self.slot_update_strategy(obj_strategy)  # 更新参数在界面的显示
 
-        # 待续： 2016年12月22日21:41:54，刷新界面价差行情，slot_update_spread
-        # 绑定信号槽
-        # obj_strategy.signal_update_spread.connect()
+            self.set_on_tableWidget_Trade_Args_cellClicked(i_row, 0)  # 触发鼠标左击单击该策略行
+
+            # 绑定信号槽：向界面插入策略的时候，绑定策略对象与窗口对象之间的信号槽关系
+            # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
+            # obj_strategy.signal_update_strategy.connect(self.slot_update_strategy)
+            if self.is_single_user_widget():
+                if self.__widget_name == obj_strategy.get_user_id():
+                    # 信号槽连接：策略与所属的单账户窗口信号slot_update_spread连接
+                    obj_strategy.signal_update_spread_signal.connect(self.slot_update_spread)
+                    # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
+                    obj_strategy.signal_update_strategy.connect(self.slot_update_strategy)
+                    print(">>> QAccountWidget.slot_insert_strategy() 向界面插入策略时绑定信号槽，widget_id=", self.__widget_name,
+                          "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
+                    # 信号槽连接：策略对象修改持仓方法被调用 -> 窗口对象修改设置持仓按钮状态
+                    obj_strategy.signal_pushButton_set_position_setEnabled.connect(self.slot_pushButton_set_position_setEnabled)
+            # 策略与总账户窗口信号slot_update_spread连接
+            else:
+                obj_strategy.signal_update_spread_total.connect(self.slot_update_spread)
+                # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
+                obj_strategy.signal_update_strategy.connect(self.slot_update_strategy)
+                print(">>> QAccountWidget.slot_insert_strategy() 向界面插入策略时绑定信号槽，widget_id=", self.__widget_name,
+                      "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
+                # 信号槽连接：策略对象修改持仓方法被调用 -> 窗口对象修改设置持仓按钮状态
+                obj_strategy.signal_pushButton_set_position_setEnabled.connect(self.slot_pushButton_set_position_setEnabled)
 
     # 从界面删除策略
     @QtCore.pyqtSlot(object)
@@ -477,56 +501,94 @@ class QAccountWidget(QWidget, Ui_Form):
                 item_order_algorithm.setText(dict_strategy_args['order_algorithm'])
                 break
         """更新groupBox"""
-        # 待续，插入策略不能触发更新groupBox，2016年12月22日17:00:05
-        # print(">>> self.__ctp_manager.get_init_UI_finished()=", self.__ctp_manager.get_init_UI_finished())
-        # print(">>> obj_strategy.get_clicked_signal() and self.is_single_user_widget() and self.__widget_name == dict_strategy_args['user_id']  ", obj_strategy.get_clicked_signal(), self.is_single_user_widget(), self.__widget_name, dict_strategy_args['user_id'])
-        # print(">>> or")
-        # print(">>> obj_strategy.get_clicked_total() and self.is_single_user_widget() == False  ", obj_strategy.get_clicked_total(), self.is_single_user_widget())
-        # if ((obj_strategy.get_clicked_signal() and self.is_single_user_widget() and self.__widget_name == dict_strategy_args['user_id']) or (obj_strategy.get_clicked_total() and self.is_single_user_widget() == False)):
-            # 只更新被鼠标选中的策略
-            # print(">>> QAccountWidget.slot_update_strategy() 更新groupBox，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
-        if self.__clicked_strategy == obj_strategy:
+        if self.__clicked_strategy == obj_strategy:  # 只更新在当前窗口中被鼠标选中的策略
             print(">>> QAccountWidget.slot_update_strategy() 更新groupBox，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
-            # 初始化comboBox_qihuozhanghao可选项，先清空comboBox内选项item，后添加可选项item
-            self.comboBox_qihuozhanghao.clear()
-            if self.is_single_user_widget():
-                if self.comboBox_qihuozhanghao.findText(self.__user.get_user_id().decode(), QtCore.Qt.MatchExactly) == -1:
-                    self.comboBox_qihuozhanghao.insertItem(0, self.__user.get_user_id().decode())
-            else:
-                for i_user in self.__list_user:
-                    if self.comboBox_qihuozhanghao.findText(i_user.get_user_id().decode(), QtCore.Qt.MatchExactly) == -1:
-                        self.comboBox_qihuozhanghao.insertItem(0, i_user.get_user_id().decode())
-            # 初始化comboBox_celuebianhao可选项，先清空comboBox内选项item，后添加可选项item
-            self.comboBox_celuebianhao.clear()
-            if self.is_single_user_widget():
-                for i_strategy in self.__user.get_list_strategy():
-                    if self.comboBox_celuebianhao.findText(i_strategy.get_strategy_id(), QtCore.Qt.MatchExactly) == -1:
-                        self.comboBox_celuebianhao.insertItem(0, i_strategy.get_strategy_id())
-            else:
-                for i_strategy in self.__client_main.get_CTPManager().get_list_strategy():
-                    if self.comboBox_celuebianhao.findText(i_strategy.get_strategy_id(), QtCore.Qt.MatchExactly) == -1:
-                        self.comboBox_celuebianhao.insertItem(0, i_strategy.get_strategy_id())
-            # 初始化comboBox_xiadansuanfa可选项，先清空comboBox内选项item，后添加可选项item
-            self.comboBox_xiadansuanfa.clear()
-            index_comboBox = -1
-            for i_order_algorithm in self.__socket_manager.get_list_algorithm_info():
-                index_comboBox += 1
-                if self.comboBox_xiadansuanfa.findText(i_order_algorithm['name'], QtCore.Qt.MatchExactly) == -1:
-                    self.comboBox_xiadansuanfa.insertItem(index_comboBox, i_order_algorithm['name'])
             # 期货账号
-            index_comboBox = self.comboBox_qihuozhanghao.findText(dict_strategy_args['user_id'])
-            if index_comboBox != -1:
-                self.comboBox_qihuozhanghao.setCurrentIndex(index_comboBox)
-            else:
-                pass
-                # print("QAccountWidget.slot_update_strategy() user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "界面显示错误：期货账号不存在于comboBox_qihuozhanghao中")
+            self.lineEdit_qihuozhanghao.setText(dict_strategy_args['user_id'])
             # 策略编号
-            index_comboBox = self.comboBox_celuebianhao.findText(dict_strategy_args['strategy_id'])
+            self.lineEdit_celuebianhao.setText(dict_strategy_args['strategy_id'])
+            # 交易模型
+            index_comboBox = self.comboBox_jiaoyimoxing.findText(dict_strategy_args['trade_model'])
             if index_comboBox != -1:
-                self.comboBox_celuebianhao.setCurrentIndex(index_comboBox)
-            else:
-                pass
-                # print("QAccountWidget.slot_update_strategy() user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "界面显示错误：策略编号不存在于comboBox_celuebianhao中")
+                self.comboBox_jiaoyimoxing.setCurrentIndex(index_comboBox)
+            # 下单算法
+            index_comboBox = self.comboBox_xiadansuanfa.findText(dict_strategy_args['order_algorithm'])
+            if index_comboBox != -1:
+                self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+            # 总手
+            self.lineEdit_zongshou.setText(str(dict_strategy_args['lots']))
+            # 每份
+            self.lineEdit_meifen.setText(str(dict_strategy_args['lots_batch']))
+            # 止损
+            self.spinBox_zhisun.setValue(dict_strategy_args['stop_loss'])
+            # 超价触发
+            self.spinBox_rangjia.setValue(dict_strategy_args['spread_shift'])
+            # A等待
+            self.spinBox_Adengdai.setValue(dict_strategy_args['a_wait_price_tick'])
+            # B等待
+            self.spinBox_Bdengdai.setValue(dict_strategy_args['b_wait_price_tick'])
+            # A限制
+            self.lineEdit_Achedanxianzhi.setText(str(dict_strategy_args['a_order_action_limit']))
+            # B限制
+            self.lineEdit_Bchedanxianzhi.setText(str(dict_strategy_args['b_order_action_limit']))
+            # A撤单
+            self.lineEdit_Achedan.setText(str(obj_strategy.get_a_action_count()))
+            # B撤单
+            self.lineEdit_Bchedan.setText(str(obj_strategy.get_b_action_count()))
+            # 空头开
+            self.doubleSpinBox_kongtoukai.setValue(dict_strategy_args['sell_open'])
+            # 空头平
+            self.doubleSpinBox_kongtouping.setValue(dict_strategy_args['buy_close'])
+            # 多头开
+            self.doubleSpinBox_duotoukai.setValue(dict_strategy_args['buy_open'])
+            # 多头平
+            self.doubleSpinBox_duotouping.setValue(dict_strategy_args['sell_close'])
+            # 空头开-开关
+            if dict_strategy_args['sell_open_on_off'] == 0:
+                self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
+            elif dict_strategy_args['sell_open_on_off'] == 1:
+                self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)
+            # 空头平-开关
+            if dict_strategy_args['buy_close_on_off'] == 0:
+                self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)
+            elif dict_strategy_args['buy_close_on_off'] == 1:
+                self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)
+            # 多头开-开关
+            if dict_strategy_args['buy_open_on_off'] == 0:
+                self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)
+            elif dict_strategy_args['buy_open_on_off'] == 1:
+                self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)
+            # 多头平-开关
+            if dict_strategy_args['sell_close_on_off'] == 0:
+                self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
+            elif dict_strategy_args['sell_close_on_off'] == 1:
+                self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)
+            print("A总卖=", dict_strategy_position['position_a_sell'])
+            print("B总买=", dict_strategy_position['position_b_buy'])
+            # A总卖
+            self.lineEdit_Azongsell.setText(str(dict_strategy_position['position_a_sell']))
+            # A昨卖
+            self.lineEdit_Azuosell.setText(str(dict_strategy_position['position_a_sell_yesterday']))
+            # B总买
+            self.lineEdit_Bzongbuy.setText(str(dict_strategy_position['position_b_buy']))
+            # B昨买
+            self.lineEdit_Bzuobuy.setText(str(dict_strategy_position['position_b_buy_yesterday']))
+            # A总买
+            self.lineEdit_Azongbuy.setText(str(dict_strategy_position['position_a_buy']))
+            # A昨买
+            self.lineEdit_Azuobuy.setText(str(dict_strategy_position['position_a_buy_yesterday']))
+            # B总卖
+            self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))
+            # B昨卖
+            self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))
+    """
+    # 更新单个策略的groupBox，    仅更新groupBox（期货账号和策略账号除外）
+    def update_groupBox(self, obj_strategy):
+        dict_strategy_args = obj_strategy.get_arguments()  # 策略参数
+        dict_strategy_position = obj_strategy.get_position()  # 策略持仓
+        if True:  # self.__clicked_strategy == obj_strategy:  # 只更新被鼠标选中的策略
+            print(">>> QAccountWidget.slot_update_strategy() 仅更新groupBox（期货账号和策略账号除外），widget_name=", self.__widget_name, "user_id=",
+                  obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
             # 交易模型
             index_comboBox = self.comboBox_jiaoyimoxing.findText(dict_strategy_args['trade_model'])
             if index_comboBox != -1:
@@ -605,6 +667,7 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))
             # B昨卖
             self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))
+    """
 
     """
     # 往策略列表中添加新建的策略
@@ -754,6 +817,11 @@ class QAccountWidget(QWidget, Ui_Form):
                     break
     """
 
+    @QtCore.pyqtSlot()
+    def slot_pushButton_set_position_setEnabled(self):
+        self.pushButton_set_position.setText("设置持仓")
+        self.pushButton_set_position.setEnabled(True)  # 设置为可用
+
     # 初始化界面：策略统计类指标（统计代码在Strategy类中实现，界面层的类仅负责显示）
     def init_table_widget_statistics(self):
         for i_strategy in self.__client_main.get_CTPManager().get_list_strategy():  # 遍历所有策略
@@ -880,6 +948,7 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新界面：价差行情
     @QtCore.pyqtSlot(dict)
     def slot_update_spread(self, dict_input):
+        # print(">>> QAccountWidget.slot_update_spread() 更新界面价差行情，widget_name=", self.__widget_name)
         # dict_input = {'spread_long': int, 'spread_short': int}
         # 更新多头价差显示
         if self.__spread_long is None:  # 初始值
@@ -1117,13 +1186,13 @@ class QAccountWidget(QWidget, Ui_Form):
             "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
             "MsgType": 5,  # 修改单条策略持仓
             "TraderID": self.__client_main.get_trader_id(),  # trader_id
-            "UserID": self.comboBox_qihuozhanghao.currentText(),  # user_id
-            "StrategyID": self.comboBox_celuebianhao.currentText(),  # strategy_id
+            "UserID": self.lineEdit_qihuozhanghao.text(),  # user_id
+            "StrategyID": self.lineEdit_celuebianhao.text(),  # strategy_id
             "MsgSrc": 0,
             "Info": [{
                 "trader_id": self.__client_main.get_trader_id(),  # trader_id
-                "user_id": self.comboBox_qihuozhanghao.currentText(),  # user_id
-                "strategy_id": self.comboBox_celuebianhao.currentText(),  # strategy_id
+                "user_id": self.lineEdit_qihuozhanghao.text(),  # user_id
+                "strategy_id": self.lineEdit_celuebianhao.text(),  # strategy_id
                 "trade_model": self.comboBox_jiaoyimoxing.currentText(),  # 交易模型
                 "order_algorithm": self.comboBox_xiadansuanfa.currentText(),  # 下单算法
                 "lots": int(self.lineEdit_zongshou.text()),  # 总手
@@ -1146,7 +1215,7 @@ class QAccountWidget(QWidget, Ui_Form):
         }
         json_StrategyEditWithoutPosition = json.dumps(dict_args)
         # self.__client_main.signal_send_msg.emit(json_StrategyEditWithoutPosition)
-        self.signal_send_msg.emit(json_StrategyEditWithoutPosition)
+        self.signal_send_msg.emit(json_StrategyEditWithoutPosition)  # 发送信号到SocketManager.slot_send_msg
 
     @pyqtSlot()
     def on_pushButton_set_position_clicked(self):
@@ -1176,14 +1245,14 @@ class QAccountWidget(QWidget, Ui_Form):
                 "MsgRef": self.__client_main.get_SocketManager().msg_ref_add(),
                 "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
                 "MsgType": 12,  # 修改单条策略持仓
-                "TraderID": self.__client_main.get_TraderID(),  # trader_id
-                "UserID": self.comboBox_qihuozhanghao.currentText(),  # user_id
-                "StrategyID": self.comboBox_celuebianhao.currentText(),  # strategy_id
+                "TraderID": self.__client_main.get_trader_id(),  # trader_id
+                "UserID": self.lineEdit_qihuozhanghao.text(),  # user_id
+                "StrategyID": self.lineEdit_celuebianhao.text(),  # strategy_id
                 "MsgSrc": 0,
                 "Info": [{
-                    "trader_id": self.__client_main.get_TraderID(),  # trader_id
-                    "user_id": self.comboBox_qihuozhanghao.currentText(),  # user_id
-                    "strategy_id": self.comboBox_celuebianhao.currentText(),  # strategy_id
+                    "trader_id": self.__client_main.get_trader_id(),  # trader_id
+                    "user_id": self.lineEdit_qihuozhanghao.text(),  # user_id
+                    "strategy_id": self.lineEdit_celuebianhao.text(),  # strategy_id
                     "position_a_buy": int(self.lineEdit_Azongbuy.text()),  # A总买
                     "position_a_buy_today": int(self.lineEdit_Azongbuy.text()) - int(self.lineEdit_Azuobuy.text()),  # A今买
                     "position_a_buy_yesterday": int(self.lineEdit_Azuobuy.text()),  # A昨买
@@ -1199,7 +1268,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 }]
             }
             json_setPosition = json.dumps(dict_setPosition)
-            self.__client_main.signal_send_msg.emit(json_setPosition)
+            self.signal_send_msg.emit(json_setPosition)  # 发送信号到SocketManager.slot_send_msg
 
     # 激活设置持仓按钮，禁用仓位输入框
     @QtCore.pyqtSlot()
@@ -1330,6 +1399,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+        # print(">>> QAccountWidget.on_comboBox_qihuozhanghao_currentIndexChanged()")
     
     @pyqtSlot(str)
     def on_comboBox_qihuozhanghao_currentIndexChanged(self, p0):
@@ -1341,7 +1411,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(int)
     def on_comboBox_jiaoyimoxing_currentIndexChanged(self, index):
         """
@@ -1511,6 +1581,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+
 
 if __name__ == "__main__":
     import sys

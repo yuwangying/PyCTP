@@ -214,9 +214,9 @@ class CTPManager(QtCore.QObject):
                 QApplication.processEvents()
                 i_strategy.set_QAccountWidget_total(QAccountWidget_total)
                 # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy() ）
-                i_strategy.signal_update_strategy.connect(QAccountWidget_total.slot_update_strategy)
+                # i_strategy.signal_update_strategy.connect(QAccountWidget_total.slot_update_strategy)
                 # 信号槽连接：策略对象价差值变化 -> 窗口对象更新价差（Strategy.signal_UI_update_spread_total -> QAccountWidget.slot_update_spread()）
-                i_strategy.signal_UI_update_spread_total.connect(QAccountWidget_total.slot_update_spread)
+                # i_strategy.signal_UI_update_spread_total.connect(QAccountWidget_total.slot_update_spread)
             # 所有策略列表设置为窗口属性
             QAccountWidget_total.set_list_strategy(self.__list_strategy)
             self.__list_QAccountWidget.append(QAccountWidget_total)  # 将窗口对象存放到list集合里
@@ -239,9 +239,9 @@ class CTPManager(QtCore.QObject):
                 QApplication.processEvents()
                 i_strategy.set_QAccountWidget_signal(QAccountWidget_signal)
                 # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy() ）
-                i_strategy.signal_update_strategy.connect(QAccountWidget_signal.slot_update_strategy)
-                # 信号槽连接：策略对象价差值变化 -> 窗口对象更新价差（Strategy.signal_UI_update_spread_total -> QAccountWidget.slot_update_spread()）
-                i_strategy.signal_UI_update_spread_signal.connect(QAccountWidget_signal.slot_update_spread)
+                # i_strategy.signal_update_strategy.connect(QAccountWidget_signal.slot_update_strategy)
+                # 信号槽连接：策略对象价差值变化 -> 窗口对象更新价差（Strategy.signal_UI_update_spread_signal -> QAccountWidget.slot_update_spread()）
+                # i_strategy.signal_UI_update_spread_signal.connect(QAccountWidget_signal.slot_update_spread)
             # 单期货账户的所有策略列表设置为窗口属性
             QAccountWidget_signal.set_list_strategy(i_user.get_list_strategy())
             self.__list_QAccountWidget.append(QAccountWidget_signal)  # 将窗口对象存放到list集合里
@@ -256,7 +256,8 @@ class CTPManager(QtCore.QObject):
             QApplication.processEvents()
             self.__q_ctp.tab_accounts.addTab(i_widget, i_widget.get_widget_name())  # 将账户窗口添加到tab_accounts窗体里
             """信号槽连接"""
-            # CTPManager创建策略 -> QAccountWidget插入策略（CTPManager.signal_insert_strategy -> QAccountWidget.slot_insert_strategy）
+            # 下面注释代码位置转移到QAccountWidget.slot_insert_strategy()里，向窗口插入策略的时候动态绑定策略与窗口之间的信号槽关系
+            # 信号槽：CTPManager创建策略 -> QAccountWidget插入策略（CTPManager.signal_insert_strategy -> QAccountWidget.slot_insert_strategy()）
             self.signal_insert_strategy.connect(i_widget.slot_insert_strategy)
             # 窗口修改策略 -> SocketManager发送修改指令（QAccountWidget.signal_send_msg -> SocketManager.slot_send_msg() ）
             i_widget.signal_send_msg.connect(self.__socket_manager.slot_send_msg)

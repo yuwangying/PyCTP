@@ -309,7 +309,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
             # 内核初始化完成
-            elif self.__ctp_manager.get_init_finished():
+            elif self.__ctp_manager.get_init_UI_finished():
                 if buff['MsgType'] == 3:  # 查询策略，MsgType=3
                     print("SocketManager.receive_msg() MsgType=3", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 消息结果成功
@@ -335,14 +335,11 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
                     print("SocketManager.receive_msg() MsgType=5", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
+                        dict_args = buff['Info'][0]  # 策略参数dict
                         for i_strategy in self.__ctp_manager.get_list_strategy():
-                            if i_strategy.get_user_id() == buff['UserID'] \
-                                    and i_strategy.get_strategy_id() == buff['StrategyID']:
-                                i_strategy.set_arguments(buff['Info'][0])
-                                # self.signal_UI_update_strategy.emit(i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
-                            break
-                            # for i_widget in self.__list_QAccountWidget:
-                            #     i_widget.update_groupBox_trade_args_for_set()  # 更新策略参数框goupBox
+                            if i_strategy.get_user_id() == dict_args['user_id'] and i_strategy.get_strategy_id() == dict_args['strategy_id']:
+                                i_strategy.set_arguments(dict_args)
+                                break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=5 修改策略参数失败")
                 elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
@@ -353,9 +350,8 @@ class SocketManager(QtCore.QThread):
                             if i_strategy.get_user_id() == buff['UserID'] \
                                     and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_position(buff['Info'][0])
-                            break
-                        self.signal_pushButton_set_position_setEnabled.emit()  # 激活设置持仓按钮，禁用仓位输入框
-                        pass
+                                # self.signal_pushButton_set_position_setEnabled.emit()  # 激活设置持仓按钮，禁用仓位输入框
+                                break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=12 修改策略持仓失败")
                 elif buff['MsgType'] == 7:  # 删除策略，MsgType=7

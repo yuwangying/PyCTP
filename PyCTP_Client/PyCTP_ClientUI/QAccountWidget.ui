@@ -659,16 +659,6 @@
           <string>总手</string>
          </property>
         </widget>
-        <widget class="QComboBox" name="comboBox_qihuozhanghao">
-         <property name="geometry">
-          <rect>
-           <x>84</x>
-           <y>30</y>
-           <width>120</width>
-           <height>21</height>
-          </rect>
-         </property>
-        </widget>
         <widget class="QComboBox" name="comboBox_jiaoyimoxing">
          <property name="geometry">
           <rect>
@@ -703,19 +693,6 @@
          </property>
          <property name="text">
           <string>策略编号</string>
-         </property>
-        </widget>
-        <widget class="QComboBox" name="comboBox_celuebianhao">
-         <property name="geometry">
-          <rect>
-           <x>280</x>
-           <y>30</y>
-           <width>45</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="editable">
-          <bool>false</bool>
          </property>
         </widget>
         <widget class="QLabel" name="label_xiadansuanfa">
@@ -1390,7 +1367,7 @@ background-color: rgb(255, 255, 255);</string>
           <rect>
            <x>280</x>
            <y>60</y>
-           <width>45</width>
+           <width>40</width>
            <height>21</height>
           </rect>
          </property>
@@ -1470,6 +1447,41 @@ background-color: rgb(255, 255, 255);</string>
          </property>
          <property name="text">
           <string>设置持仓</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_qihuozhanghao">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>84</x>
+           <y>30</y>
+           <width>120</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_celuebianhao">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>280</x>
+           <y>30</y>
+           <width>40</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </widget>
