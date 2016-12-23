@@ -385,7 +385,7 @@ class Strategy(QtCore.QObject):
 
     def set_on_off(self, int_input):
         self.__on_off = int_input
-        self.signal_UI_update_strategy.emit(self)
+        self.signal_update_strategy.emit(self)
 
     # 获取策略只平开关
     def get_only_close(self):
@@ -393,7 +393,7 @@ class Strategy(QtCore.QObject):
 
     def set_only_close(self, int_input):
         self.__only_close = int_input
-        self.signal_UI_update_strategy.emit(self)
+        self.signal_update_strategy.emit(self)
 
     def get_spread_short(self):
         return self.__spread_short
