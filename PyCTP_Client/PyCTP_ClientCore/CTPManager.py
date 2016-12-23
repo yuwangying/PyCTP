@@ -261,7 +261,8 @@ class CTPManager(QtCore.QObject):
             self.signal_insert_strategy.connect(i_widget.slot_insert_strategy)
             # 窗口修改策略 -> SocketManager发送修改指令（QAccountWidget.signal_send_msg -> SocketManager.slot_send_msg() ）
             i_widget.signal_send_msg.connect(self.__socket_manager.slot_send_msg)
-
+            # 绑定信号槽：收到服务端的查询策略信息 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
+            self.__socket_manager.signal_restore_groupBox.connect(i_widget.slot_restore_groupBox)  # pushButton_query_strategy.setEnabled)
         print(">>> CTPManager.create_QAccountWidget() 向界面插入策略=", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
         """向界面插入策略"""
         for i_strategy in self.get_list_strategy():

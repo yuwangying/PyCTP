@@ -21,6 +21,7 @@ class SocketManager(QtCore.QThread):
     signal_pushButton_login_set_enabled = QtCore.pyqtSignal(bool)  # 定义信号：登录界面登录按钮设置为可用
     signal_ctp_manager_init = QtCore.pyqtSignal()  # 定义信号：调用CTPManager的初始化方法
     signal_update_strategy = QtCore.pyqtSignal()  # 定义信号：收到服务端收到策略类的回报消息
+    signal_restore_groupBox = QtCore.pyqtSignal()  # 定义信号：收到查询策略信息后出发信号 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -320,10 +321,8 @@ class SocketManager(QtCore.QThread):
                             for i_strategy in self.__ctp_manager.get_list_strategy():
                                 if i_Info['user_id'] == i_strategy.get_user_id() and i_Info['strategy_id'] == i_strategy.get_strategy_id():
                                     i_strategy.set_arguments(i_Info)  # 将查询参数结果设置到策略内核，所有的策略
-                                    self.signal_UI_update_strategy.emit(
-                                        i_strategy)  # 更新策略在界面显示，（槽绑定到所有窗口对象槽函数update_strategy）
                                     break
-                        self.signal_pushButton_query_strategy_setEnabled.emit(True)  # 收到消息后将按钮激活
+                        self.signal_restore_groupBox.emit()  # 收到消息后将按钮查询策略按钮、恢复设置持仓
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=3 查询策略失败")
                 elif buff['MsgType'] == 6:  # 新建策略，MsgType=6

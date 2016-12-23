@@ -563,8 +563,6 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
             elif dict_strategy_args['sell_close_on_off'] == 1:
                 self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)
-            print("A总卖=", dict_strategy_position['position_a_sell'])
-            print("B总买=", dict_strategy_position['position_b_buy'])
             # A总卖
             self.lineEdit_Azongsell.setText(str(dict_strategy_position['position_a_sell']))
             # A昨卖
@@ -581,241 +579,13 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))
             # B昨卖
             self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))
-    """
-    # 更新单个策略的groupBox，    仅更新groupBox（期货账号和策略账号除外）
-    def update_groupBox(self, obj_strategy):
-        dict_strategy_args = obj_strategy.get_arguments()  # 策略参数
-        dict_strategy_position = obj_strategy.get_position()  # 策略持仓
-        if True:  # self.__clicked_strategy == obj_strategy:  # 只更新被鼠标选中的策略
-            print(">>> QAccountWidget.slot_update_strategy() 仅更新groupBox（期货账号和策略账号除外），widget_name=", self.__widget_name, "user_id=",
-                  obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
-            # 交易模型
-            index_comboBox = self.comboBox_jiaoyimoxing.findText(dict_strategy_args['trade_model'])
-            if index_comboBox != -1:
-                self.comboBox_jiaoyimoxing.setCurrentIndex(index_comboBox)
-            else:
-                pass
-                # print("QAccountWidget.slot_update_strategy() user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "界面显示错误：交易模型不存在于comboBox_jiaoyimoxing中")
-            # 下单算法
-            index_comboBox = self.comboBox_xiadansuanfa.findText(dict_strategy_args['order_algorithm'])
-            if index_comboBox != -1:
-                self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
-            else:
-                pass
-                # print("QAccountWidget.slot_update_strategy() user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id(), "界面显示错误：下单算法不存在于comboBox_xiadansuanfa中")
-            # 总手
-            self.lineEdit_zongshou.setText(str(dict_strategy_args['lots']))
-            # 每份
-            self.lineEdit_meifen.setText(str(dict_strategy_args['lots_batch']))
-            # 止损
-            self.spinBox_zhisun.setValue(dict_strategy_args['stop_loss'])
-            # 超价触发
-            self.spinBox_rangjia.setValue(dict_strategy_args['spread_shift'])
-            # A等待
-            self.spinBox_Adengdai.setValue(dict_strategy_args['a_wait_price_tick'])
-            # B等待
-            self.spinBox_Bdengdai.setValue(dict_strategy_args['b_wait_price_tick'])
-            # A限制
-            self.lineEdit_Achedanxianzhi.setText(str(dict_strategy_args['a_order_action_limit']))
-            # B限制
-            self.lineEdit_Bchedanxianzhi.setText(str(dict_strategy_args['b_order_action_limit']))
-            # A撤单
-            self.lineEdit_Achedan.setText(str(obj_strategy.get_a_action_count()))
-            # B撤单
-            self.lineEdit_Bchedan.setText(str(obj_strategy.get_b_action_count()))
-            # 空头开
-            self.doubleSpinBox_kongtoukai.setValue(dict_strategy_args['sell_open'])
-            # 空头平
-            self.doubleSpinBox_kongtouping.setValue(dict_strategy_args['buy_close'])
-            # 多头开
-            self.doubleSpinBox_duotoukai.setValue(dict_strategy_args['buy_open'])
-            # 多头平
-            self.doubleSpinBox_duotouping.setValue(dict_strategy_args['sell_close'])
-            # 空头开-开关
-            if dict_strategy_args['sell_open_on_off'] == 0:
-                self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
-            elif dict_strategy_args['sell_open_on_off'] == 1:
-                self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)
-            # 空头平-开关
-            if dict_strategy_args['buy_close_on_off'] == 0:
-                self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)
-            elif dict_strategy_args['buy_close_on_off'] == 1:
-                self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)
-            # 多头开-开关
-            if dict_strategy_args['buy_open_on_off'] == 0:
-                self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)
-            elif dict_strategy_args['buy_open_on_off'] == 1:
-                self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)
-            # 多头平-开关
-            if dict_strategy_args['sell_close_on_off'] == 0:
-                self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
-            elif dict_strategy_args['sell_close_on_off'] == 1:
-                self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)
-            # A总卖
-            self.lineEdit_Azongsell.setText(str(dict_strategy_position['position_a_sell']))
-            # A昨卖
-            self.lineEdit_Azuosell.setText(str(dict_strategy_position['position_a_sell_yesterday']))
-            # B总买
-            self.lineEdit_Bzongbuy.setText(str(dict_strategy_position['position_b_buy']))
-            # B昨买
-            self.lineEdit_Bzuobuy.setText(str(dict_strategy_position['position_b_buy_yesterday']))
-            # A总买
-            self.lineEdit_Azongbuy.setText(str(dict_strategy_position['position_a_buy']))
-            # A昨买
-            self.lineEdit_Azuobuy.setText(str(dict_strategy_position['position_a_buy_yesterday']))
-            # B总卖
-            self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))
-            # B昨卖
-            self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))
-    """
 
-    """
-    # 往策略列表中添加新建的策略
+    # 绑定信号槽：收到服务端的查询策略信息 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
     @QtCore.pyqtSlot()
-    def insert_row_table_widget(self):
-        if self.is_single_user_widget():  # 单账户窗口
-            # 新建策略不属于该窗口，跳过
-            if self.__client_main.get_obj_new_strategy().get_user_id() != self.__widget_name:
-                return
-
-            i_row = self.tableWidget_Trade_Args.rowCount()  # 行标
-            self.tableWidget_Trade_Args.insertRow(i_row)  # 插入指定行
-            item_strategy_on_off = QtGui.QTableWidgetItem()  # 开关
-            if self.__client_main.get_obj_new_strategy().get_arguments()['strategy_on_off'] == 0:
-                item_strategy_on_off.setCheckState(QtCore.Qt.Unchecked)
-                item_strategy_on_off.setText('关')
-            elif self.__client_main.get_obj_new_strategy().get_arguments()['strategy_on_off'] == 1:
-                item_strategy_on_off.setCheckState(QtCore.Qt.Checked)
-                item_strategy_on_off.setText('开')
-            item_strategy_only_close = QtGui.QTableWidgetItem()  # 只平
-            if self.__client_main.get_obj_new_strategy().get_arguments()['only_close'] == 0:
-                item_strategy_only_close.setCheckState(QtCore.Qt.Unchecked)
-                item_strategy_only_close.setText('关')
-            elif self.__client_main.get_obj_new_strategy().get_arguments()['only_close'] == 1:
-                item_strategy_only_close.setCheckState(QtCore.Qt.Checked)
-                item_strategy_only_close.setText('开')
-            item_user_id = QtGui.QTableWidgetItem(self.__client_main.get_obj_new_strategy().get_user_id())  # 期货账号
-            item_strategy_id = QtGui.QTableWidgetItem(
-                self.__client_main.get_obj_new_strategy().get_strategy_id())  # 策略编号
-            str_tmp = ''
-            for j in self.__client_main.get_obj_new_strategy().get_list_instrument_id():
-                str_tmp += j
-                if j != self.__client_main.get_obj_new_strategy().get_list_instrument_id()[-1]:
-                    str_tmp += ','
-            item_instrument_id = QtGui.QTableWidgetItem(str_tmp)  # 交易合约
-            item_position = QtGui.QTableWidgetItem(str(
-                self.__client_main.get_obj_new_strategy().get_position()['position_a_buy'] +
-                self.__client_main.get_obj_new_strategy().get_position()['position_a_sell']))  # 总持仓
-            item_position_buy = QtGui.QTableWidgetItem(
-                str(self.__client_main.get_obj_new_strategy().get_position()['position_a_buy']))  # 买持仓
-            item_position_sell = QtGui.QTableWidgetItem(
-                str(self.__client_main.get_obj_new_strategy().get_position()['position_a_sell']))  # 卖持仓
-            item_hold_profit = QtGui.QTableWidgetItem('0')  # 持仓盈亏
-            item_close_profit = QtGui.QTableWidgetItem('0')  # 平仓盈亏
-            item_commission = QtGui.QTableWidgetItem('0')  # 手续费
-            item_trade_volume = QtGui.QTableWidgetItem('0')  # 成交量
-            item_amount = QtGui.QTableWidgetItem('0')  # 成交金额
-            item_average_shift = QtGui.QTableWidgetItem('0')  # 平均滑点
-            item_trade_model = QtGui.QTableWidgetItem(
-                self.__client_main.get_obj_new_strategy().get_arguments()['trade_model'])  # 交易模型
-            item_order_algorithm = QtGui.QTableWidgetItem(
-                self.__client_main.get_obj_new_strategy().get_arguments()['order_algorithm'])  # 下单算法
-            self.tableWidget_Trade_Args.setItem(i_row, 0, item_strategy_on_off)  # 开关
-            self.tableWidget_Trade_Args.setItem(i_row, 1, item_strategy_only_close)  # 只平
-            self.tableWidget_Trade_Args.setItem(i_row, 2, item_user_id)  # 期货账号
-            self.tableWidget_Trade_Args.setItem(i_row, 3, item_strategy_id)  # 策略编号
-            self.tableWidget_Trade_Args.setItem(i_row, 4, item_instrument_id)  # 交易合约
-            self.tableWidget_Trade_Args.setItem(i_row, 5, item_position)  # 总持仓
-            self.tableWidget_Trade_Args.setItem(i_row, 6, item_position_buy)  # 买持仓
-            self.tableWidget_Trade_Args.setItem(i_row, 7, item_position_sell)  # 卖持仓
-            self.tableWidget_Trade_Args.setItem(i_row, 8, item_hold_profit)  # 持仓盈亏
-            self.tableWidget_Trade_Args.setItem(i_row, 9, item_close_profit)  # 平仓盈亏
-            self.tableWidget_Trade_Args.setItem(i_row, 10, item_commission)  # 手续费
-            self.tableWidget_Trade_Args.setItem(i_row, 11, item_trade_volume)  # 成交量
-            self.tableWidget_Trade_Args.setItem(i_row, 12, item_amount)  # 成交金额
-            self.tableWidget_Trade_Args.setItem(i_row, 13, item_average_shift)  # 平均滑点
-            self.tableWidget_Trade_Args.setItem(i_row, 14, item_trade_model)  # 交易模型
-            self.tableWidget_Trade_Args.setItem(i_row, 15, item_order_algorithm)  # 下单算法
-        else:  # 总账户窗口
-            i_row = self.tableWidget_Trade_Args.rowCount()  # 行标
-            self.tableWidget_Trade_Args.insertRow(i_row)  # 插入指定行
-            item_strategy_on_off = QtGui.QTableWidgetItem()  # 开关
-            if self.__client_main.get_obj_new_strategy().get_arguments()['strategy_on_off'] == 0:
-                item_strategy_on_off.setCheckState(QtCore.Qt.Unchecked)
-                item_strategy_on_off.setText('关')
-            elif self.__client_main.get_obj_new_strategy().get_arguments()['strategy_on_off'] == 1:
-                item_strategy_on_off.setCheckState(QtCore.Qt.Checked)
-                item_strategy_on_off.setText('开')
-            item_strategy_only_close = QtGui.QTableWidgetItem()  # 只平
-            if self.__client_main.get_obj_new_strategy().get_arguments()['only_close'] == 0:
-                item_strategy_only_close.setCheckState(QtCore.Qt.Unchecked)
-                item_strategy_only_close.setText('关')
-            elif self.__client_main.get_obj_new_strategy().get_arguments()['only_close'] == 1:
-                item_strategy_only_close.setCheckState(QtCore.Qt.Checked)
-                item_strategy_only_close.setText('开')
-            item_user_id = QtGui.QTableWidgetItem(self.__client_main.get_obj_new_strategy().get_user_id())  # 期货账号
-            item_strategy_id = QtGui.QTableWidgetItem(self.__client_main.get_obj_new_strategy().get_strategy_id())  # 策略编号
-            str_tmp = ''
-            for j in self.__client_main.get_obj_new_strategy().get_list_instrument_id():
-                str_tmp += j
-                if j != self.__client_main.get_obj_new_strategy().get_list_instrument_id()[-1]:
-                    str_tmp += ','
-            item_instrument_id = QtGui.QTableWidgetItem(str_tmp)  # 交易合约
-            item_position = QtGui.QTableWidgetItem(str(
-                self.__client_main.get_obj_new_strategy().get_position()['position_a_buy'] + self.__client_main.get_obj_new_strategy().get_position()['position_a_sell']))  # 总持仓
-            item_position_buy = QtGui.QTableWidgetItem(str(self.__client_main.get_obj_new_strategy().get_position()['position_a_buy']))  # 买持仓
-            item_position_sell = QtGui.QTableWidgetItem(str(self.__client_main.get_obj_new_strategy().get_position()['position_a_sell']))  # 卖持仓
-            item_hold_profit = QtGui.QTableWidgetItem('0')  # 持仓盈亏
-            item_close_profit = QtGui.QTableWidgetItem('0')  # 平仓盈亏
-            item_commission = QtGui.QTableWidgetItem('0')  # 手续费
-            item_trade_volume = QtGui.QTableWidgetItem('0')  # 成交量
-            item_amount = QtGui.QTableWidgetItem('0')  # 成交金额
-            item_average_shift = QtGui.QTableWidgetItem('0')  # 平均滑点
-            item_trade_model = QtGui.QTableWidgetItem(self.__client_main.get_obj_new_strategy().get_arguments()['trade_model'])  # 交易模型
-            item_order_algorithm = QtGui.QTableWidgetItem(self.__client_main.get_obj_new_strategy().get_arguments()['order_algorithm'])  # 下单算法
-            self.tableWidget_Trade_Args.setItem(i_row, 0, item_strategy_on_off)  # 开关
-            self.tableWidget_Trade_Args.setItem(i_row, 1, item_strategy_only_close)  # 只平
-            self.tableWidget_Trade_Args.setItem(i_row, 2, item_user_id)  # 期货账号
-            self.tableWidget_Trade_Args.setItem(i_row, 3, item_strategy_id)  # 策略编号
-            self.tableWidget_Trade_Args.setItem(i_row, 4, item_instrument_id)  # 交易合约
-            self.tableWidget_Trade_Args.setItem(i_row, 5, item_position)  # 总持仓
-            self.tableWidget_Trade_Args.setItem(i_row, 6, item_position_buy)  # 买持仓
-            self.tableWidget_Trade_Args.setItem(i_row, 7, item_position_sell)  # 卖持仓
-            self.tableWidget_Trade_Args.setItem(i_row, 8, item_hold_profit)  # 持仓盈亏
-            self.tableWidget_Trade_Args.setItem(i_row, 9, item_close_profit)  # 平仓盈亏
-            self.tableWidget_Trade_Args.setItem(i_row, 10, item_commission)  # 手续费
-            self.tableWidget_Trade_Args.setItem(i_row, 11, item_trade_volume)  # 成交量
-            self.tableWidget_Trade_Args.setItem(i_row, 12, item_amount)  # 成交金额
-            self.tableWidget_Trade_Args.setItem(i_row, 13, item_average_shift)  # 平均滑点
-            self.tableWidget_Trade_Args.setItem(i_row, 14, item_trade_model)  # 交易模型
-            self.tableWidget_Trade_Args.setItem(i_row, 15, item_order_algorithm)  # 下单算法
-    """
-
-    """
-    # 从策略列表中删除策略
-    @QtCore.pyqtSlot()
-    def remove_row_table_widget(self):
-        print(">>> QAccountWidget.remove_row_table_widget() called, widget_name=", self.__widget_name)
-        if self.is_single_user_widget():  # 单账户窗口
-            # 要删除的策略属于该窗口
-            # if self.__clicked_status['widget_name'] == self.__widget_name:
-            # if self.__client_main.get_clicked_status()['widget_name'] == self.__widget_name:
-            # 找到将要删除的策略在本窗口table_widget中的行标
-            for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历行
-                if self.tableWidget_Trade_Args.item(i_row, 2).text() == self.__client_main.get_clicked_status()['user_id'] \
-                        and self.tableWidget_Trade_Args.item(i_row, 3).text() == self.__client_main.get_clicked_status()['strategy_id']:
-                    print(">>> QAccountWidget.remove_row_table_widget() 从单账户窗口中删除策略行")
-                    self.tableWidget_Trade_Args.removeRow(i_row)
-                    break
-        if self.is_single_user_widget() is False:  # 总账户窗口
-            # 找到将要删除的策略在本窗口table_widget中的行标
-            for i_row in range(self.tableWidget_Trade_Args.rowCount()):  # 遍历行
-                if self.tableWidget_Trade_Args.item(i_row, 2).text() == self.__client_main.get_clicked_status()['user_id'] \
-                        and self.tableWidget_Trade_Args.item(i_row, 3).text() == self.__client_main.get_clicked_status()['strategy_id']:
-                    print(">>> QAccountWidget.remove_row_table_widget() 从总账户窗口中删除策略行")
-                    self.tableWidget_Trade_Args.removeRow(i_row)
-                    break
-    """
+    def slot_restore_groupBox(self):
+        self.pushButton_query_strategy.setEnabled(True)  # 激活按钮
+        self.pushButton_set_position.setText("设置持仓")
+        self.pushButton_set_position.setEnabled(True)  # 激活按钮
 
     @QtCore.pyqtSlot()
     def slot_pushButton_set_position_setEnabled(self):
@@ -1286,8 +1056,17 @@ class QAccountWidget(QWidget, Ui_Form):
         # raise NotImplementedError
         # 获取界面参数框里显示的期货账号的策略编号
         self.pushButton_query_strategy.setEnabled(False)  # 点击按钮之后禁用，等收到消息后激活
-        self.__client_main.QryStrategyInfo()
-        # UserID = self.comboBox_qihuozhanghao.currentText(), StrategyID=self.comboBox_celuebianhao.currentText()
+        # 单账户窗口中查询单账户的所有策略，总账户窗口中查询所有期货账户策略
+        str_user_id = self.__widget_name if self.is_single_user_widget() else ''
+        dict_query_strategy = {'MsgRef': self.__socket_manager.msg_ref_add(),
+                               'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                               'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                               'MsgType': 3,  # 查询策略
+                               'TraderID': self.__ctp_manager.get_trader_id(),
+                               'UserID': str_user_id,
+                               'StrategyID': ''}
+        json_query_strategy = json.dumps(dict_query_strategy)
+        self.signal_send_msg.emit(json_query_strategy)
 
     @pyqtSlot(bool)
     def on_checkBox_kongtoukai_clicked(self, checked):
