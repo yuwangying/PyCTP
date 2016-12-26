@@ -15,12 +15,13 @@ from PyQt4 import QtCore
 
 
 class User(QtCore.QObject):
-    signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 定义信号：更新界面“开始策略”按钮
+    signal_update_pushButton_start_strategy = QtCore.pyqtSignal()  # 定义信号：内核设置期货账户交易开关 -> 更新窗口“开始策略”按钮状态
 
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
-    def __init__(self, dict_arguments, parent=None):
+    def __init__(self, dict_arguments, parent=None, ctp_manager=None):
         print('User.__init__()', dict_arguments)
         super(User, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
+        self.__ctp_manager = ctp_manager
         self.__trader_id = dict_arguments['traderid'].encode()
         self.__user_id = dict_arguments['userid'].encode()
         self.__BrokerID = dict_arguments['brokerid'].encode()
@@ -70,7 +71,10 @@ class User(QtCore.QObject):
         self.__session_id = self.__trade.get_session_id()  # 获取会话编号
         self.__TradingDay = self.__trade.GetTradingDay().decode()  # 获取交易日
 
-        self.__on_off = 0  # user的交易开关，初始值为关
+        for i_user_info in self.__ctp_manager.get_list_user_info():
+            if i_user_info['userid'] == self.__user_id.decode():
+                self.__on_off = i_user_info['on_off']  # user的交易开关，初始值为关
+                break
         self.__only_close = 0  # user的只平，初始值为关
 
         self.__init_finished = False  # 初始化完成
@@ -165,9 +169,9 @@ class User(QtCore.QObject):
 
     # 设置user的交易开关，0关、1开
     def set_on_off(self, int_on_off):
-        # print(">>>User.set_on_off() user_id=", self.__user_id, int_on_off)
+        print(">>>User.set_on_off() user_id=", self.__user_id, int_on_off)
         self.__on_off = int_on_off
-        self.signal_UI_update_pushButton_start_strategy.emit({'MsgType': 9, 'UserID': self.__user_id.decode(), 'OnOff': self.__on_off})  # 更新界面“开始策略”按钮
+        self.signal_update_pushButton_start_strategy.emit()  # 触发信号：内核设置期货账户交易开关 -> 更新窗口“开始策略”按钮状态
 
     # 获取user的交易开关，0关、1开
     def get_on_off(self):

@@ -258,6 +258,7 @@ class SocketManager(QtCore.QThread):
                         self.__client_main.set_trader_id(buff['TraderID'])
                         self.__ctp_manager.set_trader_name(buff['TraderName'])
                         self.__ctp_manager.set_trader_id(buff['TraderID'])
+                        self.__ctp_manager.set_on_off(buff['OnOff'])
                         self.qry_market_info()  # 查询行情配置
                     elif buff['MsgResult'] == 1:  # 验证不通过
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
@@ -265,7 +266,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 4:  # 查询行情配置，MsgType=4
                     print("SocketManager.receive_msg() MsgType=4", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.signal_label_login_error_text.emit('查询行情配置成功')
+                        self.signal_label_login_error_text.emit('查询行情信息成功')
                         self.__ctp_manager.set_list_market_info(buff['Info'])  # 将行情信息设置为ctp_manager的属性
                         self.set_list_market_info(buff['Info']) 
                         self.qry_user_info()  # 查询期货账户
@@ -275,7 +276,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 2:  # 查询期货账户，MsgType=2
                     print("SocketManager.receive_msg() MsgType=2", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.signal_label_login_error_text.emit('查询期货账户成功')
+                        self.signal_label_login_error_text.emit('查询期货账户信息成功')
                         self.__ctp_manager.set_list_user_info(buff['Info'])  # 将期货账户信息设置为ctp_manager的属性
                         self.set_list_user_info(buff['Info'])
                         self.qry_algorithm_info()  # 查询下单算法
@@ -349,7 +350,6 @@ class SocketManager(QtCore.QThread):
                             if i_strategy.get_user_id() == buff['UserID'] \
                                     and i_strategy.get_strategy_id() == buff['StrategyID']:
                                 i_strategy.set_position(buff['Info'][0])
-                                # self.signal_pushButton_set_position_setEnabled.emit()  # 激活设置持仓按钮，禁用仓位输入框
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=12 修改策略持仓失败")
@@ -383,35 +383,15 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 8:  # 修改交易员开关
                     print("SocketManager.receive_msg() MsgType=8", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        # 更新界面
-                        for i_widget in self.__list_QAccountWidget:
-                            if i_widget.get_widget_name() == "总账户":
-                                self.get_CTPManager().set_on_off(buff['OnOff'])  # 设置内核值
-                                # 界面按钮文字显示
-                                # if buff['OnOff'] == 1:
-                                #     i_widget.pushButton_start_strategy.setText("停止策略")
-                                # elif buff['OnOff'] == 0:
-                                #     i_widget.pushButton_start_strategy.setText("开始策略")
-                                # i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮setEnabled
-                                break
+                        self.__ctp_manager.set_on_off(buff['OnOff'])  # 设置内核中交易员开关
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=8 修改交易员开关失败")
                 elif buff['MsgType'] == 9:  # 修改期货账户开关
                     print("SocketManager.receive_msg() MsgType=9", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        # 更新界面
-                        for i_widget in self.__list_QAccountWidget:
-                            if i_widget.get_widget_name() == buff['UserID']:
-                                # 设置内核设值
-                                for i_user in self.get_CTPManager().get_list_user():
-                                    if i_user.get_user_id().decode() == buff['UserID']:
-                                        i_user.set_on_off(buff['OnOff'])
-                                # 界面按钮文字显示
-                                # if buff['OnOff'] == 1:
-                                #     i_widget.pushButton_start_strategy.setText("停止策略")
-                                # elif buff['OnOff'] == 0:
-                                #     i_widget.pushButton_start_strategy.setText("开始策略")
-                                # i_widget.pushButton_start_strategy.setEnabled(True)  # 解禁按钮
+                        for i_user in self.get_CTPManager().get_list_user():
+                            if i_user.get_user_id().decode() == buff['UserID']:
+                                i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
                                 break
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
@@ -428,6 +408,7 @@ class SocketManager(QtCore.QThread):
                                 }
         json_qry_market_info = json.dumps(dict_qry_market_info)
         self.slot_send_msg(json_qry_market_info)
+        self.signal_label_login_error_text.emit('查询行情信息')
 
     # 查询期货账户信息
     def qry_user_info(self):
@@ -440,6 +421,7 @@ class SocketManager(QtCore.QThread):
                               }
         json_qry_user_info = json.dumps(dict_qry_user_info)
         self.slot_send_msg(json_qry_user_info)
+        self.signal_label_login_error_text.emit('查询期货账户信息')
 
     # 查询下单算法
     def qry_algorithm_info(self):
@@ -451,6 +433,7 @@ class SocketManager(QtCore.QThread):
                                    }
         json_qry_algorithm_info = json.dumps(dict_qry_algorithm_info)
         self.slot_send_msg(json_qry_algorithm_info)
+        self.signal_label_login_error_text.emit('查询下单算法')
 
     # 查询策略
     def qry_strategy_info(self):
@@ -464,6 +447,7 @@ class SocketManager(QtCore.QThread):
                                   }
         json_qry_strategy_info = json.dumps(dict_qry_strategy_info)
         self.slot_send_msg(json_qry_strategy_info)
+        self.signal_label_login_error_text.emit('查询策略')
 
     # 查询策略昨仓
     def qry_yesterday_position(self):
@@ -477,7 +461,38 @@ class SocketManager(QtCore.QThread):
         }
         json_qry_yesterday_position = json.dumps(dict_qry_yesterday_position)
         self.slot_send_msg(json_qry_yesterday_position)
+        self.signal_label_login_error_text.emit('查询策略昨仓')
 
+    """
+    # 查询交易员开关
+    def qry_trader_on_off(self):
+        dict_qry_trader_on_off = {
+            'MsgRef': self.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 8,  # 查询交易员开关
+            'TraderID': self.__trader_id,
+            'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的策略
+        }
+        # {"MsgRef": 1, "MsgSendFlag": 0, "MsgType": 8, "TraderID": "1601", "OnOff": 1, "MsgSrc": 0}
+        json_qry_trader_on_off = json.dumps(dict_qry_trader_on_off)
+        self.slot_send_msg(json_qry_trader_on_off)
+        self.signal_label_login_error_text.emit('查询交易员开关')
+
+    # 查询期货账户开关
+    def qry_user_on_off(self):
+        dict_qry_user_on_off = {
+            'MsgRef': self.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 10,  # 查询策略昨仓
+            'TraderID': self.__trader_id,
+            'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的策略
+        }
+        json_qry_user_on_off = json.dumps(dict_qry_user_on_off)
+        self.slot_send_msg(json_qry_user_on_off)
+        self.signal_label_login_error_text.emit('查询期货账户开关')
+    """
 
 if __name__ == '__main__':
     # 创建socket套接字

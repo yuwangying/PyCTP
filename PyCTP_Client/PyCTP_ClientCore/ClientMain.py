@@ -81,89 +81,7 @@ class ClientMain(QtCore.QObject):
 
     def get_hideQAccountWidget(self):
         return self.__hideQAccountWidget
-    """
-    def create_QAccountWidget(self):
-        print(">>> ClientMain.create_QAccountWidget() CTPManager内核初始化完成，开始创建窗口")
 
-        # 创建总账户窗口，将user对象列表设置为其属性，将窗口对象存放到list里，总账户窗口初始化函数内部将总账户窗口对象设置为各user对象的属性。
-        tmpQ = QAccountWidget(str_widget_name='总账户', list_user=self.get_CTPManager().get_list_user(), ClientMain=self)
-        # tmpQ.set_ClientMain(self)  # ClientMain设置为窗口对象的属性
-        # 总账户窗口实例设置为所有策略的属性
-        for i_strategy in self.get_CTPManager().get_list_strategy():
-            i_strategy.set_QAccountWidgetTotal(tmpQ)
-        # tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
-        self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
-        self.signal_pushButton_set_position_setEnabled.connect(tmpQ.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
-        tmpQ.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定标志设置为True
-
-        # 创建单个账户窗口，将user对象设置为其属性，将窗口对象存放到list里
-        for i_user in self.get_CTPManager().get_list_user():
-            tmpQ = QAccountWidget(str_widget_name=i_user.get_user_id().decode(),
-                                  obj_user=i_user,
-                                  ClientMain=self)  # 创建窗口，并将user设置为其属性
-            i_user.set_QAccountWidget(tmpQ)  # 窗口实例设置为user的对象
-            # tmpQ.set_ClientMain(self)  # ClientMain这是为窗口的属性
-            # 单账户窗口实例设置为对应期货账户下面所有策略的属性
-            for i_strategy in tmpQ.get_user().get_list_strategy():
-                i_strategy.set_QAccountWidget(tmpQ)
-            # tmpQ.init_table_widget()  # 初始化界面：策略列表，tableWidget_Trade_Args
-            self.__list_QAccountWidget.append(tmpQ)  # 将窗口对象存放到list集合里
-            self.signal_pushButton_set_position_setEnabled.connect(tmpQ.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
-            tmpQ.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定标志设置为True
-
-        # 账户窗口创建完成，账户窗口添加到QCTP窗口的tab
-        for i_widget in self.__list_QAccountWidget:
-            # i_widget.init_table_widget()  # 初始化QAccountWidget内所有的组件
-            self.get_QCTP().tab_accounts.addTab(i_widget, i_widget.get_widget_name())
-            self.signal_pushButton_query_strategy_setEnabled.connect(i_widget.pushButton_query_strategy.setEnabled)
-            i_widget.signal_update_groupBox_trade_args_for_query.connect(i_widget.update_groupBox_trade_args_for_query)
-            # self.__ctp_manager.signal_insert_row_table_widget.connect(i_widget.insert_row_table_widget)
-            # self.__ctp_manager.signal_remove_row_table_widget.connect(i_widget.remove_row_table_widget)
-            # 改写，更新界面“开始策略”按钮，将CTPManager的信号signal_UI_update_pushButton_start_strategy连接到所有QAccountWidget对象的槽update_pushButton_start_strategy
-            self.__ctp_manager.signal_UI_update_pushButton_start_strategy.connect(i_widget.update_pushButton_start_strategy)
-            # 改写，更新界面策略，将所有ClientMain的信号signal_UI_update_strategy连接到所有QAccountWidget对象的槽update_strategy
-            self.signal_UI_update_strategy.connect(i_widget.update_strategy)  # 改写，更新策略在界面的显示
-            # 改写，向界面插入策略，将ClientMain的信号signal_insert_strategy连接到所有QAccountWidget对象的槽insert_strategy
-            self.signal_UI_insert_strategy.connect(i_widget.insert_strategy)
-            # 改写，向界面插入策略，将CTPManager的信号signal_UI_insert_strategy连接到所有QAccountWidget对象的槽insert_strategy
-            self.__ctp_manager.signal_UI_insert_strategy.connect(i_widget.insert_strategy)
-            # 改写，从界面删除策略，将CTPManager的信号signal_UI_remove_strategy连接到所有QAccountWidget对象的槽remove_strategy
-            self.__ctp_manager.signal_UI_remove_strategy.connect(i_widget.remove_strategy)
-            # 改写，将所有策略对象的信号signal_UI_update_strategy分别连接到所有QAccountWidget对象的槽update_strategy
-            for i_strategy in self.__ctp_manager.get_list_strategy():
-                i_strategy.signal_UI_update_strategy.connect(i_widget.update_strategy)
-            # 设置鼠标点击事件
-            self.signal_UI_set_on_tableWidget_Trade_Args_cellClicked.connect(i_widget.set_on_tableWidget_Trade_Args_cellClicked)
-            # 改写，更新界面“开始策略”按钮，将所有User的信号signal_UI_update_pushButton_start_strategy连接到所有QAccountWidget对象的槽update_pushButton_start_strategy
-            for i_user in self.__ctp_manager.get_list_user():
-                i_user.signal_UI_update_pushButton_start_strategy.connect(i_widget.update_pushButton_start_strategy)
-
-        # 初始化QAccountWidget界面显示
-        for i_strategy in self.__ctp_manager.get_list_strategy():
-            self.signal_UI_insert_strategy.emit(i_strategy)
-
-        # 初始化鼠标点击位置
-        self.signal_UI_set_on_tableWidget_Trade_Args_cellClicked.emit(0, 0)
-
-        # 创建“新建策略”弹窗
-        q_new_strategy = NewStrategy()
-        completer = QCompleter()
-        model = QStringListModel()
-        model.setStringList(self.__ctp_manager.get_list_instrument_id())
-        completer.setModel(model)
-        q_new_strategy.lineEdit_a_instrument.setCompleter(completer)
-        q_new_strategy.lineEdit_b_instrument.setCompleter(completer)
-        q_new_strategy.set_ClientMain(self)  # ClientMain设置为其属性
-        self.set_QNewStrategy(q_new_strategy)  # 设置为ClientMain属性
-        self.__ctp_manager.signal_hide_new_strategy.connect(self.get_QNewStrategy().hide)  # 绑定信号槽，新创建策略成功后隐藏“新建策略弹窗”
-
-        self.__init_UI_finished = True  # 界面初始化完成标志位
-
-        self.__q_login_form.hide()  # 隐藏登录窗口
-        self.__q_ctp.show()  # 显示主窗口
-
-        print(">>> ClientMain.create_QAccountWidget() 界面初始化完成")
-    """
     def get_SocketManager(self):
         return self.__socket_manager
 
@@ -181,21 +99,6 @@ class ClientMain(QtCore.QObject):
 
     def get_CTPManager(self):
         return self.__ctp_manager
-
-    # def get_listMarketInfo(self):
-    #     return self.__listMarketInfo
-    #
-    # def get_listUserInfo(self):
-    #     return self.__listUserInfo
-    #
-    # def get_listStrategyInfo(self):
-    #     return self.__listStrategyInfo
-    #
-    # def get_list_QAccountWidget(self):
-    #     return self.__list_QAccountWidget
-    #
-    # def get_listAlgorithmInfo(self):
-    #     return self.__listAlgorithmInfo
 
     # 设置鼠标点击状态，信息包含:item所在行、item所在列、widget_name、user_id、strategy_id
     def set_clicked_status(self, in_dict):
@@ -665,7 +568,7 @@ if __name__ == '__main__':
     """创建对象"""
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
-    socket_manager = SocketManager("10.0.0.4", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager("10.0.0.6", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 创建登录界面
