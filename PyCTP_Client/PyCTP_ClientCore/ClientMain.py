@@ -597,15 +597,16 @@ if __name__ == '__main__':
     q_ctp.set_QLogin(q_login)
 
     """绑定信号槽"""
+    # 绑定信号槽：QLogin发送消息 -> SocketManager发送消息
     q_login.signal_send_msg.connect(socket_manager.slot_send_msg)
-    # 绑定信号槽：设置q_login消息框文本
+    # 绑定信号槽：SocketManager收到消息 -> 设置q_login消息框文本
     socket_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
-    # 绑定信号槽：设置q_login的登录按钮是否可用
+    # 绑定信号槽：SocketManager收到消息 -> 设置q_login的登录按钮是否可用
     socket_manager.signal_pushButton_login_set_enabled.connect(q_login.pushButton_login.setEnabled)
-    # 绑定信号槽：调用CTPManager的初始化方法
+    # 绑定信号槽：SocketManager收到消息 -> 调用CTPManager的初始化方法
     socket_manager.signal_ctp_manager_init.connect(ctp_manager.init)
-    # 绑定信号槽：调用创建窗口create_QAccountWidget
-    # ctp_manager.signal_create_QAccountWidget.connect(client_main.create_QAccountWidget)
+    # 绑定信号槽：CTPManager -> 设置q_login消息框文本
+    ctp_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
     # SocketManager收到服务端修改策略参数类回报 -> CTPManager修改策略（SocketManager.signal_update_strategy -> CTPManager.slot_update_strategy()）
     socket_manager.signal_update_strategy.connect(ctp_manager.slot_update_strategy)
 

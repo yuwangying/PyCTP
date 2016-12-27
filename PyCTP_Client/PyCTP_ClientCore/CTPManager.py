@@ -37,6 +37,7 @@ class CTPManager(QtCore.QObject):
     signal_create_QAccountWidget = QtCore.pyqtSignal()  # 定义信号：创建QAccountWidget窗口
     signal_update_pushButton_start_strategy = QtCore.pyqtSignal()  # 定义信号：内核设置交易员交易开关 -> 更新窗口“开始策略”按钮状态
     signal_remove_strategy = QtCore.pyqtSignal(object)  # 定义信号：内核删除策略 -> 窗口删除策略
+    signal_label_login_error_text = QtCore.pyqtSignal(str)  # 定义信号：设置登录界面的消息框文本
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -65,13 +66,16 @@ class CTPManager(QtCore.QObject):
         print(">>> CTPManager.start_init() thread.getName()=", thread.getName())
         
         # 创建行情实例
+        self.signal_label_login_error_text.emit("创建行情实例")
         self.create_md(self.__socket_manager.get_list_market_info()[0])
 
         # 创建期货账户
+        self.signal_label_login_error_text.emit("创建期货账户")
         for i in self.__socket_manager.get_list_user_info():
             self.create_user(i)
 
         # 创建策略
+        self.signal_label_login_error_text.emit("创建策略")
         self.__list_strategy_info = self.__socket_manager.get_list_strategy_info()  # 获取所有策略信息列表
         if len(self.__list_strategy_info) > 0:
             for i in self.__list_strategy_info:
