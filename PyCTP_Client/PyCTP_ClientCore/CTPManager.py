@@ -44,7 +44,8 @@ class CTPManager(QtCore.QObject):
         self.__DBManager = DBManger()  # 创建数据库连接
         self.__MarketManager = None  # 行情管理实例，MarketManager
         self.__trader = None  # 交易员实例
-        self.__list_user = list()  # 期货账户（TD）实例list
+        self.__list_user = list()  # 存放user对象的list
+        self.__dict_user = dict()  # user对象的创建状态，键名为user_id，键值为0：创建失败、1：创建成功
         self.__list_strategy = list()  # 交易策略实例list
         self.__list_instrument_info = list()  # 期货合约信息
         self.__got_list_instrument_info = False  # 获得了期货合约信息
@@ -55,6 +56,8 @@ class CTPManager(QtCore.QObject):
         self.__list_QAccountWidget = list()  # 存放窗口对象的list
         self.__thread_init = threading.Thread(target=self.start_init)  # 创建初始化内核方法线程
         self.signal_create_QAccountWidget.connect(self.create_QAccountWidget)  # 定义信号：调用本类的槽函数（因信号是在子进程里发出）
+        self.__list_strategy_info = list()  # 从服务端收到的策略消息list初始值
+        self.__list_strategy_will_create = list()  # 创建成功期货账户的策略列表初始值
 
     @QtCore.pyqtSlot()
     def init(self):
@@ -73,14 +76,28 @@ class CTPManager(QtCore.QObject):
         self.signal_label_login_error_text.emit("创建期货账户")
         for i in self.__socket_manager.get_list_user_info():
             self.create_user(i)
+        create_user_count = 0  # 创建成功的期货账户数量
+        for i in self.__dict_user:
+            create_user_count += self.__dict_user[i]  # 创建成功的的键值为1，失败0
+        if create_user_count == 0:
+            print("CTPManager.start_init() 没有任何期货账户创建成功，退出程序")
+            self.__q_ctp.closeEvent()
+            self.__q_login_form.closeEvent()
+            return
 
         # 创建策略
         self.signal_label_login_error_text.emit("创建策略")
         self.__list_strategy_info = self.__socket_manager.get_list_strategy_info()  # 获取所有策略信息列表
-        if len(self.__list_strategy_info) > 0:
-            for i in self.__list_strategy_info:
-                self.create_strategy(i)
-        elif len(self.__list_strategy_info) == 0:
+        # 过滤出创建成功的期货账户的策略
+        for i in self.__list_strategy_info:
+            if self.__dict_user[i['user_id']] == 1:
+                self.__list_strategy_will_create.append(i)
+        print(">>> CTPManager.start_init() 过滤出创建成功的期货账户的策略list=", self.__list_strategy_will_create)
+        # 创建策略
+        if len(self.__list_strategy_will_create) > 0:
+            for i in self.__list_strategy_will_create:
+                self.create_strategy(i)  # 创建策略
+        elif len(self.__list_strategy_will_create) == 0:
             self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
 
         if self.__init_finished:  # 如果CTPManager初始化完成，跳转到界面初始化或显示
@@ -111,13 +128,16 @@ class CTPManager(QtCore.QObject):
             for i in self.__list_user:
                 if i.get_user_id() == dict_arguments['userid']:
                     print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
-                    return False
+                    return
         obj_user = User(dict_arguments, ctp_manager=self)
-        obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
-        obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
-        obj_user.qry_instrument_info()  # 查询合约信息
-        self.__list_user.append(obj_user)  # user类实例添加到列表存放
-        print("CTPManager.create_user() 创建期货账户，user_id=", dict_arguments['userid'])
+        if self.__dict_user[dict_arguments['userid']] == 1:
+            obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
+            obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
+            obj_user.qry_instrument_info()  # 查询合约信息
+            self.__list_user.append(obj_user)  # user类实例添加到列表存放
+            print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
+        elif self.__dict_user[dict_arguments['userid']] == 0:
+            print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
 
     # 将strategy对象添加到user里
     def add_strategy_to_user(self, obj_strategy):
@@ -344,6 +364,10 @@ class CTPManager(QtCore.QObject):
     def get_list_strategy(self):
         return self.__list_strategy
 
+    # 获取user对象创建状态的dict
+    def get_dict_user(self):
+        return self.__dict_user
+
     # 设置CTPManager内核初始化完成
     def set_init_finished(self, bool_input):
         print(">>> CTPManager.set_init_finished() CTPManager内核初始化完成")
@@ -458,7 +482,7 @@ class CTPManager(QtCore.QObject):
 
     # 设置客户端的交易开关，0关、1开
     def set_on_off(self, int_on_off):
-        print(">>> CTPManager.set_on_off()", int_on_off)
+        # print(">>> CTPManager.set_on_off()", int_on_off)
         self.__on_off = int_on_off
         self.signal_update_pushButton_start_strategy.emit()  # 触发信号：内核设置交易员交易开关 -> 更新窗口“开始策略”按钮状态
 

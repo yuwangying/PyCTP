@@ -16,12 +16,15 @@ from PyQt4 import QtCore
 
 class User(QtCore.QObject):
     signal_update_pushButton_start_strategy = QtCore.pyqtSignal()  # 定义信号：内核设置期货账户交易开关 -> 更新窗口“开始策略”按钮状态
+    signal_label_login_error_text = QtCore.pyqtSignal(str)  # 定义信号：->更新登录窗口文本
 
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     def __init__(self, dict_arguments, parent=None, ctp_manager=None):
         print('User.__init__()', dict_arguments)
         super(User, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
         self.__ctp_manager = ctp_manager
+        # 连接信号槽：-> 更新QLoginForm文本框内容
+        self.signal_label_login_error_text.connect(self.__ctp_manager.get_QLoginForm().label_login_error.setText)
         self.__trader_id = dict_arguments['traderid'].encode()
         self.__user_id = dict_arguments['userid'].encode()
         self.__BrokerID = dict_arguments['brokerid'].encode()
@@ -59,17 +62,34 @@ class User(QtCore.QObject):
         # 为每个user创建独立的流文件夹
         s_path = b'conn/td/' + self.__user_id + b'/'
         Utils.make_dirs(s_path)  # 创建流文件路劲
-        self.__trade = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
-        self.__trade.set_user(self)  # 将该类设置为trade的属性
-        print('===========================')
-        print(self.__user_id, '连接交易前置', Utils.code_transform(self.__trade.Connect(self.__FrontAddress)))
-        print(self.__user_id, '登陆交易账号', Utils.code_transform(self.__trade.Login(self.__BrokerID, self.__user_id, self.__Password)))
-        print(self.__user_id, '交易日', Utils.code_transform(self.__trade.GetTradingDay()))
+        self.__user = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
+        self.__user.set_user(self)  # 将该类设置为trade的属性
+        # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
+        connect_trade_front = self.__user.Connect(self.__FrontAddress)
+        print("user_id=", self.__user_id.decode(), '连接交易前置，返回值', Utils.code_transform(connect_trade_front))
+        # 0：创建user失败，1：创建user成功
+        self.__ctp_manager.get_dict_user()[self.__user_id.decode()] = 1 if connect_trade_front == 0 else 0
+        if connect_trade_front == -1:
+            self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"因网络原因发送失败")
+            return
+        elif connect_trade_front == -2:
+            self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"未处理请求队列总数量超限")
+            return
+        elif connect_trade_front == -3:
+            self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"每秒发送请求数量超限")
+            return
+        elif connect_trade_front == -4:
+            self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"连接交易前置异常")
+            return
+
+        login_trade_account = self.__user.Login(self.__BrokerID, self.__user_id, self.__Password)
+        print("user_id=", self.__user_id.decode(), '登陆交易账号，返回值', Utils.code_transform(login_trade_account))
+        print(self.__user_id, '交易日', Utils.code_transform(self.__user.GetTradingDay()))
         time.sleep(1.0)
-        print(self.__user_id, '投资者代码', Utils.code_transform(self.__trade.setInvestorID(self.__user_id)))
-        self.__front_id = self.__trade.get_front_id()  # 获取前置编号
-        self.__session_id = self.__trade.get_session_id()  # 获取会话编号
-        self.__TradingDay = self.__trade.GetTradingDay().decode()  # 获取交易日
+        print(self.__user_id, '投资者代码', Utils.code_transform(self.__user.setInvestorID(self.__user_id)))
+        self.__front_id = self.__user.get_front_id()  # 获取前置编号
+        self.__session_id = self.__user.get_session_id()  # 获取会话编号
+        self.__TradingDay = self.__user.GetTradingDay().decode()  # 获取交易日
 
         for i_user_info in self.__ctp_manager.get_list_user_info():
             if i_user_info['userid'] == self.__user_id.decode():
@@ -161,7 +181,7 @@ class User(QtCore.QObject):
 
     # 获取trade实例(TD)
     def get_trade(self):
-        return self.__trade
+        return self.__user
 
     # 获取self.__instrument_info
     def get_instrument_info(self):
@@ -205,7 +225,7 @@ class User(QtCore.QObject):
     # 添加交易策略实例，到self.__list_strategy
     def add_strategy(self, obj_strategy):
         self.__list_strategy.append(obj_strategy)  # 将交易策略实例添加到本类的交易策略列表
-        self.__trade.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
+        self.__user.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
         obj_strategy.set_user(self)  # 将user设置为strategy属性
 
     # 添加合约代码到user类的self.__dict_action_counter
@@ -239,11 +259,11 @@ class User(QtCore.QObject):
 
     # 查询行情
     def qry_depth_market_data(self, instrument_id):
-        return self.__trade.QryDepthMarketData(instrument_id)
+        return self.__user.QryDepthMarketData(instrument_id)
 
     # 查询合约
     def qry_instrument(self):
-        return self.__trade.QryInstrument()
+        return self.__user.QryInstrument()
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
@@ -280,9 +300,9 @@ class User(QtCore.QObject):
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
         # 待续，需要加入self.__listQryTrade、self.__listQryOrder查询结果失败的排错处理
-        self.__listQryTrade = self.__trade.QryTrade()
-        print(">>> User.QryTrade() self.__listQryTrade=", self.__listQryTrade, type(self.__listQryTrade), len(self.__listQryTrade))
-        print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
+        self.__listQryTrade = self.__user.QryTrade()
+        # print(">>> User.QryTrade() self.__listQryTrade=", self.__listQryTrade, type(self.__listQryTrade), len(self.__listQryTrade))
+        # print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
         if len(self.__listQryTrade) == 0:
             return
         for i in self.__listQryTrade:
@@ -294,8 +314,8 @@ class User(QtCore.QObject):
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
-        self.__listQryOrder = self.__trade.QryOrder()
-        print("User.QryOrder() list_QryOrder=", self.__user_id, self.__listQryOrder)
+        self.__listQryOrder = self.__user.QryOrder()
+        # print("User.QryOrder() list_QryOrder=", self.__user_id, self.__listQryOrder)
         if len(self.__listQryOrder) == 0:
             return None
         for i in self.__listQryOrder:
