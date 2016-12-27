@@ -118,6 +118,8 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__spread_short = None  # 界面价差初始值
         self.__item_on_off_status = None  # 策略开关item的状态，dict
         self.__item_only_close_status = None  # 策略开关item的状态，dict
+        self.__clicked_item = None  # 鼠标点击的item对象
+        self.__clicked_status = None  # 鼠标点击的信息
 
     # 自定义槽
     @pyqtSlot(str)
@@ -296,7 +298,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 从界面删除策略
     @QtCore.pyqtSlot(object)
-    def remove_strategy(self, obj_strategy):
+    def slot_remove_strategy(self, obj_strategy):
         # 总账户窗口或策略所属的单账户窗口
         if self.is_single_user_widget() is False or obj_strategy.get_user_id() == self.__widget_name:
             for i_row in range(self.tableWidget_Trade_Args.rowCount()):
@@ -705,21 +707,26 @@ class QAccountWidget(QWidget, Ui_Form):
     # 鼠标右击弹出菜单中的“删除策略”
     @pyqtSlot()
     def slot_action_del_strategy(self):
-        print(">>> QAccountWidget.slot_action_del_strategy() called")
+        print(">>> QAccountWidget.slot_action_del_strategy() widget_name=", self.__widget_name)
+        # 没有任何策略的窗口点击“删除策略”，无任何响应
+        if self.tableWidget_Trade_Args.rowCount() == 0:
+            return
+        # 鼠标点击信息为空，跳过
+        if self.__clicked_item is None or self.__clicked_status is None:
+            return
         # 找到将要删除的策略对象
-        for i_strategy in self.__client_main.get_CTPManager().get_list_strategy():
+        for i_strategy in self.__CTPManager().get_list_strategy():
             print(">>> QAccountWidget.slot_action_del_strategy() i_strategy.get_user_id()=", i_strategy.get_user_id(), "i_strategy.get_strategy_id()=", i_strategy.get_strategy_id(), "self.__clicked_status['user_id']=", self.__clicked_status['user_id'], "self.__clicked_status['strategy_id']=", self.__clicked_status['strategy_id'])
             if i_strategy.get_user_id() == self.__clicked_status['user_id'] and i_strategy.get_strategy_id() == self.__clicked_status['strategy_id']:
-                # print(">>> QAccountWidget.slot_action_del_strategy() 将要删除的策略user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id())
                 # 判断持仓：有持仓，跳出
                 dict_position = i_strategy.get_position()
                 for i in dict_position:
                     if dict_position[i] != 0:
-                        print("QAccountWidgetslot_action_del_strategy() 策略有持仓，不允许删除")
+                        print("QAccountWidgetslot_action_del_strategy() 不能删除有持仓的策略，user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id())
                         return
                 # 策略开关的状态为开，跳过
-                if self.__client_main.get_CTPManager().get_on_off() == 1 and i_strategy.get_on_off() == 1:
-                    print("QAccountWidgetslot_action_del_strategy() 策略开关为开，不允许删除")
+                if i_strategy.get_on_off() == 1:
+                    print("QAccountWidgetslot_action_del_strategy() 不能删除交易开关为开的策略，user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id())
                     return
 
                 # 向服务端发送删除策略指令
@@ -733,9 +740,8 @@ class QAccountWidget(QWidget, Ui_Form):
                                         }
                 json_delete_strategy = json.dumps(dict_delete_strategy)
                 # print(">>> QAccountWidget.slot_action_del_strategy() json_delete_strategy=", json_delete_strategy)
-                self.Signal_SendMsg.emit(json_delete_strategy)
-
-                break
+                self.signal_send_msg.emit(json_delete_strategy)
+                break  # 找到对应的策略对象，跳出for循环
         # todo...
 
     @pyqtSlot()
