@@ -36,6 +36,7 @@ class CTPManager(QtCore.QObject):
     signal_UI_update_pushButton_start_strategy = QtCore.pyqtSignal(dict)  # 定义信号：更新界面“开始策略”按钮
     signal_create_QAccountWidget = QtCore.pyqtSignal()  # 定义信号：创建QAccountWidget窗口
     signal_update_pushButton_start_strategy = QtCore.pyqtSignal()  # 定义信号：内核设置交易员交易开关 -> 更新窗口“开始策略”按钮状态
+    signal_remove_strategy = QtCore.pyqtSignal(object)  # 定义信号：内核删除策略 -> 窗口删除策略
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -166,7 +167,7 @@ class CTPManager(QtCore.QObject):
                                                    dict_arguments['user_id'],
                                                    dict_arguments['strategy_id'])
                 self.__list_strategy.remove(i_strategy)
-                print(">>> CTPManager.delete_strategy() 从CTPManager的策略列表中删除策略", dict_arguments)
+                print(">>> CTPManager.delete_strategy() 从CTPManager的策略列表中删除策略，user_id=", dict_arguments['user_id'], 'strategy_id=', dict_arguments['strategy_id'])
                 break
 
         # 将obj_strategy从user中的list_strategy中删除
@@ -175,8 +176,8 @@ class CTPManager(QtCore.QObject):
                 for i_strategy in i_user.get_list_strategy():
                     if i_strategy.get_strategy_id() == dict_arguments['strategy_id']:
                         i_user.get_list_strategy().remove(i_strategy)
-                        print(">>> CTPManager.delete_strategy() 从user的策略列表中删除策略", dict_arguments)
-                        self.signal_UI_remove_strategy.emit(i_strategy)  # 界面删除策略
+                        print(">>> CTPManager.delete_strategy() 从CTPManager的策略列表中删除策略，user_id=", dict_arguments['user_id'], 'strategy_id=', dict_arguments['strategy_id'])
+                        self.signal_remove_strategy.emit(i_strategy)  # 发送信号，从界面中删除策略
                         break
 
         # 内核删除策略成功，通知界面删除策略
@@ -271,6 +272,8 @@ class CTPManager(QtCore.QObject):
             i_widget.signal_send_msg.connect(self.__socket_manager.slot_send_msg)
             # 绑定信号槽：收到服务端的查询策略信息 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
             self.__socket_manager.signal_restore_groupBox.connect(i_widget.slot_restore_groupBox_pushButton)
+            # 绑定信号槽：内核删除策略 -> 界面删除策略
+            self.signal_remove_strategy.connect(i_widget.slot_remove_strategy)
 
         print(">>> CTPManager.create_QAccountWidget() 向界面插入策略=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """向界面插入策略"""

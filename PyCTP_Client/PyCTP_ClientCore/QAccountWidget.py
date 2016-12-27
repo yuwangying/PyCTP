@@ -133,13 +133,6 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__client_main.set_show_widget(self)  # 显示在最前端的窗口设置为ClientMain的属性，全局唯一
         self.__client_main.set_show_widget_name(self.__widget_name)  # 显示在最前端的窗口名称设置为ClientMain的属性，全局唯一
         self.__client_main.set_showEvent(True)  # 是否有任何窗口显示了
-        # for i_strategy in self.__list_strategy():
-        #     i_strategy.set_show_widget_name(self.__widget_name)  # 前端窗口名称设置为strategy的属性
-        # self.__client_main.set_showQAccountWidget(self)  # 将当前显示在最前端窗口对象设置为ClienMain类的属性
-        # 切换窗口的同时触发clicked事件
-        # i_row = self.tableWidget_Trade_Args.currentRow()
-        # i_column = self.tableWidget_Trade_Args.currentColumn()
-        # self.set_on_tableWidget_Trade_Args_cellClicked(i_row, i_column)
 
     def hideEvent(self, QHideEvent):
         # print(">>> hideEvent()", self.objectName(), "widget_name=", self.__widget_name)
@@ -715,7 +708,7 @@ class QAccountWidget(QWidget, Ui_Form):
         if self.__clicked_item is None or self.__clicked_status is None:
             return
         # 找到将要删除的策略对象
-        for i_strategy in self.__CTPManager().get_list_strategy():
+        for i_strategy in self.__ctp_manager.get_list_strategy():
             print(">>> QAccountWidget.slot_action_del_strategy() i_strategy.get_user_id()=", i_strategy.get_user_id(), "i_strategy.get_strategy_id()=", i_strategy.get_strategy_id(), "self.__clicked_status['user_id']=", self.__clicked_status['user_id'], "self.__clicked_status['strategy_id']=", self.__clicked_status['strategy_id'])
             if i_strategy.get_user_id() == self.__clicked_status['user_id'] and i_strategy.get_strategy_id() == self.__clicked_status['strategy_id']:
                 # 判断持仓：有持仓，跳出

@@ -568,7 +568,7 @@ if __name__ == '__main__':
     """创建对象"""
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
-    socket_manager = SocketManager("10.0.0.4", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager("10.0.0.6", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 创建登录界面

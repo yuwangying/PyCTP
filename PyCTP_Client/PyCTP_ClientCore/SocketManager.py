@@ -251,7 +251,7 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgType'] == 1:  # 交易员登录验证，MsgType=1
                     print("SocketManager.receive_msg() MsgType=1", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 验证通过
-                        self.signal_label_login_error_text.emit('登陆成功，初始化中...')
+                        self.signal_label_login_error_text.emit('登陆成功')
                         self.set_trader_name(buff['TraderName'])
                         self.set_trader_id(buff['TraderID'])
                         self.__client_main.set_trader_name(buff['TraderName'])
@@ -266,7 +266,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 4:  # 查询行情配置，MsgType=4
                     print("SocketManager.receive_msg() MsgType=4", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.signal_label_login_error_text.emit('查询行情信息成功')
+                        # self.signal_label_login_error_text.emit('查询行情信息成功')
                         self.__ctp_manager.set_list_market_info(buff['Info'])  # 将行情信息设置为ctp_manager的属性
                         self.set_list_market_info(buff['Info']) 
                         self.qry_user_info()  # 查询期货账户
@@ -276,7 +276,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 2:  # 查询期货账户，MsgType=2
                     print("SocketManager.receive_msg() MsgType=2", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.signal_label_login_error_text.emit('查询期货账户信息成功')
+                        # self.signal_label_login_error_text.emit('查询期货账户信息成功')
                         self.__ctp_manager.set_list_user_info(buff['Info'])  # 将期货账户信息设置为ctp_manager的属性
                         self.set_list_user_info(buff['Info'])
                         self.qry_algorithm_info()  # 查询下单算法
@@ -286,7 +286,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 11:  # 查询下单算法编号，MsgType=11
                     print("SocketManager.receive_msg() MsgType=11", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.signal_label_login_error_text.emit('查询下单算法成功')
+                        # self.signal_label_login_error_text.emit('查询下单算法成功')
                         self.set_list_algorithm_info(buff['Info'])
                         self.qry_strategy_info()  # 查询策略信息
                     elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -295,7 +295,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 3:  # 查询策略，MsgType=3
                     print("SocketManager.receive_msg() MsgType=3", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.signal_label_login_error_text.emit('查询策略成功')
+                        # self.signal_label_login_error_text.emit('查询策略成功')
                         self.set_list_strategy_info(buff['Info'])
                         self.qry_yesterday_position()  # 查询策略昨仓
                     elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -304,7 +304,8 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 10:  # 查询策略昨仓，MsgType=10
                     print("SocketManager.receive_msg() MsgType=10", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.signal_label_login_error_text.emit('查询策略昨仓成功')
+                        # self.signal_label_login_error_text.emit('查询策略昨仓成功')
+                        # self.signal_label_login_error_text.emit('开始初始化内核')
                         self.set_list_yesterday_position(buff['Info'])  # 所有策略昨仓的list
                         self.signal_ctp_manager_init.emit()  # 调用CTPManager的初始化方法
                     elif buff['MsgResult'] == 1:  # 消息结果失败

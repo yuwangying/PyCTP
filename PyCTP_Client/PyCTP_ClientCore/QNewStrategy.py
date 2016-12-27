@@ -79,7 +79,6 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
         # TODO: not implemented yet
         # raise NotImplementedError
 
-
         # 检查合约代码
         if self.lineEdit_a_instrument.text() not in self.__ctp_manager.get_list_instrument_id():
             str_output = "不存在合约代码:" + self.lineEdit_a_instrument.text()
@@ -90,11 +89,11 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             self.label_error_msg.setText(str_output)
             return
         if self.lineEdit_a_instrument.text() == self.lineEdit_b_instrument.text():
-            str_output = "合约代码重复" + self.lineEdit_b_instrument.text()
+            str_output = "AB合约代码重复" + self.lineEdit_b_instrument.text()
             self.label_error_msg.setText(str_output)
             return
 
-        # 输入验证通过，向服务端发送创建策略指令
+        # 策略名为两位数字，如果填写了一位数字则自动补全为两位数字
         if len(self.lineEdit_strategy_id.text()) == 1:
             str_strategy_id = '0' + self.lineEdit_strategy_id.text()
             self.lineEdit_strategy_id.setText(str_strategy_id)
@@ -106,10 +105,10 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             if i_user.get_user_id().decode() == self.comboBox_user_id.currentText():
                 for i_strategy in i_user.get_list_strategy():
                     if i_strategy.get_strategy_id() == str_strategy_id:
-                        str_output = "不能重复创建策略:" + str_strategy_id
+                        str_output = "期货账户" + i_user.get_user_id().decode() + "已存在策略" + str_strategy_id + "，\n不能重复创建！"
                         self.label_error_msg.setText(str_output)
                         return
-            break  # 找到对应的user对象，跳出循环
+                break  # 找到对应的user对象，跳出循环
 
         str_output = "正在创建策略：" + self.lineEdit_strategy_id.text()
         self.label_error_msg.setText(str_output)

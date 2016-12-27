@@ -30,7 +30,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label_message">
      <property name="text">
       <string>SHFE:收盘</string>
      </property>
@@ -44,7 +44,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="label_trade_connect_status">
      <property name="text">
       <string>交易连接</string>
      </property>
@@ -58,7 +58,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_3">
+    <widget class="QLabel" name="label_market_connect_status">
      <property name="text">
       <string>行情连接</string>
      </property>
@@ -72,7 +72,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_4">
+    <widget class="QLabel" name="label_CFFEX_time">
      <property name="text">
       <string>15:00:10</string>
      </property>
@@ -86,7 +86,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_5">
+    <widget class="QLabel" name="label_SHFE_time">
      <property name="text">
       <string>15:00:10</string>
      </property>
@@ -100,7 +100,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_6">
+    <widget class="QLabel" name="label_CZCE_time">
      <property name="text">
       <string>15:00:10</string>
      </property>
@@ -114,7 +114,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_7">
+    <widget class="QLabel" name="label_DCE_time">
      <property name="text">
       <string>15:00:10</string>
      </property>
