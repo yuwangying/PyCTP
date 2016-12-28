@@ -1172,6 +1172,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__clicked_item = self.tableWidget_Trade_Args.item(row, column)  # 局部变量，鼠标点击的item设置为QAccountWidget的属性
         self.__client_main.set_clicked_item(self.__clicked_item)  # 全局变量，鼠标点击的item设置为ClientMain的属性，全局唯一
         self.__clicked_status = {'row': row, 'column': column, 'widget_name': self.__widget_name, 'user_id': self.tableWidget_Trade_Args.item(row, 2).text(), 'strategy_id': self.tableWidget_Trade_Args.item(row, 3).text()}
+        print(">>> QAccountWidget.on_tableWidget_Trade_Args_cellClicked() self.__clicked_status=", self.__clicked_status)
         self.__client_main.set_clicked_status(self.__clicked_status)  # 保存鼠标点击状态到ClientMain的属性，保存全局唯一一个鼠标最后点击位置
         # 找到鼠标点击的策略对象
         for i_strategy in self.__list_strategy:

@@ -11,6 +11,7 @@ from QCTP import QCTP
 from QAccountWidget import QAccountWidget
 import time
 from PyQt4 import QtCore
+from QMessageBox import QMessageBox
 
 Message = namedtuple("Message", "head checknum buff")
 
@@ -136,6 +137,7 @@ class SocketManager(QtCore.QThread):
                 self.__sockfd.connect((self.__ip_address, self.__port))
             except socket.error as e:
                 print("SocketManager.connect() socket error", e)
+                QMessageBox().showMessage("错误", "连接服务器失败！")
                 sys.exit(1)
 
     # ------------------------------------------------------
@@ -152,6 +154,7 @@ class SocketManager(QtCore.QThread):
             except socket.error as e:
                 self.__RecvN = False
                 print("SocketManager.RecvN()", e, n, totalRecved)
+                QMessageBox().showMessage("错误", "与服务器断开连接！")
                 return None
             # print("onceContent", onceContent)
             totalContent += onceContent
@@ -330,7 +333,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 6:  # 新建策略，MsgType=6
                     print("SocketManager.receive_msg() MsgType=6", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        self.get_CTPManager().create_strategy(buff['Info'][0])  # 内核创建策略对象
+                        self.__ctp_manager.create_strategy(buff['Info'][0])  # 内核创建策略对象
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() ", buff['MsgErrorReason'])
                 elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
@@ -390,7 +393,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgType'] == 9:  # 修改期货账户开关
                     print("SocketManager.receive_msg() MsgType=9", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
-                        for i_user in self.get_CTPManager().get_list_user():
+                        for i_user in self.__ctp_manager.get_list_user():
                             if i_user.get_user_id().decode() == buff['UserID']:
                                 i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
                                 break

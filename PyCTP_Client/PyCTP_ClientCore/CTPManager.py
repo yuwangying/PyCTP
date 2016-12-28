@@ -185,13 +185,12 @@ class CTPManager(QtCore.QObject):
 
         # 将obj_strategy从CTPManager的self.__list_strategy中删除
         for i_strategy in self.__list_strategy:
-            if i_strategy.get_user_id() == dict_arguments['user_id']:
+            if i_strategy.get_user_id() == dict_arguments['user_id'] and i_strategy.get_strategy_id() == dict_arguments['strategy_id']:
                 # 退订该策略的行情
                 self.__MarketManager.un_sub_market(i_strategy.get_list_instrument_id(),
                                                    dict_arguments['user_id'],
                                                    dict_arguments['strategy_id'])
                 self.__list_strategy.remove(i_strategy)
-                print(">>> CTPManager.delete_strategy() 从CTPManager的策略列表中删除策略，user_id=", dict_arguments['user_id'], 'strategy_id=', dict_arguments['strategy_id'])
                 break
 
         # 将obj_strategy从user中的list_strategy中删除
@@ -200,9 +199,11 @@ class CTPManager(QtCore.QObject):
                 for i_strategy in i_user.get_list_strategy():
                     if i_strategy.get_strategy_id() == dict_arguments['strategy_id']:
                         i_user.get_list_strategy().remove(i_strategy)
-                        print(">>> CTPManager.delete_strategy() 从CTPManager的策略列表中删除策略，user_id=", dict_arguments['user_id'], 'strategy_id=', dict_arguments['strategy_id'])
                         self.signal_remove_strategy.emit(i_strategy)  # 发送信号，从界面中删除策略
                         break
+                break
+        for i_strategy in self.__list_strategy:
+            print("user_id=", i_strategy.get_user_id(), "strategy_id=", i_strategy.get_strategy_id())
 
         # 内核删除策略成功，通知界面删除策略
         # self.signal_remove_row_table_widget.emit()  # 在界面策略列表中删除策略
