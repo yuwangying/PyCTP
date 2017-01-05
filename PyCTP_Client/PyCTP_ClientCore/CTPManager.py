@@ -69,11 +69,11 @@ class CTPManager(QtCore.QObject):
         print(">>> CTPManager.start_init() thread.getName()=", thread.getName())
         
         # 创建行情实例
-        self.signal_label_login_error_text.emit("创建行情实例")
+        self.signal_label_login_error_text.emit("登录行情")
         self.create_md(self.__socket_manager.get_list_market_info()[0])
 
         # 创建期货账户
-        self.signal_label_login_error_text.emit("创建期货账户")
+        self.signal_label_login_error_text.emit("登录期货账户")
         for i in self.__socket_manager.get_list_user_info():
             self.create_user(i)
         create_user_count = 0  # 创建成功的期货账户数量

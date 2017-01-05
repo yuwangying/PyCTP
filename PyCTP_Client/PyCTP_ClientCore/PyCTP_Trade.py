@@ -11,6 +11,7 @@ import PyCTP
 import pandas as pd
 from pandas import Series, DataFrame
 import Utils
+from QMessageBox import QMessageBox
 
 
 class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
@@ -416,17 +417,18 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             self.__UserID = RspUserLogin['UserID']
             self.__SystemName = RspUserLogin['SystemName']
             self.__TradingDay = RspUserLogin['TradingDay']
-            self.__DCETime = RspUserLogin['DCETime']
             self.__SessionID = RspUserLogin['SessionID']
             self.__MaxOrderRef = RspUserLogin['MaxOrderRef']
             self.__OrderRef = int(self.__MaxOrderRef)  # 初始化报单引用
-            self.__OrderActionRef = int(self.__MaxOrderRef)  # ywy:初始化报单操作引用
-            self.__INETime = RspUserLogin['INETime']
+            self.__OrderActionRef = int(self.__MaxOrderRef)
             self.__LoginTime = RspUserLogin['LoginTime']
             self.__FrontID = RspUserLogin['FrontID']
             self.__FFEXTime = RspUserLogin['FFEXTime']
             self.__CZCETime = RspUserLogin['CZCETime']
             self.__SHFETime = RspUserLogin['SHFETime']
+            self.__DCETime = RspUserLogin['DCETime']
+            self.__INETime = RspUserLogin['INETime']
+            print("PyCTP_Trade_API.OnRspUserLogin() user_id=", self.__UserID, "TradingDay=", self.__TradingDay, RspUserLogin)
             self.__rsp_Login.update(RspInfo)
             self.__rsp_Login['event'].set()
 

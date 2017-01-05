@@ -336,6 +336,7 @@ class SocketManager(QtCore.QThread):
                         self.__ctp_manager.create_strategy(buff['Info'][0])  # 内核创建策略对象
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() ", buff['MsgErrorReason'])
+                        QMessageBox().showMessage("错误", buff['MsgErrorReason'])
                 elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
                     print("SocketManager.receive_msg() MsgType=5", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功

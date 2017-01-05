@@ -62,11 +62,12 @@ class User(QtCore.QObject):
         # 为每个user创建独立的流文件夹
         s_path = b'conn/td/' + self.__user_id + b'/'
         Utils.make_dirs(s_path)  # 创建流文件路劲
-        self.__user = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
-        self.__user.set_user(self)  # 将该类设置为trade的属性
+        self.__trader_api = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
+        self.__trader_api.set_user(self)  # 将该类设置为trade的属性
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
-        connect_trade_front = self.__user.Connect(self.__FrontAddress)
+        connect_trade_front = self.__trader_api.Connect(self.__FrontAddress)
         print("user_id=", self.__user_id.decode(), '连接交易前置，返回值', Utils.code_transform(connect_trade_front))
+
         # 0：创建user失败，1：创建user成功
         self.__ctp_manager.get_dict_user()[self.__user_id.decode()] = 1 if connect_trade_front == 0 else 0
         if connect_trade_front == -1:
@@ -82,14 +83,14 @@ class User(QtCore.QObject):
             self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"连接交易前置异常")
             return
 
-        login_trade_account = self.__user.Login(self.__BrokerID, self.__user_id, self.__Password)
+        login_trade_account = self.__trader_api.Login(self.__BrokerID, self.__user_id, self.__Password)
         print("user_id=", self.__user_id.decode(), '登陆交易账号，返回值', Utils.code_transform(login_trade_account))
-        print(self.__user_id, '交易日', Utils.code_transform(self.__user.GetTradingDay()))
+        print(self.__user_id, '交易日', Utils.code_transform(self.__trader_api.GetTradingDay()))
         time.sleep(1.0)
-        print(self.__user_id, '投资者代码', Utils.code_transform(self.__user.setInvestorID(self.__user_id)))
-        self.__front_id = self.__user.get_front_id()  # 获取前置编号
-        self.__session_id = self.__user.get_session_id()  # 获取会话编号
-        self.__TradingDay = self.__user.GetTradingDay().decode()  # 获取交易日
+        print(self.__user_id, '投资者代码', Utils.code_transform(self.__trader_api.setInvestorID(self.__user_id)))
+        self.__front_id = self.__trader_api.get_front_id()  # 获取前置编号
+        self.__session_id = self.__trader_api.get_session_id()  # 获取会话编号
+        self.__TradingDay = self.__trader_api.GetTradingDay().decode()  # 获取交易日
 
         for i_user_info in self.__ctp_manager.get_list_user_info():
             if i_user_info['userid'] == self.__user_id.decode():
@@ -181,7 +182,7 @@ class User(QtCore.QObject):
 
     # 获取trade实例(TD)
     def get_trade(self):
-        return self.__user
+        return self.__trader_api
 
     # 获取self.__instrument_info
     def get_instrument_info(self):
@@ -225,7 +226,7 @@ class User(QtCore.QObject):
     # 添加交易策略实例，到self.__list_strategy
     def add_strategy(self, obj_strategy):
         self.__list_strategy.append(obj_strategy)  # 将交易策略实例添加到本类的交易策略列表
-        self.__user.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
+        self.__trader_api.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
         obj_strategy.set_user(self)  # 将user设置为strategy属性
 
     # 添加合约代码到user类的self.__dict_action_counter
@@ -259,11 +260,11 @@ class User(QtCore.QObject):
 
     # 查询行情
     def qry_depth_market_data(self, instrument_id):
-        return self.__user.QryDepthMarketData(instrument_id)
+        return self.__trader_api.QryDepthMarketData(instrument_id)
 
     # 查询合约
     def qry_instrument(self):
-        return self.__user.QryInstrument()
+        return self.__trader_api.QryInstrument()
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
@@ -300,7 +301,7 @@ class User(QtCore.QObject):
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
         # 待续，需要加入self.__listQryTrade、self.__listQryOrder查询结果失败的排错处理
-        self.__listQryTrade = self.__user.QryTrade()
+        self.__listQryTrade = self.__trader_api.QryTrade()
         # print(">>> User.QryTrade() self.__listQryTrade=", self.__listQryTrade, type(self.__listQryTrade), len(self.__listQryTrade))
         # print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
         if len(self.__listQryTrade) == 0:
@@ -314,7 +315,7 @@ class User(QtCore.QObject):
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
-        self.__listQryOrder = self.__user.QryOrder()
+        self.__listQryOrder = self.__trader_api.QryOrder()
         # print("User.QryOrder() list_QryOrder=", self.__user_id, self.__listQryOrder)
         if len(self.__listQryOrder) == 0:
             return None
