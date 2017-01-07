@@ -40,10 +40,9 @@ class Strategy(QtCore.QObject):
     signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()
 
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
-    def __init__(self, dict_args, obj_user, obj_DBM, parent=None):
+    def __init__(self, dict_args, obj_user, parent=None):
         super(Strategy, self).__init__(parent)  # 初始化父类
         print('Strategy.__init__() 创建交易策略，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
-        self.__DBM = obj_DBM  # 数据库连接实例
         self.__user = obj_user  # user实例
         self.__ctp_manager = obj_user.get_CTPManager()  # 将user的CTPManager属性设置为strategy的属性
         self.__dict_args = dict_args  # 转存形参到类的私有变量
@@ -106,7 +105,7 @@ class Strategy(QtCore.QObject):
     def set_arguments(self, dict_args):
         print(">>> Strategy.set_arguments() user_id=", dict_args['user_id'], "strategy_id=", dict_args['strategy_id'])
         self.__dict_args = dict_args  # 将形参转存为私有变量
-        # self.__DBM.update_strategy(dict_args)  # 更新数据库
+        # self.__DBManager.update_strategy(dict_args)  # 更新数据库
 
         self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
@@ -173,7 +172,7 @@ class Strategy(QtCore.QObject):
 
     # 设置持仓
     def set_position(self, dict_args):
-        # self.__DBM.update_strategy(dict_args)  # 更新数据库
+        # self.__DBManager.update_strategy(dict_args)  # 更新数据库
         self.__position_a_buy = dict_args['position_a_buy']
         self.__position_a_buy_today = dict_args['position_a_buy_today']
         self.__position_a_buy_yesterday = dict_args['position_a_buy_yesterday']
@@ -197,7 +196,7 @@ class Strategy(QtCore.QObject):
     def set_arguments_query_strategy_info(self, dict_args):
         print(">>> Strategy.set_arguments_query_strategy_info() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
         self.__dict_args = dict_args  # 将形参转存为私有变量
-        # self.__DBM.update_strategy(dict_args)  # 更新数据库
+        # self.__DBManager.update_strategy(dict_args)  # 更新数据库
 
         self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
@@ -258,10 +257,13 @@ class Strategy(QtCore.QObject):
                     self.__position_b_sell = self.__dict_yesterday_position['position_b_sell']
                     self.__position_b_sell_today = 0
                     self.__position_b_sell_yesterday = self.__dict_yesterday_position['position_b_sell']
+        d1 = self.get_position()
+        print(">>> Strategy.init_yesterday_position() d1=", d1)
         self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
 
     # 初始化今仓，从当天成交回报数据计算
     def init_today_position(self):
+        # 待续，2017年1月6日22:28:44，待修复更新仓位持仓变量全部为int
         # print("Strategy.init_today_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
         if len(self.__user.get_dfQryTrade()) > 0:  # user的交易记录为0跳过
             self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
@@ -270,6 +272,7 @@ class Strategy(QtCore.QObject):
         if len(self.__dfQryTradeStrategy) > 0:  # strategy的交易记录为0跳过
             # 遍历本策略的trade记录，更新今仓
             for i in self.__dfQryTradeStrategy.index:
+                print(">>> self.__dfQryTradeStrategy['Volume'][i]", self.__dfQryTradeStrategy['Volume'][i], type(self.__dfQryTradeStrategy['Volume'][i]))
                 # A成交
                 if self.__dfQryTradeStrategy['InstrumentID'][i] == self.__list_instrument_id[0]:
                     if self.__dfQryTradeStrategy['OffsetFlag'][i] == '0':  # A开仓成交回报
@@ -309,18 +312,12 @@ class Strategy(QtCore.QObject):
                     self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
                     self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
                 if Utils.Strategy_print:
-                    print("     A合约", self.__list_instrument_id[0], "今买、昨买、总买", self.__position_a_buy_today,
-                          self.__position_a_buy_yesterday,
-                          self.__position_a_buy, "今卖、昨卖、总卖", self.__position_a_sell_today,
-                          self.__position_a_sell_yesterday,
-                          self.__position_a_sell)
-                    print("     B合约", self.__list_instrument_id[1], "今买、昨买、总买", self.__position_b_buy_today,
-                          self.__position_b_buy_yesterday,
-                          self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today,
-                          self.__position_b_sell_yesterday,
-                          self.__position_b_sell)
+                    print("Strategy.init_today_position() ", self.__list_instrument_id[0], "买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")", " 卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
+                    print("Strategy.init_today_position() ", self.__list_instrument_id[1], "买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")", " 卖(", self.__position_b_sell, ",", self.__position_b_sell_yesterday, ")")
         self.__init_finished = True  # 当前策略初始化完成
-    
+        d1 = self.get_position()
+        print(">>> Strategy.init_today_position() d1=", d1)
+
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
         self.__init_finished = bool_input
@@ -330,12 +327,11 @@ class Strategy(QtCore.QObject):
         return self.__init_finished
 
     # 设置数据库连接实例
-    def set_DBM(self, DBM):
-        self.__DBM = DBM
+    def set_DBManager(self, obj_DBManager):
+        self.__DBManager = obj_DBManager  # 数据库连接实例
 
-    # 获取数据库连接实例
-    def get_DBM(self):
-        return self.__DBM
+    def get_DBManager(self):
+        return self.__DBManager
 
     # 设置user对象
     def set_user(self, user):

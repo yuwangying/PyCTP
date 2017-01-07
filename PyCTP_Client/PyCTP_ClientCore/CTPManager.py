@@ -41,7 +41,7 @@ class CTPManager(QtCore.QObject):
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
-        self.__DBManager = DBManger()  # 创建数据库连接
+        # self.__DBManager = DBManger()  # 创建数据库连接
         self.__MarketManager = None  # 行情管理实例，MarketManager
         self.__trader = None  # 交易员实例
         self.__list_user = list()  # 存放user对象的list
@@ -131,7 +131,7 @@ class CTPManager(QtCore.QObject):
                     return
         obj_user = User(dict_arguments, ctp_manager=self)
         if self.__dict_user[dict_arguments['userid']] == 1:
-            obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
+            # obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
             obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
             obj_user.qry_instrument_info()  # 查询合约信息
             self.__list_user.append(obj_user)  # user类实例添加到列表存放
@@ -158,7 +158,8 @@ class CTPManager(QtCore.QObject):
         for i_user in self.__list_user:
             if i_user.get_user_id().decode() == dict_arguments['user_id']:  # 找到策略所属的user实例
                 # 创建策略
-                obj_strategy = Strategy(dict_arguments, i_user, self.__DBManager)  # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
+                obj_strategy = Strategy(dict_arguments, i_user)  # 创建策略实例，user实例和数据库连接实例设置为strategy的属性
+                # obj_strategy.set_DBManager(self.__DBManager)
                 i_user.add_strategy(obj_strategy)               # 将策略实例添加到user的策略列表
                 self.__list_strategy.append(obj_strategy)  # 将策略实例添加到CTP_Manager的策略列表
                 print("CTPManager.create_strategy() 创建策略，user_id=", dict_arguments['user_id'], "strategy_id=", dict_arguments['strategy_id'])

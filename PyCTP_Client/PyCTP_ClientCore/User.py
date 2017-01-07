@@ -42,22 +42,22 @@ class User(QtCore.QObject):
         # 联机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
         # 脱机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
         # 其中trade和order记录只清空当天的
-        self.__mongo_client = MongoClient('localhost', 27017)  # 创建数据库连接实例
-        col_strategy = self.__user_id.decode() + 'strategy'  # 策略集合名
-        col_position = self.__user_id.decode() + 'position'  # 持仓汇总集合名
-        col_position_detail = self.__user_id.decode() + 'position_detail'  # 持仓明细集合名
-        col_trade = self.__user_id.decode() + 'trade'  # trade回调记录集合名
-        col_order = self.__user_id.decode() + 'order'  # order回调记录集合名
-        for i in [col_strategy, col_position, col_position_detail]:  # 初始化user时清空集合
-            try:
-                self.__mongo_client.CTP.drop_collection(i)
-            except:
-                print("User.__init__() 删除数据库集合失败，集合名=", i)
-        for i in [col_trade, col_order]:  # 初始化user时清空当天Trade、Order集合
-            try:
-                self.__mongo_client.CTP.get_collection(i).delete_many({'TradingDay': self.__TradingDay})
-            except:
-                print("User.__init__() 删除当天的trade或order记录失败")
+        # self.__mongo_client = MongoClient('localhost', 27017)  # 创建数据库连接实例
+        # col_strategy = self.__user_id.decode() + 'strategy'  # 策略集合名
+        # col_position = self.__user_id.decode() + 'position'  # 持仓汇总集合名
+        # col_position_detail = self.__user_id.decode() + 'position_detail'  # 持仓明细集合名
+        # col_trade = self.__user_id.decode() + 'trade'  # trade回调记录集合名
+        # col_order = self.__user_id.decode() + 'order'  # order回调记录集合名
+        # for i in [col_strategy, col_position, col_position_detail]:  # 初始化user时清空集合
+        #     try:
+        #         self.__mongo_client.CTP.drop_collection(i)
+        #     except:
+        #         print("User.__init__() 删除数据库集合失败，集合名=", i)
+        # for i in [col_trade, col_order]:  # 初始化user时清空当天Trade、Order集合
+        #     try:
+        #         self.__mongo_client.CTP.get_collection(i).delete_many({'TradingDay': self.__TradingDay})
+        #     except:
+        #         print("User.__init__() 删除当天的trade或order记录失败")
 
         # 为每个user创建独立的流文件夹
         s_path = b'conn/td/' + self.__user_id + b'/'
@@ -275,10 +275,10 @@ class User(QtCore.QObject):
         Trade['RecTradeTime'] = t.strftime("%Y-%m-%d %H:%M:%S")  # 收到成交回报的时间
         Trade['RecTradeMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
         # self.__DBManager.insert_trade(Trade)  # 记录插入到数据库
-        if self.__mongo_client is not None:
-            self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Trade').insert_one(Trade)  # 记录插入到数据库
-        else:
-            print("User.OnRtnTrade() self.__mongo_client is None")
+        # if self.__mongo_client is not None:
+        #     self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Trade').insert_one(Trade)  # 记录插入到数据库
+        # else:
+        #     print("User.OnRtnTrade() self.__mongo_client is None")
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
@@ -296,7 +296,7 @@ class User(QtCore.QObject):
         Order['RecOrderTime'] = t.strftime("%Y-%m-%d %H:%M:%S")  # 收到成交回报的时间
         Order['RecOrderMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
         # self.__DBManager.insert_trade(Order)  # 记录插入到数据库
-        self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Order').insert_one(Order)  # 记录插入到数据库
+        # self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Order').insert_one(Order)  # 记录插入到数据库
 
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):

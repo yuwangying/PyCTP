@@ -600,6 +600,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRtnTrade(self, Trade):
         """成交回报"""
         Trade = Utils.code_transform(Trade)
+        Trade['Volume'] = int(Trade['Volume'])
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
         self.__user.OnRtnTrade(Trade)  # 转到user回调函数
