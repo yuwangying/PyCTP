@@ -78,7 +78,7 @@ class Strategy(QtCore.QObject):
         self.__position_b_sell_yesterday = 0
         self.__clicked_total = False  # 策略在主窗口中被选中的标志
         self.__clicked_signal = False  # 策略在单账户窗口中被选中的标志
-        self.__dfQryTradeStrategy = DataFrame()  # 本策略的查询当天交易记录
+        self.__dfQryTrade_Strategy = DataFrame()  # 本策略的查询当天交易记录
         self.__dfQryOrderStrategy = DataFrame()  # 本策略的查询当天委托记录
         self.__last_to_ui_spread_short = None  # 最后价差值初始值
         self.__last_to_ui_spread_long = None  # 最后价差值初始值
@@ -268,47 +268,47 @@ class Strategy(QtCore.QObject):
         if len(self.__user.get_dfQryTrade()) > 0:  # user的交易记录为0跳过
             self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
             # 从user的Trade中筛选出该策略的记录
-            self.__dfQryTradeStrategy = self.__dfQryTrade[self.__dfQryTrade.StrategyID == int(self.__strategy_id)]
-        if len(self.__dfQryTradeStrategy) > 0:  # strategy的交易记录为0跳过
+            self.__dfQryTrade_Strategy = self.__dfQryTrade[self.__dfQryTrade.StrategyID == int(self.__strategy_id)]
+        if len(self.__dfQryTrade_Strategy) > 0:  # strategy的交易记录为0跳过
             # 遍历本策略的trade记录，更新今仓
-            for i in self.__dfQryTradeStrategy.index:
-                print(">>> self.__dfQryTradeStrategy['Volume'][i]", self.__dfQryTradeStrategy['Volume'][i], type(self.__dfQryTradeStrategy['Volume'][i]))
+            for i in self.__dfQryTrade_Strategy.index:
+                print(">>> self.__dfQryTrade_Strategy['Volume'][i]", self.__dfQryTrade_Strategy['Volume'][i], type(self.__dfQryTrade_Strategy['Volume'][i]))
                 # A成交
-                if self.__dfQryTradeStrategy['InstrumentID'][i] == self.__list_instrument_id[0]:
-                    if self.__dfQryTradeStrategy['OffsetFlag'][i] == '0':  # A开仓成交回报
-                        if self.__dfQryTradeStrategy['Direction'][i] == '0':  # A买开仓成交回报
-                            self.__position_a_buy_today += self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                        elif self.__dfQryTradeStrategy['Direction'][i] == '1':  # A卖开仓成交回报
-                            self.__position_a_sell_today += self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                    elif self.__dfQryTradeStrategy['OffsetFlag'][i] == '3':  # A平今成交回报
-                        if self.__dfQryTradeStrategy['Direction'][i] == '0':  # A买平今成交回报
-                            self.__position_a_sell_today -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                        elif self.__dfQryTradeStrategy['Direction'][i] == '1':  # A卖平今成交回报
-                            self.__position_a_buy_today -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                    elif self.__dfQryTradeStrategy['OffsetFlag'][i] == '4':  # A平昨成交回报
-                        if self.__dfQryTradeStrategy['Direction'][i] == '0':  # A买平昨成交回报
-                            self.__position_a_sell_yesterday -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                        elif self.__dfQryTradeStrategy['Direction'][i] == '1':  # A卖平昨成交回报
-                            self.__position_a_buy_yesterday -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
+                if self.__dfQryTrade_Strategy['InstrumentID'][i] == self.__list_instrument_id[0]:
+                    if self.__dfQryTrade_Strategy['OffsetFlag'][i] == '0':  # A开仓成交回报
+                        if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # A买开仓成交回报
+                            self.__position_a_buy_today += self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                        elif self.__dfQryTrade_Strategy['Direction'][i] == '1':  # A卖开仓成交回报
+                            self.__position_a_sell_today += self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                    elif self.__dfQryTrade_Strategy['OffsetFlag'][i] == '3':  # A平今成交回报
+                        if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # A买平今成交回报
+                            self.__position_a_sell_today -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                        elif self.__dfQryTrade_Strategy['Direction'][i] == '1':  # A卖平今成交回报
+                            self.__position_a_buy_today -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                    elif self.__dfQryTrade_Strategy['OffsetFlag'][i] == '4':  # A平昨成交回报
+                        if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # A买平昨成交回报
+                            self.__position_a_sell_yesterday -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                        elif self.__dfQryTrade_Strategy['Direction'][i] == '1':  # A卖平昨成交回报
+                            self.__position_a_buy_yesterday -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
                     self.__position_a_buy = self.__position_a_buy_today + self.__position_a_buy_yesterday
                     self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
                 # B成交
-                elif self.__dfQryTradeStrategy['InstrumentID'][i] == self.__list_instrument_id[1]:
-                    if self.__dfQryTradeStrategy['OffsetFlag'][i] == '0':  # B开仓成交回报
-                        if self.__dfQryTradeStrategy['Direction'][i] == '0':  # B买开仓成交回报
-                            self.__position_b_buy_today += self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                        elif self.__dfQryTradeStrategy['Direction'][i] == '1':  # B卖开仓成交回报
-                            self.__position_b_sell_today += self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                    elif self.__dfQryTradeStrategy['OffsetFlag'][i] == '3':  # B平今成交回报
-                        if self.__dfQryTradeStrategy['Direction'][i] == '0':  # B买平今成交回报
-                            self.__position_b_sell_today -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                        elif self.__dfQryTradeStrategy['Direction'][i] == '1':  # B卖平今成交回报
-                            self.__position_b_buy_today -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                    elif self.__dfQryTradeStrategy['OffsetFlag'][i] == '4':  # B平昨成交回报
-                        if self.__dfQryTradeStrategy['Direction'][i] == '0':  # B买平昨成交回报
-                            self.__position_b_sell_yesterday -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
-                        elif self.__dfQryTradeStrategy['Direction'][i] == '1':  # B卖平昨成交回报
-                            self.__position_b_buy_yesterday -= self.__dfQryTradeStrategy['Volume'][i]  # 更新持仓
+                elif self.__dfQryTrade_Strategy['InstrumentID'][i] == self.__list_instrument_id[1]:
+                    if self.__dfQryTrade_Strategy['OffsetFlag'][i] == '0':  # B开仓成交回报
+                        if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # B买开仓成交回报
+                            self.__position_b_buy_today += self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                        elif self.__dfQryTrade_Strategy['Direction'][i] == '1':  # B卖开仓成交回报
+                            self.__position_b_sell_today += self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                    elif self.__dfQryTrade_Strategy['OffsetFlag'][i] == '3':  # B平今成交回报
+                        if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # B买平今成交回报
+                            self.__position_b_sell_today -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                        elif self.__dfQryTrade_Strategy['Direction'][i] == '1':  # B卖平今成交回报
+                            self.__position_b_buy_today -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                    elif self.__dfQryTrade_Strategy['OffsetFlag'][i] == '4':  # B平昨成交回报
+                        if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # B买平昨成交回报
+                            self.__position_b_sell_yesterday -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
+                        elif self.__dfQryTrade_Strategy['Direction'][i] == '1':  # B卖平昨成交回报
+                            self.__position_b_buy_yesterday -= self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
                     self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
                     self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
                 if Utils.Strategy_print:
@@ -1269,7 +1269,7 @@ if __name__ == '__main__':
     """
     self.__user.get_dfQryTrade() 替换为 get_dfQryTrade
     self.__dfQryTrade 替换为 self_dfQryTrade
-    self.__dfQryTradeStrategy 替换为 self_dfQryTradeStrategy
+    self.__dfQryTrade_Strategy 替换为 self_dfQryTradeStrategy
     """
     get_dfQryTrade = pd.read_csv('D:/CTP_Dev/CTP数据样本/API查询/063802_第1次（启动时流文件为空）/063802_QryTrade.csv', header=0)
     get_dfQryTrade['StrategyID'] = get_dfQryTrade['OrderRef'].astype(str).str[-2:].astype(

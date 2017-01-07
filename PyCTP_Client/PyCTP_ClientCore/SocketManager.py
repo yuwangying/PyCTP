@@ -317,7 +317,7 @@ class SocketManager(QtCore.QThread):
             # 内核初始化完成
             elif self.__ctp_manager.get_init_UI_finished():
                 if buff['MsgType'] == 3:  # 查询策略，MsgType=3
-                    print("SocketManager.receive_msg() MsgType=3", buff)  # 输出错误消息
+                    print("SocketManager.receive_msg() MsgType=3，查询策略", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.__listStrategyInfoOnce = buff['Info']  # 转存策略信息到本类的属性里(单次查询)
                         # 遍历查询到的消息结果列表
@@ -331,14 +331,14 @@ class SocketManager(QtCore.QThread):
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=3 查询策略失败")
                 elif buff['MsgType'] == 6:  # 新建策略，MsgType=6
-                    print("SocketManager.receive_msg() MsgType=6", buff)
+                    print("SocketManager.receive_msg() MsgType=6，新建策略", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.__ctp_manager.create_strategy(buff['Info'][0])  # 内核创建策略对象
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() ", buff['MsgErrorReason'])
                         QMessageBox().showMessage("错误", buff['MsgErrorReason'])
                 elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
-                    print("SocketManager.receive_msg() MsgType=5", buff)
+                    print("SocketManager.receive_msg() MsgType=5，修改策略参数", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         dict_args = buff['Info'][0]  # 策略参数dict
                         for i_strategy in self.__ctp_manager.get_list_strategy():
@@ -348,7 +348,7 @@ class SocketManager(QtCore.QThread):
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=5 修改策略参数失败")
                 elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
-                    print("SocketManager.receive_msg() MsgType=12", buff)
+                    print("SocketManager.receive_msg() MsgType=12，修改策略持仓", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         # 更新内核中的策略持仓
                         for i_strategy in self.__ctp_manager.get_list_strategy():
@@ -359,14 +359,14 @@ class SocketManager(QtCore.QThread):
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=12 修改策略持仓失败")
                 elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
-                    print("SocketManager.receive_msg() MsgType=7", buff)
+                    print("SocketManager.receive_msg() MsgType=7，删除策略", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         dict_args = {'user_id': buff['UserID'], 'strategy_id': buff['StrategyID']}
                         self.__ctp_manager.delete_strategy(dict_args)
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=7 删除策略失败")
                 elif buff['MsgType'] == 13:  # 修改策略交易开关
-                    print("SocketManager.receive_msg() MsgType=13", buff)
+                    print("SocketManager.receive_msg() MsgType=13，修改策略交易开关", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__ctp_manager.get_list_strategy():
                             if i_strategy.get_user_id() == buff['UserID'] \
@@ -376,7 +376,7 @@ class SocketManager(QtCore.QThread):
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
                 elif buff['MsgType'] == 14:  # 修改策略只平开关
-                    print("SocketManager.receive_msg() MsgType=14", buff)
+                    print("SocketManager.receive_msg() MsgType=14，修改策略只平开关", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_strategy in self.__ctp_manager.get_list_strategy():
                             if i_strategy.get_user_id() == buff['UserID'] \
@@ -386,13 +386,13 @@ class SocketManager(QtCore.QThread):
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=14 修改策略只平开关失败")
                 elif buff['MsgType'] == 8:  # 修改交易员开关
-                    print("SocketManager.receive_msg() MsgType=8", buff)
+                    print("SocketManager.receive_msg() MsgType=8，修改交易员开关", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         self.__ctp_manager.set_on_off(buff['OnOff'])  # 设置内核中交易员开关
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         print("SocketManager.receive_msg() MsgType=8 修改交易员开关失败")
                 elif buff['MsgType'] == 9:  # 修改期货账户开关
-                    print("SocketManager.receive_msg() MsgType=9", buff)
+                    print("SocketManager.receive_msg() MsgType=9，修改期货账户开关", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         for i_user in self.__ctp_manager.get_list_user():
                             if i_user.get_user_id().decode() == buff['UserID']:
