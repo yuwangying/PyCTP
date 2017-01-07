@@ -20,7 +20,7 @@ class User(QtCore.QObject):
 
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     def __init__(self, dict_arguments, parent=None, ctp_manager=None):
-        print('User.__init__()', dict_arguments)
+        print('User.__init__() 创建User对象参数', dict_arguments)
         super(User, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
         self.__ctp_manager = ctp_manager
         # 连接信号槽：-> 更新QLoginForm文本框内容
@@ -37,7 +37,9 @@ class User(QtCore.QObject):
         self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
         # self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，
         self.__dict_action_counter = dict()  # 记录合约撤单次数的字典,撤单操作时添加次数，交易日换日时初始化值
-        self.__order_ref_part2 = 0  # 所有策略共用报单引用编号
+        self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用后两位为策略编号，前十位递增一
+        self.__init_finished = False  # 初始化完成
+        self.__init_finished_succeed = True  # user初始化成功，初始化过程中遇到任何异常就设置为False
 
         # 联机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
         # 脱机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
@@ -64,48 +66,99 @@ class User(QtCore.QObject):
         Utils.make_dirs(s_path)  # 创建流文件路劲
         self.__trader_api = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
         self.__trader_api.set_user(self)  # 将该类设置为trade的属性
+
+        """连接交易前置"""
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
         connect_trade_front = self.__trader_api.Connect(self.__FrontAddress)
-        print("user_id=", self.__user_id.decode(), '连接交易前置，返回值', Utils.code_transform(connect_trade_front))
-
-        # 0：创建user失败，1：创建user成功
-        self.__ctp_manager.get_dict_user()[self.__user_id.decode()] = 1 if connect_trade_front == 0 else 0
+        # 连接前置地址状态记录到CTPManager的user状态字典，成功为0
+        self.__ctp_manager.get_dict_user()[self.__user_id.decode()] = {}
+        self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = connect_trade_front
         if connect_trade_front == -1:
             self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"因网络原因发送失败")
-            return
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = "因网络原因发送失败"
         elif connect_trade_front == -2:
             self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"未处理请求队列总数量超限")
-            return
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = "未处理请求队列总数量超限"
         elif connect_trade_front == -3:
             self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"每秒发送请求数量超限")
-            return
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = "每秒发送请求数量超限"
         elif connect_trade_front == -4:
             self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"连接交易前置异常")
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = "连接交易前置异常"
+        if connect_trade_front != 0:
+            self.__init_finished_succeed = False  # 初始化失败
+            print("User.__init__() user_id=", self.__user_id.decode(), '连接交易前置失败', Utils.code_transform(connect_trade_front))
             return
+        print("User.__init__() user_id=", self.__user_id.decode(), '连接交易前置成功', Utils.code_transform(connect_trade_front))
 
+        """登录期货账号"""
         login_trade_account = self.__trader_api.Login(self.__BrokerID, self.__user_id, self.__Password)
-        print("user_id=", self.__user_id.decode(), '登陆交易账号，返回值', Utils.code_transform(login_trade_account))
-        print(self.__user_id, '交易日', Utils.code_transform(self.__trader_api.GetTradingDay()))
-        time.sleep(1.0)
-        print(self.__user_id, '投资者代码', Utils.code_transform(self.__trader_api.setInvestorID(self.__user_id)))
+        # 登录期货账号状态记录到CTPManager的user状态字典，成功为0
+        self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['login_trade_account'] = login_trade_account
+        if login_trade_account != 0:
+            self.__init_finished_succeed = False  # 初始化失败
+            print("User.__init__() user_id=", self.__user_id.decode(), '登录期货账号失败', Utils.code_transform(login_trade_account))
+            return
         self.__front_id = self.__trader_api.get_front_id()  # 获取前置编号
         self.__session_id = self.__trader_api.get_session_id()  # 获取会话编号
         self.__TradingDay = self.__trader_api.GetTradingDay().decode()  # 获取交易日
+        print("User.__init__() user_id=", self.__user_id.decode(), '登录期货账号成功', Utils.code_transform(login_trade_account))
 
+        """查询资金账户"""
+        self.__QryTradingAccount = self.__trader_api.QryTradingAccount()
+        if isinstance(self.__QryTradingAccount, list):
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = 0
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户成功',
+                  Utils.code_transform(self.__QryTradingAccount))
+        else:
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = self.__QryTradingAccount
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户失败',
+                  Utils.code_transform(self.__QryTradingAccount))
+        time.sleep(1.0)
+
+        """查询投资者持仓"""
+        self.__QryInvestorPosition = self.__trader_api.QryInvestorPosition()
+        if isinstance(self.__QryInvestorPosition, list):
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryInvestorPosition'] = 0
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询投资者持仓成功',
+                  Utils.code_transform(self.__QryInvestorPosition))
+        else:
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryInvestorPosition'] = self.__QryInvestorPosition
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询投资者持仓失败',
+                  Utils.code_transform(self.__QryInvestorPosition))
+        time.sleep(1.0)
+
+        """查询成交记录"""
+        self.__dfQryTrade = self.QryTrade()  # 保存查询当天的Trade和Order记录，正常值格式为DataFrame，异常值为None
+        # QryTrade查询结果的状态记录到CTPManager的user状态字典，成功为0
+        if isinstance(self.__dfQryTrade, DataFrame):
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 0
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询成交记录成功')
+        else:
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 1
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询成交记录失败')
+        # self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['login_trade_account'] = login_trade_account
+        time.sleep(1.0)
+
+        """查询报单记录"""
+        self.__dfQryOrder = self.QryOrder()
+        # QryOrder查询结果的状态记录到CTPManager的user状态字典，成功为0
+        if isinstance(self.__dfQryOrder, DataFrame):
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryOrder'] = 0
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询报单记录成功')
+        else:
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryOrder'] = 1
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询报单记录失败')
+
+        """设置期货账户交易开关"""
         for i_user_info in self.__ctp_manager.get_list_user_info():
             if i_user_info['userid'] == self.__user_id.decode():
                 self.__on_off = i_user_info['on_off']  # user的交易开关，初始值为关
                 break
-        self.__only_close = 0  # user的只平，初始值为关
+                # self.__only_close = 0  # user的只平，初始值为关，已删除此功能
 
-        self.__init_finished = False  # 初始化完成
-
-        self.__dfQryTrade = DataFrame()  # 保存查询当天的Trade和Order记录
-        self.__dfQryOrder = DataFrame()
-        self.QryTrade()  # 获取user的Trade记录
-        time.sleep(1.0)
-        self.QryOrder()  # 获取user的Order记录
-        time.sleep(1.0)
+        print("User.__init__() user_id=", self.__user_id.decode(), "CTPManager记录User初始化信息 ",
+              {self.__user_id.decode(): self.__ctp_manager.get_dict_user()[self.__user_id.decode()]})
 
     # 设置合约信息
     def set_InstrumentInfo(self, list_InstrumentInfo):
@@ -114,10 +167,14 @@ class User(QtCore.QObject):
     # 查询合约信息
     def qry_instrument_info(self):
         if self.__ctp_manager.get_got_list_instrument_info() is False:
-            self.__instrument_info = Utils.code_transform(self.qry_instrument())  # 查询合约，所有交易所的所有合约
-            self.__ctp_manager.set_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
-            if len(self.__instrument_info) > 0:
-                self.__ctp_manager.set_got_list_instrument_info(True)  # 将获取合约信息的状态设置为真，获取成功
+            self.__instrument_info = Utils.code_transform(self.__trader_api.QryInstrument())  # 查询合约，所有交易所的所有合约
+            if isinstance(self.__instrument_info, list):
+                print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功", self.__instrument_info)
+                if len(self.__instrument_info) > 0:
+                    self.__ctp_manager.set_got_list_instrument_info(True)  # 将获取合约信息的状态设置为真，获取成功
+                    self.__ctp_manager.set_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
+            else:
+                print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息失败", self.__instrument_info)
 
     # time.sleep(1.0)
     # print("User.__init__.self.__instrument_info=", self.__instrument_info)
@@ -198,13 +255,13 @@ class User(QtCore.QObject):
     def get_on_off(self):
         return self.__on_off
 
-    # 设置user的交易开关，0关、1开
-    def set_only_close(self, int_only_close):
-        self.__only_close = int_only_close
-
-    # 获取user的交易开关，0关、1开
-    def get_only_close(self):
-        return self.__only_close
+    # # 设置user的交易开关，0关、1开
+    # def set_only_close(self, int_only_close):
+    #     self.__only_close = int_only_close
+    #
+    # # 获取user的交易开关，0关、1开
+    # def get_only_close(self):
+    #     return self.__only_close
 
     # 设置user初始化状态
     def set_init_finished(self, bool_input):
@@ -263,8 +320,8 @@ class User(QtCore.QObject):
         return self.__trader_api.QryDepthMarketData(instrument_id)
 
     # 查询合约
-    def qry_instrument(self):
-        return self.__trader_api.QryInstrument()
+    # def qry_instrument(self):
+    #     return self.__trader_api.QryInstrument()
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
@@ -300,31 +357,49 @@ class User(QtCore.QObject):
 
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
-        # 待续，需要加入self.__listQryTrade、self.__listQryOrder查询结果失败的排错处理
-        self.__listQryTrade = self.__trader_api.QryTrade()
+        dfQryTrade = DataFrame()
+        self.__listQryTrade = self.__trader_api.QryTrade()  # 返回正常值格式为list，错误值为int
+        if isinstance(self.__listQryTrade, list):
+            if len(self.__listQryTrade) > 0:
+                for i in self.__listQryTrade:
+                    # 将记录格式有list变为DataFrame
+                    dfQryTrade = DataFrame.append(dfQryTrade, other=Utils.code_transform(i), ignore_index=True)
+                # 添加列StrategyID：截取OrderRef后两位数为StrategyID
+                dfQryTrade['StrategyID'] = dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)
+        return dfQryTrade
         # print(">>> User.QryTrade() self.__listQryTrade=", self.__listQryTrade, type(self.__listQryTrade), len(self.__listQryTrade))
         # print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
-        if len(self.__listQryTrade) == 0:
-            return
-        for i in self.__listQryTrade:
-            self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
-                                                 other=Utils.code_transform(i),
-                                                 ignore_index=True)
-        self.__dfQryTrade['StrategyID'] = self.__dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)  # 截取OrderRef后两位数为StrategyID
-        # self.__dfQryTrade.to_csv("data/"+self.__user_id.decode()+"_dfQryTrade.csv")  # 保存数据到本地
+        # if type(self.__listQryTrade) is int:
+        #     return
+        # if len(self.__listQryTrade) == 0:
+        #     return
+        # for i in self.__listQryTrade:
+        #     self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
+        #                                          other=Utils.code_transform(i),
+        #                                          ignore_index=True)
+        # self.__dfQryTrade['StrategyID'] = self.__dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)  # 截取OrderRef后两位数为StrategyID
+        # # self.__dfQryTrade.to_csv("data/"+self.__user_id.decode()+"_dfQryTrade.csv")  # 保存数据到本地
+        # return self.__dfQryTrade
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
+        dfQryOrder = DataFrame()
         self.__listQryOrder = self.__trader_api.QryOrder()
-        # print("User.QryOrder() list_QryOrder=", self.__user_id, self.__listQryOrder)
-        if len(self.__listQryOrder) == 0:
-            return None
-        for i in self.__listQryOrder:
-            self.__dfQryOrder = DataFrame.append(self.__dfQryOrder,
-                                                 other=Utils.code_transform(i),
-                                                 ignore_index=True)
-        self.__dfQryOrder['StrategyID'] = self.__dfQryOrder['OrderRef'].astype(str).str[-1:].astype(int)  # 截取OrderRef后两位数为StrategyID
-        # self.__dfQryOrder.to_csv("data/" + self.__user_id.decode() + "_dfQryOrder.csv")  # 保存数据到本地
+        if isinstance(self.__listQryOrder, list):
+            if len(self.__listQryOrder) > 0:
+                for i in self.__listQryOrder:
+                    # 将记录格式有list变为DataFrame
+                    dfQryOrder = DataFrame.append(dfQryOrder, other=Utils.code_transform(i), ignore_index=True)
+                # 添加列StrategyID：截取OrderRef后两位数为StrategyID
+                dfQryOrder['StrategyID'] = dfQryOrder['OrderRef'].astype(str).str[-2:].astype(int)
+        return dfQryOrder
+        # if len(self.__listQryOrder) == 0:
+        #     return None
+        # for i in self.__listQryOrder:
+        #     dfQryOrder = DataFrame.append(dfQryOrder, other=Utils.code_transform(i), ignore_index=True)
+        # dfQryOrder['StrategyID'] = dfQryOrder['OrderRef'].astype(str).str[-1:].astype(int)  # 截取OrderRef后两位数为StrategyID
+        # # dfQryOrder.to_csv("data/" + self.__user_id.decode() + "_dfQryOrder.csv")  # 保存数据到本地
+        # return dfQryOrder
 
     # 获取listQryOrder
     def get_listQryOrder(self):

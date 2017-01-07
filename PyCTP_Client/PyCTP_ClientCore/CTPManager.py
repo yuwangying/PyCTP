@@ -45,7 +45,8 @@ class CTPManager(QtCore.QObject):
         self.__MarketManager = None  # 行情管理实例，MarketManager
         self.__trader = None  # 交易员实例
         self.__list_user = list()  # 存放user对象的list
-        self.__dict_user = dict()  # user对象的创建状态，键名为user_id，键值为0：创建失败、1：创建成功
+        # 字典结构 {"058176": {"connect_trade_front": 0, "login_trade_account": 0, "QryTrade": 0, "QryOrder": 0}}
+        self.__dict_user = dict()
         self.__list_strategy = list()  # 交易策略实例list
         self.__list_instrument_info = list()  # 期货合约信息
         self.__got_list_instrument_info = False  # 获得了期货合约信息
@@ -76,14 +77,15 @@ class CTPManager(QtCore.QObject):
         self.signal_label_login_error_text.emit("登录期货账户")
         for i in self.__socket_manager.get_list_user_info():
             self.create_user(i)
-        create_user_count = 0  # 创建成功的期货账户数量
-        for i in self.__dict_user:
-            create_user_count += self.__dict_user[i]  # 创建成功的的键值为1，失败0
-        if create_user_count == 0:
-            print("CTPManager.start_init() 没有任何期货账户创建成功，退出程序")
-            self.__q_ctp.closeEvent()
-            self.__q_login_form.closeEvent()
-            return
+        # 待续，2017-1-7 23:01:58，重新设计创建期货账户失败需要处理事项
+        # create_user_count = 0  # 创建成功的期货账户数量
+        # for i in self.__dict_user:
+        #     create_user_count += self.__dict_user[i]  # 创建成功的的键值为1，失败0
+        # if create_user_count == 0:
+        #     print("CTPManager.start_init() 没有任何期货账户创建成功，退出程序")
+        #     self.__q_ctp.closeEvent()
+        #     self.__q_login_form.closeEvent()
+        #     return
 
         # 创建策略
         self.signal_label_login_error_text.emit("创建策略")
@@ -92,7 +94,7 @@ class CTPManager(QtCore.QObject):
         for i in self.__list_strategy_info:
             if self.__dict_user[i['user_id']] == 1:
                 self.__list_strategy_will_create.append(i)
-        print(">>> CTPManager.start_init() 过滤出创建成功的期货账户的策略list=", self.__list_strategy_will_create)
+        print("CTPManager.start_init() 创建策略", self.__list_strategy_will_create)
         # 创建策略
         if len(self.__list_strategy_will_create) > 0:
             for i in self.__list_strategy_will_create:
@@ -327,9 +329,12 @@ class CTPManager(QtCore.QObject):
     def create_QNewStrategy(self):
         self.__q_new_strategy = QNewStrategy()
         completer = QCompleter()
-        model = QStringListModel()
-        model.setStringList(self.get_list_instrument_id())
-        completer.setModel(model)
+        if self.get_got_list_instrument_info():
+            model = QStringListModel()
+            model.setStringList(self.get_list_instrument_id())
+            completer.setModel(model)
+        else:
+            print(">>> CTPManager.create_QNewStrategy() 查询合约信息失败")
         self.__q_new_strategy.lineEdit_a_instrument.setCompleter(completer)
         self.__q_new_strategy.lineEdit_b_instrument.setCompleter(completer)
         self.__q_new_strategy.set_ClientMain(self.__client_main)  # CTPManager设置为新建策略窗口属性

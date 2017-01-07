@@ -258,13 +258,14 @@ class Strategy(QtCore.QObject):
                     self.__position_b_sell_today = 0
                     self.__position_b_sell_yesterday = self.__dict_yesterday_position['position_b_sell']
         d1 = self.get_position()
-        print(">>> Strategy.init_yesterday_position() d1=", d1)
         self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
 
     # 初始化今仓，从当天成交回报数据计算
     def init_today_position(self):
         # 待续，2017年1月6日22:28:44，待修复更新仓位持仓变量全部为int
         # print("Strategy.init_today_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
+
+        print(">>> self.get_position()['position_a_sell_today']=", self.get_position()['position_a_sell_today'], type(self.get_position()['position_a_sell_today']))
         if len(self.__user.get_dfQryTrade()) > 0:  # user的交易记录为0跳过
             self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
             # 从user的Trade中筛选出该策略的记录
@@ -279,6 +280,7 @@ class Strategy(QtCore.QObject):
                         if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # A买开仓成交回报
                             self.__position_a_buy_today += self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
                         elif self.__dfQryTrade_Strategy['Direction'][i] == '1':  # A卖开仓成交回报
+                            print(">>> Strategy.init_today_position() self.__dfQryTrade_Strategy['Volume'][i]=", self.__dfQryTrade_Strategy['Volume'][i], type(self.__dfQryTrade_Strategy['Volume'][i]))
                             self.__position_a_sell_today += self.__dfQryTrade_Strategy['Volume'][i]  # 更新持仓
                     elif self.__dfQryTrade_Strategy['OffsetFlag'][i] == '3':  # A平今成交回报
                         if self.__dfQryTrade_Strategy['Direction'][i] == '0':  # A买平今成交回报
@@ -314,6 +316,9 @@ class Strategy(QtCore.QObject):
                 if Utils.Strategy_print:
                     print("Strategy.init_today_position() ", self.__list_instrument_id[0], "买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")", " 卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
                     print("Strategy.init_today_position() ", self.__list_instrument_id[1], "买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")", " 卖(", self.__position_b_sell, ",", self.__position_b_sell_yesterday, ")")
+        print(">>> self.get_position()['position_a_sell_today']=",
+                          self.get_position()['position_a_sell_today'],
+                          type(self.get_position()['position_a_sell_today']))
         self.__init_finished = True  # 当前策略初始化完成
         d1 = self.get_position()
         print(">>> Strategy.init_today_position() d1=", d1)

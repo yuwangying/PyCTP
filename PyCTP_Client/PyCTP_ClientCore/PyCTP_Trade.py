@@ -41,7 +41,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def setInvestorID(self, InvestorID):
         self.__InvestorID = InvestorID
-        return self.__InvestorID
 
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
@@ -80,6 +79,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 return -4
         return ret
 
+    # 获取登录状态
+    def get_isLogined(self):
+        return self.__isLogined
+
     def Logout(self):
         """ 登出请求 """
         reqUserLogout = dict(BrokerID=self.__BrokerID, UserID=self.__UserID)
@@ -114,7 +117,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                     return self.__rsp_QryInstrument['ErrorID']
                 return self.__rsp_QryInstrument['results']
             else:
-                print('PyCTP_Trade_API.QryInstrument() return -4')
+                print('PyCTP_Trade_API.QryInstrument() -4')
                 return -4
         return ret
 
@@ -171,6 +174,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 return self.__rsp_QryOrder['results']
             else:
                 # self.__user.QryOrder(-4)  # 转到user类的回调函数
+                print(" PyCTP_Trade.QryTrade() user_id=", self.__UserID, "请求查询报单异常，-4")
                 return -4
         # self.__user.QryOrder(ret)  # 转到user类的回调函数
         return ret
@@ -182,7 +186,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         ret = self.ReqQryTrade(QryTradeField, self.__rsp_QryTrade['RequestID'])
         if ret == 0:
             self.__rsp_QryTrade['event'].clear()
-            if self.__rsp_QryTrade['event'].wait(self.TIMEOUT):
+            if self.__rsp_QryTrade['event'].wait(30):  # (self.TIMEOUT):  # 成交记录多，传输等待时间需要延长
                 if self.__rsp_QryTrade['ErrorID'] != 0:
                     # self.__user.QryTrade(self.__rsp_QryTrade['ErrorID'])  # 转到user类的回调函数
                     return self.__rsp_QryTrade['ErrorID']
@@ -190,6 +194,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 return self.__rsp_QryTrade['results']
             else:
                 # self.__user.QryTrade(-4)  # 转到user类的回调函数
+                print(" PyCTP_Trade.QryTrade() user_id=", self.__UserID, "请求查询成交单异常，-4")
                 return -4
         # self.__user.QryTrade(ret)  # 转到user类的回调函数
         return ret
@@ -415,6 +420,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         if RequestID == self.__rsp_Login['RequestID'] and IsLast:
             self.__BrokerID = RspUserLogin['BrokerID']
             self.__UserID = RspUserLogin['UserID']
+            self.__InvestorID = RspUserLogin['UserID']
             self.__SystemName = RspUserLogin['SystemName']
             self.__TradingDay = RspUserLogin['TradingDay']
             self.__SessionID = RspUserLogin['SessionID']
@@ -428,7 +434,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             self.__SHFETime = RspUserLogin['SHFETime']
             self.__DCETime = RspUserLogin['DCETime']
             self.__INETime = RspUserLogin['INETime']
-            print("PyCTP_Trade_API.OnRspUserLogin() user_id=", self.__UserID, "TradingDay=", self.__TradingDay, RspUserLogin)
+            # print("PyCTP_Trade_API.OnRspUserLogin() user_id=", self.__UserID, "TradingDay=", self.__TradingDay, RspUserLogin)
             self.__rsp_Login.update(RspInfo)
             self.__rsp_Login['event'].set()
 
@@ -600,7 +606,6 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def OnRtnTrade(self, Trade):
         """成交回报"""
         Trade = Utils.code_transform(Trade)
-        Trade['Volume'] = int(Trade['Volume'])
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
         self.__user.OnRtnTrade(Trade)  # 转到user回调函数

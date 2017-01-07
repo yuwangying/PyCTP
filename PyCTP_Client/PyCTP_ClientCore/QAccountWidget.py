@@ -269,10 +269,9 @@ class QAccountWidget(QWidget, Ui_Form):
 
             # 绑定信号槽：向界面插入策略的时候，绑定策略对象与窗口对象之间的信号槽关系
             # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
-            # obj_strategy.signal_update_strategy.connect(self.slot_update_strategy)
             if self.is_single_user_widget():
                 if self.__widget_name == obj_strategy.get_user_id():
-                    # 信号槽连接：策略与所属的单账户窗口信号slot_update_spread连接
+                    # 信号槽连接：策略对象的信号signal_update_spread_signal -> 所属的单账户窗口对象的槽函数slot_update_spread
                     obj_strategy.signal_update_spread_signal.connect(self.slot_update_spread)
                     # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
                     obj_strategy.signal_update_strategy.connect(self.slot_update_strategy)
@@ -282,6 +281,7 @@ class QAccountWidget(QWidget, Ui_Form):
                     obj_strategy.signal_pushButton_set_position_setEnabled.connect(self.slot_pushButton_set_position_setEnabled)
             # 策略与总账户窗口信号slot_update_spread连接
             else:
+                # 信号槽连接：策略对象的信号signal_update_spread_total -> 总账户窗口对象的槽函数slot_update_spread
                 obj_strategy.signal_update_spread_total.connect(self.slot_update_spread)
                 # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
                 obj_strategy.signal_update_strategy.connect(self.slot_update_strategy)
