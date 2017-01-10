@@ -71,8 +71,8 @@ class User(QtCore.QObject):
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
         connect_trade_front = self.__trader_api.Connect(self.__FrontAddress)
         # 连接前置地址状态记录到CTPManager的user状态字典，成功为0
-        self.__ctp_manager.get_dict_user()[self.__user_id.decode()] = {}
-        self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = connect_trade_front
+        self.__ctp_manager.get_dict_user()[self.__user_id.decode()] = {'connect_trade_front': connect_trade_front}
+        # self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = connect_trade_front
         if connect_trade_front == -1:
             self.signal_label_login_error_text.emit("期货账户"+self.__user_id.decode()+"因网络原因发送失败")
             self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['connect_trade_front'] = "因网络原因发送失败"
@@ -103,6 +103,7 @@ class User(QtCore.QObject):
         self.__session_id = self.__trader_api.get_session_id()  # 获取会话编号
         self.__TradingDay = self.__trader_api.GetTradingDay().decode()  # 获取交易日
         print("User.__init__() user_id=", self.__user_id.decode(), '登录期货账号成功', Utils.code_transform(login_trade_account))
+        time.sleep(1.0)
 
         """查询资金账户"""
         self.__QryTradingAccount = self.__trader_api.QryTradingAccount()

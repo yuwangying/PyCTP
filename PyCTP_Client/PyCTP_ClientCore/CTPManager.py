@@ -24,6 +24,7 @@ from Strategy import Strategy
 from MarketManager import MarketManager
 from QAccountWidget import QAccountWidget
 from QNewStrategy import QNewStrategy
+from QMessageBox import QMessageBox
 from collections import namedtuple  # Socket所需package
 import socket
 import struct
@@ -38,6 +39,7 @@ class CTPManager(QtCore.QObject):
     signal_update_pushButton_start_strategy = QtCore.pyqtSignal()  # 定义信号：内核设置交易员交易开关 -> 更新窗口“开始策略”按钮状态
     signal_remove_strategy = QtCore.pyqtSignal(object)  # 定义信号：内核删除策略 -> 窗口删除策略
     signal_label_login_error_text = QtCore.pyqtSignal(str)  # 定义信号：设置登录界面的消息框文本
+    signal_show_QMessageBox = QtCore.pyqtSignal(list)  # 定义信号：CTPManager初始化过程中(子线程)需要弹窗 -> ClientMain(主线程)中槽函数调用弹窗
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -45,7 +47,7 @@ class CTPManager(QtCore.QObject):
         self.__MarketManager = None  # 行情管理实例，MarketManager
         self.__trader = None  # 交易员实例
         self.__list_user = list()  # 存放user对象的list
-        # 字典结构 {"058176": {"connect_trade_front": 0, "login_trade_account": 0, "QryTrade": 0, "QryOrder": 0}}
+        # 字典结构 {'063802': {'connect_trade_front': 0, 'QryTrade': 0, 'QryTradingAccount': 0, 'QryOrder': 0, 'QryInvestorPosition': 0, 'login_trade_account': 0}}
         self.__dict_user = dict()
         self.__list_strategy = list()  # 交易策略实例list
         self.__list_instrument_info = list()  # 期货合约信息
@@ -57,7 +59,9 @@ class CTPManager(QtCore.QObject):
         self.__list_QAccountWidget = list()  # 存放窗口对象的list
         self.__thread_init = threading.Thread(target=self.start_init)  # 创建初始化内核方法线程
         self.signal_create_QAccountWidget.connect(self.create_QAccountWidget)  # 定义信号：调用本类的槽函数（因信号是在子进程里发出）
-        self.__list_strategy_info = list()  # 从服务端收到的策略消息list初始值
+        self.__list_user_info = list()  # 从服务端收到的user信息list初始值
+        self.__list_user_will_create = list()  # 将要创建成功的期货账户信息列表
+        self.__list_strategy_info = list()  # 从服务端收到的策略信息list初始值
         self.__list_strategy_will_create = list()  # 创建成功期货账户的策略列表初始值
 
     @QtCore.pyqtSlot()
@@ -69,32 +73,69 @@ class CTPManager(QtCore.QObject):
         thread = threading.current_thread()
         print(">>> CTPManager.start_init() thread.getName()=", thread.getName())
         
-        # 创建行情实例
+        """创建行情实例"""
         self.signal_label_login_error_text.emit("登录行情")
-        self.create_md(self.__socket_manager.get_list_market_info()[0])
+        if len(self.__socket_manager.get_list_market_info()) > 0:
+            result_create_md = self.create_md(self.__socket_manager.get_list_market_info()[0])
+            if result_create_md is False:
+                # QMessageBox().showMessage("警告", "创建行情失败")
+                self.signal_show_QMessageBox.emit(["警告", "创建行情失败"])
+                return  # 结束程序：创建行情失败
+        else:
+            # QMessageBox().showMessage("警告", "没有行情地址")
+            self.signal_show_QMessageBox.emit(["警告", "没有行情地址"])
 
-        # 创建期货账户
+        """创建期货账户"""
         self.signal_label_login_error_text.emit("登录期货账户")
+        # 如果期货账户数量为0，向界面弹窗
+        users = len(self.__socket_manager.get_list_user_info())  # 将要创建期货账户数量
+        if users == 0:
+            # QMessageBox().showMessage("警告", "将要创建期货账户数量为0")
+            self.signal_show_QMessageBox.emit(["警告", "将要创建期货账户数量为0"])
+        dict_create_user_failed = {}  # 创建失败的期货账户列表
+        print(">>> CTPManager.start_init() 将要创建期货账户数量users=", users)
         for i in self.__socket_manager.get_list_user_info():
-            self.create_user(i)
-        # 待续，2017-1-7 23:01:58，重新设计创建期货账户失败需要处理事项
-        # create_user_count = 0  # 创建成功的期货账户数量
-        # for i in self.__dict_user:
-        #     create_user_count += self.__dict_user[i]  # 创建成功的的键值为1，失败0
-        # if create_user_count == 0:
-        #     print("CTPManager.start_init() 没有任何期货账户创建成功，退出程序")
-        #     self.__q_ctp.closeEvent()
-        #     self.__q_login_form.closeEvent()
-        #     return
+            self.create_user(i)  # 创建期货账户
+        for i in self.__dict_user:
+            # print(">>> CTPManager.start_init() len(self.__dict_user[i])=", len(self.__dict_user[i]))
+            for j in self.__dict_user[i]:
+                # print(">>> CTPManager.start_init() user_id=", i, j, "=", self.__dict_user[i][j])
+                if self.__dict_user[i][j] != 0:
+                    users -= 1  # 成功创建期货账户数量减一
+                    dict_create_user_failed[i] = {j: self.__dict_user[i][j]}  # 统计创建失败的期货账户
+                    print(">>> CTPManager.start_init() dict_create_user_failed[i]=", dict_create_user_failed[i])
+        print(">>> CTPManager.start_init() 成功创建期货账户数量users=", users)
+        print(">>> CTPManager.start_init() len(self.__list_user)=", len(self.__list_user))
+        # 存在创建失败的期货账户，但成功创建的期货账户数量大于0，向界面弹窗
+        if users < len(self.__socket_manager.get_list_user_info()) and users > 0:
+            str_print = "以下期货账户创建失败\n"
+            for i in dict_create_user_failed:
+                for j in dict_create_user_failed[i]:
+                    if dict_create_user_failed[i][j] != 0:
+                        str_print = str_print + i + ":" + j + "原因" + str(dict_create_user_failed[i][j]) + "\n"
+            # QMessageBox().showMessage("警告", str_print)
+            self.signal_show_QMessageBox.emit(["警告", str_print])
+        # 成功创建期货账户的数量为0，向界面弹窗
+        elif users == 0:
+            # QMessageBox().showMessage("警告", "成功创建期货账户的数量为0")
+            self.signal_show_QMessageBox.emit(["警告", "成功创建期货账户的数量为0"])
+            return  # 结束程序：创建期货账户失败
 
-        # 创建策略
+        """创建策略"""
         self.signal_label_login_error_text.emit("创建策略")
         self.__list_strategy_info = self.__socket_manager.get_list_strategy_info()  # 获取所有策略信息列表
-        # 过滤出创建成功的期货账户的策略
-        for i in self.__list_strategy_info:
-            if self.__dict_user[i['user_id']] == 1:
-                self.__list_strategy_will_create.append(i)
-        print("CTPManager.start_init() 创建策略", self.__list_strategy_will_create)
+        print(">>> CTPManager.start_init() self.__list_strategy_info=", self.__list_strategy_info)
+        if len(self.__list_strategy_info) > 0:
+            # 过滤出创建成功的期货账户的策略
+            for i_strategy in self.__list_strategy_info:
+                for i_user in self.__list_user:
+                    print(">>> CTPManager.start_init() i_strategy['user_id'] == i_user.get_user_id().decode()", i_strategy['user_id'], i_user.get_user_id().decode())
+                    if i_strategy['user_id'] == i_user.get_user_id().decode():
+                        self.__list_strategy_will_create.append(i_strategy)
+                        print(">>> CTPManager.start_init() self.__list_strategy_will_create=", len(self.__list_strategy_will_create), self.__list_strategy_will_create)
+                        break
+        print(">>> CTPManager.start_init() self.__list_strategy_will_create=", self.__list_strategy_will_create)
+
         # 创建策略
         if len(self.__list_strategy_will_create) > 0:
             for i in self.__list_strategy_will_create:
@@ -115,8 +156,13 @@ class CTPManager(QtCore.QObject):
                                              dict_arguments['userid'],
                                              dict_arguments['password']
                                              )
-        print("CTPManager.create_md() 创建行情，行情接口交易日=", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
         self.__MarketManager.get_market().set_strategy(self.__list_strategy)  # 将策略列表设置为Market_API类的属性
+        if self.__MarketManager.get_result_market_connect() == 0 and self.__MarketManager.get_result_market_login() == 0:
+            print("CTPManager.create_md() 创建行情成功，交易日=", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
+            return True
+        else:
+            print("CTPManager.create_md() 创建行情失败")
+            return False
 
     # 创建trader
     def create_trader(self, dict_arguments):
@@ -132,14 +178,31 @@ class CTPManager(QtCore.QObject):
                     print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
                     return
         obj_user = User(dict_arguments, ctp_manager=self)
-        if self.__dict_user[dict_arguments['userid']] == 1:
-            # obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
-            obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
-            obj_user.qry_instrument_info()  # 查询合约信息
-            self.__list_user.append(obj_user)  # user类实例添加到列表存放
-            print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
-        elif self.__dict_user[dict_arguments['userid']] == 0:
-            print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
+        # 将创建成功的期货账户对象存放到self.__list_user
+        for i in self.__dict_user:
+            if i == obj_user.get_user_id().decode():
+                if self.__dict_user[i]['connect_trade_front'] == 0 \
+                        and self.__dict_user[i]['login_trade_account'] == 0 \
+                        and self.__dict_user[i]['QryTradingAccount'] == 0 \
+                        and self.__dict_user[i]['QryInvestorPosition'] == 0 \
+                        and self.__dict_user[i]['QryTrade'] == 0 \
+                        and self.__dict_user[i]['QryOrder'] == 0 :
+                    obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
+                    time.sleep(1.0)
+                    obj_user.qry_instrument_info()  # 查询合约信息
+                    self.__list_user.append(obj_user)  # user类实例添加到列表存放
+                    print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
+                else:
+                    print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
+
+        # if self.__dict_user[dict_arguments['userid']] == 1:  # 判断是否成功创建期货账户
+        #     # obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
+        #     obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
+        #     obj_user.qry_instrument_info()  # 查询合约信息
+        #     self.__list_user.append(obj_user)  # user类实例添加到列表存放
+        #     print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
+        # elif self.__dict_user[dict_arguments['userid']] == 0:
+        #     print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
 
     # 将strategy对象添加到user里
     def add_strategy_to_user(self, obj_strategy):

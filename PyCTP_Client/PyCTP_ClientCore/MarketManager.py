@@ -35,11 +35,19 @@ class MarketManager:
         self.__front_address = front_address.encode()
         self.__user_id = user_id.encode()
         self.__password = password.encode()
-        print('MarketManager.__init__() 连接行情前置', Utils.code_transform(self.__market.Connect(self.__front_address)))
-        print('MarketManager.__init__() 登陆行情账号', Utils.code_transform(self.__market.Login(self.__broker_id, self.__user_id, self.__password)))
+        self.__result_market_connect = Utils.code_transform(self.__market.Connect(self.__front_address))
+        self.__result_market_login = Utils.code_transform(self.__market.Login(self.__broker_id, self.__user_id, self.__password))
+        print('MarketManager.__init__() 连接行情前置', self.__result_market_connect)
+        print('MarketManager.__init__() 登陆行情账号', self.__result_market_login)
         # 已经订阅行情的合约列表，为每一个合约创建一个字典，键名为instrument_id，键值为list，list元素为user_id+strategy_id
         # [{'cu1608': ['80065801', '80067501']}, {'cu1609': ['80065801', '80067501']}]
         self.__list_instrument_subscribed_detail = []
+
+    def get_result_market_connect(self):
+        return self.__result_market_connect
+
+    def get_result_market_login(self):
+        return self.__result_market_login
 
     # 获取__market
     def get_market(self):

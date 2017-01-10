@@ -17,6 +17,7 @@ from Trader import Trader
 from User import User
 from Strategy import Strategy
 from SocketManager import SocketManager
+from QMessageBox import QMessageBox
 
 
 class ClientMain(QtCore.QObject):
@@ -177,6 +178,10 @@ class ClientMain(QtCore.QObject):
 
     def get_list_QAccountWidget(self):
         return self.__list_QAccountWidget
+
+    @QtCore.pyqtSlot(list)
+    def slot_show_QMessageBox(self, list_args):
+        QMessageBox().showMessage(list_args[0], list_args[1])
 
     """
     # 处理socket_manager发来的消息
@@ -568,7 +573,7 @@ if __name__ == '__main__':
     """创建对象"""
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
-    socket_manager = SocketManager("10.0.0.4", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager("10.0.0.6", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 创建登录界面
@@ -609,6 +614,8 @@ if __name__ == '__main__':
     ctp_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
     # SocketManager收到服务端修改策略参数类回报 -> CTPManager修改策略（SocketManager.signal_update_strategy -> CTPManager.slot_update_strategy()）
     socket_manager.signal_update_strategy.connect(ctp_manager.slot_update_strategy)
+    # CTPManager初始化内核（子线程）向界面弹窗 -> ClientMain（主线程）调用槽函数向界面弹窗
+    ctp_manager.signal_show_QMessageBox.connect(client_main.slot_show_QMessageBox)
 
     """显示界面登录界面"""
     q_login.show()
