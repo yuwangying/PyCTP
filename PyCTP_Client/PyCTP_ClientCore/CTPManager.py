@@ -93,7 +93,7 @@ class CTPManager(QtCore.QObject):
             # QMessageBox().showMessage("警告", "将要创建期货账户数量为0")
             self.signal_show_QMessageBox.emit(["警告", "将要创建期货账户数量为0"])
         dict_create_user_failed = {}  # 创建失败的期货账户列表
-        print(">>> CTPManager.start_init() 将要创建期货账户数量users=", users)
+        # print(">>> CTPManager.start_init() 将要创建期货账户数量users=", users)
         for i in self.__socket_manager.get_list_user_info():
             self.create_user(i)  # 创建期货账户
         for i in self.__dict_user:
@@ -103,9 +103,9 @@ class CTPManager(QtCore.QObject):
                 if self.__dict_user[i][j] != 0:
                     users -= 1  # 成功创建期货账户数量减一
                     dict_create_user_failed[i] = {j: self.__dict_user[i][j]}  # 统计创建失败的期货账户
-                    print(">>> CTPManager.start_init() dict_create_user_failed[i]=", dict_create_user_failed[i])
-        print(">>> CTPManager.start_init() 成功创建期货账户数量users=", users)
-        print(">>> CTPManager.start_init() len(self.__list_user)=", len(self.__list_user))
+                    # print(">>> CTPManager.start_init() dict_create_user_failed[i]=", dict_create_user_failed[i])
+        # print(">>> CTPManager.start_init() 成功创建期货账户数量users=", users)
+        # print(">>> CTPManager.start_init() len(self.__list_user)=", len(self.__list_user))
         # 存在创建失败的期货账户，但成功创建的期货账户数量大于0，向界面弹窗
         if users < len(self.__socket_manager.get_list_user_info()) and users > 0:
             str_print = "以下期货账户创建失败\n"
@@ -124,17 +124,17 @@ class CTPManager(QtCore.QObject):
         """创建策略"""
         self.signal_label_login_error_text.emit("创建策略")
         self.__list_strategy_info = self.__socket_manager.get_list_strategy_info()  # 获取所有策略信息列表
-        print(">>> CTPManager.start_init() self.__list_strategy_info=", self.__list_strategy_info)
+        # print(">>> CTPManager.start_init() self.__list_strategy_info=", self.__list_strategy_info)
         if len(self.__list_strategy_info) > 0:
             # 过滤出创建成功的期货账户的策略
             for i_strategy in self.__list_strategy_info:
                 for i_user in self.__list_user:
-                    print(">>> CTPManager.start_init() i_strategy['user_id'] == i_user.get_user_id().decode()", i_strategy['user_id'], i_user.get_user_id().decode())
+                    # print(">>> CTPManager.start_init() i_strategy['user_id'] == i_user.get_user_id().decode()", i_strategy['user_id'], i_user.get_user_id().decode())
                     if i_strategy['user_id'] == i_user.get_user_id().decode():
                         self.__list_strategy_will_create.append(i_strategy)
-                        print(">>> CTPManager.start_init() self.__list_strategy_will_create=", len(self.__list_strategy_will_create), self.__list_strategy_will_create)
+                        # print(">>> CTPManager.start_init() self.__list_strategy_will_create=", len(self.__list_strategy_will_create), self.__list_strategy_will_create)
                         break
-        print(">>> CTPManager.start_init() self.__list_strategy_will_create=", self.__list_strategy_will_create)
+        # print(">>> CTPManager.start_init() self.__list_strategy_will_create=", self.__list_strategy_will_create)
 
         # 创建策略
         if len(self.__list_strategy_will_create) > 0:

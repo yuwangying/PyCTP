@@ -103,7 +103,7 @@ class Strategy(QtCore.QObject):
 
     # 设置参数
     def set_arguments(self, dict_args):
-        print(">>> Strategy.set_arguments() user_id=", dict_args['user_id'], "strategy_id=", dict_args['strategy_id'])
+        # print(">>> Strategy.set_arguments() user_id=", dict_args['user_id'], "strategy_id=", dict_args['strategy_id'])
         self.__dict_args = dict_args  # 将形参转存为私有变量
         # self.__DBManager.update_strategy(dict_args)  # 更新数据库
 
@@ -265,7 +265,7 @@ class Strategy(QtCore.QObject):
         # 待续，2017年1月6日22:28:44，待修复更新仓位持仓变量全部为int
         # print("Strategy.init_today_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
 
-        print(">>> self.get_position()['position_a_sell_today']=", self.get_position()['position_a_sell_today'], type(self.get_position()['position_a_sell_today']))
+        # print(">>> self.get_position()['position_a_sell_today']=", self.get_position()['position_a_sell_today'], type(self.get_position()['position_a_sell_today']))
         if len(self.__user.get_dfQryTrade()) > 0:  # user的交易记录为0跳过
             self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
             # 从user的Trade中筛选出该策略的记录
@@ -273,7 +273,7 @@ class Strategy(QtCore.QObject):
         if len(self.__dfQryTrade_Strategy) > 0:  # strategy的交易记录为0跳过
             # 遍历本策略的trade记录，更新今仓
             for i in self.__dfQryTrade_Strategy.index:
-                print(">>> self.__dfQryTrade_Strategy['Volume'][i]", self.__dfQryTrade_Strategy['Volume'][i], type(self.__dfQryTrade_Strategy['Volume'][i]))
+                # print(">>> self.__dfQryTrade_Strategy['Volume'][i]", self.__dfQryTrade_Strategy['Volume'][i], type(self.__dfQryTrade_Strategy['Volume'][i]))
                 # A成交
                 if self.__dfQryTrade_Strategy['InstrumentID'][i] == self.__list_instrument_id[0]:
                     if self.__dfQryTrade_Strategy['OffsetFlag'][i] == '0':  # A开仓成交回报
@@ -316,12 +316,9 @@ class Strategy(QtCore.QObject):
                 if Utils.Strategy_print:
                     print("Strategy.init_today_position() ", self.__list_instrument_id[0], "买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")", " 卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
                     print("Strategy.init_today_position() ", self.__list_instrument_id[1], "买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")", " 卖(", self.__position_b_sell, ",", self.__position_b_sell_yesterday, ")")
-        print(">>> self.get_position()['position_a_sell_today']=",
-                          self.get_position()['position_a_sell_today'],
-                          type(self.get_position()['position_a_sell_today']))
+        # print(">>> self.get_position()['position_a_sell_today']=", self.get_position()['position_a_sell_today'], type(self.get_position()['position_a_sell_today']))
         self.__init_finished = True  # 当前策略初始化完成
         d1 = self.get_position()
-        print(">>> Strategy.init_today_position() d1=", d1)
 
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):

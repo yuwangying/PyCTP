@@ -166,7 +166,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         ret = self.ReqQryOrder(QryOrderField, self.__rsp_QryOrder['RequestID'])
         if ret == 0:
             self.__rsp_QryOrder['event'].clear()
-            if self.__rsp_QryOrder['event'].wait(self.TIMEOUT):
+            if self.__rsp_QryOrder['event'].wait(60.0):
                 if self.__rsp_QryOrder['ErrorID'] != 0:
                     # self.__user.QryOrder(self.__rsp_QryOrder['ErrorID'])  # 转到user类的回调函数
                     return self.__rsp_QryOrder['ErrorID']
@@ -186,7 +186,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         ret = self.ReqQryTrade(QryTradeField, self.__rsp_QryTrade['RequestID'])
         if ret == 0:
             self.__rsp_QryTrade['event'].clear()
-            if self.__rsp_QryTrade['event'].wait(30):  # (self.TIMEOUT):  # 成交记录多，传输等待时间需要延长
+            if self.__rsp_QryTrade['event'].wait(60.0):  # (self.TIMEOUT):  # 成交记录多，传输等待时间需要延长
                 if self.__rsp_QryTrade['ErrorID'] != 0:
                     # self.__user.QryTrade(self.__rsp_QryTrade['ErrorID'])  # 转到user类的回调函数
                     return self.__rsp_QryTrade['ErrorID']
