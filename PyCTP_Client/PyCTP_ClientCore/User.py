@@ -297,10 +297,18 @@ class User(QtCore.QObject):
     def action_counter(self, Order):
         if len(Order['OrderSysID']) == 0:  # 只统计有交易所编码的order
             return
-        if Order['instrument_id'] in self.__dict_action_counter:  # 已经存在的合约，撤单次数加+1
-            self.__dict_action_counter[Order['instrument_id']] += 1
+        if Order['OrderStatus'] != '5':  # 值为5：撤单
+            return
+        if Order['InstrumentID'] in self.__dict_action_counter:  # 已经存在的合约，撤单次数加+1
+            self.__dict_action_counter[Order['InstrumentID']] += 1
         else:
-            self.__dict_action_counter[Order['instrument_id']] = 1  # 不存在的合约，撤单次数设置为1
+            self.__dict_action_counter[Order['InstrumentID']] = 1  # 不存在的合约，撤单次数设置为1
+        # 撤单次数赋值到策略对象的合约撤单次数
+        for i_strategy in self.__list_strategy:
+            if i_strategy.get_a_instrument_id() == Order['InstrumentID']:
+                i_strategy.set_a_action_count(self.__dict_action_counter[Order['InstrumentID']])
+            elif i_strategy.get_b_instrument_id() == Order['InstrumentID']:
+                i_strategy.set_b_action_count(self.__dict_action_counter[Order['InstrumentID']])
 
     # 删除交易策略实例，从self.__list_strategy
     def del_strategy(self, strategy_id):
@@ -342,10 +350,10 @@ class User(QtCore.QObject):
     def OnRtnOrder(self, Order):
         # print("User.OnRtnOrder()", 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         self.action_counter(Order)  # 更新撤单计数字典
-        for i in self.__list_strategy:  # 转到strategy回调函数
-            i.update_action_count()  # 更新策略内合约撤单计数变量
-            if Order['OrderRef'][-2:] == i.get_strategy_id():  # 后两位数为策略id，找到对应的
-                i.OnRtnOrder(Order)
+        # for i in self.__list_strategy:  # 转到strategy回调函数
+        #     i.update_action_count()  # 更新策略内合约撤单计数变量
+        #     if Order['OrderRef'][-2:] == i.get_strategy_id():  # 后两位数为策略id，找到对应的
+        #         i.OnRtnOrder(Order)
 
         # 行情数据存档
         t = datetime.datetime.now()
