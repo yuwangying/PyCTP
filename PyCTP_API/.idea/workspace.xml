@@ -41,8 +41,8 @@
       <file leaf-file-name="CTP_Run.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/CTP_Run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="155" column="47" selection-start-line="155" selection-start-column="41" selection-end-line="155" selection-end-column="47" />
+            <state relative-caret-position="134">
+              <caret line="149" column="69" selection-start-line="149" selection-start-column="69" selection-end-line="149" selection-end-column="69" />
               <folding>
                 <element signature="e#87#97#0" expanded="true" />
                 <element signature="e#1144#1161#0" expanded="false" />
@@ -64,7 +64,7 @@
       <file leaf-file-name="Trade.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Trade.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="345">
+            <state relative-caret-position="11592">
               <caret line="510" column="55" selection-start-line="510" selection-start-column="55" selection-end-line="510" selection-end-column="55" />
               <folding>
                 <element signature="e#87#97#0" expanded="true" />
@@ -183,7 +183,7 @@
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../TradeAnalysis" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="141" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
@@ -884,7 +884,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="765">
           <caret line="5114" column="8" selection-start-line="5114" selection-start-column="8" selection-end-line="5114" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -941,7 +940,7 @@
     <entry file="file://D:/ATS/ChenBin/python code/StockScreener.py" />
     <entry file="file://$PROJECT_DIR$/Trade.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
+        <state relative-caret-position="11592">
           <caret line="510" column="55" selection-start-line="510" selection-start-column="55" selection-end-line="510" selection-end-column="55" />
           <folding>
             <element signature="e#87#97#0" expanded="true" />
@@ -951,8 +950,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CTP_Run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="155" column="47" selection-start-line="155" selection-start-column="41" selection-end-line="155" selection-end-column="47" />
+        <state relative-caret-position="134">
+          <caret line="149" column="69" selection-start-line="149" selection-start-column="69" selection-end-line="149" selection-end-column="69" />
           <folding>
             <element signature="e#87#97#0" expanded="true" />
             <element signature="e#1144#1161#0" expanded="false" />

@@ -52,6 +52,7 @@ class Strategy(QtCore.QObject):
         self.__a_order_insert_args = dict()  # a合约报单参数
         self.__b_order_insert_args = dict()  # b合约报单参数
         self.__list_position_detail = list()  # 持仓明细列表
+        self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
         self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
         self.__instrument_a_tick = None  # A合约tick（第一腿）
         self.__instrument_b_tick = None  # B合约tick（第二腿）
@@ -371,10 +372,10 @@ class Strategy(QtCore.QObject):
             if i['InstrumentID'] == instrument_id:
                 return i['PriceTick']
     
-    # 更新撤单次数，在user类中的order回调中调用，第一时间更新撤单计数
-    def update_action_count(self):
-        self.__a_action_count = self.__user.get_dict_action()[self.__a_instrument_id]
-        self.__b_action_count = self.__user.get_dict_action()[self.__b_instrument_id]
+    # # 更新撤单次数，在user类中的order回调中调用，第一时间更新撤单计数
+    # def update_action_count(self):
+    #     self.__a_action_count = self.__user.get_dict_action()[self.__a_instrument_id]
+    #     self.__b_action_count = self.__user.get_dict_action()[self.__b_instrument_id]
 
     def set_a_action_count(self, int_count):
         self.__a_action_count = int_count
@@ -567,20 +568,22 @@ class Strategy(QtCore.QObject):
         from User import User
         if Utils.Strategy_print:
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
-        self.update_action_count()  # 更新本策略两个合约的撤单次数，可以优化：user维护的撤单数量发生变化是主动给相关策略对象撤单次数变量赋值
+        self.__user.action_counter(Order)  # 更新撤单计数
+        self.update_list_order_process(Order)  # 更新挂单列表
         dict_args = {'flag': 'OnRtnOrder', 'Order': Order}
-        self.update_list_order_pending(dict_args)  # 更新挂单list
-        self.update_position(Order)  # 更新持仓变量
+        self.update_list_order_pending(dict_args)  # 更新挂单list，形参改为Order
+        order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量
+        self.update_list_position_detail(order_new)  # 更新持仓明细list，待续，形参有Trade改为Order
+        # self.update_position(Order)  # 更新持仓变量，待续，形参有Trade改为Order
         self.update_task_status()  # 更新交易执行任务状态
         # self.__user.action_counter(dict_args['Order']['InstrumentID'])  # 更新撤单计数
-        self.__user.action_counter(Order)  # 更新撤单计数， 待续，action_counter，方法需要重写
         self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
         if Utils.Strategy_print:
             print('Strategy.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade', Trade)
-        self.update_list_position_detail(Trade)  # 更新持仓明细list
+        # self.update_list_position_detail(Trade)  # 更新持仓明细list
         # self.update_position(Trade)  # 更新持仓量变量
         self.update_task_status()  # 更新任务状态
         dict_args = {'flag': 'OnRtnTrade', 'Trade': Trade}
@@ -1132,6 +1135,53 @@ class Strategy(QtCore.QObject):
         if Utils.Strategy_print:
             print("Strategy.update_list_order_pending() 更新后self.__list_order_pending=", self.__list_order_pending)
 
+    # 更新挂单列表，重写方法self.update_list_order_pending()
+    def update_list_order_process(self, order):
+        """
+        order中的字段OrderStatus
+         0 全部成交
+         1 部分成交，订单还在交易所撮合队列中
+         3 未成交，订单还在交易所撮合队列中
+         5 已撤销
+         a 未知 - 订单已提交交易所，未从交易所收到确认信息
+        """
+        if order['OrderStatus'] == '0':
+            for i in self.__list_order_process:
+                if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                    self.__list_order_process.remove(i)  # 删除找到的order记录
+                    break
+        elif order['OrderStatus'] == '1':
+            for i in self.__list_order_process:
+                if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                    self.__list_order_process.remove(i)  # 删除找到的order记录
+                    self.__list_order_process.append(order)  # 添加最新的order记录
+                    break
+        elif order['OrderStatus'] == '3':
+            self.__list_order_process.append(order)
+        elif order['OrderStatus'] == '5':
+            for i in self.__list_order_process:
+                if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                    self.__list_order_process.remove(i)  # 删除找到的order记录
+                    break
+        elif order['OrderStatus'] == 'a':
+            pass  # 不需要处理
+
+    # 添加字段"本次成交量"，order结构中加入字段VolumeTradedBatch
+    def add_VolumeTradedBatch(self, order):
+        order_new = copy.deepcopy(order)
+        if order_new['OrderStatus'] in ['0', '1']:  # 全部成交、部分成交还在队列中
+            # 原始报单量为1手，本次成交量就是1手
+            if order_new['VolumeTotalOriginal'] == 1:
+                order_new['VolumeTradedBatch'] = 1
+            else:
+                for i in self.__list_order_process:
+                    if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                        order_new['VolumeTradedBatch'] = order_new['VolumeTraded'] - i['VolumeTraded']  # 本次成交量
+                        break
+        else:  # 非（全部成交、部分成交还在队列中）
+            order_new['VolumeTradedBatch'] = 0
+        return order_new
+
     # 更新任务状态
     def update_task_status(self):
         # if Utils.Strategy_print:
@@ -1246,7 +1296,8 @@ class Strategy(QtCore.QObject):
                   self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today, self.__position_b_sell_yesterday,
                   self.__position_b_sell)
 
-    # 更新持仓明细list
+    """
+    # 更新持仓明细列表
     def update_list_position_detail(self, input_trade):
         trade = copy.deepcopy(input_trade)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
         # 开仓单，添加到list，添加到list尾部
@@ -1296,6 +1347,45 @@ class Strategy(QtCore.QObject):
                         elif trade['Volume'] > self.__list_position_detail[i]['Volume']:
                             trade['Volume'] -= self.__list_position_detail[i]['Volume']
                             del self.__list_position_detail[i]
+    """
+
+    # 更新持仓明细列表
+    def update_list_position_detail(self, input_order):
+        """
+        order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
+        0：开仓
+        1：平仓
+        3：平今
+        4：平昨
+        """
+        # 跳过无成交的order记录
+        if input_order['VolumeTraded'] == 0:
+            return
+        order_new = copy.deepcopy(input_order)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+        # order_new中"CombOffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓order直接添加到持仓明细列表里
+        if order_new['CombOffsetFlag'] == '0':
+                self.__list_position_detail.append(order_new)
+        # order_new中"CombOffsetFlag"值="3"为平今
+        if order_new['CombOffsetFlag'] == '3':
+            for i in self.__list_position_detail:  # i为order结构体，类型为dict
+                # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同、开平相反
+                if i['TradingDay'] == order_new['TradingDay'] \
+                        and i['InstrumentID'] == order_new['InstrumentID'] \
+                        and i['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
+                        and i['Direction'] != order_new['Direction']:
+                    # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
+                    if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
+                        self.__list_position_detail.remove(i)
+                    # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
+                        i['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
+                    # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
+                        order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
+                        self.__list_position_detail.remove(i)  # 待验证for循环代码，待续，2017年1月12日22:56:31
+        # order_new中"CombOffsetFlag"值="4"为平昨
+        elif order_new['CombOffsetFlag'] == '4':
+            pass
 
     # 统计指标
     def statistics(self):
