@@ -142,9 +142,9 @@ class User(QtCore.QObject):
         time.sleep(1.0)
 
         """查询报单记录"""
-        self.__dfQryOrder = self.QryOrder()
+        self.__list_QryOrder = self.QryOrder()
         # QryOrder查询结果的状态记录到CTPManager的user状态字典，成功为0
-        if isinstance(self.__dfQryOrder, DataFrame):
+        if isinstance(self.__list_QryOrder, list):
             self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryOrder'] = 0
             print("User.__init__() user_id=", self.__user_id.decode(), '查询报单记录成功')
         else:
@@ -392,19 +392,10 @@ class User(QtCore.QObject):
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
-        # dfQryOrder = DataFrame()
         self.__list_QryOrder = self.__trader_api.QryOrder()  # 正确返回值为list类型，否则为异常
         for i in self.__list_QryOrder:
             i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
         return self.__list_QryOrder
-        # if isinstance(self.__list_QryOrder, list):
-        #     if len(self.__list_QryOrder) > 0:
-        #         for i in self.__list_QryOrder:
-        #             # 将记录格式有list变为DataFrame
-        #             dfQryOrder = DataFrame.append(dfQryOrder, other=Utils.code_transform(i), ignore_index=True)
-        #         # 添加列StrategyID：截取OrderRef后两位数为StrategyID
-        #         dfQryOrder['StrategyID'] = dfQryOrder['OrderRef'].astype(str).str[-2:].astype(int)
-        # return dfQryOrder
 
     # 获取listQryOrder
     def get_list_QryOrder(self):
@@ -416,7 +407,7 @@ class User(QtCore.QObject):
 
     # 获取dfQryOrder
     def get_dfQryOrder(self):
-        return self.__dfQryOrder
+        return self.__list_QryOrder
 
     # 获取dfQryTrade
     def get_dfQryTrade(self):
