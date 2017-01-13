@@ -98,15 +98,14 @@ class Strategy(QtCore.QObject):
         if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
             self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
             self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
-        self.init_yesterday_position()  # 初始化策略昨仓
-        # self.init_today_position()  # 初始化策略持仓
+        self.init_yesterday_position()  # 初始化策略昨仓持仓变量
+        self.init_today_position()  # 初始化策略今天最新持仓变量
+        self.init_list_position_detail()  # 初始化策略持仓明细列表
         # self.init_statistics()  # 初始化统计指标
 
     # 设置参数
     def set_arguments(self, dict_args):
-        # print(">>> Strategy.set_arguments() user_id=", dict_args['user_id'], "strategy_id=", dict_args['strategy_id'])
         self.__dict_args = dict_args  # 将形参转存为私有变量
-        # self.__DBManager.update_strategy(dict_args)  # 更新数据库
 
         self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
@@ -134,7 +133,6 @@ class Strategy(QtCore.QObject):
         self.__buy_close_on_off = dict_args['buy_close_on_off']    # 价差买平，开关，初始值为1，状态开
         self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
-        # print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "dict_args=", dict_args)
         # 如果界面初始化完成、程序运行当中，每次调用该方法都触发界面类的槽函数update_strategy
         if self.__user.get_CTPManager().get_init_finished():
             print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "修改策略参数，内核刷新界面")
@@ -168,7 +166,6 @@ class Strategy(QtCore.QObject):
             'sell_close_on_off': self.__sell_close_on_off,
             'buy_open_on_off': self.__buy_open_on_off
         }
-        # print(">>> Strategy.get_arguments() self.sender()=", self.sender(), " user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_args=", self.__dict_args)
         return self.__dict_args
 
     # 设置持仓
@@ -258,15 +255,10 @@ class Strategy(QtCore.QObject):
                     self.__position_b_sell = self.__dict_yesterday_position['position_b_sell']
                     self.__position_b_sell_today = 0
                     self.__position_b_sell_yesterday = self.__dict_yesterday_position['position_b_sell']
-        d1 = self.get_position()
-        self.init_today_position()  # 昨仓初始化完成，调用初始化今仓
+        # self.init_today_position()  # 昨仓初始化完成，调用初始化今仓，，改为在__init__中调用
 
     # 初始化今仓，从当天成交回报数据计算
     def init_today_position(self):
-        # 待续，2017年1月6日22:28:44，待修复更新仓位持仓变量全部为int
-        # print("Strategy.init_today_position() user_id=", self.__user_id, "strategy_id=", self.__strategy_id)
-
-        # print(">>> self.get_position()['position_a_sell_today']=", self.get_position()['position_a_sell_today'], type(self.get_position()['position_a_sell_today']))
         if len(self.__user.get_dfQryTrade()) > 0:  # user的交易记录为0跳过
             self.__dfQryTrade = self.__user.get_dfQryTrade()  # 获得user的交易记录
             # 从user的Trade中筛选出该策略的记录
@@ -274,7 +266,6 @@ class Strategy(QtCore.QObject):
         if len(self.__dfQryTrade_Strategy) > 0:  # strategy的交易记录为0跳过
             # 遍历本策略的trade记录，更新今仓
             for i in self.__dfQryTrade_Strategy.index:
-                # print(">>> self.__dfQryTrade_Strategy['Volume'][i]", self.__dfQryTrade_Strategy['Volume'][i], type(self.__dfQryTrade_Strategy['Volume'][i]))
                 # A成交
                 if self.__dfQryTrade_Strategy['InstrumentID'][i] == self.__list_instrument_id[0]:
                     if self.__dfQryTrade_Strategy['OffsetFlag'][i] == '0':  # A开仓成交回报
@@ -317,9 +308,20 @@ class Strategy(QtCore.QObject):
                 if Utils.Strategy_print:
                     print("Strategy.init_today_position() ", self.__list_instrument_id[0], "买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")", " 卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
                     print("Strategy.init_today_position() ", self.__list_instrument_id[1], "买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")", " 卖(", self.__position_b_sell, ",", self.__position_b_sell_yesterday, ")")
-        # print(">>> self.get_position()['position_a_sell_today']=", self.get_position()['position_a_sell_today'], type(self.get_position()['position_a_sell_today']))
-        self.__init_finished = True  # 当前策略初始化完成
-        d1 = self.get_position()
+        # self.__init_finished = True  # 当前策略初始化完成
+
+    # 初始化持仓明细列表
+    def init_list_position_detail(self):
+        # 获取本策略昨收盘时刻的持仓明细列表，值类型为list，长度可能为0，数据从服务端获取
+        # 待续，2017年1月13日10:07:42
+        # 获取本策略今天开盘到现在的Order
+        self.__list_QryOrder = list()  # 属于本策略的查询order记录初始化
+        if len(self.__user.get_list_QryOrder()) > 0:  # user的交易记录为0跳过
+            for i in self.__user.get_list_QryOrder():
+                if i['StrategyID'] == self.__strategy_id:  # 策略id相同
+                    self.__list_QryOrder.append(i)
+        for i in self.__list_QryOrder:
+            self.update_list_position_detail(i)  # 更新持仓明细列表
 
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
@@ -570,13 +572,12 @@ class Strategy(QtCore.QObject):
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
         self.__user.action_counter(Order)  # 更新撤单计数
         self.update_list_order_process(Order)  # 更新挂单列表
-        dict_args = {'flag': 'OnRtnOrder', 'Order': Order}
-        self.update_list_order_pending(dict_args)  # 更新挂单list，形参改为Order
-        order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量
-        self.update_list_position_detail(order_new)  # 更新持仓明细list，待续，形参有Trade改为Order
-        # self.update_position(Order)  # 更新持仓变量，待续，形参有Trade改为Order
+        # self.update_list_order_pending(dict_args)  # 更新挂单列表
+        order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
+        self.update_list_position_detail(order_new)  # 更新持仓明细列表
+        self.update_position(order_new)  # 更新持仓变量
         self.update_task_status()  # 更新交易执行任务状态
-        # self.__user.action_counter(dict_args['Order']['InstrumentID'])  # 更新撤单计数
+        dict_args = {'flag': 'OnRtnOrder', 'Order': Order}
         self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnTrade(self, Trade):
@@ -1246,52 +1247,53 @@ class Strategy(QtCore.QObject):
     """
 
     # 更新持仓量变量，共12个持仓变量
-    def update_position(self, Order):
+    def update_position(self, input_order):
+        order_new = copy.deepcopy(input_order)
         # A成交
-        if Order['InstrumentID'] == self.__list_instrument_id[0]:
-            if Order['OffsetFlag'] == '0':  # A开仓成交回报
-                if Order['Direction'] == '0':  # A买开仓成交回报
-                    self.__position_a_buy_today += Order['Volume']  # 更新持仓
-                elif Order['Direction'] == '1':  # A卖开仓成交回报
-                    self.__position_a_sell_today += Order['Volume']  # 更新持仓
-            elif Order['OffsetFlag'] == '3':  # A平今成交回报
-                if Order['Direction'] == '0':  # A买平今成交回报
-                    self.__position_a_sell_today -= Order['Volume']  # 更新持仓
-                elif Order['Direction'] == '1':  # A卖平今成交回报
-                    self.__position_a_buy_today -= Order['Volume']  # 更新持仓
-            elif Order['OffsetFlag'] == '4':  # A平昨成交回报
-                if Order['Direction'] == '0':  # A买平昨成交回报
-                    self.__position_a_sell_yesterday -= Order['Volume']  # 更新持仓
-                elif Order['Direction'] == '1':  # A卖平昨成交回报
-                    self.__position_a_buy_yesterday -= Order['Volume']  # 更新持仓
+        if order_new['InstrumentID'] == self.__a_instrument_id:
+            if order_new['OffsetFlag'] == '0':  # A开仓成交回报
+                if order_new['Direction'] == '0':  # A买开仓成交回报
+                    self.__position_a_buy_today += order_new['VolumeTradedBatch']  # 更新持仓
+                elif order_new['Direction'] == '1':  # A卖开仓成交回报
+                    self.__position_a_sell_today += order_new['VolumeTradedBatch']  # 更新持仓
+            elif order_new['OffsetFlag'] == '3':  # A平今成交回报
+                if order_new['Direction'] == '0':  # A买平今成交回报
+                    self.__position_a_sell_today -= order_new['VolumeTradedBatch']  # 更新持仓
+                elif order_new['Direction'] == '1':  # A卖平今成交回报
+                    self.__position_a_buy_today -= order_new['VolumeTradedBatch']  # 更新持仓
+            elif order_new['OffsetFlag'] == '4':  # A平昨成交回报
+                if order_new['Direction'] == '0':  # A买平昨成交回报
+                    self.__position_a_sell_yesterday -= order_new['VolumeTradedBatch']  # 更新持仓
+                elif order_new['Direction'] == '1':  # A卖平昨成交回报
+                    self.__position_a_buy_yesterday -= order_new['VolumeTradedBatch']  # 更新持仓
             self.__position_a_buy = self.__position_a_buy_today + self.__position_a_buy_yesterday
             self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
         # B成交
-        elif Order['InstrumentID'] == self.__list_instrument_id[1]:
-            if Order['OffsetFlag'] == '0':  # B开仓成交回报
-                if Order['Direction'] == '0':  # B买开仓成交回报
-                    self.__position_b_buy_today += Order['Volume']  # 更新持仓
-                elif Order['Direction'] == '1':  # B卖开仓成交回报
-                    self.__position_b_sell_today += Order['Volume']  # 更新持仓
-            elif Order['OffsetFlag'] == '3':  # B平今成交回报
-                if Order['Direction'] == '0':  # B买平今成交回报
-                    self.__position_b_sell_today -= Order['Volume']  # 更新持仓
-                elif Order['Direction'] == '1':  # B卖平今成交回报
-                    self.__position_b_buy_today -= Order['Volume']  # 更新持仓
-            elif Order['OffsetFlag'] == '4':  # B平昨成交回报
-                if Order['Direction'] == '0':  # B买平昨成交回报
-                    self.__position_b_sell_yesterday -= Order['Volume']  # 更新持仓
-                elif Order['Direction'] == '1':  # B卖平昨成交回报
-                    self.__position_b_buy_yesterday -= Order['Volume']  # 更新持仓
+        elif order_new['InstrumentID'] == self.__b_instrument_id:
+            if order_new['OffsetFlag'] == '0':  # B开仓成交回报
+                if order_new['Direction'] == '0':  # B买开仓成交回报
+                    self.__position_b_buy_today += order_new['VolumeTradedBatch']  # 更新持仓
+                elif order_new['Direction'] == '1':  # B卖开仓成交回报
+                    self.__position_b_sell_today += order_new['VolumeTradedBatch']  # 更新持仓
+            elif order_new['OffsetFlag'] == '3':  # B平今成交回报
+                if order_new['Direction'] == '0':  # B买平今成交回报
+                    self.__position_b_sell_today -= order_new['VolumeTradedBatch']  # 更新持仓
+                elif order_new['Direction'] == '1':  # B卖平今成交回报
+                    self.__position_b_buy_today -= order_new['VolumeTradedBatch']  # 更新持仓
+            elif order_new['OffsetFlag'] == '4':  # B平昨成交回报
+                if order_new['Direction'] == '0':  # B买平昨成交回报
+                    self.__position_b_sell_yesterday -= order_new['VolumeTradedBatch']  # 更新持仓
+                elif order_new['Direction'] == '1':  # B卖平昨成交回报
+                    self.__position_b_buy_yesterday -= order_new['VolumeTradedBatch']  # 更新持仓
             self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
             self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         if Utils.Strategy_print:
             print("Strategy.update_position() 更新持仓量:")
-            print("     A合约", self.__list_instrument_id[0], "今买、昨买、总买", self.__position_a_buy_today,
+            print("     A合约", self.__a_instrument_id, "今买、昨买、总买", self.__position_a_buy_today,
                   self.__position_a_buy_yesterday,
                   self.__position_a_buy, "今卖、昨卖、总卖", self.__position_a_sell_today, self.__position_a_sell_yesterday,
                   self.__position_a_sell)
-            print("     B合约", self.__list_instrument_id[1], "今买、昨买、总买", self.__position_b_buy_today,
+            print("     B合约", self.__b_instrument_id, "今买、昨买、总买", self.__position_b_buy_today,
                   self.__position_b_buy_yesterday,
                   self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today, self.__position_b_sell_yesterday,
                   self.__position_b_sell)
@@ -1376,16 +1378,35 @@ class Strategy(QtCore.QObject):
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
                     if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
                         self.__list_position_detail.remove(i)
+                        break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
                         i['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
+                        break
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
                         order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
                         self.__list_position_detail.remove(i)  # 待验证for循环代码，待续，2017年1月12日22:56:31
         # order_new中"CombOffsetFlag"值="4"为平昨
         elif order_new['CombOffsetFlag'] == '4':
-            pass
+            for i in self.__list_position_detail:  # i为order结构体，类型为dict
+                # 持仓明细中order与order_new比较：交易日不相同、合约代码相同、投保标志相同、开平相反
+                if i['TradingDay'] != order_new['TradingDay'] \
+                        and i['InstrumentID'] == order_new['InstrumentID'] \
+                        and i['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
+                        and i['Direction'] != order_new['Direction']:
+                    # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
+                    if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
+                        self.__list_position_detail.remove(i)
+                        break
+                    # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
+                        i['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
+                        break
+                    # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
+                        order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
+                        self.__list_position_detail.remove(i)  # 待验证for循环代码，待续，2017年1月12日22:56:31
 
     # 统计指标
     def statistics(self):

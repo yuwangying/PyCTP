@@ -392,30 +392,26 @@ class User(QtCore.QObject):
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
-        dfQryOrder = DataFrame()
-        self.__listQryOrder = self.__trader_api.QryOrder()
-        if isinstance(self.__listQryOrder, list):
-            if len(self.__listQryOrder) > 0:
-                for i in self.__listQryOrder:
-                    # 将记录格式有list变为DataFrame
-                    dfQryOrder = DataFrame.append(dfQryOrder, other=Utils.code_transform(i), ignore_index=True)
-                # 添加列StrategyID：截取OrderRef后两位数为StrategyID
-                dfQryOrder['StrategyID'] = dfQryOrder['OrderRef'].astype(str).str[-2:].astype(int)
-        return dfQryOrder
-        # if len(self.__listQryOrder) == 0:
-        #     return None
-        # for i in self.__listQryOrder:
-        #     dfQryOrder = DataFrame.append(dfQryOrder, other=Utils.code_transform(i), ignore_index=True)
-        # dfQryOrder['StrategyID'] = dfQryOrder['OrderRef'].astype(str).str[-1:].astype(int)  # 截取OrderRef后两位数为StrategyID
-        # # dfQryOrder.to_csv("data/" + self.__user_id.decode() + "_dfQryOrder.csv")  # 保存数据到本地
+        # dfQryOrder = DataFrame()
+        self.__list_QryOrder = self.__trader_api.QryOrder()  # 正确返回值为list类型，否则为异常
+        for i in self.__list_QryOrder:
+            i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
+        return self.__list_QryOrder
+        # if isinstance(self.__list_QryOrder, list):
+        #     if len(self.__list_QryOrder) > 0:
+        #         for i in self.__list_QryOrder:
+        #             # 将记录格式有list变为DataFrame
+        #             dfQryOrder = DataFrame.append(dfQryOrder, other=Utils.code_transform(i), ignore_index=True)
+        #         # 添加列StrategyID：截取OrderRef后两位数为StrategyID
+        #         dfQryOrder['StrategyID'] = dfQryOrder['OrderRef'].astype(str).str[-2:].astype(int)
         # return dfQryOrder
 
     # 获取listQryOrder
-    def get_listQryOrder(self):
-        return self.__listQryOrder
+    def get_list_QryOrder(self):
+        return self.__list_QryOrder
 
     # 获取listQryTrade
-    def get_listQryTrade(self):
+    def get_list_QryTrade(self):
         return self.__listQryTrade
 
     # 获取dfQryOrder
