@@ -51,6 +51,7 @@ class Strategy(QtCore.QObject):
         self.__trade_tasking = False  # 交易任务进行中
         self.__a_order_insert_args = dict()  # a合约报单参数
         self.__b_order_insert_args = dict()  # b合约报单参数
+        self.__list_QryOrder = list()  # 属于本策略的QryOrder列表
         self.__list_position_detail = list()  # 持仓明细列表
         self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
         self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
@@ -107,7 +108,7 @@ class Strategy(QtCore.QObject):
             print("Strategy.__init__() 策略初始化错误：初始化策略持仓变量出错")
             self.__init_finished = False  # 策略初始化失败
             return
-        # self.init_statistics()  # 初始化统计指标，待实现
+        self.init_statistics()  # 初始化统计指标，待实现
 
         self.__init_finished = True
         print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
@@ -249,7 +250,6 @@ class Strategy(QtCore.QObject):
         # 获取本策略昨收盘时刻的持仓明细列表，值类型为list，长度可能为0，数据从服务端获取
         # 待续，2017年1月13日10:07:42
         # 获取本策略今天开盘到现在的Order
-        self.__list_QryOrder = list()  # 属于本策略的查询order记录初始化
         if len(self.__user.get_list_QryOrder()) > 0:
             for i in self.__user.get_list_QryOrder():
                 if i['StrategyID'] == self.__strategy_id:  # 策略id相同
@@ -605,27 +605,20 @@ class Strategy(QtCore.QObject):
     """
 
     # 统计指标
-    def statistics(self):
+    def init_statistics(self):
         # 以一天的盘面为周期的统计指标
-        # self.__today_profit = dict_args['today_profit']  # 平仓盈利
+        # self.__today_profit = dict_args['today_profit']  # 平仓盈亏
         # self.__today_commission = dict_args['today_commission']  # 手续费
         # self.__today_trade_volume = dict_args['commission']  # 成交量
         # self.__today_sum_slippage = dict_args['today_sum_slippage']  # 总滑价
         # self.__today_average_slippage = dict_args['today_average_slippage']  # 平均滑价
-        #
-        # self.__position_a_buy_today = dict_args['position_a_buy_today']  # A合约买持仓今仓
-        # self.__position_a_buy_yesterday = dict_args['position_a_buy_yesterday']  # A合约买持仓昨仓
-        # self.__position_a_buy = dict_args['position_a_buy']  # A合约买持仓总仓位
-        # self.__position_a_sell_today = dict_args['position_a_sell_today']  # A合约卖持仓今仓
-        # self.__position_a_sell_yesterday = dict_args['position_a_sell_yesterday']  # A合约卖持仓昨仓
-        # self.__position_a_sell = dict_args['position_a_sell']  # A合约卖持仓总仓位
-        # self.__position_b_buy_today = dict_args['position_b_buy_today']  # B合约买持仓今仓
-        # self.__position_b_buy_yesterday = dict_args['position_b_buy_yesterday']  # B合约买持仓昨仓
-        # self.__position_b_buy = dict_args['position_b_buy']  # B合约买持仓总仓位
-        # self.__position_b_sell_today = dict_args['position_b_sell_today']  # B合约卖持仓今仓
-        # self.__position_b_sell_yesterday = dict_args['position_b_sell_yesterday']  # B合约卖持仓昨仓
-        # self.__position_b_sell = dict_args['position_b_sell']  # B合约卖持仓总仓位
-        pass
+        dict_statistics = dict()  # 保存统计结果的dict
+        if len(self.__list_QryOrder) == 0:
+            return True
+        else:
+            for i in self.__list_QryOrder:
+
+                pass
 
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):

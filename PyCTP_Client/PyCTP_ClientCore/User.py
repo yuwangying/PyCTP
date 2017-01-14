@@ -31,6 +31,7 @@ class User(QtCore.QObject):
         self.__Password = dict_arguments['password'].encode()
         self.__FrontAddress = dict_arguments['frontaddress'].encode()
 
+        self.__list_sessionid = list()  # 当前交易日，期货账户所有会话id，服务端的
         self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
         self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
         self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
@@ -104,6 +105,12 @@ class User(QtCore.QObject):
         self.__TradingDay = self.__trader_api.GetTradingDay().decode()  # 获取交易日
         print("User.__init__() user_id=", self.__user_id.decode(), '登录期货账号成功', Utils.code_transform(login_trade_account))
         time.sleep(1.0)
+
+        """设置user的所有sessions属性"""
+        for i in self.__ctp_manager.get_SocketManager().get_list_sessions_info():
+            if i['userid'] == self.__user_id.decode():
+                self.__list_sessionid.append(i['sessionid'])
+        # print(">>> User.__init__() self.__list_sessionid=", self.__list_sessionid)
 
         """查询资金账户"""
         self.__QryTradingAccount = self.__trader_api.QryTradingAccount()
@@ -350,12 +357,15 @@ class User(QtCore.QObject):
     def OnRtnOrder(self, Order):
         # print("User.OnRtnOrder()", 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         self.action_counter(Order)  # 更新撤单计数字典
-        # for i in self.__list_strategy:  # 转到strategy回调函数
-        #     i.update_action_count()  # 更新策略内合约撤单计数变量
-        #     if Order['OrderRef'][-2:] == i.get_strategy_id():  # 后两位数为策略id，找到对应的
-        #         i.OnRtnOrder(Order)
+        # sessionid过滤
+        if Order['SessionID'] not in self.__list_sessionid:
+            return
+        # 转到Strategy行情回调函数OnRtnOrder
+        for i in self.__list_strategy:  # 转到strategy回调函数
+            if Order['OrderRef'][-2:] == i.get_strategy_id():
+                i.OnRtnOrder(Order)
 
-        # 行情数据存档
+        # Order新增字段
         t = datetime.datetime.now()
         Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Order['StrategyID'] = Order['OrderRef'][-2:]  # 报单引用末两位是策略编号

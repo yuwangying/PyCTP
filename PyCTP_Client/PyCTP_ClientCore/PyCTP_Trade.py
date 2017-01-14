@@ -590,18 +590,16 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRtnOrder(self, Order):
         """报单回报"""
-        from User import User
-        # print('PyCTP_Trade.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         Order = Utils.code_transform(Order)
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade_API.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         # if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
         # 报单回报过滤1、套利系统的服务端或客户端发送的委托；2、字段SystemID不为空
-        self.__user.OnRtnOrder(Order)  # 转到user回调函数
-        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if Order['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnRtnOrder(Order)
+        # self.__user.OnRtnOrder(Order)  # 转到user回调函数
+        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+        #     if Order['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnOrder(Order)
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
