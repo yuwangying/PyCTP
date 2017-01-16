@@ -617,12 +617,21 @@ class Strategy(QtCore.QObject):
 
     # 统计指标
     def init_statistics(self):
-        # 以一天的盘面为周期的统计指标
-        # self.__today_profit = dict_args['today_profit']  # 平仓盈亏
-        # self.__today_commission = dict_args['today_commission']  # 手续费
-        # self.__today_trade_volume = dict_args['commission']  # 成交量
-        # self.__today_sum_slippage = dict_args['today_sum_slippage']  # 总滑价
-        # self.__today_average_slippage = dict_args['today_average_slippage']  # 平均滑价
+        # 统计指标dict保存，dict_statistics
+        self.__dict_statistics = {
+            'close_profit': 0,  # 平仓盈亏
+            'commission': 0,  # 手续费
+            'profit': 0,  # 净盈亏
+            'volume': 0,  # 成交量
+            'amount': 0,  # 成交金额
+            'shift_count': 0,  # 累计滑价
+            'shift_average': 0  # 平均滑价
+        }
+        self.__today_profit = 0
+        self.__today_commission = 0
+        self.__today_trade_volume = 0
+        self.__today_sum_slippage = 0
+        self.__today_average_slippage = 0
         dict_statistics = dict()  # 保存统计结果的dict
         if len(self.__list_QryOrder) == 0:
             return True

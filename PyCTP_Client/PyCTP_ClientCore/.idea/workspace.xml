@@ -23,7 +23,7 @@
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$PyCTP_Market.coverage" NAME="PyCTP_Market Coverage Results" MODIFIED="1479975147534" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$messagebox.coverage" NAME="messagebox Coverage Results" MODIFIED="1482813142667" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_API$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469161407258" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1484525512085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$ClientMain.coverage" NAME="ClientMain Coverage Results" MODIFIED="1484535768518" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$test__1_.coverage" NAME="test (1) Coverage Results" MODIFIED="1469457199918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$Strategy.coverage" NAME="Strategy Coverage Results" MODIFIED="1479007717240" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1469458721210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -77,16 +77,16 @@
       <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="100">
-              <caret line="279" column="11" selection-start-line="279" selection-start-column="11" selection-end-line="279" selection-end-column="11" />
+            <state relative-caret-position="330">
+              <caret line="626" column="37" selection-start-line="626" selection-start-column="37" selection-end-line="626" selection-end-column="37" />
               <folding>
                 <element signature="e#18040#18459#1" expanded="false" />
                 <element signature="e#18465#20066#1" expanded="false" />
                 <element signature="e#22332#27244#1" expanded="false" />
                 <element signature="e#27250#30714#1" expanded="false" />
                 <element signature="e#34327#37722#1" expanded="false" />
-                <element signature="e#67823#71828#0" expanded="false" />
-                <element signature="e#72296#80362#0" expanded="false" />
+                <element signature="e#67944#71949#0" expanded="false" />
+                <element signature="e#72417#80483#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -175,8 +175,8 @@
       <file leaf-file-name="SocketManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SocketManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="284">
-              <caret line="330" column="29" selection-start-line="330" selection-start-column="29" selection-end-line="330" selection-end-column="29" />
+            <state relative-caret-position="368">
+              <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
               <folding>
                 <element signature="e#25#59#0" expanded="true" />
                 <element signature="e#25533#26734#1" expanded="false" />
@@ -681,7 +681,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3285102" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31602708" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31602708" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20408164" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329582" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -1083,18 +1083,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SocketManager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="284">
-          <caret line="330" column="29" selection-start-line="330" selection-start-column="29" selection-end-line="330" selection-end-column="29" />
-          <folding>
-            <element signature="e#25#59#0" expanded="true" />
-            <element signature="e#25533#26734#1" expanded="false" />
-            <marker date="1484533350476" expanded="false" signature="24368:24950" placeholder="&quot;&quot;&quot;...&quot;&quot;&quot;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/User.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="493">
@@ -1106,18 +1094,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/SocketManager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="368">
+          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+          <folding>
+            <element signature="e#25#59#0" expanded="true" />
+            <element signature="e#25533#26734#1" expanded="false" />
+            <marker date="1484533350476" expanded="false" signature="24368:24950" placeholder="&quot;&quot;&quot;...&quot;&quot;&quot;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Strategy.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="100">
-          <caret line="279" column="11" selection-start-line="279" selection-start-column="11" selection-end-line="279" selection-end-column="11" />
+        <state relative-caret-position="330">
+          <caret line="626" column="37" selection-start-line="626" selection-start-column="37" selection-end-line="626" selection-end-column="37" />
           <folding>
             <element signature="e#18040#18459#1" expanded="false" />
             <element signature="e#18465#20066#1" expanded="false" />
             <element signature="e#22332#27244#1" expanded="false" />
             <element signature="e#27250#30714#1" expanded="false" />
             <element signature="e#34327#37722#1" expanded="false" />
-            <element signature="e#67823#71828#0" expanded="false" />
-            <element signature="e#72296#80362#0" expanded="false" />
+            <element signature="e#67944#71949#0" expanded="false" />
+            <element signature="e#72417#80483#0" expanded="false" />
           </folding>
         </state>
       </provider>

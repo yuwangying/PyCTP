@@ -506,6 +506,11 @@
         </column>
         <column>
          <property name="text">
+          <string>新建列</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>成交量</string>
          </property>
         </column>
@@ -516,7 +521,12 @@
         </column>
         <column>
          <property name="text">
-          <string>平均滑点</string>
+          <string>累计滑点</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>净盈亏</string>
          </property>
         </column>
         <column>
