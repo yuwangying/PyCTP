@@ -32,6 +32,7 @@ class User(QtCore.QObject):
         self.__FrontAddress = dict_arguments['frontaddress'].encode()
 
         self.__list_sessionid = list()  # 当前交易日，期货账户所有会话id，服务端的
+        self.__list_position_detail = list()  # 期货账户昨日持仓明细，数据由服务端查询并删选得出
         self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
         self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
         self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
@@ -167,6 +168,11 @@ class User(QtCore.QObject):
 
         print("User.__init__() user_id=", self.__user_id.decode(), "CTPManager记录User初始化信息 ",
               {self.__user_id.decode(): self.__ctp_manager.get_dict_user()[self.__user_id.decode()]})
+
+        """查询user的持仓明细"""
+        for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info():
+            if i['userid'] == self.__user_id.decode():
+                self.__list_position_detail.append(i)
 
     # 设置合约信息
     def set_InstrumentInfo(self, list_InstrumentInfo):

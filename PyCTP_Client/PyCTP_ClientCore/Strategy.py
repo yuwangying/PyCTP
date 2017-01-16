@@ -52,7 +52,7 @@ class Strategy(QtCore.QObject):
         self.__a_order_insert_args = dict()  # a合约报单参数
         self.__b_order_insert_args = dict()  # b合约报单参数
         self.__list_QryOrder = list()  # 属于本策略的QryOrder列表
-        self.__list_position_detail = list()  # 持仓明细列表
+        self.__list_position_detail = list()  # 策略持仓明细列表
         self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
         self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
         self.__instrument_a_tick = None  # A合约tick（第一腿）
@@ -95,20 +95,26 @@ class Strategy(QtCore.QObject):
         # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
         self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
-        # 窗口初始化完成、程序运行中创建的策略，将显示前端窗口名称设置为其属性
+
+        # 程序运行中新添加的策略设置为窗口类和管理类的属性
         if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
             self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
             self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
 
-        if self.init_list_position_detail() is not True:  # 初始化策略持仓明细列表
+        # 初始化策略持仓明细列表
+        if self.init_list_position_detail() is not True:
             print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
             self.__init_finished = False  # 策略初始化失败
             return
-        if self.init_position() is not True:  # 初始化策略持仓变量
+
+        # 初始化策略持仓变量
+        if self.init_position() is not True:
             print("Strategy.__init__() 策略初始化错误：初始化策略持仓变量出错")
             self.__init_finished = False  # 策略初始化失败
             return
-        self.init_statistics()  # 初始化统计指标，待实现
+
+        # 初始化统计指标，待实现
+        self.init_statistics()
 
         self.__init_finished = True
         print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
@@ -249,6 +255,11 @@ class Strategy(QtCore.QObject):
     def init_list_position_detail(self):
         # 获取本策略昨收盘时刻的持仓明细列表，值类型为list，长度可能为0，数据从服务端获取
         # 待续，2017年1月13日10:07:42
+        # 筛选出昨日持仓明细列表
+        for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info():
+            if i['userid'] == self.__user_id and i['strategyid'] == self.__strategy_id:
+                self.__list_position_detail.append(i)
+
         # 获取本策略今天开盘到现在的Order
         if len(self.__user.get_list_QryOrder()) > 0:
             for i in self.__user.get_list_QryOrder():
