@@ -504,17 +504,17 @@ class Strategy(QtCore.QObject):
         order_new = copy.deepcopy(input_order)
         # A成交
         if order_new['InstrumentID'] == self.__a_instrument_id:
-            if order_new['OffsetFlag'] == '0':  # A开仓成交回报
+            if order_new['CombOffsetFlag'] == '0':  # A开仓成交回报
                 if order_new['Direction'] == '0':  # A买开仓成交回报
                     self.__position_a_buy_today += order_new['VolumeTradedBatch']  # 更新持仓
                 elif order_new['Direction'] == '1':  # A卖开仓成交回报
                     self.__position_a_sell_today += order_new['VolumeTradedBatch']  # 更新持仓
-            elif order_new['OffsetFlag'] == '3':  # A平今成交回报
+            elif order_new['CombOffsetFlag'] == '3':  # A平今成交回报
                 if order_new['Direction'] == '0':  # A买平今成交回报
                     self.__position_a_sell_today -= order_new['VolumeTradedBatch']  # 更新持仓
                 elif order_new['Direction'] == '1':  # A卖平今成交回报
                     self.__position_a_buy_today -= order_new['VolumeTradedBatch']  # 更新持仓
-            elif order_new['OffsetFlag'] == '4':  # A平昨成交回报
+            elif order_new['CombOffsetFlag'] == '4':  # A平昨成交回报
                 if order_new['Direction'] == '0':  # A买平昨成交回报
                     self.__position_a_sell_yesterday -= order_new['VolumeTradedBatch']  # 更新持仓
                 elif order_new['Direction'] == '1':  # A卖平昨成交回报
@@ -523,17 +523,17 @@ class Strategy(QtCore.QObject):
             self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
         # B成交
         elif order_new['InstrumentID'] == self.__b_instrument_id:
-            if order_new['OffsetFlag'] == '0':  # B开仓成交回报
+            if order_new['CombOffsetFlag'] == '0':  # B开仓成交回报
                 if order_new['Direction'] == '0':  # B买开仓成交回报
                     self.__position_b_buy_today += order_new['VolumeTradedBatch']  # 更新持仓
                 elif order_new['Direction'] == '1':  # B卖开仓成交回报
                     self.__position_b_sell_today += order_new['VolumeTradedBatch']  # 更新持仓
-            elif order_new['OffsetFlag'] == '3':  # B平今成交回报
+            elif order_new['CombOffsetFlag'] == '3':  # B平今成交回报
                 if order_new['Direction'] == '0':  # B买平今成交回报
                     self.__position_b_sell_today -= order_new['VolumeTradedBatch']  # 更新持仓
                 elif order_new['Direction'] == '1':  # B卖平今成交回报
                     self.__position_b_buy_today -= order_new['VolumeTradedBatch']  # 更新持仓
-            elif order_new['OffsetFlag'] == '4':  # B平昨成交回报
+            elif order_new['CombOffsetFlag'] == '4':  # B平昨成交回报
                 if order_new['Direction'] == '0':  # B买平昨成交回报
                     self.__position_b_sell_yesterday -= order_new['VolumeTradedBatch']  # 更新持仓
                 elif order_new['Direction'] == '1':  # B卖平昨成交回报
