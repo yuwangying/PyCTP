@@ -45,8 +45,8 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESTART)
-        self.SubscribePublicTopic(PyCTP.THOST_TERT_RESTART)
+        self.SubscribePrivateTopic(PyCTP.THOST_TERT_QUICK)  # 从本次连线之后开始发送数据
+        self.SubscribePublicTopic(PyCTP.THOST_TERT_QUICK)
         self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())

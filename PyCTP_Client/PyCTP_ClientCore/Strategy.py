@@ -270,7 +270,10 @@ class Strategy(QtCore.QObject):
 
         if len(self.__list_QryOrder) > 0:  # 本策略的self.__list_QryOrder有记录
             for i in self.__list_QryOrder:  # 遍历本策略的self.__list_QryOrder
-                self.update_list_position_detail(i)  # 更新持仓明细列表
+                self.__user.action_counter(i)  # 更新撤单计数
+                self.update_list_order_process(i)  # 更新挂单列表
+                order_new = self.add_VolumeTradedBatch(i)  # 增加本次成交量字段VolumeTradedBatch
+                self.update_list_position_detail(order_new)  # 更新持仓明细列表
             return True
         elif len(self.__list_QryOrder) == 0:  # 本策略的self.__list_QryOrder无记录
             return True
@@ -889,7 +892,6 @@ class Strategy(QtCore.QObject):
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
         self.__user.action_counter(Order)  # 更新撤单计数
         self.update_list_order_process(Order)  # 更新挂单列表
-        # self.update_list_order_pending(dict_args)  # 更新挂单列表
         order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
         self.update_list_position_detail(order_new)  # 更新持仓明细列表
         self.update_position(order_new)  # 更新持仓变量

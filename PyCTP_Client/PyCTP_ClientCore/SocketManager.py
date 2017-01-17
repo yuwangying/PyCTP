@@ -316,7 +316,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 elif buff['MsgType'] == 3:  # 查询策略，MsgType=3
-                    print("SocketManager.receive_msg() MsgType=15，查询持仓明细", buff)
+                    print("SocketManager.receive_msg() MsgType=3，查询策略", buff)
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         # self.signal_label_login_error_text.emit('查询下单算法成功')
                         self.set_list_strategy_info(buff['Info'])
@@ -325,7 +325,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 elif buff['MsgType'] == 15:  # 查询持仓明细，MsgType=15
-                    print("SocketManager.receive_msg() MsgType=3，查询策略", buff)  # 输出错误消息
+                    print("SocketManager.receive_msg() MsgType=15，查询持仓明细", buff)  # 输出错误消息
                     if buff['MsgResult'] == 0:  # 消息结果成功
                         # self.signal_label_login_error_text.emit('查询策略成功')
                         self.set_list_position_detail_info(buff['Info'])
