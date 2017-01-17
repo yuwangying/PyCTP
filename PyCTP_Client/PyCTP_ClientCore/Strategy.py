@@ -733,6 +733,12 @@ class Strategy(QtCore.QObject):
     def get_spread_long(self):
         return self.__spread_long
 
+    def get_a_price_tick(self):
+        return self.__a_price_tick
+
+    def get_b_price_tick(self):
+        return self.__b_price_tick
+
     def set_clicked_status(self, int_input):  # 0：未选中、1：单账户窗口中被选中、2：总账户窗口中被选中
         self.__clicked_status = int_input
 

@@ -347,10 +347,12 @@ class CTPManager(QtCore.QObject):
 
             # 绑定信号槽：设置期货账户交易开关 -> 更新单期货账户窗口“开始策略”按钮状态
             i_user.signal_update_pushButton_start_strategy.connect(QAccountWidget_single.slot_update_pushButton_start_strategy)
+            # 绑定信号槽：更新期货账户资金信息 -> 界面更新账户资金信息
+            i_user.signal_update_panel_show_account.connect(QAccountWidget_single.slot_update_panel_show_account)
 
         self.__client_main.set_list_QAccountWidget(self.__list_QAccountWidget)  # 窗口对象列表设置为ClientMain的属性
 
-        print(">>> CTPManager.create_QAccountWidget() 窗口添加到tab_accounts=", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+        print(">>> CTPManager.create_QAccountWidget() 窗口添加到tab_accounts=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """窗口添加到tab_accounts"""
         for i_widget in self.__list_QAccountWidget:
             QApplication.processEvents()
@@ -365,6 +367,8 @@ class CTPManager(QtCore.QObject):
             self.__socket_manager.signal_restore_groupBox.connect(i_widget.slot_restore_groupBox_pushButton)
             # 绑定信号槽：内核删除策略 -> 界面删除策略
             self.signal_remove_strategy.connect(i_widget.slot_remove_strategy)
+            # 绑定信号槽：QAccountWidget需要弹窗 -> 调用ClientMain中的槽函数slot_show_QMessageBox
+            i_widget.signal_show_QMessageBox.connect(self.__client_main.slot_show_QMessageBox)
 
         print(">>> CTPManager.create_QAccountWidget() 向界面插入策略=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """向界面插入策略"""

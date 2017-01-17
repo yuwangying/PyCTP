@@ -506,7 +506,7 @@
         </column>
         <column>
          <property name="text">
-          <string>新建列</string>
+          <string>净盈亏</string>
          </property>
         </column>
         <column>
@@ -521,12 +521,12 @@
         </column>
         <column>
          <property name="text">
-          <string>累计滑点</string>
+          <string>累计滑价</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>净盈亏</string>
+          <string>平均滑价</string>
          </property>
         </column>
         <column>

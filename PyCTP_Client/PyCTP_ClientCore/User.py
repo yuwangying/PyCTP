@@ -17,6 +17,7 @@ from PyQt4 import QtCore
 class User(QtCore.QObject):
     signal_update_pushButton_start_strategy = QtCore.pyqtSignal()  # 定义信号：内核设置期货账户交易开关 -> 更新窗口“开始策略”按钮状态
     signal_label_login_error_text = QtCore.pyqtSignal(str)  # 定义信号：->更新登录窗口文本
+    signal_update_panel_show_account = QtCore.pyqtSignal(dict)  # 定义信号：更新界面账户资金信息
 
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     def __init__(self, dict_arguments, parent=None, ctp_manager=None):
@@ -428,6 +429,17 @@ class User(QtCore.QObject):
     # 获取dfQryTrade
     def get_dfQryTrade(self):
         return self.__dfQryTrade
+
+    # 更新界面期货账户数据
+    def update_panel_show_account(self):
+        dict_args = dict()
+        # 静态权益 PreBalance
+        dict_args['PreBalance'] = self.__QryTradingAccount[0]['PreBalance']
+        # 入金金额 Deposit
+        dict_args['Deposit'] = self.__QryTradingAccount[0]['Deposit']
+        # 出金金额 Withdraw
+        dict_args['Withdraw'] = self.__QryTradingAccount[0]['Withdraw']
+        self.signal_update_panel_show_account.emit(dict_args)
 
 
 if __name__ == '__main__':

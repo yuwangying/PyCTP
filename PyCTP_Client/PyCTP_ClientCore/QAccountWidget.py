@@ -50,6 +50,7 @@ class QAccountWidget(QWidget, Ui_Form):
     Signal_SendMsg = QtCore.pyqtSignal(str)  # 自定义信号
     signal_update_groupBox_trade_args_for_query = QtCore.pyqtSignal(Strategy)  # 定义信号：更新界面参数框
     signal_send_msg = QtCore.pyqtSignal(str)  # 窗口修改策略 -> SocketManager发送修改指令
+    signal_show_QMessageBox = QtCore.pyqtSignal(list)  # 定义信号：弹窗 -> ClientMain(主线程)中槽函数调用弹窗
 
     def __init__(self, str_widget_name, obj_user=None, list_user=None, parent=None, ClientMain=None, SocketManager=None, CTPManager=None):
         """
@@ -122,6 +123,10 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__item_only_close_status = None  # 策略开关item的状态，dict
         self.__clicked_item = None  # 鼠标点击的item对象
         self.__clicked_status = None  # 鼠标点击的信息
+
+        # 更新账户资金信息
+        if self.is_single_user_widget():
+            self.__user.update_panel_show_account()
 
     # 自定义槽
     @pyqtSlot(str)
@@ -243,9 +248,11 @@ class QAccountWidget(QWidget, Ui_Form):
             item_hold_profit = QtGui.QTableWidgetItem('-')  # 持仓盈亏
             item_close_profit = QtGui.QTableWidgetItem('-')  # 平仓盈亏
             item_commission = QtGui.QTableWidgetItem('-')  # 手续费
+            item_profit = QtGui.QTableWidgetItem('-')  # 净盈亏
             item_trade_volume = QtGui.QTableWidgetItem('-')  # 成交量
             item_amount = QtGui.QTableWidgetItem('-')  # 成交金额
-            item_average_shift = QtGui.QTableWidgetItem('-')  # 平均滑点
+            item_total_shift = QtGui.QTableWidgetItem('-')  # 累计滑价
+            item_average_shift = QtGui.QTableWidgetItem('-')  # 平均滑价
             item_trade_model = QtGui.QTableWidgetItem(dict_strategy_args['trade_model'])  # 交易模型
             item_order_algorithm = QtGui.QTableWidgetItem(dict_strategy_args['order_algorithm'])  # 下单算法
             self.tableWidget_Trade_Args.setItem(i_row, 0, item_strategy_on_off)  # 开关
@@ -259,11 +266,13 @@ class QAccountWidget(QWidget, Ui_Form):
             self.tableWidget_Trade_Args.setItem(i_row, 8, item_hold_profit)  # 持仓盈亏
             self.tableWidget_Trade_Args.setItem(i_row, 9, item_close_profit)  # 平仓盈亏
             self.tableWidget_Trade_Args.setItem(i_row, 10, item_commission)  # 手续费
-            self.tableWidget_Trade_Args.setItem(i_row, 11, item_trade_volume)  # 成交量
-            self.tableWidget_Trade_Args.setItem(i_row, 12, item_amount)  # 成交金额
-            self.tableWidget_Trade_Args.setItem(i_row, 13, item_average_shift)  # 平均滑点
-            self.tableWidget_Trade_Args.setItem(i_row, 14, item_trade_model)  # 交易模型
-            self.tableWidget_Trade_Args.setItem(i_row, 15, item_order_algorithm)  # 下单算法
+            self.tableWidget_Trade_Args.setItem(i_row, 11, item_profit)  # 净盈亏
+            self.tableWidget_Trade_Args.setItem(i_row, 12, item_trade_volume)  # 成交量
+            self.tableWidget_Trade_Args.setItem(i_row, 13, item_amount)  # 成交金额
+            self.tableWidget_Trade_Args.setItem(i_row, 14, item_total_shift)  # 累计滑价
+            self.tableWidget_Trade_Args.setItem(i_row, 15, item_average_shift)  # 平均滑价
+            self.tableWidget_Trade_Args.setItem(i_row, 16, item_trade_model)  # 交易模型
+            self.tableWidget_Trade_Args.setItem(i_row, 17, item_order_algorithm)  # 下单算法
             self.tableWidget_Trade_Args.setCurrentCell(i_row, 0)  # 设置当前行为“当前行”
 
             self.set_on_tableWidget_Trade_Args_cellClicked(i_row, 0)  # 触发鼠标左击单击该策略行
@@ -496,19 +505,24 @@ class QAccountWidget(QWidget, Ui_Form):
                     if self.__item_only_close_status['enable'] == 0:
                         item_only_close.setFlags(item_only_close.flags() ^ (QtCore.Qt.ItemIsEnabled))  # 激活item
                         self.__item_only_close_status['enable'] = 1  # 0禁用、1激活
+                # 总持仓
+                item_position = self.tableWidget_Trade_Args.item(i_row, 5)
+                item_position.setText(
+                    str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_sell']))
+                # 买持仓
+                item_position_buy = self.tableWidget_Trade_Args.item(i_row, 6)
+                item_position_buy.setText(
+                    str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_buy']))
+                # 卖持仓
+                item_position_sell = self.tableWidget_Trade_Args.item(i_row, 7)
+                item_position_sell.setText(
+                    str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_sell']))
                 # 交易模型
-                item_trade_model = self.tableWidget_Trade_Args.item(i_row, 14)
+                item_trade_model = self.tableWidget_Trade_Args.item(i_row, 16)
                 item_trade_model.setText(dict_strategy_args['trade_model'])
                 # 下单算法
-                item_order_algorithm = self.tableWidget_Trade_Args.item(i_row, 15)
+                item_order_algorithm = self.tableWidget_Trade_Args.item(i_row, 17)
                 item_order_algorithm.setText(dict_strategy_args['order_algorithm'])
-                # 持仓变量
-                item_position = self.tableWidget_Trade_Args.item(i_row, 5)  # 总持仓
-                item_position.setText(str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_sell']))
-                item_position_buy = self.tableWidget_Trade_Args.item(i_row, 6)  # 买持仓
-                item_position_buy.setText(str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_buy']))
-                item_position_sell = self.tableWidget_Trade_Args.item(i_row, 7)  # 卖持仓
-                item_position_sell.setText(str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_sell']))
 
                 break  # 在tableWidget中找到对应的策略行，结束for循环
         """更新groupBox"""
@@ -548,12 +562,16 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bchedan.setText(str(obj_strategy.get_b_action_count()))
             # 空头开
             self.doubleSpinBox_kongtoukai.setValue(dict_strategy_args['sell_open'])
+            self.doubleSpinBox_kongtoukai.setSingleStep(obj_strategy.get_a_price_tick())
             # 空头平
             self.doubleSpinBox_kongtouping.setValue(dict_strategy_args['buy_close'])
+            self.doubleSpinBox_kongtouping.setSingleStep(obj_strategy.get_a_price_tick())
             # 多头开
             self.doubleSpinBox_duotoukai.setValue(dict_strategy_args['buy_open'])
+            self.doubleSpinBox_duotoukai.setSingleStep(obj_strategy.get_a_price_tick())
             # 多头平
             self.doubleSpinBox_duotouping.setValue(dict_strategy_args['sell_close'])
+            self.doubleSpinBox_duotouping.setSingleStep(obj_strategy.get_a_price_tick())
             # 空头开-开关
             if dict_strategy_args['sell_open_on_off'] == 0:
                 self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
@@ -709,8 +727,11 @@ class QAccountWidget(QWidget, Ui_Form):
                 break
 
     # 更新界面：“账户资金”框，panel_show_account
-    def update_panel_show_account(self, dict_args):
-        pass
+    @QtCore.pyqtSlot(dict)
+    def slot_update_panel_show_account(self, dict_args):
+        self.label_value_jingtaiquanyi.setText(str(dict_args['PreBalance']))
+        self.label_value_jinrirujin.setText(str(dict_args['Deposit']))
+        self.label_value_jinrichujin.setText(str(dict_args['Withdraw']))
 
     # 鼠标右击弹出菜单中的“添加策略”
     @pyqtSlot()
@@ -836,7 +857,8 @@ class QAccountWidget(QWidget, Ui_Form):
             self.signal_send_msg.emit(json_trade_onoff)
         else:
             print("QAccountWidget.on_pushButton_start_strategy_clicked() 按钮显示状态与内核值不一致，不发送指令交易开关指令，widget_name=", self.__widget_name, "按钮显示：", self.pushButton_start_strategy.text(), "内核开关值：", on_off)
-    
+
+    # 联动加
     @pyqtSlot()
     def on_pushButton_liandongjia_clicked(self):
         """
@@ -844,7 +866,17 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+        price_tick = self.__client_main.get_clicked_strategy().get_a_price_tick()  # 最小跳
+        value = self.doubleSpinBox_duotoukai.value() + price_tick  # 计算更新值
+        self.doubleSpinBox_duotoukai.setValue(value)
+        value = self.doubleSpinBox_duotouping.value() + price_tick  # 计算更新值
+        self.doubleSpinBox_duotouping.setValue(value)
+        value = self.doubleSpinBox_kongtoukai.value() + price_tick  # 计算更新值
+        self.doubleSpinBox_kongtoukai.setValue(value)
+        value = self.doubleSpinBox_kongtouping.value() + price_tick  # 计算更新值
+        self.doubleSpinBox_kongtouping.setValue(value)
+
+    # 联动减
     @pyqtSlot()
     def on_pushButton_liandongjian_clicked(self):
         """
@@ -852,6 +884,15 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+        price_tick = self.__client_main.get_clicked_strategy().get_a_price_tick()  # 最小跳
+        value = self.doubleSpinBox_duotoukai.value() - price_tick  # 计算更新值
+        self.doubleSpinBox_duotoukai.setValue(value)
+        value = self.doubleSpinBox_duotouping.value() - price_tick  # 计算更新值
+        self.doubleSpinBox_duotouping.setValue(value)
+        value = self.doubleSpinBox_kongtoukai.value() - price_tick  # 计算更新值
+        self.doubleSpinBox_kongtoukai.setValue(value)
+        value = self.doubleSpinBox_kongtouping.value() - price_tick  # 计算更新值
+        self.doubleSpinBox_kongtouping.setValue(value)
     
     @pyqtSlot()
     def on_pushButton_set_strategy_clicked(self):
@@ -860,6 +901,22 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+        # 参数排错处理
+        if int(self.lineEdit_zongshou.text()) <= 0:  # 正确值：总手大于零的整数
+            self.signal_show_QMessageBox.emit(["错误", "‘总手’必须为大于零的整数"])
+            return
+        elif int(self.lineEdit_meifen.text()) <= 0:  # 正确值：每份大于零的整数
+            self.signal_show_QMessageBox.emit(["错误", "‘每份’必须为大于零的整数"])
+            return
+        elif int(self.lineEdit_zongshou.text()) < int(self.lineEdit_meifen.text()):  # 正确值：每份小于总手
+            self.signal_show_QMessageBox.emit(["错误", "‘总手’必须大于‘每份’"])
+            return
+        elif self.doubleSpinBox_kongtoukai.value() <= self.doubleSpinBox_kongtouping.value():  # 正确值：空头开 > 空头平
+            self.signal_show_QMessageBox.emit(["错误", "‘空头开’必须大于‘空头平’"])
+            return
+        elif self.doubleSpinBox_duotoukai.value() >= self.doubleSpinBox_duotouping.value():  # 正确值：多头开 < 多头平
+            self.signal_show_QMessageBox.emit(["警告", "‘多头开’必须小于‘多头平’"])
+            return
         dict_args = {
             "MsgRef": self.__socket_manager.msg_ref_add(),
             "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
@@ -1286,6 +1343,8 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+
+
 
 
 if __name__ == "__main__":
