@@ -349,6 +349,7 @@ class CTPManager(QtCore.QObject):
             i_user.signal_update_pushButton_start_strategy.connect(QAccountWidget_single.slot_update_pushButton_start_strategy)
             # 绑定信号槽：更新期货账户资金信息 -> 界面更新账户资金信息
             i_user.signal_update_panel_show_account.connect(QAccountWidget_single.slot_update_panel_show_account)
+            i_user.init_panel_show_account()  # 窗口显示账户初始化资金信息
 
         self.__client_main.set_list_QAccountWidget(self.__list_QAccountWidget)  # 窗口对象列表设置为ClientMain的属性
 

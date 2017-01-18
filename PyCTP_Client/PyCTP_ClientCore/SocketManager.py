@@ -334,16 +334,6 @@ class SocketManager(QtCore.QThread):
                     elif buff['MsgResult'] == 1:  # 消息结果失败
                         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
                         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
-                # elif buff['MsgType'] == 10:  # 查询策略昨仓，MsgType=10
-                #     print("SocketManager.receive_msg() MsgType=10，查询策略昨仓", buff)
-                #     if buff['MsgResult'] == 0:  # 消息结果成功
-                #         # self.signal_label_login_error_text.emit('查询策略昨仓成功')
-                #         # self.signal_label_login_error_text.emit('开始初始化内核')
-                #         self.set_list_yesterday_position(buff['Info'])  # 所有策略昨仓的list
-                #         self.signal_ctp_manager_init.emit()  # 调用CTPManager的初始化方法
-                #     elif buff['MsgResult'] == 1:  # 消息结果失败
-                #         self.signal_label_login_error_text.emit(buff['MsgErrorReason'])  # 界面显示错误消息
-                #         self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
             # 内核初始化完成
             elif self.__ctp_manager.get_init_UI_finished():
                 if buff['MsgType'] == 3:  # 查询策略，MsgType=3

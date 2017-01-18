@@ -124,10 +124,6 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__clicked_item = None  # 鼠标点击的item对象
         self.__clicked_status = None  # 鼠标点击的信息
 
-        # 更新账户资金信息
-        if self.is_single_user_widget():
-            self.__user.update_panel_show_account()
-
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):
@@ -729,9 +725,34 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新界面：“账户资金”框，panel_show_account
     @QtCore.pyqtSlot(dict)
     def slot_update_panel_show_account(self, dict_args):
-        self.label_value_jingtaiquanyi.setText(str(dict_args['PreBalance']))
-        self.label_value_jinrirujin.setText(str(dict_args['Deposit']))
-        self.label_value_jinrichujin.setText(str(dict_args['Withdraw']))
+        print(">>> QAccountWidget.slot_update_panel_show_account() dict_args=", dict_args)
+        """
+        参数实例
+        {
+        'Capital': 1760786.59375,
+        'PreBalance': 1760668.7,
+        'PositionProfit': 200.0,
+        'CloseProfit': 0.0,
+        'Commission': 82.10625,
+        'Available': 1629190.59375,
+        'CurrMargin': 131396.0,
+        'FrozenMargin': 0.0,
+        'Risk': 0.07462346684510018
+        'Deposit': 0.0,
+        'Withdraw': 0.0,
+        }
+        """
+        self.label_value_dongtaiquanyi.setText(str(int(dict_args['Capital'])))  # 动态权益
+        self.label_value_jingtaiquanyi.setText(str(int(dict_args['PreBalance'])))  # 静态权益
+        self.label_value_chicangyingkui.setText(str(int(dict_args['PositionProfit'])))  # 持仓盈亏
+        self.label_value_pingcangyingkui.setText(str(int(dict_args['CloseProfit'])))  # 平仓盈亏
+        self.label_value_shouxufei.setText(str(int(dict_args['Commission'])))  # 手续费
+        self.label_value_keyongzijin.setText(str(int(dict_args['Available'])))  # 可用资金
+        self.label_value_zhanyongbaozhengjin.setText(str(int(dict_args['CurrMargin'])))  # 占用保证金
+        self.label_value_xiadandongjie.setText(str(int(dict_args['FrozenMargin'])))  # 下单冻结
+        self.label_value_fengxiandu.setText(str(int(dict_args['Risk']*100))+'%')  # 风险度
+        self.label_value_jinrirujin.setText(str(int(dict_args['Deposit'])))  # 今日入金
+        self.label_value_jinrichujin.setText(str(int(dict_args['Withdraw'])))  # 今日出金
 
     # 鼠标右击弹出菜单中的“添加策略”
     @pyqtSlot()

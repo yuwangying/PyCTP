@@ -7,6 +7,7 @@ Created on Wed Jul 20 08:46:13 2016
 
 import time
 import datetime
+import copy
 from pymongo import MongoClient
 from PyCTP_Trade import PyCTP_Trader_API
 import Utils
@@ -31,9 +32,9 @@ class User(QtCore.QObject):
         self.__BrokerID = dict_arguments['brokerid'].encode()
         self.__Password = dict_arguments['password'].encode()
         self.__FrontAddress = dict_arguments['frontaddress'].encode()
-
         self.__list_sessionid = list()  # 当前交易日，期货账户所有会话id，服务端的
-        self.__list_position_detail = list()  # 期货账户昨日持仓明细，数据由服务端查询并删选得出
+        self.__list_position_detail = list()  # 期货账户持仓明细
+        self.__list_order_process = list()  # 挂单列表，未成交、部分成交还在队列中
         self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
         self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
         self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
@@ -115,8 +116,8 @@ class User(QtCore.QObject):
         # print(">>> User.__init__() self.__list_sessionid=", self.__list_sessionid)
 
         """查询资金账户"""
-        self.__QryTradingAccount = self.__trader_api.QryTradingAccount()
-        if isinstance(self.__QryTradingAccount, list):
+        self.__QryTradingAccount = self.__trader_api.QryTradingAccount()[0]
+        if isinstance(self.__QryTradingAccount, dict):
             self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = 0
             print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户成功',
                   Utils.code_transform(self.__QryTradingAccount))
@@ -174,6 +175,12 @@ class User(QtCore.QObject):
         for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info():
             if i['userid'] == self.__user_id.decode():
                 self.__list_position_detail.append(i)
+
+        # 初始化策略持仓明细列表
+        if self.init_list_position_detail() is not True:
+            print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
+            self.__init_finished = False  # 策略初始化失败
+            return
 
     # 设置合约信息
     def set_InstrumentInfo(self, list_InstrumentInfo):
@@ -430,16 +437,143 @@ class User(QtCore.QObject):
     def get_dfQryTrade(self):
         return self.__dfQryTrade
 
+    def get_QryTradingAccount(self):
+        return self.__QryTradingAccount
+
+    # 初始化持仓明细列表
+    def init_list_position_detail(self):
+        # 筛选出期货账户的持仓明细
+        for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info():
+            if i['userid'] == self.__user_id:
+                self.__list_position_detail.append(i)
+
+        if len(self.__list_QryOrder) > 0:  # 期货账户的QryOrder有记录
+            for i in self.__list_QryOrder:  # 遍历期货账户的QryOrder
+                self.action_counter(i)  # 更新撤单计数
+                self.update_list_order_process(i)  # 更新挂单列表
+                order_new = self.add_VolumeTradedBatch(i)  # 增加本次成交量字段VolumeTradedBatch
+                self.update_list_position_detail(order_new)  # 更新持仓明细列表
+            return True
+        elif len(self.__list_QryOrder) == 0:  # 本策略的self.__list_QryOrder无记录
+            return True
+
+    # 更新挂单列表，重写方法self.update_list_order_pending()
+    def update_list_order_process(self, order):
+        """
+        order中的字段OrderStatus
+         0 全部成交
+         1 部分成交，订单还在交易所撮合队列中
+         3 未成交，订单还在交易所撮合队列中
+         5 已撤销
+         a 未知 - 订单已提交交易所，未从交易所收到确认信息
+        """
+        if order['OrderStatus'] == '0':
+            for i in self.__list_order_process:
+                if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                    self.__list_order_process.remove(i)  # 删除找到的order记录
+                    break
+        elif order['OrderStatus'] == '1':
+            for i in self.__list_order_process:
+                if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                    self.__list_order_process.remove(i)  # 删除找到的order记录
+                    self.__list_order_process.append(order)  # 添加最新的order记录
+                    break
+        elif order['OrderStatus'] == '3':
+            self.__list_order_process.append(order)
+        elif order['OrderStatus'] == '5':
+            for i in self.__list_order_process:
+                if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                    self.__list_order_process.remove(i)  # 删除找到的order记录
+                    break
+        elif order['OrderStatus'] == 'a':
+            pass  # 不需要处理
+
+    # 更新持仓明细列表
+    def update_list_position_detail(self, input_order):
+        """
+        order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
+        0：开仓
+        1：平仓
+        3：平今
+        4：平昨
+        """
+        # 跳过无成交的order记录
+        if input_order['VolumeTraded'] == 0:
+            return
+        order_new = copy.deepcopy(input_order)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+        # order_new中"CombOffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓order直接添加到持仓明细列表里
+        if order_new['CombOffsetFlag'] == '0':
+            self.__list_position_detail.append(order_new)
+        # order_new中"CombOffsetFlag"值="3"为平今
+        if order_new['CombOffsetFlag'] == '3':
+            for i in self.__list_position_detail:  # i为order结构体，类型为dict
+                # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同
+                if i['TradingDay'] == order_new['TradingDay'] \
+                        and i['InstrumentID'] == order_new['InstrumentID'] \
+                        and i['CombHedgeFlag'] == order_new['CombHedgeFlag']:
+                    # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
+                    if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
+                        self.__list_position_detail.remove(i)
+                        break
+                    # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
+                        i['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
+                        break
+                    # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
+                        order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
+                        self.__list_position_detail.remove(i)  # 待验证for循环代码，待续，2017年1月12日22:56:31
+        # order_new中"CombOffsetFlag"值="4"为平昨
+        elif order_new['CombOffsetFlag'] == '4':
+            for i in self.__list_position_detail:  # i为order结构体，类型为dict
+                # 持仓明细中order与order_new比较：交易日不相同、合约代码相同、投保标志相同
+                if i['TradingDay'] != order_new['TradingDay'] \
+                        and i['InstrumentID'] == order_new['InstrumentID'] \
+                        and i['CombHedgeFlag'] == order_new['CombHedgeFlag']:
+                    # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
+                    if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
+                        self.__list_position_detail.remove(i)
+                        break
+                    # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
+                        i['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
+                        break
+                    # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
+                    elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
+                        order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
+                        self.__list_position_detail.remove(i)  # 待验证for循环代码，待续，2017年1月12日22:56:31
+
     # 更新界面期货账户数据
     def update_panel_show_account(self):
         dict_args = dict()
         # 静态权益 PreBalance
-        dict_args['PreBalance'] = self.__QryTradingAccount[0]['PreBalance']
+        dict_args['PreBalance'] = self.__QryTradingAccount['PreBalance']
         # 入金金额 Deposit
-        dict_args['Deposit'] = self.__QryTradingAccount[0]['Deposit']
+        dict_args['Deposit'] = self.__QryTradingAccount['Deposit']
         # 出金金额 Withdraw
-        dict_args['Withdraw'] = self.__QryTradingAccount[0]['Withdraw']
+        dict_args['Withdraw'] = self.__QryTradingAccount['Withdraw']
+        # 动态权益=静态权益+入金金额-出金金额+平仓盈亏+持仓盈亏-手续费
+        dict_args['dongtaiquanyi'] = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
         self.signal_update_panel_show_account.emit(dict_args)
+
+    # 窗口显示账户资金初始化信息
+    def init_panel_show_account(self):
+        # 动态权益=静态权益+入金金额-出金金额+平仓盈亏+持仓盈亏-手续费
+        Capital = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
+        self.__dict_panel_show_account = {
+            'Capital': Capital,
+            'PreBalance': self.__QryTradingAccount['PreBalance'],  # 静态权益
+            'PositionProfit': self.__QryTradingAccount['PositionProfit'],  # 持仓盈亏
+            'CloseProfit': self.__QryTradingAccount['CloseProfit'],  # 平仓盈亏
+            'Commission': self.__QryTradingAccount['Commission'],  # 手续费
+            'Available': self.__QryTradingAccount['Available'],  # 可用资金
+            'CurrMargin': self.__QryTradingAccount['CurrMargin'],  # 占用保证金
+            'FrozenMargin': self.__QryTradingAccount['FrozenMargin'],  # 下单冻结
+            'Risk': self.__QryTradingAccount['CurrMargin'] / Capital,  # 风险度
+            'Deposit': self.__QryTradingAccount['Deposit'],  # 今日入金
+            'Withdraw': self.__QryTradingAccount['Withdraw']  # 今日出金
+        }
+        self.signal_update_panel_show_account.emit(self.__dict_panel_show_account)
 
 
 if __name__ == '__main__':
