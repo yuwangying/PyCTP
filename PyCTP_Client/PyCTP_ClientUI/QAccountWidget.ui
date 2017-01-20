@@ -521,12 +521,12 @@
         </column>
         <column>
          <property name="text">
-          <string>累计滑价</string>
+          <string>A成交率</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>平均滑价</string>
+          <string>B成交率</string>
          </property>
         </column>
         <column>

@@ -143,11 +143,11 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def QryInstrumentCommissionRate(self, InstrumentID):
         """ 请求查询合约手续费率 """
-        QryInstrumentCommissionRate = dict(BrokerID = self.__BrokerID, InvestorID = self.__InvestorID, InstrumentID = InstrumentID)
-        self.__rsp_QryInstrumentCommissionRate = dict(results       =  []
-                                                      , RequestID   = self.__IncRequestID()
-                                                      , ErrorID     = 0
-                                                      , event       = threading.Event())
+        QryInstrumentCommissionRate = dict(BrokerID=self.__BrokerID, InvestorID=self.__InvestorID, InstrumentID=InstrumentID)
+        self.__rsp_QryInstrumentCommissionRate = dict(results=[],
+                                                      RequestID=self.__IncRequestID(),
+                                                      ErrorID=0,
+                                                      event=threading.Event())
         ret = self.ReqQryInstrumentCommissionRate(QryInstrumentCommissionRate, self.__rsp_QryInstrumentCommissionRate['RequestID'])
         if ret == 0:
             self.__rsp_QryInstrumentCommissionRate['event'].clear()
@@ -210,6 +210,27 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 if self.__rsp_QryInvestorPosition['ErrorID'] != 0:
                     return self.__rsp_QryInvestorPosition['ErrorID']
                 return self.__rsp_QryInvestorPosition['results']
+            else:
+                return -4
+        return ret
+
+    def QryInvestorPositionDetail(self, InstrumentID=b''):
+        """ 请求查询投资者持仓明细 """
+        # ywy 20170120
+        QryInvestorPositionFieldDetail = dict(BrokerID=self.__BrokerID, 
+                                              InvestorID=self.__InvestorID,
+                                              InstrumentID=InstrumentID)
+        self.__rsp_QryInvestorPositionDetail = dict(results=[], 
+                                                    RequestID=self.__IncRequestID(),
+                                                    ErrorID=0,
+                                                    event=threading.Event())
+        ret = self.ReqQryInvestorPositionDetail(QryInvestorPositionFieldDetail, self.__rsp_QryInvestorPositionDetail['RequestID'])
+        if ret == 0:
+            self.__rsp_QryInvestorPositionDetail['event'].clear()
+            if self.__rsp_QryInvestorPositionDetail['event'].wait(self.TIMEOUT):
+                if self.__rsp_QryInvestorPositionDetail['ErrorID'] != 0:
+                    return self.__rsp_QryInvestorPositionDetail['ErrorID']
+                return self.__rsp_QryInvestorPositionDetail['results']
             else:
                 return -4
         return ret
@@ -507,6 +528,16 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             if IsLast:
                 self.__rsp_QryInvestorPosition['event'].set()
 
+    def OnRspQryInvestorPositionDetail(self, InvestorPositionDetail, RspInfo, RequestID, IsLast):
+        """ 请求查询投资者持仓明细响应 """
+        if RequestID == self.__rsp_QryInvestorPositionDetail['RequestID']:
+            if RspInfo is not None:
+                self.__rsp_QryInvestorPositionDetail.update(RspInfo)
+            if InvestorPositionDetail is not None:
+                self.__rsp_QryInvestorPositionDetail['results'].append(InvestorPositionDetail)
+            if IsLast:
+                self.__rsp_QryInvestorPositionDetail['event'].set()
+
     def OnRspQryTradingAccount(self, TradingAccount, RspInfo, RequestID, IsLast):
         """ 请求查询资金账户响应 """
         if RequestID == self.__rsp_QryTradingAccount['RequestID']:
@@ -606,10 +637,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         Trade = Utils.code_transform(Trade)
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
-        self.__user.OnRtnTrade(Trade)  # 转到user回调函数
-        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if Trade['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnRtnTrade(Trade)
+        # self.__user.OnRtnTrade(Trade)  # 转到user回调函数
+        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+        #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnTrade(Trade)
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """

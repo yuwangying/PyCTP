@@ -39,6 +39,7 @@ class User(QtCore.QObject):
         self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
         self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
         self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
+        self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
         # self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，
         self.__dict_action_counter = dict()  # 记录合约撤单次数的字典,撤单操作时添加次数，交易日换日时初始化值
         self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用后两位为策略编号，前十位递增一
@@ -139,15 +140,28 @@ class User(QtCore.QObject):
                   Utils.code_transform(self.__QryInvestorPosition))
         time.sleep(1.0)
 
+        """查询投资者持仓明细"""
+        self.__QryInvestorPositionDetail = self.__trader_api.QryInvestorPositionDetail()
+        if isinstance(self.__QryInvestorPositionDetail, list):
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryInvestorPositionDetail'] = 0
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询投资者持仓明细成功',
+                  Utils.code_transform(self.__QryInvestorPositionDetail))
+        else:
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()][
+                'QryInvestorPositionDetail'] = self.__QryInvestorPositionDetail
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询投资者持仓明细失败',
+                  Utils.code_transform(self.__QryInvestorPositionDetail))
+        time.sleep(1.0)
+
         """查询成交记录"""
-        self.__dfQryTrade = self.QryTrade()  # 保存查询当天的Trade和Order记录，正常值格式为DataFrame，异常值为None
+        self.__list_QryTrade = self.QryTrade()  # 保存查询当天的Trade和Order记录，正常值格式为DataFrame，异常值为None
         # QryTrade查询结果的状态记录到CTPManager的user状态字典，成功为0
-        if isinstance(self.__dfQryTrade, DataFrame):
+        if isinstance(self.__list_QryTrade, list):
             self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 0
-            print("User.__init__() user_id=", self.__user_id.decode(), '查询成交记录成功')
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询成交记录成功，self.__list_QryTrade=', self.__list_QryTrade)
         else:
             self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 1
-            print("User.__init__() user_id=", self.__user_id.decode(), '查询成交记录失败')
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询成交记录失败，self.__list_QryOrder=', self.__list_QryOrder)
         # self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['login_trade_account'] = login_trade_account
         time.sleep(1.0)
 
@@ -176,11 +190,11 @@ class User(QtCore.QObject):
             if i['userid'] == self.__user_id.decode():
                 self.__list_position_detail.append(i)
 
-        # 初始化策略持仓明细列表
-        if self.init_list_position_detail() is not True:
-            print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
-            self.__init_finished = False  # 策略初始化失败
-            return
+        """初始化策略持仓明细列表"""
+        # if self.init_list_position_detail() is not True:
+        #     print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
+        #     self.__init_finished = False  # 策略初始化失败
+        #     return
 
     # 设置合约信息
     def set_InstrumentInfo(self, list_InstrumentInfo):
@@ -297,7 +311,7 @@ class User(QtCore.QObject):
     def GetTradingDay(self):
         return self.__TradingDay
 
-    # 获取报单引用part2
+    # 获取报单引用，自增1，位置处于第1到第10位，共9位阿拉伯数字，user的所有策略共用
     def add_order_ref_part2(self):
         self.__order_ref_part2 += 1
         return self.__order_ref_part2
@@ -356,12 +370,25 @@ class User(QtCore.QObject):
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
         # print("User.OnRtnTrade()", 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
+
+        # 根据字段‘OrderRef’筛选出本套利系统的Trade，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
+        if len(Trade['OrderRef']) != 12 or Trade['OrderRef'][:1] != '1':
+            return
+
+        # Trade新增字段
         t = datetime.datetime.now()
         Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
         Trade['RecTradeTime'] = t.strftime("%Y-%m-%d %H:%M:%S")  # 收到成交回报的时间
         Trade['RecTradeMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
-        # self.__DBManager.insert_trade(Trade)  # 记录插入到数据库
+
+        # 转到Strategy行情回调函数OnRtnOrder
+        for i in self.__list_strategy:  # 转到strategy回调函数
+            if Trade['OrderRef'][-2:] == i.get_strategy_id():
+                i.OnRtnTrade(Trade)
+
+        # 记录存到数据库
+        # self.__DBManager.insert_trade(Trade)
         # if self.__mongo_client is not None:
         #     self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Trade').insert_one(Trade)  # 记录插入到数据库
         # else:
@@ -370,53 +397,70 @@ class User(QtCore.QObject):
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
         # print("User.OnRtnOrder()", 'OrderRef:', Order['OrderRef'], 'Order:', Order)
-        self.action_counter(Order)  # 更新撤单计数字典
-        # sessionid过滤
-        if Order['SessionID'] not in self.__list_sessionid:
+        self.action_counter(Order)  # 无任何过滤条件，所有order加入到撤单计数
+
+        # 根据字段‘SessionID’筛选出本套利系统的Trade，
+        # if Order['SessionID'] not in self.__list_sessionid:
+        #     return
+
+        # 根据字段‘OrderRef’筛选出本套利系统的Trade，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
+        if len(Order['OrderRef']) != 12 or Order['OrderRef'][:1] != '1':
             return
-        # 转到Strategy行情回调函数OnRtnOrder
-        for i in self.__list_strategy:  # 转到strategy回调函数
-            if Order['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnRtnOrder(Order)
 
         # Order新增字段
+        order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
+        self.update_list_order_process(order_new)  # 更新挂单列表
+        self.update_list_position_detail(order_new)  # 更新持仓明细列表
         t = datetime.datetime.now()
         Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Order['StrategyID'] = Order['OrderRef'][-2:]  # 报单引用末两位是策略编号
         Order['RecOrderTime'] = t.strftime("%Y-%m-%d %H:%M:%S")  # 收到成交回报的时间
         Order['RecOrderMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
-        # self.__DBManager.insert_trade(Order)  # 记录插入到数据库
+
+        # 转到Strategy行情回调函数OnRtnOrder
+        for i in self.__list_strategy:  # 转到strategy回调函数
+            if Order['OrderRef'][-2:] == i.get_strategy_id():
+                i.OnRtnOrder(Order)
+
+        # 记录存到数据库
+        # self.__DBManager.insert_trade(Order)
         # self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Order').insert_one(Order)  # 记录插入到数据库
 
     # 转PyCTP_Market_API类中回调函数QryTrade
+    # def QryTrade(self):
+    #     dfQryTrade = DataFrame()
+    #     self.__listQryTrade = self.__trader_api.QryTrade()  # 返回正常值格式为list，错误值为int
+    #     if isinstance(self.__listQryTrade, list):
+    #         if len(self.__listQryTrade) > 0:
+    #             for i in self.__listQryTrade:
+    #                 # 将记录格式有list变为DataFrame
+    #                 dfQryTrade = DataFrame.append(dfQryTrade, other=Utils.code_transform(i), ignore_index=True)
+    #             # 添加列StrategyID：截取OrderRef后两位数为StrategyID
+    #             dfQryTrade['StrategyID'] = dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)
+    #     return dfQryTrade
+
+    # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
-        dfQryTrade = DataFrame()
-        self.__listQryTrade = self.__trader_api.QryTrade()  # 返回正常值格式为list，错误值为int
-        if isinstance(self.__listQryTrade, list):
-            if len(self.__listQryTrade) > 0:
-                for i in self.__listQryTrade:
-                    # 将记录格式有list变为DataFrame
-                    dfQryTrade = DataFrame.append(dfQryTrade, other=Utils.code_transform(i), ignore_index=True)
-                # 添加列StrategyID：截取OrderRef后两位数为StrategyID
-                dfQryTrade['StrategyID'] = dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)
-        return dfQryTrade
-        # print(">>> User.QryTrade() self.__listQryTrade=", self.__listQryTrade, type(self.__listQryTrade), len(self.__listQryTrade))
-        # print("User.QryTrade() list_QryTrade =", self.__user_id, self.__listQryTrade)
-        # if type(self.__listQryTrade) is int:
-        #     return
-        # if len(self.__listQryTrade) == 0:
-        #     return
-        # for i in self.__listQryTrade:
-        #     self.__dfQryTrade = DataFrame.append(self.__dfQryTrade,
-        #                                          other=Utils.code_transform(i),
-        #                                          ignore_index=True)
-        # self.__dfQryTrade['StrategyID'] = self.__dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)  # 截取OrderRef后两位数为StrategyID
-        # # self.__dfQryTrade.to_csv("data/"+self.__user_id.decode()+"_dfQryTrade.csv")  # 保存数据到本地
-        # return self.__dfQryTrade
+        self.__list_QryTrade = self.__trader_api.QryTrade()  # 正确返回值为list类型，否则为异常
+        # 筛选条件：OrderRef第一位为1，长度为12
+        for i in self.__list_QryTrade:
+            if len(i['OrderRef']) == 12 and i['OrderRef'][:1] == '1':
+                pass
+            else:
+                self.__list_QryTrade.remove(i)
+        for i in self.__list_QryTrade:
+            i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
+        return self.__list_QryTrade
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
         self.__list_QryOrder = self.__trader_api.QryOrder()  # 正确返回值为list类型，否则为异常
+        # 筛选条件：OrderRef第一位为1，长度为12
+        for i in self.__list_QryOrder:
+            if len(i['OrderRef']) == 12 and i['OrderRef'][:1] == '1':
+                pass
+            else:
+                self.__list_QryOrder.remove(i)
         for i in self.__list_QryOrder:
             i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
         return self.__list_QryOrder
@@ -427,35 +471,67 @@ class User(QtCore.QObject):
 
     # 获取listQryTrade
     def get_list_QryTrade(self):
-        return self.__listQryTrade
-
-    # 获取dfQryOrder
-    def get_dfQryOrder(self):
-        return self.__list_QryOrder
-
-    # 获取dfQryTrade
-    def get_dfQryTrade(self):
-        return self.__dfQryTrade
+        return self.__list_QryTrade
 
     def get_QryTradingAccount(self):
         return self.__QryTradingAccount
 
-    # 初始化持仓明细列表
-    def init_list_position_detail(self):
-        # 筛选出期货账户的持仓明细
-        for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info():
-            if i['userid'] == self.__user_id:
-                self.__list_position_detail.append(i)
+    # 形参为包含字段成交量'VolumeTradedBatch'和成交价'Price'的Order结构体
+    def get_commission(self, Order):
+        if Order['InstrumentID'] not in self.__dict_commission:
+            # 获取品种代码
+            if Order['InstrumentID'] in ['SHFE', 'CFFEX', 'DZCE']:
+                instrument_id = Order['InstrumentID'][:2]
+            elif Order['InstrumentID'] in ['DCE']:
+                instrument_id = Order['InstrumentID'][:1]
+            # 通过API查询单个品种的手续费率dict
+            dict_commission = Utils.code_transform(self.__trader_api.QryInstrumentCommissionRate(instrument_id)[0])
+            time.sleep(1.0)  # 与下一个查询操作间隔一秒
+            self.__dict_commission[instrument_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
+        return self.__dict_commission[instrument_id]
+        # 计算手续费金额
+        # if Order['ExchangeID'] == 'SHFE':  # 上海期货交易所
+        #     if Order['CombOffsetFlag'] == 0:  # 开仓
+        #         commission_amount = Order
+        #     elif Order['CombOffsetFlag'] == 3:  # 平今
+        #         pass
+        #     elif Order['CombOffsetFlag'] == 4:  # 平昨
+        #         pass
+        #
+        # return self.__dict_commission['InstrumentID']
 
-        if len(self.__list_QryOrder) > 0:  # 期货账户的QryOrder有记录
-            for i in self.__list_QryOrder:  # 遍历期货账户的QryOrder
-                self.action_counter(i)  # 更新撤单计数
-                self.update_list_order_process(i)  # 更新挂单列表
-                order_new = self.add_VolumeTradedBatch(i)  # 增加本次成交量字段VolumeTradedBatch
-                self.update_list_position_detail(order_new)  # 更新持仓明细列表
-            return True
-        elif len(self.__list_QryOrder) == 0:  # 本策略的self.__list_QryOrder无记录
-            return True
+    # 添加字段"本次成交量"，order结构中加入字段VolumeTradedBatch
+    def add_VolumeTradedBatch(self, order):
+        order_new = copy.deepcopy(order)
+        if order_new['OrderStatus'] in ['0', '1']:  # 全部成交、部分成交还在队列中
+            # 原始报单量为1手，本次成交量就是1手
+            if order_new['VolumeTotalOriginal'] == 1:
+                order_new['VolumeTradedBatch'] = 1
+            else:
+                for i in self.__list_order_process:
+                    if i['OrderRef'] == order['OrderRef']:  # 在列表中找到相同的OrderRef记录
+                        order_new['VolumeTradedBatch'] = order_new['VolumeTraded'] - i['VolumeTraded']  # 本次成交量
+                        break
+        else:  # 非（全部成交、部分成交还在队列中）
+            order_new['VolumeTradedBatch'] = 0
+        return order_new
+
+    # 初始化持仓明细列表
+    # def init_list_position_detail(self):
+    #     # 筛选出期货账户的持仓明细
+    #     for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info():
+    #         if i['userid'] == self.__user_id:
+    #             self.__list_position_detail.append(i)
+    #
+    #     if len(self.__list_QryOrder) > 0:  # 期货账户的QryOrder有记录
+    #         for i in self.__list_QryOrder:  # 遍历期货账户的QryOrder
+    #             self.action_counter(i)  # 更新撤单计数
+    #             self.update_list_order_process(i)  # 更新挂单列表
+    #             order_new = self.add_VolumeTradedBatch(i)  # 增加本次成交量字段VolumeTradedBatch
+    #             self.update_list_position_detail(order_new)  # 更新持仓明细列表
+    #         return True
+    #     elif len(self.__list_QryOrder) == 0:  # 本策略的self.__list_QryOrder无记录
+    #         return True
 
     # 更新挂单列表，重写方法self.update_list_order_pending()
     def update_list_order_process(self, order):
@@ -504,6 +580,7 @@ class User(QtCore.QObject):
         # order_new中"CombOffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓order直接添加到持仓明细列表里
         if order_new['CombOffsetFlag'] == '0':
             self.__list_position_detail.append(order_new)
+            # 手续费
         # order_new中"CombOffsetFlag"值="3"为平今
         if order_new['CombOffsetFlag'] == '3':
             for i in self.__list_position_detail:  # i为order结构体，类型为dict
@@ -513,6 +590,8 @@ class User(QtCore.QObject):
                         and i['CombHedgeFlag'] == order_new['CombHedgeFlag']:
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
                     if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
+                        # 平仓盈亏
+                        # 手续费
                         self.__list_position_detail.remove(i)
                         break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
@@ -553,13 +632,15 @@ class User(QtCore.QObject):
         # 出金金额 Withdraw
         dict_args['Withdraw'] = self.__QryTradingAccount['Withdraw']
         # 动态权益=静态权益+入金金额-出金金额+平仓盈亏+持仓盈亏-手续费
-        dict_args['dongtaiquanyi'] = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
+        dict_args['Capital'] = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
         self.signal_update_panel_show_account.emit(dict_args)
 
     # 窗口显示账户资金初始化信息
     def init_panel_show_account(self):
         # 动态权益=静态权益+入金金额-出金金额+平仓盈亏+持仓盈亏-手续费
-        Capital = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
+        Capital = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - \
+                  self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + \
+                  self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
         self.__dict_panel_show_account = {
             'Capital': Capital,
             'PreBalance': self.__QryTradingAccount['PreBalance'],  # 静态权益
@@ -572,9 +653,49 @@ class User(QtCore.QObject):
             'Risk': self.__QryTradingAccount['CurrMargin'] / Capital,  # 风险度
             'Deposit': self.__QryTradingAccount['Deposit'],  # 今日入金
             'Withdraw': self.__QryTradingAccount['Withdraw']  # 今日出金
-        }
+            }
         self.signal_update_panel_show_account.emit(self.__dict_panel_show_account)
 
+        """
+        # QryOrder无记录，从QryTradingAccount取数据
+        if len(self.__list_QryOrder) == 0:
+            # 动态权益=静态权益+入金金额-出金金额+平仓盈亏+持仓盈亏-手续费
+            Capital = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
+            self.__dict_panel_show_account = {
+                'Capital': Capital,
+                'PreBalance': self.__QryTradingAccount['PreBalance'],  # 静态权益
+                'PositionProfit': self.__QryTradingAccount['PositionProfit'],  # 持仓盈亏
+                'CloseProfit': self.__QryTradingAccount['CloseProfit'],  # 平仓盈亏
+                'Commission': self.__QryTradingAccount['Commission'],  # 手续费
+                'Available': self.__QryTradingAccount['Available'],  # 可用资金
+                'CurrMargin': self.__QryTradingAccount['CurrMargin'],  # 占用保证金
+                'FrozenMargin': self.__QryTradingAccount['FrozenMargin'],  # 下单冻结
+                'Risk': self.__QryTradingAccount['CurrMargin'] / Capital,  # 风险度
+                'Deposit': self.__QryTradingAccount['Deposit'],  # 今日入金
+                'Withdraw': self.__QryTradingAccount['Withdraw']  # 今日出金
+            }
+        # QryOrder中有记录，遍历QryOrder计算账户资金数据
+        elif len(self.__list_QryOrder) > 0:
+            self.__dict_panel_show_account = {
+                # 'Capital': Capital,
+                'PreBalance': self.__QryTradingAccount['PreBalance'],  # 静态权益
+                # 'PositionProfit': self.__QryTradingAccount['PositionProfit'],  # 持仓盈亏
+                # 'CloseProfit': self.__QryTradingAccount['CloseProfit'],  # 平仓盈亏
+                # 'Commission': self.__QryTradingAccount['Commission'],  # 手续费
+                # 'Available': self.__QryTradingAccount['Available'],  # 可用资金
+                # 'CurrMargin': self.__QryTradingAccount['CurrMargin'],  # 占用保证金
+                # 'FrozenMargin': self.__QryTradingAccount['FrozenMargin'],  # 下单冻结
+                # 'Risk': self.__QryTradingAccount['CurrMargin'] / Capital,  # 风险度
+                'Deposit': self.__QryTradingAccount['Deposit'],  # 今日入金
+                'Withdraw': self.__QryTradingAccount['Withdraw']  # 今日出金
+            }
+            for i in self.__list_QryOrder:
+                # 平仓盈亏
+
+                pass
+
+        self.signal_update_panel_show_account.emit(self.__dict_panel_show_account)
+        """
 
 if __name__ == '__main__':
     print("User.py, if __name__ == '__main__':")
