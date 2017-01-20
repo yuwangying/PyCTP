@@ -34,8 +34,10 @@ class Strategy(QtCore.QObject):
     signal_update_spread_signal = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_signal连接到策略所属的单账户窗口
     signal_update_spread_total = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_total连接到总账户窗口和所属的单账户窗口
 
-    # 信号槽连接：策略对象修改策略 -> 界面刷新策略（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
+    # 定义信号：策略对象修改策略 -> 界面刷新策略（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
     signal_update_strategy = QtCore.pyqtSignal(object)  # 形参为Strategy对象
+    # 定义信号：策略对象持仓发生变化 -> 界面刷新持仓显示（Strategy.signal_update_strategy_position -> QAccountWidget.slot_update_strategy_position）
+    signal_update_strategy_position = QtCore.pyqtSignal(object)  # 形参为Strategy对象
     # 定义信号：策略发送信号 -> 修改持仓按钮设置为可用，并修改文本“发送持仓”改为“设置持仓”
     signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()
 
@@ -741,6 +743,7 @@ class Strategy(QtCore.QObject):
         self.update_task_status()  # 更新交易执行任务状态
         dict_args = {'flag': 'OnRtnOrder', 'Order': Order}
         self.trade_task(dict_args)  # 转到交易任务处理
+        self.signal_update_strategy_position.emit(self)
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
