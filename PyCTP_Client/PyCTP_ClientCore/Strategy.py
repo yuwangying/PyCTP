@@ -87,17 +87,19 @@ class Strategy(QtCore.QObject):
         self.__dfQryOrderStrategy = DataFrame()  # 本策略的查询当天委托记录
         self.__last_to_ui_spread_short = None  # 最后价差值初始值
         self.__last_to_ui_spread_long = None  # 最后价差值初始值
-        # self.__short_color_black_times = 0
-        # self.__long_color_black_times = 0
-        # self.__short_total_color_black_times = 0
-        # self.__long_total_color_black_times = 0
         self.__a_action_count = 0  # 撤单次数
         self.__b_action_count = 0
 
         self.set_arguments(dict_args)  # 设置策略参数
         # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
-        self.__a_price_tick = self.get_price_tick(self.__list_instrument_id[0])  # A合约最小跳价
-        self.__b_price_tick = self.get_price_tick(self.__list_instrument_id[1])  # B合约最小跳价
+        self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
+        self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
+        self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
+        self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
+        self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
+        self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
+        self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
+        self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
 
         # 程序运行中新添加的策略设置为窗口类和管理类的属性
         if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
@@ -106,7 +108,6 @@ class Strategy(QtCore.QObject):
 
         # 从user类的list_QryOrder中选出本策略的list_QryOrder
         self.get_list_QryOrder()
-
         # 从user类的list_QryTrade中选出本策略的list_QryTrade
         self.get_list_QryTrade()
 
@@ -121,9 +122,6 @@ class Strategy(QtCore.QObject):
             print("Strategy.__init__() 策略初始化错误：初始化策略持仓变量出错")
             self.__init_finished = False  # 策略初始化失败
             return
-
-        # 配对本策略的order和trade，使用OrderSysId配对
-        self.match_order_trade()
 
         # 初始化统计指标，待实现
         self.init_statistics()
@@ -274,7 +272,7 @@ class Strategy(QtCore.QObject):
         # 更新撤单计数、更新挂单列表、self.__list_QryOrder中增加字段VolumeTradeBatch、更新持仓明细列表
         if len(self.__list_QryOrder) > 0:  # 本策略的self.__list_QryOrder有记录
             for i in self.__list_QryOrder:  # 遍历本策略的self.__list_QryOrder
-                self.__user.action_counter(i)  # 更新撤单计数
+                # self.__user.action_counter(i)  # 更新撤单计数
                 self.update_list_order_process(i)  # 更新挂单列表
                 i = self.add_VolumeTradedBatch(i)  # 增加本次成交量字段VolumeTradedBatch
                 self.update_list_position_detail(i)  # 更新持仓明细列表
@@ -424,39 +422,99 @@ class Strategy(QtCore.QObject):
                   self.__position_b_sell)
 
     # 配对order和trade记录，利用OrderSysID
-    def match_order_trade(self):
-        for order in self.__list_QryOrder:
-            for trade in self.__list_QryTrade:
-                # order有成交、order与trade记录中orderSysId相同
-                # 假设情景：全部成交或部分成交的order返回与trade返回记录数量相同
-                if 'VolumeTradedBatch' in order and order['OrderSysID'] == trade['OrderSysID']:
-                    order['Price'] = trade['Price']
+    # def match_order_trade(self):
+    #     for order in self.__list_QryOrder:
+    #         for trade in self.__list_QryTrade:
+    #             # order有成交、order与trade记录中orderSysId相同
+    #             # 假设情景：全部成交或部分成交的order返回与trade返回记录数量相同
+    #             if 'VolumeTradedBatch' in order and order['OrderSysID'] == trade['OrderSysID']:
+    #                 order['Price'] = trade['Price']
 
     # 统计指标
     def init_statistics(self):
         # 统计指标dict保存，dict_statistics
         self.__dict_statistics = {
-            'close_profit': 0,  # 平仓盈亏
+            # 'position_profit': 0,  # 持仓盈亏
+            # 'close_profit': 0,  # 平仓盈亏
             'commission': 0,  # 手续费
-            'profit': 0,  # 净盈亏
+            # 'profit': 0,  # 净盈亏
             'volume': 0,  # 成交量
             'amount': 0,  # 成交金额
-            'shift_count': 0,  # 累计滑价
-            'shift_average': 0  # 平均滑价
+            # 'A_traded_rate': 0,  # A成交率
+            # 'B_traded_rate': 0  # B成交率
         }
-        self.__today_profit = 0
-        self.__today_commission = 0
-        self.__today_trade_volume = 0
-        self.__today_sum_slippage = 0
-        self.__today_average_slippage = 0
-        dict_statistics = dict()  # 保存统计结果的dict
-        if len(self.__list_QryOrder) == 0:
-            return True
-        else:
-            for i in self.__list_QryOrder:
+        self.__A_traded_value = 0  # A成交量
+        self.__B_traded_value = 0  # B成交量
+        self.__A_traded_amount = 0  # A成交金额
+        self.__B_traded_amount = 0  # B成交金额
+        self.__A_commission = 0  # A手续费
+        self.__B_commission = 0  # B手续费
 
-                pass
+        # 遍历trade
+        for i in self.__list_QryTrade:
+            # A合约的trade
+            if i['InstrumentID'] == self.__a_instrument_id:
+                self.__A_traded_value += i['Volume']  # 成交量
+                self.__A_traded_amount += i['Price'] * i['Volume'] * self.__a_instrument_multiple  # 成交金额
+                self.__A_commission += self.count_commission(i)  # 手续费
 
+            elif i['InstrumentID'] == self.__b_instrument_id:
+                self.__B_traded_value += i['Volume']  # 成交量
+                self.__B_commission += self.count_commission(i)  # 手续费
+                self.__A_traded_amount += i['Price'] * i['Volume'] * self.__a_instrument_multiple  # 成交金额
+
+        self.__dict_statistics = {
+            # 'position_profit': 0,  # 持仓盈亏
+            # 'close_profit': 0,  # 平仓盈亏
+            'commission': self.__A_commission + self.__B_commission,  # 手续费
+            # 'profit': 0,  # 净盈亏
+            'volume': self.__A_traded_value + self.__B_traded_value,  # 成交量
+            'amount': self.__A_traded_amount + self.__B_traded_amount,  # 成交金额
+            # 'A_traded_rate': 0,  # A成交率
+            # 'B_traded_rate': 0  # B成交率
+        }
+
+    # 计算手续费，形参为trade记录结构体，返回值为该笔trade记录的手续费金额
+    def count_commission(self, trade):
+        # A合约的trade
+        if trade['InstrumentID'] == self.__a_instrument_id:
+            # 开仓
+            if trade['CombOffsetFlag'] == '0':
+                commission_amount = \
+                    self.__dict_commission_a['OpenRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
+                    + self.__dict_commission_a['OpenRatioByVolume'] * trade['Volume']
+            # 平今
+            elif trade['CombOffsetFlag'] == '3':
+                commission_amount = \
+                    self.__dict_commission_a['CloseTodayRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
+                    + self.__dict_commission_a['CloseTodayRatioByVolume'] * trade['Volume']
+            # 平昨
+            elif trade['CombOffsetFlag'] == '4':
+                commission_amount = \
+                    self.__dict_commission_a['CloseRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
+                    + self.__dict_commission_a['CloseRatioByVolume'] * trade['Volume']
+        elif trade['InstrumentID'] == self.__b_instrument_id:
+            # 开仓
+            if trade['CombOffsetFlag'] == '0':
+                commission_amount = \
+                    self.__dict_commission_a['OpenRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
+                    + self.__dict_commission_a['OpenRatioByVolume'] * trade['Volume']
+            # 平今
+            elif trade['CombOffsetFlag'] == '3':
+                commission_amount = \
+                    self.__dict_commission_a['CloseTodayRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
+                    + self.__dict_commission_a['CloseTodayRatioByVolume'] * trade['Volume']
+            # 平昨
+            elif trade['CombOffsetFlag'] == '4':
+                commission_amount = \
+                    self.__dict_commission_a['CloseRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
+                    + self.__dict_commission_a['CloseRatioByVolume'] * trade['Volume']
+        return commission_amount
+
+    # 计算平仓盈亏，形参为trade记录结构体，返回值为该笔trade记录的平仓盈亏金额
+    def count_profit(self, trade):
+        pass
+                
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
         self.__init_finished = bool_input
@@ -507,6 +565,18 @@ class Strategy(QtCore.QObject):
         for i in self.__user.get_CTPManager().get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['PriceTick']
+
+    # 获取指定合约乘数
+    def get_instrument_multiple(self, instrument_id):
+        for i in self.__user.get_CTPManager().get_instrument_info():
+            if i['InstrumentID'] == instrument_id:
+                return i['VolumeMultiple']
+
+    # 获取指定合约所属的交易搜代码
+    def get_exchange_id(self, instrument_id):
+        for i in self.__user.get_CTPManager().get_instrument_info():
+            if i['InstrumentID'] == instrument_id:
+                return i['ExchangeID']
     
     # # 更新撤单次数，在user类中的order回调中调用，第一时间更新撤单计数
     # def update_action_count(self):
@@ -736,7 +806,6 @@ class Strategy(QtCore.QObject):
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
         # self.__user.action_counter(Order)  # 更新撤单计数，位置改到user的OnRtnOrder里
         order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
-        self.__list_wait_match_order.append(order_new)
         self.update_list_order_process(order_new)  # 更新挂单列表
         self.update_list_position_detail(order_new)  # 更新持仓明细列表
         self.update_position(order_new)  # 更新持仓变量
