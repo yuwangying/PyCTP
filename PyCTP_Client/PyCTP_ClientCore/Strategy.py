@@ -55,7 +55,8 @@ class Strategy(QtCore.QObject):
         self.__b_order_insert_args = dict()  # b合约报单参数
 
         self.__list_QryOrder = list()  # 属于本策略的QryOrder列表
-        self.__list_position_detail = list()  # 策略持仓明细列表
+        self.__list_position_detail = list()  # 策略持仓明细列表，用order维护
+        self.__list_position_detail_for_trade = list()  # 策略持仓明细列表，用trade维护
         self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
         self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
         self.__instrument_a_tick = None  # A合约tick（第一腿）
@@ -89,6 +90,9 @@ class Strategy(QtCore.QObject):
         self.__last_to_ui_spread_long = None  # 最后价差值初始值
         self.__a_action_count = 0  # 撤单次数
         self.__b_action_count = 0
+        self.__close_profit = 0  # 平仓盈亏
+        self.__commission = 0  # 手续费
+        self.__profit = 0  # 净盈亏
 
         self.set_arguments(dict_args)  # 设置策略参数
         # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
@@ -112,16 +116,11 @@ class Strategy(QtCore.QObject):
         self.get_list_QryTrade()
 
         # 初始化策略持仓明细列表
-        if self.init_list_position_detail() is not True:
-            print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
-            self.__init_finished = False  # 策略初始化失败
-            return
+        self.init_list_position_detail()
+        self.init_list_position_detail_for_trade()
 
         # 初始化策略持仓变量
-        if self.init_position() is not True:
-            print("Strategy.__init__() 策略初始化错误：初始化策略持仓变量出错")
-            self.__init_finished = False  # 策略初始化失败
-            return
+        self.init_position()
 
         # 初始化统计指标，待实现
         self.init_statistics()
@@ -261,7 +260,7 @@ class Strategy(QtCore.QObject):
         self.__dict_StrategyYesterdayPosition = copy.deepcopy(dict_StrategyYesterdayPosition)
         # print(">>> Strategy.OnRspQryStrategyYesterdayPosition() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "self.__dict_StrategyYesterdayPosition=\n\t", self.__dict_StrategyYesterdayPosition)
 
-    # 初始化持仓明细列表
+    # 初始化持仓明细列表，由order维护
     def init_list_position_detail(self):
         # 获取本策略昨收盘时刻的持仓明细列表，值类型为list，长度可能为0，数据从服务端获取
         # 筛选出昨日持仓明细列表
@@ -272,7 +271,6 @@ class Strategy(QtCore.QObject):
         # 更新撤单计数、更新挂单列表、self.__list_QryOrder中增加字段VolumeTradeBatch、更新持仓明细列表
         if len(self.__list_QryOrder) > 0:  # 本策略的self.__list_QryOrder有记录
             for i in self.__list_QryOrder:  # 遍历本策略的self.__list_QryOrder
-                # self.__user.action_counter(i)  # 更新撤单计数
                 self.update_list_order_process(i)  # 更新挂单列表
                 i = self.add_VolumeTradedBatch(i)  # 增加本次成交量字段VolumeTradedBatch
                 self.update_list_position_detail(i)  # 更新持仓明细列表
@@ -280,14 +278,30 @@ class Strategy(QtCore.QObject):
         elif len(self.__list_QryOrder) == 0:  # 本策略的self.__list_QryOrder无记录
             return True
 
+    # 初始化持仓明细列表，由trade维护
+    def init_list_position_detail_for_trade(self):
+        # 获取本策略昨收盘时刻的持仓明细列表，值类型为list，长度可能为0，数据从服务端获取
+        # 筛选出昨日持仓明细列表
+        for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info():
+            if i['userid'] == self.__user_id and i['strategyid'] == self.__strategy_id:
+                self.__list_position_detail_for_trade.append(i)
+
+        # 更新持仓明细列表
+        if len(self.__list_QryTrade) > 0:  # 本策略的self.__list_QryOrder有记录
+            for i in self.__list_QryTrade:  # 遍历本策略的self.__list_QryOrder
+                self.update_list_position_detail_for_trade(i)  # 更新持仓明细列表
+            return True
+        elif len(self.__list_QryTrade) == 0:  # 本策略的self.__list_QryOrder无记录
+            return True
+
     # 更新持仓明细列表
     def update_list_position_detail(self, input_order):
         """
         order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
-        0：开仓
-        1：平仓
-        3：平今
-        4：平昨
+        '0'：开仓
+        '1'：平仓
+        '3'：平今
+        '4'：平昨
         """
         # 跳过无成交的order记录
         if input_order['VolumeTraded'] == 0:
@@ -297,7 +311,7 @@ class Strategy(QtCore.QObject):
         if order_new['CombOffsetFlag'] == '0':
             self.__list_position_detail.append(order_new)
         # order_new中"CombOffsetFlag"值="3"为平今
-        if order_new['CombOffsetFlag'] == '3':
+        elif order_new['CombOffsetFlag'] == '3':
             for i in self.__list_position_detail:  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同
                 if i['TradingDay'] == order_new['TradingDay'] \
@@ -314,7 +328,7 @@ class Strategy(QtCore.QObject):
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
                         order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail.remove(i)  # 待验证for循环代码，待续，2017年1月12日22:56:31
+                        self.__list_position_detail.remove(i)
         # order_new中"CombOffsetFlag"值="4"为平昨
         elif order_new['CombOffsetFlag'] == '4':
             for i in self.__list_position_detail:  # i为order结构体，类型为dict
@@ -333,7 +347,65 @@ class Strategy(QtCore.QObject):
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
                         order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail.remove(i)  # 待验证for循环代码，待续，2017年1月12日22:56:31
+                        self.__list_position_detail.remove(i)
+
+    # 更新持仓明细列表
+    def update_list_position_detail_for_trade(self, trade):
+        """
+        order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
+        '0'：开仓
+        '1'：平仓
+        '3'：平今
+        '4'：平昨
+        """
+        trade_new = copy.deepcopy(trade)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+        # trade_new中"OffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓trade直接添加到持仓明细列表里
+        if trade_new['OffsetFlag'] == '0':
+            self.__list_position_detail_for_trade.append(trade_new)
+        # trade_new中"OffsetFlag"值="3"为平今
+        elif trade_new['OffsetFlag'] == '3':
+            for i in self.__list_position_detail_for_trade:  # i为order结构体，类型为dict
+                # 持仓明细中trade与trade_new比较：交易日相同、合约代码相同、投保标志相同
+                if i['TradingDay'] == trade_new['TradingDay'] \
+                        and i['InstrumentID'] == trade_new['InstrumentID'] \
+                        and i['HedgeFlag'] == trade_new['HedgeFlag']:
+                    # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
+                    if trade_new['Volume'] == i['Volume']:
+                        self.count_close_profit(trade_new, i)  # 形参分别为开仓和平仓的trade
+                        self.__list_position_detail_for_trade.remove(i)
+                        break
+                    # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] < i['Volume']:
+                        self.count_close_profit(trade_new, i)  # 形参分别为开仓和平仓的trade
+                        i['Volume'] -= trade_new['Volume']
+                        break
+                    # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] > i['Volume']:
+                        self.count_close_profit(trade_new, i)  # 形参分别为开仓和平仓的trade
+                        trade_new['Volume'] -= i['Volume']
+                        self.__list_position_detail_for_trade.remove(i)
+        # trade_new中"OffsetFlag"值="4"为平昨
+        elif trade_new['OffsetFlag'] == '4':
+            for i in self.__list_position_detail_for_trade:  # i为trade结构体，类型为dict
+                # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
+                if i['TradingDay'] != trade_new['TradingDay'] \
+                        and i['InstrumentID'] == trade_new['InstrumentID'] \
+                        and i['HedgeFlag'] == trade_new['HedgeFlag']:
+                    # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
+                    if trade_new['Volume'] == i['Volume']:
+                        self.count_close_profit(trade_new, i)  # 形参分别为开仓和平仓的trade
+                        self.__list_position_detail_for_trade.remove(i)
+                        break
+                    # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] < i['Volume']:
+                        self.count_close_profit(trade_new, i)  # 形参分别为开仓和平仓的trade
+                        i['Volume'] -= trade_new['Volume']
+                        break
+                    # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] > i['Volume']:
+                        self.count_close_profit(trade_new, i)  # 形参分别为开仓和平仓的trade
+                        trade_new['Volume'] -= i['Volume']
+                        self.__list_position_detail_for_trade.remove(i)
 
     # 初始化持仓变量
     def init_position(self):
@@ -435,7 +507,7 @@ class Strategy(QtCore.QObject):
         # 统计指标dict保存，dict_statistics
         self.__dict_statistics = {
             # 'position_profit': 0,  # 持仓盈亏
-            # 'close_profit': 0,  # 平仓盈亏
+            'close_profit': self.__close_profit,  # 平仓盈亏
             'commission': 0,  # 手续费
             # 'profit': 0,  # 净盈亏
             'volume': 0,  # 成交量
@@ -463,11 +535,13 @@ class Strategy(QtCore.QObject):
                 self.__B_commission += self.count_commission(i)  # 手续费
                 self.__A_traded_amount += i['Price'] * i['Volume'] * self.__a_instrument_multiple  # 成交金额
 
+        self.__commission = self.__A_commission + self.__B_commission
+        self.__profit = self.__close_profit - self.__commission
         self.__dict_statistics = {
             # 'position_profit': 0,  # 持仓盈亏
-            # 'close_profit': 0,  # 平仓盈亏
-            'commission': self.__A_commission + self.__B_commission,  # 手续费
-            # 'profit': 0,  # 净盈亏
+            'close_profit': self.__close_profit,  # 平仓盈亏
+            'commission': self.__commission,  # 手续费
+            'profit': self.__profit,  # 净盈亏
             'volume': self.__A_traded_value + self.__B_traded_value,  # 成交量
             'amount': self.__A_traded_amount + self.__B_traded_amount,  # 成交金额
             # 'A_traded_rate': 0,  # A成交率
@@ -511,10 +585,24 @@ class Strategy(QtCore.QObject):
                     + self.__dict_commission_a['CloseRatioByVolume'] * trade['Volume']
         return commission_amount
 
-    # 计算平仓盈亏，形参为trade记录结构体，返回值为该笔trade记录的平仓盈亏金额
-    def count_profit(self, trade):
-        pass
-                
+    # 计算平仓盈亏，形参分别为开仓和平仓的trade
+    def count_close_profit(self, trade_close, trade_open):
+        """
+        order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
+        '0'：开仓
+        '1'：平仓
+        '3'：平今
+        '4'：平昨
+        """
+        volume_traded = min(trade_close['Volume'], trade_open['Volume'])  # 成交量以较小值一个为准
+        # 买平仓
+        if trade_close['Direction'] == '0':
+            profit_close = (trade_open['Price'] - trade_close['Price']) * self.__a_instrument_multiple * volume_traded
+        # 卖平仓
+        elif trade_close['Direction'] == '1':
+            profit_close = (trade_close['Price'] - trade_open['Price']) * self.__a_instrument_multiple * volume_traded
+        self.__close_profit += profit_close
+
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
         self.__init_finished = bool_input
@@ -823,6 +911,8 @@ class Strategy(QtCore.QObject):
         self.update_task_status()  # 更新任务状态
         dict_args = {'flag': 'OnRtnTrade', 'Trade': Trade}
         self.trade_task(dict_args)  # 转到交易任务处理
+        self.update_list_position_detail_for_trade(Trade)  # 更新持仓明细列表
+        self.statistics()  # 交易数据统计
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
