@@ -697,11 +697,14 @@ class QAccountWidget(QWidget, Ui_Form):
             # 恢复发送和设置持仓按钮状态
             self.slot_restore_groupBox_pushButton()
 
-    # 更新单个策略的界面显示，调用情景：鼠标点击tableWidget、发送参数、发送持仓、查询、插入策略
+        self.slot_update_strategy_position(self)  # 调用slot_update_strategy是连带调用slot_update_strategy_position
+
+    # 更新单个策略的界面显示，调用情景：所有调用self.slot_update_strategy()的时候、order回调、trade回调、撤单
     @QtCore.pyqtSlot(object)
     def slot_update_strategy_position(self, obj_strategy):
         dict_strategy_args = obj_strategy.get_arguments()  # 策略参数
         dict_strategy_position = obj_strategy.get_position()  # 策略持仓
+        dict_strategy_statistics = obj_strategy.get_dict_statistics()  # 交易统计数据
         print(">>> QAccountWidget.slot_update_strategy_position() "
               "widget_name=", self.__widget_name,
               "user_id=", dict_strategy_args['user_id'],
@@ -724,6 +727,35 @@ class QAccountWidget(QWidget, Ui_Form):
                 item_position_sell = self.tableWidget_Trade_Args.item(i_row, 7)
                 item_position_sell.setText(
                     str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_sell']))
+                # 持仓盈亏，策略有持仓的时候由行情驱动更新，可以设计为定时任务
+                # 平仓盈亏
+                item_profit_close = self.tableWidget_Trade_Args.item(i_row, 9)
+                item_profit_close.setText(
+                    str(dict_strategy_statistics['profit_close']))
+                # 手续费
+                item_commission = self.tableWidget_Trade_Args.item(i_row, 10)
+                item_commission.setText(
+                    str(dict_strategy_statistics['commission']))
+                # 净盈亏
+                item_profit = self.tableWidget_Trade_Args.item(i_row, 11)
+                item_profit.setText(
+                    str(dict_strategy_statistics['profit']))
+                # 成交量
+                item_volume = self.tableWidget_Trade_Args.item(i_row, 12)
+                item_volume.setText(
+                    str(dict_strategy_statistics['volume']))
+                # 成交金额
+                item_amount = self.tableWidget_Trade_Args.item(i_row, 13)
+                item_amount.setText(
+                    str(dict_strategy_statistics['amount']))
+                # A成交率
+                item_A_traded_rate = self.tableWidget_Trade_Args.item(i_row, 14)
+                item_A_traded_rate.setText(
+                    str(dict_strategy_statistics['A_traded_rate']))
+                # B成交率
+                item_B_traded_rate = self.tableWidget_Trade_Args.item(i_row, 15)
+                item_B_traded_rate.setText(
+                    str(dict_strategy_statistics['B_traded_rate']))
 
             break  # 在tableWidget中找到对应的策略行，结束for循环
         """更新groupBox"""
@@ -745,6 +777,10 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))
             # B昨卖
             self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))
+            # A撤单
+            self.lineEdit_Achedan.setText(str(obj_strategy.get_a_action_count()))
+            # B撤单
+            self.lineEdit_Bchedan.setText(str(obj_strategy.get_b_action_count()))
 
     # 绑定信号槽：收到服务端的查询策略信息 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
     @QtCore.pyqtSlot()
@@ -1493,7 +1529,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 i_strategy.set_clicked_total(True if i_strategy == self.__clicked_strategy else False)
 
         self.slot_update_strategy(self.__clicked_strategy)  # 更新策略所有变量在界面的显示（包含tableWidget和groupBox）
-        self.slot_update_strategy_position(self.__clicked_strategy)  # 更新策略持仓在界面的显示（包含tableWidget和groupBox）
+        # self.slot_update_strategy_position(self.__clicked_strategy)  # 更新策略持仓在界面的显示（包含tableWidget和groupBox）
 
     @pyqtSlot(int, int)
     def on_tableWidget_Trade_Args_cellDoubleClicked(self, row, column):
