@@ -697,7 +697,7 @@ class QAccountWidget(QWidget, Ui_Form):
             # 恢复发送和设置持仓按钮状态
             self.slot_restore_groupBox_pushButton()
 
-        self.slot_update_strategy_position(self)  # 调用slot_update_strategy是连带调用slot_update_strategy_position
+        self.slot_update_strategy_position(obj_strategy)  # 调用slot_update_strategy是连带调用slot_update_strategy_position
 
     # 更新单个策略的界面显示，调用情景：所有调用self.slot_update_strategy()的时候、order回调、trade回调、撤单
     @QtCore.pyqtSlot(object)
