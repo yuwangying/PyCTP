@@ -40,6 +40,7 @@ class CTPManager(QtCore.QObject):
     signal_remove_strategy = QtCore.pyqtSignal(object)  # 定义信号：内核删除策略 -> 窗口删除策略
     signal_label_login_error_text = QtCore.pyqtSignal(str)  # 定义信号：设置登录界面的消息框文本
     signal_show_QMessageBox = QtCore.pyqtSignal(list)  # 定义信号：CTPManager初始化过程中(子线程)需要弹窗 -> ClientMain(主线程)中槽函数调用弹窗
+    signal_update_panel_show_account = QtCore.pyqtSignal(dict)  # 定义信号：更新界面账户资金信息
 
     def __init__(self, parent=None):
         super(CTPManager, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
@@ -63,6 +64,19 @@ class CTPManager(QtCore.QObject):
         self.__list_user_will_create = list()  # 将要创建成功的期货账户信息列表
         self.__list_strategy_info = list()  # 从服务端收到的策略信息list初始值
         self.__list_strategy_will_create = list()  # 创建成功期货账户的策略列表初始值
+
+        """所有期货账户的和"""
+        self.__capital = 0  # 动态权益
+        self.__pre_balance = 0  # 静态权益
+        self.__profit_position = 0  # 持仓盈亏
+        self.__profit_close = 0  # 平仓盈亏
+        self.__commission = 0  # 手续费
+        self.__available = 0  # 可用资金
+        self.__current_margin = 0  # 占用保证金
+        self.__risk = 0  # 风险度
+        self.__deposit = 0  # 今日入金
+        self.__withdraw = 0  # 今日出金
+        self.__dict_panel_show_account = dict()  # 总账户资金信息dict
 
     @QtCore.pyqtSlot()
     def init(self):
@@ -307,7 +321,7 @@ class CTPManager(QtCore.QObject):
                 QApplication.processEvents()
                 i_strategy.set_QAccountWidget_total(QAccountWidget_total)
                 # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy() ）
-                # i_strategy.signal_update_strategy.connect(QAccountWidget_total.slot_update_strategy)
+                i_strategy.signal_update_strategy.connect(QAccountWidget_total.slot_update_strategy)
                 # 信号槽连接：策略对象价差值变化 -> 窗口对象更新价差（Strategy.signal_UI_update_spread_total -> QAccountWidget.slot_update_spread()）
                 # i_strategy.signal_UI_update_spread_total.connect(QAccountWidget_total.slot_update_spread)
             # 所有策略列表设置为窗口属性
@@ -318,7 +332,8 @@ class CTPManager(QtCore.QObject):
 
             # 绑定信号槽：设置交易员交易开关 -> 更新总账户窗口“开始策略”按钮状态
             self.signal_update_pushButton_start_strategy.connect(QAccountWidget_total.slot_update_pushButton_start_strategy)
-
+            # 绑定信号槽：更新总期货账户资金信息 -> 界面更新总账户资金信息
+            self.signal_update_panel_show_account.connect(QAccountWidget_total.slot_update_panel_show_account)
         print(">>> CTPManager.create_QAccountWidget() 创建单账户窗口=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """创建单账户窗口"""
         for i_user in self.get_list_user():
@@ -336,7 +351,7 @@ class CTPManager(QtCore.QObject):
                 QApplication.processEvents()
                 i_strategy.set_QAccountWidget_signal(QAccountWidget_single)
                 # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy() ）
-                # i_strategy.signal_update_strategy.connect(QAccountWidget_single.slot_update_strategy)
+                i_strategy.signal_update_strategy.connect(QAccountWidget_single.slot_update_strategy)
                 # 信号槽连接：策略对象价差值变化 -> 窗口对象更新价差（Strategy.signal_UI_update_spread_signal -> QAccountWidget.slot_update_spread()）
                 # i_strategy.signal_UI_update_spread_signal.connect(QAccountWidget_single.slot_update_spread)
             # 单期货账户的所有策略列表设置为窗口属性
@@ -595,6 +610,37 @@ class CTPManager(QtCore.QObject):
     # 获取期货合约代码列表
     def get_list_instrument_id(self):
         return self.__list_instrument_id
+
+    # 更新账户资金信息，并刷新界面
+    def update_panel_show_account(self):
+        """
+        self.__capital = 0  # 动态权益
+        self.__pre_balance = 0  # 静态权益
+        self.__profit_position = 0  # 持仓盈亏
+        self.__profit_close = 0  # 平仓盈亏
+        self.__commission = 0  # 手续费
+        self.__available = 0  # 可用资金
+        self.__current_margin = 0  # 占用保证金
+        self.__risk = 0  # 风险度
+        self.__deposit = 0  # 今日入金
+        self.__withdraw = 0  # 今日出金
+        """
+        # 遍历期货账户，累加指标
+        for i in self.__list_user:
+            user_panel_show_account = i.get_panel_show_account()
+            self.__capital += user_panel_show_account['Capital']
+            self.__pre_balance += user_panel_show_account['PreBalance']
+            self.__profit_position += user_panel_show_account['PositionProfit']
+            self.__profit_close += user_panel_show_account['CloseProfit']
+            self.__commission += user_panel_show_account['Commission']
+            self.__available += user_panel_show_account['Available']
+            self.__current_margin += user_panel_show_account['CurrMargin']
+            self.__risk += user_panel_show_account['Risk']
+            self.__deposit += user_panel_show_account['Deposit']
+            self.__withdraw += user_panel_show_account['Withdraw']
+
+        # 更新界面显示
+        self.signal_update_panel_show_account.emit(self.__dict_panel_show_account)
 
 
 

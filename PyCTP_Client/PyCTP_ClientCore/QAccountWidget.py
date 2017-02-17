@@ -634,9 +634,13 @@ class QAccountWidget(QWidget, Ui_Form):
             self.spinBox_zhisun.setValue(dict_strategy_args['stop_loss'])
             # 超价触发
             self.spinBox_rangjia.setValue(dict_strategy_args['spread_shift'])
-            # A等待
+            # A报价偏移
+            self.spinBox_Abaodanpianyi.setValue(dict_strategy_args['a_limit_price_shift'])
+            # B报价偏移
+            self.spinBox_Bbaodanpianyi.setValue(dict_strategy_args['b_limit_price_shift'])
+            # A撤单等待
             self.spinBox_Adengdai.setValue(dict_strategy_args['a_wait_price_tick'])
-            # B等待
+            # B撤单等待
             self.spinBox_Bdengdai.setValue(dict_strategy_args['b_wait_price_tick'])
             # A限制
             self.lineEdit_Achedanxianzhi.setText(str(dict_strategy_args['a_order_action_limit']))
@@ -925,7 +929,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.label_value_shouxufei.setText(str(int(dict_args['Commission'])))  # 手续费
         self.label_value_keyongzijin.setText(str(int(dict_args['Available'])))  # 可用资金
         self.label_value_zhanyongbaozhengjin.setText(str(int(dict_args['CurrMargin'])))  # 占用保证金
-        self.label_value_xiadandongjie.setText(str(int(dict_args['FrozenMargin'])))  # 下单冻结
+        # self.label_value_xiadandongjie.setText(str(int(dict_args['FrozenMargin'])))  # 下单冻结
         self.label_value_fengxiandu.setText(str(int(dict_args['Risk']*100))+'%')  # 风险度
         self.label_value_jinrirujin.setText(str(int(dict_args['Deposit'])))  # 今日入金
         self.label_value_jinrichujin.setText(str(int(dict_args['Withdraw'])))  # 今日出金
@@ -1135,6 +1139,8 @@ class QAccountWidget(QWidget, Ui_Form):
                 "lots_batch": int(self.lineEdit_meifen.text()),  # 每份
                 "stop_loss": float(self.spinBox_zhisun.text()),  # 止损跳数
                 "spread_shift": float(self.spinBox_rangjia.text()),  # 超价发单跳数
+                "a_limit_price_shift": int(self.spinBox_Abaodanpianyi.text()),  # A报单偏移
+                "b_limit_price_shift": int(self.spinBox_Bbaodanpianyi.text()),  # B报单偏移
                 "a_wait_price_tick": float(self.spinBox_Adengdai.text()),  # A撤单等待跳数
                 "b_wait_price_tick": float(self.spinBox_Bdengdai.text()),  # B撤单等待跳数
                 "a_order_action_limit": int(self.lineEdit_Achedanxianzhi.text()),  # A撤单限制

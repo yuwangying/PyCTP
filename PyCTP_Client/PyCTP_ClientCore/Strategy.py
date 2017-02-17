@@ -143,6 +143,8 @@ class Strategy(QtCore.QObject):
 
         # 初始化策略持仓变量
         self.init_position()
+        # 初始化统计指标
+        self.init_statistics()
 
         self.__init_finished = True
         print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
@@ -164,6 +166,8 @@ class Strategy(QtCore.QObject):
         self.__sell_open = dict_args['sell_open']  # 触发卖开（开空单）
         self.__buy_close = dict_args['buy_close']  # 触发买平（平空单）
         self.__spread_shift = dict_args['spread_shift']  # 价差让价（超价触发）
+        self.__a_limit_price_shift = dict_args['a_limit_price_shift']  # A合约报价偏移
+        self.__b_limit_price_shift = dict_args['b_limit_price_shift']  # B合约报价偏移
         self.__a_wait_price_tick = dict_args['a_wait_price_tick']  # A合约挂单等待最小跳数
         self.__b_wait_price_tick = dict_args['b_wait_price_tick']  # B合约挂单等待最小跳数
         self.__stop_loss = dict_args['stop_loss']  # 止损，单位为最小跳数
@@ -196,6 +200,8 @@ class Strategy(QtCore.QObject):
             'sell_open': self.__sell_open,
             'buy_close': self.__buy_close,
             'spread_shift': self.__spread_shift,
+            'a_limit_price_shift': self.__a_limit_price_shift,
+            'b_limit_price_shift': self.__b_limit_price_shift,
             'a_wait_price_tick': self.__a_wait_price_tick,
             'b_wait_price_tick': self.__b_wait_price_tick,
             'stop_loss': self.__stop_loss,
@@ -251,6 +257,8 @@ class Strategy(QtCore.QObject):
         self.__sell_open = dict_args['sell_open']  # 触发卖开（开空单）
         self.__buy_close = dict_args['buy_close']  # 触发买平（平空单）
         self.__spread_shift = dict_args['spread_shift']  # 价差让价（超价触发）
+        self.__a_limit_price_shift = dict_args['a_limit_price_shift']  # A合约报价偏移
+        self.__b_limit_price_shift = dict_args['b_limit_price_shift']  # B合约报价偏移
         self.__a_wait_price_tick = dict_args['a_wait_price_tick']  # A合约挂单等待最小跳数
         self.__b_wait_price_tick = dict_args['b_wait_price_tick']  # B合约挂单等待最小跳数
         self.__stop_loss = dict_args['stop_loss']  # 止损，单位为最小跳数
@@ -437,6 +445,8 @@ class Strategy(QtCore.QObject):
 
         # 更新占用保证金
         self.update_current_margin()
+        # 更新界面
+        self.signal_update_strategy.emit(self)
 
     # 更新占用保证金
     def update_current_margin(self):
@@ -546,21 +556,12 @@ class Strategy(QtCore.QObject):
                   self.__position_b_buy, "今卖、昨卖、总卖", self.__position_b_sell_today, self.__position_b_sell_yesterday,
                   self.__position_b_sell)
 
-    # 配对order和trade记录，利用OrderSysID
-    # def match_order_trade(self):
-    #     for order in self.__list_QryOrder:
-    #         for trade in self.__list_QryTrade:
-    #             # order有成交、order与trade记录中orderSysId相同
-    #             # 假设情景：全部成交或部分成交的order返回与trade返回记录数量相同
-    #             if 'VolumeTradedBatch' in order and order['OrderSysID'] == trade['OrderSysID']:
-    #                 order['Price'] = trade['Price']
-
     # 统计指标
     def init_statistics(self):
         # 统计指标dict保存，dict_statistics
         self.__dict_statistics = {
             'position_profit': 0,  # 持仓盈亏
-            'close_profit': self.__profit_close,  # 平仓盈亏
+            'profit_close': self.__profit_close,  # 平仓盈亏
             'commission': self.__commission,  # 手续费
             'profit': self.__profit,  # 净盈亏
             'volume': self.__A_traded_value + self.__B_traded_value,  # 成交量
@@ -592,13 +593,13 @@ class Strategy(QtCore.QObject):
         self.__profit = self.__profit_close - self.__commission
         self.__dict_statistics = {
             # 'position_profit': 0,  # 持仓盈亏
-            'close_profit': self.__profit_close,  # 平仓盈亏
+            'profit_close': self.__profit_close,  # 平仓盈亏
             'commission': self.__commission,  # 手续费
             'profit': self.__profit,  # 净盈亏
             'volume': self.__A_traded_value + self.__B_traded_value,  # 成交量
             'amount': self.__A_traded_amount + self.__B_traded_amount,  # 成交金额
-            # 'A_traded_rate': 0,  # A成交率
-            # 'B_traded_rate': 0  # B成交率
+            'A_traded_rate': 0,  # A成交率
+            'B_traded_rate': 0  # B成交率
             }
 
     # 报单统计（order）
@@ -1059,7 +1060,7 @@ class Strategy(QtCore.QObject):
         self.trade_task(dict_args)  # 转到交易任务处理
         self.statistics_for_trade(Trade)  # 交易数据统计
         self.update_list_position_detail_for_trade(Trade)  # 更新持仓明细列表
-        self.signal_update_strategy_position.emit(self)  # 更新界面
+        # self.signal_update_strategy_position.emit(self)  # 更新界面持仓
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """

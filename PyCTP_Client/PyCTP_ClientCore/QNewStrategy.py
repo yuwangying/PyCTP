@@ -125,6 +125,8 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             'sell_open': 0,
             'buy_close': 0,
             'spread_shift': 0,
+            'a_limit_price_shift': 0,
+            'b_limit_price_shift': 0,
             'a_wait_price_tick': 0,
             'b_wait_price_tick': 0,
             'stop_loss': 0,

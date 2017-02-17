@@ -35,20 +35,20 @@ class User(QtCore.QObject):
         self.__list_sessionid = list()  # 当前交易日，期货账户所有会话id，服务端的
         self.__list_position_detail = list()  # 期货账户持仓明细，内部元素结构为order
         self.__list_position_detail_trade = list()  # 期货账户持仓明细，内部元素结构为trade
-        self.__list_order_process = list()  # 挂单列表，未成交、部分成交还在队列中
+        # self.__list_order_process = list()  # 挂单列表，未成交、部分成交还在队列中
         self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
         self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
         self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
         self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
         self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
         # self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，
-        self.__dict_panel_show_account = dict()  # 单账户窗口显示的数据，{动态权益，静态权益，持仓盈亏，平仓盈亏，手续费，可用资金，占用保证金，下单冻结，风险度，今日入金，今日出金}
         self.__last_qry_time = time.time()  # 类型浮点数，最后一次查询Trade_Api的时间
         self.__dict_action_counter = dict()  # 记录合约撤单次数的字典,撤单操作时添加次数，交易日换日时初始化值
         self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用后两位为策略编号，前十位递增一
         self.__init_finished = False  # 初始化完成
         self.__init_finished_succeed = True  # user初始化成功，初始化过程中遇到任何异常就设置为False
 
+        self.__dict_panel_show_account = dict()  # 单账户窗口显示的数据，{动态权益，静态权益，持仓盈亏，平仓盈亏，手续费，可用资金，占用保证金，下单冻结，风险度，今日入金，今日出金}
         self.__current_margin = 0  # 期货账户的持仓占用保证金
         self.__commission = 0  # 期货账户手续费
         self.__profit_position = 0  # 期货账户持仓盈亏
@@ -191,6 +191,7 @@ class User(QtCore.QObject):
         for i_user_info in self.__ctp_manager.get_list_user_info():
             if i_user_info['userid'] == self.__user_id.decode():
                 self.__on_off = i_user_info['on_off']  # user的交易开关，初始值为关
+                # print(">>> User.__init__() user_id=", self.__user_id.decode(), "self.__on_off赋值为", self.__on_off)
                 break
                 # self.__only_close = 0  # user的只平，初始值为关，已删除此功能
 
@@ -299,7 +300,7 @@ class User(QtCore.QObject):
 
     # 设置user的交易开关，0关、1开
     def set_on_off(self, int_on_off):
-        print(">>>User.set_on_off() user_id=", self.__user_id, int_on_off)
+        print(">>>User.set_on_off() 设置期货账户交易开关，user_id=", self.__user_id, int_on_off)
         self.__on_off = int_on_off
         self.signal_update_pushButton_start_strategy.emit()  # 触发信号：内核设置期货账户交易开关 -> 更新窗口“开始策略”按钮状态
 
@@ -428,9 +429,9 @@ class User(QtCore.QObject):
             return
 
         # Order新增字段
-        order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
-        self.update_list_order_process(order_new)  # 更新挂单列表
-        self.update_list_position_detail(order_new)  # 更新持仓明细列表
+        # order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
+        # self.update_list_order_process(order_new)  # 更新挂单列表
+        # self.update_list_position_detail(order_new)  # 更新持仓明细列表
         t = datetime.datetime.now()
         Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Order['StrategyID'] = Order['OrderRef'][-2:]  # 报单引用末两位是策略编号
