@@ -166,9 +166,10 @@ class User(QtCore.QObject):
         # time.sleep(1.0)
         self.qry_api_interval_manager()  # API查询时间间隔管理
         self.__list_QryTrade = self.QryTrade()  # 保存查询当天的Trade和Order记录，正常值格式为DataFrame，异常值为None
+        print(">>> User.__init__() len(self.__list_QryTrade) =", len(self.__list_QryTrade))
         # QryTrade查询结果的状态记录到CTPManager的user状态字典，成功为0
         if isinstance(self.__list_QryTrade, list):
-            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 0
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 0  # 初始过程中一个步骤的标志位
             print("User.__init__() user_id=", self.__user_id.decode(), '查询成交记录成功，self.__list_QryTrade=', self.__list_QryTrade)
         else:
             self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 1
@@ -463,31 +464,30 @@ class User(QtCore.QObject):
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
         self.__list_QryTrade = self.__trader_api.QryTrade()  # 正确返回值为list类型，否则为异常
-        # print(">>> User.QryTrade() self.__list_QryTrade=", self.__list_QryTrade)
+        if isinstance(self.__list_QryTrade, list):
+            self.__list_QryTrade = Utils.code_transform(self.__list_QryTrade)
         # 筛选条件：OrderRef第一位为1，长度为12
         for i in self.__list_QryTrade:
             if len(i['OrderRef']) == 12 and i['OrderRef'][:1] == '1':
+                i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
                 pass
             else:
                 self.__list_QryTrade.remove(i)
-        for i in self.__list_QryTrade:
-            i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
         return self.__list_QryTrade
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
         self.__list_QryOrder = self.__trader_api.QryOrder()  # 正确返回值为list类型，否则为异常
-        for i in self.__list_QryOrder:
-            self.action_counter(i)  # 撤单计数
-
+        if isinstance(self.__list_QryOrder, list):
+            self.__list_QryOrder = Utils.code_transform(self.__list_QryOrder)
         # 筛选条件：OrderRef第一位为1，长度为12
         for i in self.__list_QryOrder:
+            self.action_counter(i)  # 撤单计数
             if len(i['OrderRef']) == 12 and i['OrderRef'][:1] == '1':
+                i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
                 pass
             else:
                 self.__list_QryOrder.remove(i)
-        for i in self.__list_QryOrder:
-            i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
         return self.__list_QryOrder
 
     # 获取listQryOrder

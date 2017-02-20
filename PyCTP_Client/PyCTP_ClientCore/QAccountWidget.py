@@ -51,6 +51,10 @@ class QAccountWidget(QWidget, Ui_Form):
     signal_update_groupBox_trade_args_for_query = QtCore.pyqtSignal(Strategy)  # 定义信号：更新界面参数框
     signal_send_msg = QtCore.pyqtSignal(str)  # 窗口修改策略 -> SocketManager发送修改指令
     signal_show_QMessageBox = QtCore.pyqtSignal(list)  # 定义信号：弹窗 -> ClientMain(主线程)中槽函数调用弹窗
+    signal_lineEdit_duotoujiacha_setText = QtCore.pyqtSignal(str)  # 定义信号：多头价差lineEdit更新
+    signal_lineEdit_kongtoujiacha_setText = QtCore.pyqtSignal(str)  # 定义信号：self.lineEdit_kongtoujiacha.setText()
+    signal_lineEdit_duotoujiacha_setStyleSheet = QtCore.pyqtSignal(str)  # 定义信号：lineEdit_duotoujiacha.setStyleSheet()
+    signal_lineEdit_kongtoujiacha_setStyleSheet = QtCore.pyqtSignal(str)  # 定义信号：lineEdit_kongtoujiacha.setStyleSheet()
 
     def __init__(self, str_widget_name, obj_user=None, list_user=None, parent=None, ClientMain=None, SocketManager=None, CTPManager=None):
         """
@@ -119,6 +123,10 @@ class QAccountWidget(QWidget, Ui_Form):
         """信号槽绑定"""
         self.__signal_pushButton_set_position_setEnabled_connected = False  # 信号槽绑定标志，初始值为False
         self.Signal_SendMsg.connect(self.slot_SendMsg)  # 绑定信号、槽函数
+        self.signal_lineEdit_duotoujiacha_setText.connect(self.lineEdit_duotoujiacha.setText)
+        self.signal_lineEdit_kongtoujiacha_setText.connect(self.lineEdit_kongtoujiacha.setText)
+        self.signal_lineEdit_duotoujiacha_setStyleSheet.connect(self.lineEdit_duotoujiacha.setStyleSheet)
+        self.signal_lineEdit_kongtoujiacha_setStyleSheet.connect(self.lineEdit_kongtoujiacha.setStyleSheet)
 
         """类局部变量声明"""
         self.__spread_long = None  # 界面价差初始值
@@ -610,15 +618,15 @@ class QAccountWidget(QWidget, Ui_Form):
                 # 平仓盈亏
                 item_profit_close = self.tableWidget_Trade_Args.item(i_row, 9)
                 item_profit_close.setText(
-                    str(dict_strategy_statistics['profit_close']))
+                    str(int(dict_strategy_statistics['profit_close'])))
                 # 手续费
                 item_commission = self.tableWidget_Trade_Args.item(i_row, 10)
                 item_commission.setText(
-                    str(dict_strategy_statistics['commission']))
+                    str(int(dict_strategy_statistics['commission'])))
                 # 净盈亏
                 item_profit = self.tableWidget_Trade_Args.item(i_row, 11)
                 item_profit.setText(
-                    str(dict_strategy_statistics['profit']))
+                    str(int(dict_strategy_statistics['profit'])))
                 # 成交量
                 item_volume = self.tableWidget_Trade_Args.item(i_row, 12)
                 item_volume.setText(
@@ -626,7 +634,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 # 成交金额
                 item_amount = self.tableWidget_Trade_Args.item(i_row, 13)
                 item_amount.setText(
-                    str(dict_strategy_statistics['amount']))
+                    str(int(dict_strategy_statistics['amount'])))
                 # A成交率
                 item_A_traded_rate = self.tableWidget_Trade_Args.item(i_row, 14)
                 item_A_traded_rate.setText(
@@ -883,24 +891,36 @@ class QAccountWidget(QWidget, Ui_Form):
         # dict_input = {'spread_long': int, 'spread_short': int}
         # 更新多头价差显示
         if self.__spread_long is None:  # 初始值
-            self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
-            self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
+            # self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
+            # self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
+            self.signal_lineEdit_duotoujiacha_setText.emit(("%.2f" % dict_input['spread_long']))
+            self.signal_lineEdit_duotoujiacha_setStyleSheet.emit("color: rgb(0, 0, 0);")
         elif dict_input['spread_long'] > self.__spread_long:  # 最新值大于前值
-            self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
-            self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
+            # self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
+            # self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
+            self.signal_lineEdit_duotoujiacha_setText.emit(("%.2f" % dict_input['spread_long']))
+            self.signal_lineEdit_duotoujiacha_setStyleSheet.emit("color: rgb(255, 0, 0);font-weight:bold;")
         elif dict_input['spread_long'] < self.__spread_long:  # 最新值小于前值
-            self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
-            self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
+            # self.lineEdit_duotoujiacha.setText(("%.2f" % dict_input['spread_long']))
+            # self.lineEdit_duotoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
+            self.signal_lineEdit_duotoujiacha_setText.emit(("%.2f" % dict_input['spread_long']))
+            self.signal_lineEdit_duotoujiacha_setStyleSheet.emit("color: rgb(0, 170, 0);font-weight:bold;")
         # 更新空头价差显示
         if self.__spread_short is None:  # 初始值
-            self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
-            self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
+            # self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
+            # self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 0, 0);")
+            self.signal_lineEdit_kongtoujiacha_setText.emit(("%.2f" % dict_input['spread_short']))
+            self.signal_lineEdit_kongtoujiacha_setStyleSheet.emit("color: rgb(0, 0, 0);")
         elif dict_input['spread_short'] > self.__spread_short:  # 最新值大于前值
-            self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
-            self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
+            # self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
+            # self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(255, 0, 0);font-weight:bold;")
+            self.signal_lineEdit_kongtoujiacha_setText.emit(("%.2f" % dict_input['spread_short']))
+            self.signal_lineEdit_kongtoujiacha_setStyleSheet.emit("color: rgb(255, 0, 0);font-weight:bold;")
         elif dict_input['spread_short'] < self.__spread_short:  # 最新值小于前值
-            self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
-            self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
+            # self.lineEdit_kongtoujiacha.setText(("%.2f" % dict_input['spread_short']))
+            # self.lineEdit_kongtoujiacha.setStyleSheet("color: rgb(0, 170, 0);font-weight:bold;")
+            self.signal_lineEdit_kongtoujiacha_setText.emit(("%.2f" % dict_input['spread_short']))
+            self.signal_lineEdit_kongtoujiacha_setStyleSheet.emit("color: rgb(0, 170, 0);font-weight:bold;")
         self.__spread_long = dict_input['spread_long']  # 储存最后值，与后来的值比较，如果之变化就刷新界面
         self.__spread_short = dict_input['spread_short']
 

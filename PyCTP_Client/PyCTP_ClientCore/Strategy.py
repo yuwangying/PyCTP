@@ -40,6 +40,8 @@ class Strategy(QtCore.QObject):
     signal_update_strategy_position = QtCore.pyqtSignal(object)  # 形参为Strategy对象
     # 定义信号：策略发送信号 -> 修改持仓按钮设置为可用，并修改文本“发送持仓”改为“设置持仓”
     signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()
+    # 定义信号：转发tick到槽函数 -> self.slot_handle_tick
+    signal_handle_tick = QtCore.pyqtSignal(dict)
 
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
     def __init__(self, dict_args, obj_user, parent=None):
@@ -149,6 +151,13 @@ class Strategy(QtCore.QObject):
 
         self.__init_finished = True
         print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
+
+        # 定义内部处理tick线程
+        self.signal_handle_tick.connect(self.slot_handle_tick)
+        self.tick_thread = QtCore.QThread()  # 创建线程实例
+        self.tick_thread.started.connect(self.slot_handle_tick)  # 线程self.tick_thread绑定到self.slot_handle_tick
+        self.tick_thread.start()  # 启动线程
+        self.moveToThread(self.tick_thread)  # 把本类Strategy移到线程self.tick_thread里
 
     # 设置参数
     def set_arguments(self, dict_args):
@@ -327,7 +336,7 @@ class Strategy(QtCore.QObject):
         # 更新持仓明细列表
         if len(self.__list_QryTrade) > 0:  # 本策略的self.__list_QryOrder有记录
             for i in self.__list_QryTrade:  # 遍历本策略的self.__list_QryOrder
-                self.statistics_for_trade(i)  # 成交统计
+                self.statistics_for_trade(i)  # 成交统计，统计出了平仓盈亏之外的成交统计类数据
                 self.update_list_position_detail_for_trade(i)  # 更新持仓明细列表
             return True
         elif len(self.__list_QryTrade) == 0:  # 本策略的self.__list_QryOrder无记录
@@ -657,8 +666,8 @@ class Strategy(QtCore.QObject):
         # B合约的Trade
         elif Trade['InstrumentID'] == self.__b_instrument_id:
             self.__B_traded_value += Trade['Volume']  # 成交量
-            self.__B_commission += self.count_commission(Trade)  # B手续费
             self.__B_traded_amount += Trade['Price'] * Trade['Volume'] * self.__b_instrument_multiple  # 成交金额
+            self.__B_commission += self.count_commission(Trade)  # B手续费
             if self.__B_order_value > 0:
                 self.__B_traded_rate = self.__B_traded_value / self.__B_order_value  # A成交率
         self.__dict_statistics['volume'] = self.__A_traded_value + self.__B_traded_value  # 成交量
@@ -951,26 +960,90 @@ class Strategy(QtCore.QObject):
     # 从user类的list_QryOrder中选出本策略的list_QryOrder
     def get_list_QryOrder(self):
         self.__list_QryOrder = list()
-        print(">>> Strategy.get_list_QryOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__user.get_list_QryOrder()) =", len(self.__user.get_list_QryOrder()) )
         if len(self.__user.get_list_QryOrder()) > 0:
             for i in self.__user.get_list_QryOrder():
                 if i['StrategyID'] == self.__strategy_id:  # 策略id相同
                     self.__list_QryOrder.append(i)
-        print(">>> Strategy.__init__() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
+        print(">>> Strategy.get_list_QryOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
               "len(self.__list_QryOrder) =", len(self.__list_QryOrder))
         return self.__list_QryOrder
 
     # 从user类的list_QryTrade中选出本策略的list_QryTrade
     def get_list_QryTrade(self):
         self.__list_QryTrade = list()
+        print(">>> Strategy.get_list_QryTrade() user_id =", self.__user_id,
+              "len(self.__user.get_list_QryTrade()) =", len(self.__user.get_list_QryTrade()))
         if len(self.__user.get_list_QryTrade()) > 0:
             for i in self.__user.get_list_QryTrade():
                 if i['StrategyID'] == self.__strategy_id:  # 策略id相同
                     self.__list_QryTrade.append(i)
+        print(">>> Strategy.get_list_QryTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
+              "len(self.__list_QryTrade) =", len(self.__list_QryTrade))
         return self.__list_QryTrade
 
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
+        self.signal_handle_tick.emit(tick)  # 触发信号
+        """ 行情推送
+        # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
+        if tick is None:
+            return
+        if isinstance(tick['BidPrice1'], float) is False:
+            return
+        if isinstance(tick['AskPrice1'], float) is False:
+            return
+        if isinstance(tick['BidVolume1'], int) is False:
+            return
+        if isinstance(tick['AskVolume1'], int) is False:
+            return
+
+        # 策略初始化未完成，跳过
+        if self.__init_finished is False:
+            # print("Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "策略初始化未完成")
+            return
+        # CTPManager初始化未完成，跳过
+        if self.__user.get_CTPManager().get_init_finished() is False:
+            return
+        # 窗口创建完成
+        if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished() is False:
+            return
+        # 没有任何一个窗口显示，跳过
+        if self.__user.get_CTPManager().get_ClientMain().get_showEvent() is False:
+            return
+
+        # 过滤出B合约的tick
+        if tick['InstrumentID'] == self.__list_instrument_id[1]:
+            self.__instrument_b_tick = copy.deepcopy(tick)
+            self.update_profit_position(self.__instrument_b_tick)  # 更新持仓盈亏
+            # print(self.__user_id + self.__strategy_id, "B合约：", self.__instrument_b_tick)
+        # 过滤出A合约的tick
+        elif tick['InstrumentID'] == self.__list_instrument_id[0]:
+            self.__instrument_a_tick = copy.deepcopy(tick)
+            self.update_profit_position(self.__instrument_b_tick)  # 更新持仓盈亏
+            # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
+
+        # 计算市场盘口价差、量
+        if self.__instrument_a_tick is None or self.__instrument_b_tick is None:
+            return
+        self.__spread_long = self.__instrument_a_tick['BidPrice1'] - self.__instrument_b_tick['AskPrice1']
+        self.__spread_long_volume = min(self.__instrument_a_tick['BidVolume1'], self.__instrument_b_tick['AskVolume1'])
+        self.__spread_short = self.__instrument_a_tick['AskPrice1'] - self.__instrument_b_tick['BidPrice1']
+        self.__spread_short_volume = min(self.__instrument_a_tick['AskVolume1'], self.__instrument_b_tick['BidVolume1'])
+
+        # 没有下单任务执行中，进入选择下单算法
+        if not self.__trade_tasking:
+            self.select_order_algorithm(self.__order_algorithm)
+        # 有下单任务执行中，跟踪交易任务
+        elif self.__trade_tasking:
+            dict_args = {'flag': 'tick', 'tick': tick}
+            self.trade_task(dict_args)
+
+        # 刷新界面价差
+        self.spread_to_ui()
+        """
+
+    @QtCore.pyqtSlot(dict)
+    def slot_handle_tick(self, tick):
         """ 行情推送 """
         # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
         if tick is None:
@@ -1064,6 +1137,7 @@ class Strategy(QtCore.QObject):
         self.update_task_status()  # 更新交易执行任务状态
         dict_args = {'flag': 'OnRtnOrder', 'Order': Order}
         self.trade_task(dict_args)  # 转到交易任务处理
+        self.statistics_for_order(Order)  # 统计
         self.signal_update_strategy.emit(self)  # 更新界面
 
     def OnRtnTrade(self, Trade):
