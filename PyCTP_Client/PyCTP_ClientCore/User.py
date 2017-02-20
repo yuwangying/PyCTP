@@ -401,9 +401,9 @@ class User(QtCore.QObject):
         Trade['RecTradeMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
 
         # 转到Strategy行情回调函数OnRtnOrder
-        for i in self.__list_strategy:  # 转到strategy回调函数
-            if Trade['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnRtnTrade(Trade)
+        # for i in self.__list_strategy:  # 转到strategy回调函数
+        #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnTrade(Trade)
 
         # 更新账户资金信息，并刷新界面
         self.update_panel_show_account()
@@ -439,9 +439,9 @@ class User(QtCore.QObject):
         Order['RecOrderMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
 
         # 转到Strategy行情回调函数OnRtnOrder
-        for i in self.__list_strategy:  # 转到strategy回调函数
-            if Order['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnRtnOrder(Order)
+        # for i in self.__list_strategy:  # 转到strategy回调函数
+        #     if Order['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnOrder(Order)
 
         # 记录存到数据库
         # self.__DBManager.insert_trade(Order)
@@ -463,7 +463,7 @@ class User(QtCore.QObject):
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
         self.__list_QryTrade = self.__trader_api.QryTrade()  # 正确返回值为list类型，否则为异常
-        print(">>> User.QryTrade() self.__list_QryTrade=", self.__list_QryTrade)
+        # print(">>> User.QryTrade() self.__list_QryTrade=", self.__list_QryTrade)
         # 筛选条件：OrderRef第一位为1，长度为12
         for i in self.__list_QryTrade:
             if len(i['OrderRef']) == 12 and i['OrderRef'][:1] == '1':
@@ -513,7 +513,22 @@ class User(QtCore.QObject):
         if commodity_id not in self.__dict_commission:
             # 通过API查询单个品种的手续费率dict
             self.qry_api_interval_manager()  # API查询时间间隔管理
-            dict_commission = Utils.code_transform(self.__trader_api.QryInstrumentCommissionRate(instrument_id.encode())[0])
+            # 尝试三次获取指定合约的手续费详细
+            flag = 0
+            while flag < 3:
+                self.qry_api_interval_manager()  # API查询时间间隔管理
+                list_commission = self.__trader_api.QryInstrumentCommissionRate(instrument_id.encode())
+                if isinstance(list_commission, list):
+                    dict_commission = Utils.code_transform(list_commission[0])
+                    flag = 0
+                    break
+                else:
+                    flag += 1
+                    print("User.get_mmission() 获取手续费失败，尝试次数", flag, "user_id =", self.__user_id, "instrument_id =", instrument_id,
+                          "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
+            if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
+                print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
+            # print(">>> User.get_commission() ", dict_commission)
             self.__dict_commission[commodity_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
         return self.__dict_commission[commodity_id]
 

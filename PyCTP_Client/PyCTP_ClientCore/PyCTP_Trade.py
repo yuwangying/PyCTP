@@ -171,7 +171,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                     # self.__user.QryOrder(self.__rsp_QryOrder['ErrorID'])  # 转到user类的回调函数
                     return self.__rsp_QryOrder['ErrorID']
                 # self.__user.QryOrder(self.__rsp_QryOrder['results'])  # 转到user类的回调函数
-                return self.__rsp_QryOrder['results']
+                return Utils.code_transform(self.__rsp_QryOrder['results'])
             else:
                 # self.__user.QryOrder(-4)  # 转到user类的回调函数
                 print(" PyCTP_Trade.QryTrade() user_id=", self.__UserID, "请求查询报单异常，-4")
@@ -316,6 +316,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OrderInsert(self, dict_arguments):
         # InstrumentID, CombOffsetFlag, Direction, VolumeTotalOriginal, LimitPrice, OrderRef):
+        print(">>> PyCTP_Trade.OrderInser() dict_arguments =", dict_arguments)
         """报单录入请求:开平仓(限价挂单)申报"""
         InputOrder = {'BrokerID': self.__BrokerID,  # 经纪公司代码
                       'InvestorID': self.__InvestorID,  # 投资者代码
@@ -628,9 +629,9 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         # if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
         # 报单回报过滤1、套利系统的服务端或客户端发送的委托；2、字段SystemID不为空
         # self.__user.OnRtnOrder(Order)  # 转到user回调函数
-        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-        #     if Order['OrderRef'][-2:] == i.get_strategy_id():
-        #         i.OnRtnOrder(Order)
+        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+            if Order['OrderRef'][-2:] == i.get_strategy_id():
+                i.OnRtnOrder(Order)
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
@@ -638,9 +639,9 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
         # self.__user.OnRtnTrade(Trade)  # 转到user回调函数
-        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-        #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
-        #         i.OnRtnTrade(Trade)
+        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+            if Trade['OrderRef'][-2:] == i.get_strategy_id():
+                i.OnRtnTrade(Trade)
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """

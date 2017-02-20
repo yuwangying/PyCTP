@@ -85,7 +85,7 @@ class CTPManager(QtCore.QObject):
     # 初始化（独立线程）
     def start_init(self):
         thread = threading.current_thread()
-        print(">>> CTPManager.start_init() thread.getName()=", thread.getName())
+        print("CTPManager.start_init() thread.getName()=", thread.getName())
         
         """创建行情实例"""
         self.signal_label_login_error_text.emit("登录行情")
