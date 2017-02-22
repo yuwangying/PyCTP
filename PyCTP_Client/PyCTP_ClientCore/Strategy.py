@@ -335,7 +335,9 @@ class Strategy(QtCore.QObject):
 
         # 更新持仓明细列表
         if len(self.__list_QryTrade) > 0:  # 本策略的self.__list_QryOrder有记录
+            # print(">>> Strategy.init_list_position_detail_for_trade() len(self.__list_QryTrade) =", len(self.__list_QryTrade))
             for i in self.__list_QryTrade:  # 遍历本策略的self.__list_QryOrder
+                # print(">>> ", i)
                 self.statistics_for_trade(i)  # 成交统计，统计出了平仓盈亏之外的成交统计类数据
                 self.update_list_position_detail_for_trade(i)  # 更新持仓明细列表
             return True
@@ -962,6 +964,7 @@ class Strategy(QtCore.QObject):
         self.__list_QryOrder = list()
         if len(self.__user.get_list_QryOrder()) > 0:
             for i in self.__user.get_list_QryOrder():
+                print(">>> Strategy.get_list_QryOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "i =", i)
                 if i['StrategyID'] == self.__strategy_id:  # 策略id相同
                     self.__list_QryOrder.append(i)
         print(">>> Strategy.get_list_QryOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,

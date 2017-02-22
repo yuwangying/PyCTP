@@ -6,12 +6,13 @@ Created on Wed Jul 20 08:46:13 2016
 """
 
 import time
-import datetime
+from datetime import datetime
 import copy
 from pymongo import MongoClient
 from PyCTP_Trade import PyCTP_Trader_API
 import Utils
 from pandas import DataFrame, Series
+import pandas as pd
 from PyQt4 import QtCore
 
 
@@ -54,25 +55,11 @@ class User(QtCore.QObject):
         self.__profit_position = 0  # 期货账户持仓盈亏
         self.__profit_close = 0  # 期货账户平仓盈亏
 
-        # 联机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
-        # 脱机登录：创建user时清空本地数据库中的集合：col_strategy、col_position、col_position_detail、col_trade、col_order，
-        # 其中trade和order记录只清空当天的
-        # self.__mongo_client = MongoClient('localhost', 27017)  # 创建数据库连接实例
-        # col_strategy = self.__user_id.decode() + 'strategy'  # 策略集合名
-        # col_position = self.__user_id.decode() + 'position'  # 持仓汇总集合名
-        # col_position_detail = self.__user_id.decode() + 'position_detail'  # 持仓明细集合名
-        # col_trade = self.__user_id.decode() + 'trade'  # trade回调记录集合名
-        # col_order = self.__user_id.decode() + 'order'  # order回调记录集合名
-        # for i in [col_strategy, col_position, col_position_detail]:  # 初始化user时清空集合
-        #     try:
-        #         self.__mongo_client.CTP.drop_collection(i)
-        #     except:
-        #         print("User.__init__() 删除数据库集合失败，集合名=", i)
-        # for i in [col_trade, col_order]:  # 初始化user时清空当天Trade、Order集合
-        #     try:
-        #         self.__mongo_client.CTP.get_collection(i).delete_many({'TradingDay': self.__TradingDay})
-        #     except:
-        #         print("User.__init__() 删除当天的trade或order记录失败")
+        self.__df_order = DataFrame()  # 保存该期货账户的所有OnRtnOrder来的记录
+        self.__df_trade = DataFrame()  # 保存该期货账户的所有OnRtnTrade来的记录
+        # self.__df_qry_order = DataFrame()  # 保存该期货账户的所有QryOrder返回的记录
+        # self.__df_qry_trade = DataFrame()  # 保存该期货账户的所有QryTrade返回的记录
+        self.__df_log = DataFrame()  # 测试时用来保存user全局日志
 
         # 为每个user创建独立的流文件夹
         s_path = b'conn/td/' + self.__user_id + b'/'
@@ -125,15 +112,18 @@ class User(QtCore.QObject):
         """查询资金账户"""
         # time.sleep(1.0)
         self.qry_api_interval_manager()  # API查询时间间隔管理
-        self.__QryTradingAccount = self.__trader_api.QryTradingAccount()[0]
-        if isinstance(self.__QryTradingAccount, dict):
-            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = 0
-            print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户成功',
-                  Utils.code_transform(self.__QryTradingAccount))
+        list_QryTradingAccount = self.__trader_api.QryTradingAccount()
+        if isinstance(list_QryTradingAccount, list):
+            if isinstance(list_QryTradingAccount[0], dict):
+                self.__QryTradingAccount = list_QryTradingAccount[0]
+                self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = 0
+                print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户成功', Utils.code_transform(self.__QryTradingAccount))
+            else:
+                print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户失败', Utils.code_transform(list_QryTradingAccount))
+                self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = list_QryTradingAccount
         else:
-            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = self.__QryTradingAccount
-            print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户失败',
-                  Utils.code_transform(self.__QryTradingAccount))
+            print("User.__init__() user_id=", self.__user_id.decode(), '查询资金账户失败', Utils.code_transform(list_QryTradingAccount))
+            self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTradingAccount'] = list_QryTradingAccount
 
         """查询投资者持仓"""
         # time.sleep(1.0)
@@ -166,7 +156,7 @@ class User(QtCore.QObject):
         # time.sleep(1.0)
         self.qry_api_interval_manager()  # API查询时间间隔管理
         self.__list_QryTrade = self.QryTrade()  # 保存查询当天的Trade和Order记录，正常值格式为DataFrame，异常值为None
-        print(">>> User.__init__() len(self.__list_QryTrade) =", len(self.__list_QryTrade))
+        # print(">>> User.__init__() len(self.__list_QryTrade) =", len(self.__list_QryTrade))
         # QryTrade查询结果的状态记录到CTPManager的user状态字典，成功为0
         if isinstance(self.__list_QryTrade, list):
             self.__ctp_manager.get_dict_user()[self.__user_id.decode()]['QryTrade'] = 0  # 初始过程中一个步骤的标志位
@@ -292,7 +282,7 @@ class User(QtCore.QObject):
         return self.__trader_id
 
     # 获取trade实例(TD)
-    def get_trade(self):
+    def get_trader_api(self):
         return self.__trader_api
 
     # 获取self.__instrument_info
@@ -382,32 +372,28 @@ class User(QtCore.QObject):
     def qry_depth_market_data(self, instrument_id):
         return self.__trader_api.QryDepthMarketData(instrument_id)
 
-    # 查询合约
-    # def qry_instrument(self):
-    #     return self.__trader_api.QryInstrument()
-
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
-        # print("User.OnRtnTrade()", 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
-
         # 根据字段‘OrderRef’筛选出本套利系统的Trade，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
-        if len(Trade['OrderRef']) != 12 or Trade['OrderRef'][:1] != '1':
-            return
+
+        # if len(Trade['OrderRef']) != 12 or Trade['OrderRef'][:1] != '1':
+        #     return
+        # for i in self.__list_strategy:  # 转到strategy回调函数
+        #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnTrade(Trade)
+
+        series_trade = Series(Trade)
+        self.__df_trade = DataFrame.append(self.__df_trade, other=series_trade, ignore_index=True)
 
         # Trade新增字段
-        t = datetime.datetime.now()
+        t = datetime.now()
         Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
         Trade['RecTradeTime'] = t.strftime("%Y-%m-%d %H:%M:%S")  # 收到成交回报的时间
         Trade['RecTradeMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
 
-        # 转到Strategy行情回调函数OnRtnOrder
-        # for i in self.__list_strategy:  # 转到strategy回调函数
-        #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
-        #         i.OnRtnTrade(Trade)
-
         # 更新账户资金信息，并刷新界面
-        self.update_panel_show_account()
+        # self.update_panel_show_account()
 
         # 记录存到数据库
         # self.__DBManager.insert_trade(Trade)
@@ -418,26 +404,27 @@ class User(QtCore.QObject):
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
-        # print("User.OnRtnOrder()", 'OrderRef:', Order['OrderRef'], 'Order:', Order)
+        t = datetime.now()
+
         self.action_counter(Order)  # 无任何过滤条件，所有order加入到撤单计数
-
-        # 根据字段‘SessionID’筛选出本套利系统的Trade，
-        # if Order['SessionID'] not in self.__list_sessionid:
+        # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
+        # if len(Order['OrderRef']) != 12 or Order['OrderRef'][:1] != '1':
         #     return
+        # for i in self.__list_strategy:  # 转到strategy回调函数
+        #     if Order['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnOrder(Order)
 
-        # 根据字段‘OrderRef’筛选出本套利系统的Trade，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
-        if len(Order['OrderRef']) != 12 or Order['OrderRef'][:1] != '1':
-            return
+        series_order = Series(Order)
+        self.__df_order = DataFrame.append(self.__df_order, other=series_order, ignore_index=True)
+        self.write_log(t.strftime("%Y-%m-%d %H:%M:%S"), 'OnRtnOrder', '报单回调', str(Order))
 
         # Order新增字段
-        # order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
-        # self.update_list_order_process(order_new)  # 更新挂单列表
-        # self.update_list_position_detail(order_new)  # 更新持仓明细列表
-        t = datetime.datetime.now()
+
         Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Order['StrategyID'] = Order['OrderRef'][-2:]  # 报单引用末两位是策略编号
         Order['RecOrderTime'] = t.strftime("%Y-%m-%d %H:%M:%S")  # 收到成交回报的时间
         Order['RecOrderMicrosecond'] = t.strftime("%f")  # 收到成交回报中的时间毫秒
+
 
         # 转到Strategy行情回调函数OnRtnOrder
         # for i in self.__list_strategy:  # 转到strategy回调函数
@@ -448,46 +435,53 @@ class User(QtCore.QObject):
         # self.__DBManager.insert_trade(Order)
         # self.__mongo_client.CTP.get_collection(self.__user_id.decode()+'_Order').insert_one(Order)  # 记录插入到数据库
 
-    # 转PyCTP_Market_API类中回调函数QryTrade
-    # def QryTrade(self):
-    #     dfQryTrade = DataFrame()
-    #     self.__listQryTrade = self.__trader_api.QryTrade()  # 返回正常值格式为list，错误值为int
-    #     if isinstance(self.__listQryTrade, list):
-    #         if len(self.__listQryTrade) > 0:
-    #             for i in self.__listQryTrade:
-    #                 # 将记录格式有list变为DataFrame
-    #                 dfQryTrade = DataFrame.append(dfQryTrade, other=Utils.code_transform(i), ignore_index=True)
-    #             # 添加列StrategyID：截取OrderRef后两位数为StrategyID
-    #             dfQryTrade['StrategyID'] = dfQryTrade['OrderRef'].astype(str).str[-2:].astype(int)
-    #     return dfQryTrade
+    # 将order和trade记录保存到本地
+    def save_df_order_trade(self):
+        str_user_id = self.__user_id.decode()
+        str_time = datetime.now().strftime("%Y-%m-%d %H%M%S")
+        order_file_path = "data/order_" + str_user_id + "_" + str_time + '.csv'
+        trade_file_path = "data/trade_" + str_user_id + "_" + str_time + '.csv'
+        log_file_path = "data/log_" + str_user_id + "_" + str_time + '.csv'
+        # qry_order_file_path = "data/qry_order_" + str_user_id + "_" + str_time + '.csv'
+        # qry_trade_file_path = "data/qry_trade_" + str_user_id + "_" + str_time + '.csv'
+        print(">>> PyCTP_Trade.save_df_order_trade() order_file_path =", order_file_path)
+        print(">>> PyCTP_Trade.save_df_order_trade() trade_file_path =", trade_file_path)
+        print(">>> PyCTP_Trade.save_df_order_trade() log_file_path =", log_file_path)
+        self.__df_order.to_csv(order_file_path)
+        self.__df_trade.to_csv(trade_file_path)
+        self.__df_log.to_csv(log_file_path)
+        # self.__df_qry_order.to_csv(qry_order_file_path)
+        # self.__df_qry_trade.to_csv(qry_trade_file_path)
 
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
-        self.__list_QryTrade = self.__trader_api.QryTrade()  # 正确返回值为list类型，否则为异常
-        if isinstance(self.__list_QryTrade, list):
-            self.__list_QryTrade = Utils.code_transform(self.__list_QryTrade)
+        list_QryTrade = self.__trader_api.QryTrade()  # 正确返回值为list类型，否则为异常
+        self.__list_QryTrade = list()  # 保存本套利系统的Trade记录
+        if isinstance(list_QryTrade, list):
+            list_QryTrade = Utils.code_transform(list_QryTrade)
+        # print(">>> User.QryTrade() QryTrade从api获得的样本数 =", len(list_QryTrade))
         # 筛选条件：OrderRef第一位为1，长度为12
-        for i in self.__list_QryTrade:
+        for i in list_QryTrade:
             if len(i['OrderRef']) == 12 and i['OrderRef'][:1] == '1':
                 i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
-                pass
-            else:
-                self.__list_QryTrade.remove(i)
+                self.__list_QryTrade.append(i)
+        # print(">>> User.QryTrade() QryTrade过滤后样本数 =", len(self.__list_QryTrade))
         return self.__list_QryTrade
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
-        self.__list_QryOrder = self.__trader_api.QryOrder()  # 正确返回值为list类型，否则为异常
-        if isinstance(self.__list_QryOrder, list):
-            self.__list_QryOrder = Utils.code_transform(self.__list_QryOrder)
+        list_QryOrder = self.__trader_api.QryOrder()  # 正确返回值为list类型，否则为异常
+        self.__list_QryOrder = list()  # 保存本套利系统的Order记录
+        if isinstance(list_QryOrder, list):
+            list_QryOrder = Utils.code_transform(list_QryOrder)
         # 筛选条件：OrderRef第一位为1，长度为12
-        for i in self.__list_QryOrder:
+        # print(">>> User.QryOrder() QryOrder过滤前样本数 =", len(list_QryOrder))
+        for i in list_QryOrder:
             self.action_counter(i)  # 撤单计数
             if len(i['OrderRef']) == 12 and i['OrderRef'][:1] == '1':
                 i['StrategyID'] = i['OrderRef'][-2:]  # 增加字段：策略编号"StrategyID"
-                pass
-            else:
-                self.__list_QryOrder.remove(i)
+                self.__list_QryOrder.append(i)
+        # print(">>> User.QryOrder() QryOrder过滤后样本数 =", len(self.__list_QryOrder))
         return self.__list_QryOrder
 
     # 获取listQryOrder
@@ -783,6 +777,12 @@ class User(QtCore.QObject):
 
         self.signal_update_panel_show_account.emit(self.__dict_panel_show_account)
         """
+
+    # 保存日志，形参：时间、标题、函数名称、消息主题
+    def write_log(self, str_time, str_title, str_function_name, str_msg):
+        index_list = ['time', 'str_title', 'function', 'msg']
+        s = Series([str_time, str_function_name, str_title, str_msg], index=index_list)
+        self.__df_log = DataFrame.append(self.__df_log, other=s, ignore_index=True)
 
 if __name__ == '__main__':
     print("User.py, if __name__ == '__main__':")

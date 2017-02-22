@@ -6,6 +6,7 @@ Created on Tue Jan 12 00:31:14 2016
 """
 
 import sys
+from datetime import datetime
 import threading
 import PyCTP
 import pandas as pd
@@ -16,10 +17,14 @@ from QMessageBox import QMessageBox
 
 class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
-    TIMEOUT = 10
+    TIMEOUT = 300
 
     __RequestID = 0
     __isLogined = False
+    # __df_order = DataFrame()  # 保存该期货账户的所有OnRtnOrder来的记录
+    # __df_trade = DataFrame()  # 保存该期货账户的所有OnRtnTrade来的记录
+    __df_qry_order = DataFrame()  # 保存该期货账户的所有QryOrder返回的记录
+    __df_qry_trade = DataFrame()  # 保存该期货账户的所有QryTrade返回的记录
 
     def __IncRequestID(self):
         """ 自增并返回请求ID """
@@ -45,7 +50,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        self.SubscribePrivateTopic(PyCTP.THOST_TERT_QUICK)  # 从本次连线之后开始发送数据
+        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESTART)  # 从本次连线之后开始发送数据
         self.SubscribePublicTopic(PyCTP.THOST_TERT_QUICK)
         self.RegisterFront(frontAddr)
         self.Init()
@@ -498,7 +503,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 self.__rsp_QryInstrumentCommissionRate['event'].set()
 
     def OnRspQryOrder(self, Order, RspInfo, RequestID, IsLast):
-        """请求查询投资者持仓响应"""
+        """请求查询报单响应"""
         # self.__user.OnRspQryOrder(Order, RspInfo, RequestID, IsLast)  # 转到user回调函数
         if RequestID == self.__rsp_QryOrder['RequestID']:
             if RspInfo is not None:
@@ -507,6 +512,9 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 self.__rsp_QryOrder['results'].append(Order)
             if IsLast:
                 self.__rsp_QryOrder['event'].set()
+        Order = Utils.code_transform(Order)
+        series_order = Series(Order)
+        self.__df_qry_order = DataFrame.append(self.__df_qry_order, other=series_order, ignore_index=True)
 
     def OnRspQryTrade(self, Trade, RspInfo, RequestID, IsLast):
         """请求查询成交单响应"""
@@ -518,9 +526,13 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
                 self.__rsp_QryTrade['results'].append(Trade)
             if IsLast:
                 self.__rsp_QryTrade['event'].set()
+        Trade = Utils.code_transform(Trade)
+        series_trade = Series(Trade)
+        self.__df_qry_trade = DataFrame.append(self.__df_qry_trade, other=series_trade, ignore_index=True)
 
     def OnRspQryInvestorPosition(self, InvestorPosition, RspInfo, RequestID, IsLast):
         """ 请求查询投资者持仓响应 """
+        self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryInvestorPosition', '查询投资者持仓响应', str(InvestorPosition))
         if RequestID == self.__rsp_QryInvestorPosition['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryInvestorPosition.update(RspInfo)
@@ -531,6 +543,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRspQryInvestorPositionDetail(self, InvestorPositionDetail, RspInfo, RequestID, IsLast):
         """ 请求查询投资者持仓明细响应 """
+        self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryInvestorPositionDetail', '查询投资者持仓明细响应', str(InvestorPositionDetail))
         if RequestID == self.__rsp_QryInvestorPositionDetail['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryInvestorPositionDetail.update(RspInfo)
@@ -541,6 +554,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRspQryTradingAccount(self, TradingAccount, RspInfo, RequestID, IsLast):
         """ 请求查询资金账户响应 """
+        self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryTradingAccount', '查询资金账户响应', str(TradingAccount))
         if RequestID == self.__rsp_QryTradingAccount['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryTradingAccount.update(RspInfo)
@@ -625,23 +639,43 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         Order = Utils.code_transform(Order)
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade_API.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order:', Order)
+        self.__user.OnRtnOrder(Order)  # 转回调给User类的OnRtnOrder
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         # if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
         # 报单回报过滤1、套利系统的服务端或客户端发送的委托；2、字段SystemID不为空
         # self.__user.OnRtnOrder(Order)  # 转到user回调函数
-        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if Order['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnRtnOrder(Order)
+        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+        #     if Order['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnOrder(Order)
+        # series_order = Series(Order)
+        # self.__df_order = DataFrame.append(self.__df_order, other=series_order, ignore_index=True)
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
         Trade = Utils.code_transform(Trade)
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade:', Trade)
-        # self.__user.OnRtnTrade(Trade)  # 转到user回调函数
-        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if Trade['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnRtnTrade(Trade)
+        self.__user.OnRtnTrade(Trade)  # 转到user回调函数
+        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+        #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnRtnTrade(Trade)
+        # series_trade = Series(Trade)
+        # self.__df_trade = DataFrame.append(self.__df_trade, other=series_trade, ignore_index=True)
+
+    # 将order和trade记录保存到本地
+    def save_df_order_trade(self):
+        str_user_id = self.__UserID.decode()
+        str_time = datetime.now().strftime("%Y-%m-%d %H%M%S")
+        order_file_path = "data/order_" + str_user_id + "_" + str_time + '.csv'
+        trade_file_path = "data/trade_" + str_user_id + "_" + str_time + '.csv'
+        qry_order_file_path = "data/qry_order_" + str_user_id + "_" + str_time + '.csv'
+        qry_trade_file_path = "data/qry_trade_" + str_user_id + "_" + str_time + '.csv'
+        print(">>> PyCTP_Trade.save_df_order_trade() order_file_path =", order_file_path)
+        print(">>> PyCTP_Trade.save_df_order_trade() trade_file_path =", trade_file_path)
+        # self.__df_order.to_csv(order_file_path)
+        # self.__df_trade.to_csv(trade_file_path)
+        self.__df_qry_order.to_csv(qry_order_file_path)
+        self.__df_qry_trade.to_csv(qry_trade_file_path)
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """

@@ -1298,6 +1298,11 @@ class QAccountWidget(QWidget, Ui_Form):
         json_query_strategy = json.dumps(dict_query_strategy)
         self.signal_send_msg.emit(json_query_strategy)
 
+        # 测试用：触发保存df_order和df_trade保存到本地
+        if self.is_single_user_widget():
+            print(">>> QAccountWidget.on_pushButton_query_strategy_clicked() 保存df_order和df_trade到本地, widget_name=", self.__widget_name, "user_id =", self.__user.get_user_id().decode())
+            self.__user.save_df_order_trade()
+
     @pyqtSlot(bool)
     def on_checkBox_kongtoukai_clicked(self, checked):
         """
