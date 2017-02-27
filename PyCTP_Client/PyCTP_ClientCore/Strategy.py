@@ -434,18 +434,18 @@ class Strategy(QtCore.QObject):
                         and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
                     if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
-                        self.count_close_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
+                        self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] < self.__list_position_detail_for_trade[i-shift]['Volume']:
-                        self.count_close_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
+                        self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade_new['Volume']
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] > self.__list_position_detail_for_trade[i-shift]['Volume']:
-                        self.count_close_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
+                        self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         trade_new['Volume'] -= self.__list_position_detail_for_trade[i-shift]['Volume']
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
@@ -458,18 +458,18 @@ class Strategy(QtCore.QObject):
                         and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
                     if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
-                        self.count_close_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
+                        self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] < self.__list_position_detail_for_trade[i-shift]['Volume']:
-                        self.count_close_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
+                        self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade_new['Volume']
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] > self.__list_position_detail_for_trade[i-shift]['Volume']:
-                        self.count_close_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
+                        self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         trade_new['Volume'] -= self.__list_position_detail_for_trade[i-shift]['Volume']
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
@@ -712,12 +712,12 @@ class Strategy(QtCore.QObject):
             if order['OrderStatus'] in ['0', '5']:  # 仅统计'OrderStatus'为0和5的原始报单量
                 if order['InstrumentID'] == self.__a_instrument_id:  # A合约
                     self.__dict_statistics['a_order_count'] += order['VolumeTotalOriginal']  # A报单手数
-                    if order['OrderStatus'] == '5':  # 撤单
-                        self.__dict_statistics['a_action_count'] += 1  # A撤单次数
+                    # if order['OrderStatus'] == '5':  # 撤单，在user的OnRtnOrder中统计
+                    #     self.__dict_statistics['a_action_count'] += 1  # A撤单次数
                 elif order['InstrumentID'] == self.__b_instrument_id:  # B合约
                     self.__dict_statistics['b_order_count'] += order['VolumeTotalOriginal']  # B报单手数
-                    if order['OrderStatus'] == '5':  # 撤单
-                        self.__dict_statistics['b_action_count'] += 1  # B撤单次数
+                    # if order['OrderStatus'] == '5':  # 撤单，在user的OnRtnOrder中统计
+                    #     self.__dict_statistics['b_action_count'] += 1  # B撤单次数
 
         # 根据trade统计A、B合约的：手续费、平仓盈亏、成交手数、成交金额
         if isinstance(trade, dict):
@@ -804,7 +804,7 @@ class Strategy(QtCore.QObject):
                     self.__profit_position += i['profit_position']  # 单策略所有持仓盈亏累积
 
     # 计算平仓盈亏，形参分别为开仓和平仓的trade
-    def count_close_profit(self, trade_close, trade_open):
+    def count_profit(self, trade_close, trade_open):
         """
         order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
         '0'：开仓

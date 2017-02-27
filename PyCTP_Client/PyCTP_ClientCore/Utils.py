@@ -7,6 +7,7 @@ Created on Wed Jul 20 08:46:13 2016
 
 import os
 import time
+from xml.dom import minidom
 import DBManager
 import chardet
 
@@ -439,3 +440,130 @@ def make_dirs(path):
         # print("make_dirs()文件路劲已存在，不用创建，", path)
         return False
 
+
+# 读取xml文件
+def get_xml():
+    # 解析文件employ.xml
+    doc = minidom.parse("config/bee_config.xml")
+    print(">>> type(doc) = ", type(doc))
+    # 定位到根元素
+    root = doc.documentElement
+    list_category = root.getElementsByTagName("category")
+    list_user = None
+    list_system_status = None
+
+
+
+    for i in list_category:
+        if i.attributes["name"].value == "user":
+            list_user = i
+            print(">>> type(list_user) =", type(list_user))
+        elif i.attributes["name"].value == "system_status":
+            list_system_status = i
+            print(">>> type(list_system_status) =", type(list_system_status))
+
+    system_status = list_system_status.childNodes[0].nodeValue
+
+    user_elements = list_user.getElementsByTagName("user")
+
+    for i in list_user.getElementsByTagName("user"):  # 单个User
+
+        strategy_elements = i.getElementsByTagName("strategy")
+        # print(">>> strategy_elements[0].toxml() =", strategy_elements[0].toxml())
+
+        for i_strategy_elements in strategy_elements:
+
+            strategy_items = i_strategy_elements.getElementsByTagName("item")  # 单个策略下面所有的持仓明细（order格式）
+            # print(">>> strategy_items[0].toxml() =", strategy_items[0].toxml())
+
+            for i_strategy_items in strategy_items:
+                if i_strategy_items.attributes["flag"].value == "position_detail_for_order":  # 策略下面的持仓明细，order结构集合
+                    position_detail_for_order = i_strategy_items
+                    print(">>> position_detail_for_order.toxml() =", position_detail_for_order.toxml())
+                elif i_strategy_items.attributes["flag"].value == "position_detail_for_trade":
+                    position_detail_for_trade = i_strategy_items
+                elif i_strategy_items.attributes["flag"].value == "arguments":
+                    arguments = i_strategy_items
+                elif i_strategy_items.attributes["flag"].value == "statistics":
+                    statistics = i_strategy_items
+
+    dict_user_position_detail_for_order = dict()  # 单个期货账户的持仓明细(order结构)
+    for i in position_detail_for_order.getElementsByTagName("position_detail_for_order"):  # i：order结构
+        list_strategy_position_detail_for_order = list()  # 单个策略的持仓明细（order结构）
+        order = i.getElementsByTagName("order")
+        for i_order in order:  # i_order:order结构里面的键
+            dict_order = dict()
+            if i_order.attributes['flag'].value == 'instrumentid':
+                dict_order['instrumentid'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'orderref':
+                dict_order['orderref'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'userid':
+                dict_order['userid'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'direction':
+                dict_order['direction'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'comboffsetflag':
+                dict_order['comboffsetflag'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'combhedgeflag':
+                dict_order['combhedgeflag'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'limitprice':
+                dict_order['limitprice'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'volumetotaloriginal':
+                dict_order['volumetotaloriginal'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'tradingday':
+                dict_order['tradingday'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'tradingdayrecord':
+                dict_order['tradingdayrecord'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'orderstatus':
+                dict_order['orderstatus'] = i_order.childNodes[0].nodeValue
+            elif i_order.attributes['flag'].value == 'volumeorderd':
+                dict_order['volumeorderd'] = i_order.childNodes[0].nodeValue
+
+
+            # dict_order['orderref'] = i_order.attributes['orderref'].value
+            # dict_order['userid'] = i_order.attributes['userid'].value
+            # dict_order['direction'] = i_order.attributes['direction'].value
+            # dict_order['comboffsetflag'] = i_order.attributes['comboffsetflag'].value
+            # dict_order['combhedgeflag'] = i_order.attributes['combhedgeflag'].value
+            # dict_order['limitprice'] = i_order.attributes['limitprice'].value
+            # dict_order['volumetotaloriginal'] = i_order.attributes['volumetotaloriginal'].value
+            # dict_order['tradingday'] = i_order.attributes['tradingday'].value
+            # dict_order['tradingdayrecord'] = i_order.attributes['tradingdayrecord'].value
+            # dict_order['orderstatus'] = i_order.attributes['orderstatus'].value
+            # dict_order['volumeorderd'] = i_order.attributes['volumeorderd'].value
+            # dict_order['volumetotal'] = i_order.attributes['volumetotal'].value
+            # dict_order['insertdate'] = i_order.attributes['insertdate'].value
+            # dict_order['inserttime'] = i_order.attributes['inserttime'].value
+            # dict_order['strategyid'] = i_order.attributes['strategyid'].value
+            # dict_order['volumeorderdbatch'] = i_order.attributes['volumeorderdbatch'].value
+            list_strategy_position_detail_for_order.append(dict_order)
+        str_strategy_id = dict_order['strategyid']
+        # 单个策略的持仓明细（order结构）
+        dict_user_position_detail_for_order[str_strategy_id] = list_strategy_position_detail_for_order
+
+    dict_user_position_detail_for_trade = dict()  # 单个期货账户的持仓明细(trade结构)
+    for i in position_detail_for_trade:
+        list_strategy_position_detail_for_trade = list()  # 单个策略的持仓明细（trade结构）
+        for i_trade in i.getElementsByTagName("trade"):
+            dict_trade = dict()
+            dict_trade['instrumentid'] = i_trade.attributes['instrumentid'].value
+            dict_trade['orderref'] = i_trade.attributes['orderref'].value
+            dict_trade['userid'] = i_trade.attributes['userid'].value
+            dict_trade['direction'] = i_trade.attributes['direction'].value
+            dict_trade['offsetflag'] = i_trade.attributes['offsetflag'].value
+            dict_trade['hedgeflag'] = i_trade.attributes['hedgeflag'].value
+            dict_trade['price'] = i_trade.attributes['price'].value
+            dict_trade['tradingday'] = i_trade.attributes['tradingday'].value
+            dict_trade['tradingdayrecord'] = i_trade.attributes['tradingdayrecord'].value
+            dict_trade['tradedate'] = i_trade.attributes['tradedate'].value
+            dict_trade['strategyid'] = i_trade.attributes['strategyid'].value
+            dict_trade['volume'] = i_trade.attributes['volume'].value
+            list_strategy_position_detail_for_trade.append(dict_trade)
+        str_strategy_id = dict_trade['strategyid']
+        dict_user_position_detail_for_trade[str_strategy_id] = list_strategy_position_detail_for_trade
+
+    print(">>> dict_user_position_detail_for_trade =", dict_user_position_detail_for_trade)
+    print(">>> dict_user_position_detail_for_order =", dict_user_position_detail_for_order)
+
+if __name__ == '__main__':
+    get_xml()
+    pass

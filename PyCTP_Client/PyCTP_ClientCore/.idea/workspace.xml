@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ca9303d6-9455-470e-8a06-c85cc939cf2f" name="Default" comment="" />
+    <list default="true" id="ca9303d6-9455-470e-8a06-c85cc939cf2f" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.py" afterPath="$PROJECT_DIR$/Utils.py" />
+    </list>
     <ignored path="PyCtp.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -36,6 +38,7 @@
     <SUITE FILE_PATH="coverage/PyCTP_API_TEST$Trade.coverage" NAME="Trade Coverage Results" MODIFIED="1469003415730" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$SocketManager__1_.coverage" NAME="SocketManager (1) Coverage Results" MODIFIED="1474296600799" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:/原鹏飞发来资料" />
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$SocketManager.coverage" NAME="SocketManager Coverage Results" MODIFIED="1477452174679" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PyCTP_ClientCore$Utils.coverage" NAME="Utils Coverage Results" MODIFIED="1488184946348" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_ClientCore$QStrategySetting.coverage" NAME="QStrategySetting Coverage Results" MODIFIED="1480928530858" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_API_TEST$test.coverage" NAME="test Coverage Results" MODIFIED="1469003017796" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PyCTP_Integration$CTP_Run.coverage" NAME="CTP_Run Coverage Results" MODIFIED="1469523226461" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -53,6 +56,7 @@
     <option name="SORT_POSITIONED" value="false" />
     <option name="SHOW_TABLE_DETAILS" value="true" />
     <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
@@ -76,7 +80,7 @@
       <file leaf-file-name="CTPManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CTPManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="299">
+            <state relative-caret-position="3404">
               <caret line="171" column="25" lean-forward="false" selection-start-line="171" selection-start-column="25" selection-end-line="171" selection-end-column="25" />
               <folding>
                 <element signature="e#86#96#0" expanded="true" />
@@ -86,11 +90,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MarketManager.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="MarketManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MarketManager.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="506">
-              <caret line="31" column="64" lean-forward="true" selection-start-line="31" selection-start-column="64" selection-end-line="31" selection-end-column="64" />
+              <caret line="31" column="64" lean-forward="false" selection-start-line="31" selection-start-column="64" selection-end-line="31" selection-end-column="64" />
               <folding />
             </state>
           </provider>
@@ -126,12 +130,24 @@
       <file leaf-file-name="Strategy.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Strategy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="10994">
-              <caret line="488" column="24" lean-forward="false" selection-start-line="488" selection-start-column="8" selection-end-line="488" selection-end-column="24" />
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding>
-                <element signature="e#57642#60201#1" expanded="false" />
-                <element signature="e#84106#88134#1" expanded="false" />
-                <element signature="e#88686#96747#1" expanded="false" />
+                <element signature="e#57648#60207#1" expanded="false" />
+                <element signature="e#84112#88140#1" expanded="false" />
+                <element signature="e#88692#96753#1" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Utils.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="344">
+              <caret line="518" column="40" lean-forward="false" selection-start-line="518" selection-start-column="40" selection-end-line="518" selection-end-column="40" />
+              <folding>
+                <element signature="e#89#98#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -157,20 +173,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="QMessageBox.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/QMessageBox.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="161">
-              <caret line="8" column="51" lean-forward="false" selection-start-line="8" selection-start-column="51" selection-end-line="8" selection-end-column="51" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="SocketManager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SocketManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
+            <state relative-caret-position="7038">
               <caret line="317" column="71" lean-forward="false" selection-start-line="317" selection-start-column="71" selection-end-line="317" selection-end-column="71" />
               <folding>
                 <element signature="e#25#59#0" expanded="true" />
@@ -192,12 +198,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>self.__ctp_manager.get_dict_user()</find>
-      <find>get_dict_user</find>
-      <find>self.__rsp_QryInvestorPositionDetail['results']</find>
-      <find>成功创建期货账户数量</find>
-      <find>__list_QryTrade</find>
-      <find>self.__list_QryOrder</find>
       <find>self.__list_order_process</find>
       <find>self.__list_order_pending</find>
       <find>get_list_strategy_info_for_order</find>
@@ -222,6 +222,12 @@
       <find>get_</find>
       <find>__list_instrument_info</find>
       <find>queue</find>
+      <find>positionflag</find>
+      <find>statistics</find>
+      <find>def count_profit</find>
+      <find>instrumentid</find>
+      <find>&gt;&gt;&gt; dict_order['instrumentid'] =</find>
+      <find>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</find>
     </findStrings>
     <replaceStrings>
       <replace>slot_handle_tick</replace>
@@ -239,6 +245,7 @@
       <replace>get_list_strategy_info</replace>
       <replace>get_dict_create_user_status</replace>
       <replace>self.__dict_create_user_failed</replace>
+      <replace>count_profit</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -268,7 +275,6 @@
         <option value="$PROJECT_DIR$/Ui_QLogin.py" />
         <option value="D:/原鹏飞发来资料/SocketManager.py" />
         <option value="$PROJECT_DIR$/ClientCore.py" />
-        <option value="$PROJECT_DIR$/Utils.py" />
         <option value="$PROJECT_DIR$/Ui_QAccountWidget.py" />
         <option value="$PROJECT_DIR$/DBManager.py" />
         <option value="$PROJECT_DIR$/Trader.py" />
@@ -289,8 +295,10 @@
         <option value="$PROJECT_DIR$/User.py" />
         <option value="$PROJECT_DIR$/PyCTP_Market.py" />
         <option value="$PROJECT_DIR$/MarketManager.py" />
-        <option value="$PROJECT_DIR$/Strategy.py" />
         <option value="$PROJECT_DIR$/CTPManager.py" />
+        <option value="$PROJECT_DIR$/Strategy.py" />
+        <option value="$PROJECT_DIR$/XML_operate.py" />
+        <option value="$PROJECT_DIR$/Utils.py" />
       </list>
     </option>
   </component>
@@ -340,6 +348,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
@@ -355,7 +364,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -388,7 +396,7 @@
       <recent name="D:\ATS\PyCtp" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.ClientMain">
+  <component name="RunManager" selected="Python.Utils">
     <configuration default="false" name="ClientMain" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -425,24 +433,6 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="QStrategySetting" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="PyCtp" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="D:\CTP\PyCTP\PyCTP_Client\PyCTP_ClientCore\QNewStrategy.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
     <configuration default="false" name="messagebox" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -475,6 +465,24 @@
       <module name="PyCtp" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/QMessageCenter.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Utils" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PyCtp" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Utils.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -696,17 +704,17 @@
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.ClientMain" />
       <item index="1" class="java.lang.String" itemvalue="Python.MainAnalysis" />
-      <item index="2" class="java.lang.String" itemvalue="Python.QStrategySetting" />
-      <item index="3" class="java.lang.String" itemvalue="Python.messagebox" />
-      <item index="4" class="java.lang.String" itemvalue="Python.QMessageCenter" />
+      <item index="2" class="java.lang.String" itemvalue="Python.messagebox" />
+      <item index="3" class="java.lang.String" itemvalue="Python.QMessageCenter" />
+      <item index="4" class="java.lang.String" itemvalue="Python.Utils" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.ClientMain" />
-        <item index="1" class="java.lang.String" itemvalue="Python.messagebox" />
-        <item index="2" class="java.lang.String" itemvalue="Python.QMessageCenter" />
-        <item index="3" class="java.lang.String" itemvalue="Python.MainAnalysis" />
-        <item index="4" class="java.lang.String" itemvalue="Python.QStrategySetting" />
+        <item index="0" class="java.lang.String" itemvalue="Python.Utils" />
+        <item index="1" class="java.lang.String" itemvalue="Python.ClientMain" />
+        <item index="2" class="java.lang.String" itemvalue="Python.messagebox" />
+        <item index="3" class="java.lang.String" itemvalue="Python.QMessageCenter" />
+        <item index="4" class="java.lang.String" itemvalue="Python.MainAnalysis" />
       </list>
     </recent_temporary>
   </component>
@@ -737,26 +745,26 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15273312" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15434083" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32842582" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31596828" sideWeight="0.5021436" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3285102" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.38958097" sideWeight="0.49785638" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1789925" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329582" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4604966" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3657984" sideWeight="0.49785638" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32844242" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4604966" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -790,20 +798,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://D:/Python34/Lib/site-packages/pandas/core/frame.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="182">
-          <caret line="2003" column="0" lean-forward="false" selection-start-line="2003" selection-start-column="0" selection-end-line="2003" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://D:/ATS/TradeAnalysis/PyCode/TradeStatistic.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/img/silvery.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="253">
@@ -1029,13 +1023,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="191">
-          <caret line="20" column="18" lean-forward="false" selection-start-line="20" selection-start-column="4" selection-end-line="20" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://D:/Python34/Lib/site-packages/pandas/io/common.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="190">
@@ -1061,7 +1048,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="161">
           <caret line="8" column="51" lean-forward="false" selection-start-line="8" selection-start-column="51" selection-end-line="8" selection-end-column="51" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1094,7 +1080,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="283">
           <caret line="24" column="8" lean-forward="false" selection-start-line="24" selection-start-column="8" selection-end-line="24" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1132,21 +1117,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Strategy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="10994">
-          <caret line="488" column="24" lean-forward="false" selection-start-line="488" selection-start-column="8" selection-end-line="488" selection-end-column="24" />
-          <folding>
-            <element signature="e#57642#60201#1" expanded="false" />
-            <element signature="e#84106#88134#1" expanded="false" />
-            <element signature="e#88686#96747#1" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/CTPManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
+        <state relative-caret-position="3404">
           <caret line="171" column="25" lean-forward="false" selection-start-line="171" selection-start-column="25" selection-end-line="171" selection-end-column="25" />
           <folding>
             <element signature="e#86#96#0" expanded="true" />
@@ -1157,7 +1130,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/SocketManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
+        <state relative-caret-position="7038">
           <caret line="317" column="71" lean-forward="false" selection-start-line="317" selection-start-column="71" selection-end-line="317" selection-end-column="71" />
           <folding>
             <element signature="e#25#59#0" expanded="true" />
@@ -1171,15 +1144,45 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="805">
           <caret line="1438" column="8" lean-forward="false" selection-start-line="1438" selection-start-column="8" selection-end-line="1438" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MarketManager.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="506">
-          <caret line="31" column="64" lean-forward="true" selection-start-line="31" selection-start-column="64" selection-end-line="31" selection-end-column="64" />
+          <caret line="31" column="64" lean-forward="false" selection-start-line="31" selection-start-column="64" selection-end-line="31" selection-end-column="64" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Strategy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#57648#60207#1" expanded="false" />
+            <element signature="e#84112#88140#1" expanded="false" />
+            <element signature="e#88692#96753#1" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/XML_operate.py" />
+    <entry file="file://D:/Python34/Lib/xml/dom/minidom.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="554" column="0" lean-forward="false" selection-start-line="554" selection-start-column="0" selection-end-line="554" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="344">
+          <caret line="518" column="40" lean-forward="false" selection-start-line="518" selection-start-column="40" selection-end-line="518" selection-end-column="40" />
+          <folding>
+            <element signature="e#89#98#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
