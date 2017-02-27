@@ -49,7 +49,7 @@ class CTPManager(QtCore.QObject):
         self.__trader = None  # 交易员实例
         self.__list_user = list()  # 存放user对象的list
         # 字典结构 {'063802': {'connect_trade_front': 0, 'QryTrade': 0, 'QryTradingAccount': 0, 'QryOrder': 0, 'QryInvestorPosition': 0, 'login_trade_account': 0}}
-        self.__dict_user = dict()
+        self.__dict_create_user_status = dict()  # 所有user对象创建状态的dict{'user_id':{'connect_trade_front': 0或错误信息},'user_id':{}}
         self.__list_strategy = list()  # 交易策略实例list
         self.__list_instrument_info = list()  # 期货合约信息
         self.__got_list_instrument_info = False  # 获得了期货合约信息
@@ -104,62 +104,69 @@ class CTPManager(QtCore.QObject):
         # 如果期货账户数量为0，向界面弹窗
         users = len(self.__socket_manager.get_list_user_info())  # 将要创建期货账户数量
         if users == 0:
-            # QMessageBox().showMessage("警告", "将要创建期货账户数量为0")
             self.signal_show_QMessageBox.emit(["警告", "将要创建期货账户数量为0"])
-        dict_create_user_failed = {}  # 创建失败的期货账户列表
-        # print(">>> CTPManager.start_init() 将要创建期货账户数量users=", users)
+            return  # 退出程序
+        self.__dict_create_user_failed = {}  # 保存创建失败的期货账户信息
         for i in self.__socket_manager.get_list_user_info():
             self.create_user(i)  # 创建期货账户
-        for i in self.__dict_user:
-            # print(">>> CTPManager.start_init() len(self.__dict_user[i])=", len(self.__dict_user[i]))
-            for j in self.__dict_user[i]:
-                # print(">>> CTPManager.start_init() user_id=", i, j, "=", self.__dict_user[i][j])
-                if self.__dict_user[i][j] != 0:
-                    users -= 1  # 成功创建期货账户数量减一
-                    dict_create_user_failed[i] = {j: self.__dict_user[i][j]}  # 统计创建失败的期货账户
-                    # print(">>> CTPManager.start_init() dict_create_user_failed[i]=", dict_create_user_failed[i])
-        # print(">>> CTPManager.start_init() 成功创建期货账户数量users=", users)
-        # print(">>> CTPManager.start_init() len(self.__list_user)=", len(self.__list_user))
-        # 存在创建失败的期货账户，但成功创建的期货账户数量大于0，向界面弹窗
-        if users < len(self.__socket_manager.get_list_user_info()) and users > 0:
-            str_print = "以下期货账户创建失败\n"
-            for i in dict_create_user_failed:
-                for j in dict_create_user_failed[i]:
-                    if dict_create_user_failed[i][j] != 0:
-                        str_print = str_print + i + ":" + j + "原因" + str(dict_create_user_failed[i][j]) + "\n"
-            # QMessageBox().showMessage("警告", str_print)
-            self.signal_show_QMessageBox.emit(["警告", str_print])
-        # 成功创建期货账户的数量为0，向界面弹窗
-        elif users == 0:
-            # QMessageBox().showMessage("警告", "成功创建期货账户的数量为0")
-            self.signal_show_QMessageBox.emit(["警告", "成功创建期货账户的数量为0"])
-            return  # 结束程序：创建期货账户失败
 
         """创建策略"""
         self.signal_label_login_error_text.emit("创建策略")
         self.__list_strategy_info = self.__socket_manager.get_list_strategy_info()  # 获取所有策略信息列表
-        # print(">>> CTPManager.start_init() self.__list_strategy_info=", self.__list_strategy_info)
         if len(self.__list_strategy_info) > 0:
             # 过滤出创建成功的期货账户的策略
             for i_strategy in self.__list_strategy_info:
                 for i_user in self.__list_user:
-                    # print(">>> CTPManager.start_init() i_strategy['user_id'] == i_user.get_user_id().decode()", i_strategy['user_id'], i_user.get_user_id().decode())
                     if i_strategy['user_id'] == i_user.get_user_id().decode():
                         self.__list_strategy_will_create.append(i_strategy)
-                        # print(">>> CTPManager.start_init() self.__list_strategy_will_create=", len(self.__list_strategy_will_create), self.__list_strategy_will_create)
                         break
-        # print(">>> CTPManager.start_init() self.__list_strategy_will_create=", self.__list_strategy_will_create)
-
-        # 创建策略
         if len(self.__list_strategy_will_create) > 0:
             for i in self.__list_strategy_will_create:
                 self.create_strategy(i)  # 创建策略
-        elif len(self.__list_strategy_will_create) == 0:
-            self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
+        # elif len(self.__list_strategy_will_create) == 0:
+        #     self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
 
-        if self.__init_finished:  # 如果CTPManager初始化完成，跳转到界面初始化或显示
-            self.signal_create_QAccountWidget.emit()  # 创建窗口界面
-            # self.create_QAccountWidget()  # 创建窗口界面
+        """登录期货账户，调用TD API方法"""
+        for i_user in self.__list_user:
+            i_user.login_trade_account()  # 登录期货账户，期货账户登录成功一刻开始OnRtnOrder、OnRtnTrade就开始返回历史数据
+            i_user.qry_trading_account()  # 查询资金账户
+            i_user.qry_investor_position()  # 查询投资者持仓
+            i_user.qry_inverstor_position_detail()  # 查询投资者持仓明细
+            i_user.qry_instrument_info()  # 查询合约信息
+
+        """检查期货账户调用API方法的状态"""
+        # 有任何一个方法调用失败，则认为初始化期货账户失败
+        for i in self.__dict_create_user_status:
+            for j in self.__dict_create_user_status[i]:
+                if self.__dict_create_user_status[i][j] != 0:
+                    users -= 1  # 成功创建期货账户数量减一
+                    # 统计创建失败的期货账户信息
+                    self.__dict_create_user_failed[i] = {j: self.__dict_create_user_status[i][j]}
+                    # 将创建失败的期货账户user对象从self.__list_user中删除
+                    for i_user in self.__list_user:
+                        if i_user.get_user_id().decode() == 0:
+                            pass
+                    break
+        # 存在创建失败的期货账户，但成功创建的期货账户数量大于0，界面显示出创建成功的期货账户，并向界面弹窗创建失败的期货账户信息
+        if 0 < users < len(self.__socket_manager.get_list_user_info()):
+            str_print = "以下期货账户创建失败\n"
+            for i in self.__dict_create_user_failed:
+                for j in self.__dict_create_user_failed[i]:
+                    if self.__dict_create_user_failed[i][j] != 0:
+                        str_print = str_print + i + ":" + j + "原因" + str(self.__dict_create_user_failed[i][j]) + "\n"
+            self.signal_show_QMessageBox.emit(["警告", str_print])
+        # 成功创建期货账户的数量为0，向界面弹窗
+        elif users == 0:
+            self.signal_show_QMessageBox.emit(["警告", "成功创建期货账户的数量为0"])
+            return  # 结束程序：没有创建成功的策略
+
+        """删除创建失败的user对象和strategy对象"""
+        # 从user对象列表删除初始化失败的user对象
+        # 待续，2017年2月24日16:59:50
+        # 从strategy对象列表删除初始化失败的strategy对象
+
+        # if self.__init_finished:  # 如果CTPManager初始化完成，跳转到界面初始化或显示
+        self.signal_create_QAccountWidget.emit()  # 创建窗口界面
 
     # 创建MD
     def create_md(self, dict_arguments):
@@ -172,7 +179,8 @@ class CTPManager(QtCore.QObject):
                                              )
         self.__MarketManager.get_market().set_strategy(self.__list_strategy)  # 将策略列表设置为Market_API类的属性
         if self.__MarketManager.get_result_market_connect() == 0 and self.__MarketManager.get_result_market_login() == 0:
-            print("CTPManager.create_md() 创建行情成功，交易日=", self.__MarketManager.get_market().GetTradingDay())  # 行情API中获取到的交易日
+            self.__TradingDay = self.__MarketManager.get_TradingDay()
+            print("CTPManager.create_md() 创建行情成功，交易日：", self.__TradingDay)  # 行情API中获取到的交易日
             return True
         else:
             print("CTPManager.create_md() 创建行情失败")
@@ -191,31 +199,30 @@ class CTPManager(QtCore.QObject):
                 if i.get_user_id() == dict_arguments['userid']:
                     print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
                     return
+
         obj_user = User(dict_arguments, ctp_manager=self)
         # 将创建成功的期货账户对象存放到self.__list_user
-        for i in self.__dict_user:
+        for i in self.__dict_create_user_status:
             if i == obj_user.get_user_id().decode():
-                if self.__dict_user[i]['connect_trade_front'] == 0 \
-                        and self.__dict_user[i]['login_trade_account'] == 0 \
-                        and self.__dict_user[i]['QryTradingAccount'] == 0 \
-                        and self.__dict_user[i]['QryInvestorPosition'] == 0 \
-                        and self.__dict_user[i]['QryTrade'] == 0 \
-                        and self.__dict_user[i]['QryOrder'] == 0 :
+                if self.__dict_create_user_status[i]['connect_trade_front'] == 0:  # 连接交易前置成功
+                        # and self.__dict_create_user_status[i]['login_trade_account'] == 0 \
+                        # and self.__dict_create_user_status[i]['QryTradingAccount'] == 0 \
+                        # and self.__dict_create_user_status[i]['QryInvestorPosition'] == 0:
                     obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
-                    time.sleep(1.0)
-                    obj_user.qry_instrument_info()  # 查询合约信息
                     self.__list_user.append(obj_user)  # user类实例添加到列表存放
+                    # obj_user.qry_api_interval_manager()  # API查询时间间隔管理
+                    # obj_user.qry_instrument_info()  # 查询合约信息
                     print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
                 else:
                     print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
 
-        # if self.__dict_user[dict_arguments['userid']] == 1:  # 判断是否成功创建期货账户
+        # if self.__dict_create_user_status[dict_arguments['userid']] == 1:  # 判断是否成功创建期货账户
         #     # obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性
         #     obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
         #     obj_user.qry_instrument_info()  # 查询合约信息
         #     self.__list_user.append(obj_user)  # user类实例添加到列表存放
         #     print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
-        # elif self.__dict_user[dict_arguments['userid']] == 0:
+        # elif self.__dict_create_user_status[dict_arguments['userid']] == 0:
         #     print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
 
     # 将strategy对象添加到user里
@@ -250,14 +257,15 @@ class CTPManager(QtCore.QObject):
 
         # 判断内核是否初始化完成（所有策略是否初始化完成）
         if self.__init_finished:  # 内核初始化完成、程序运行中新添加策略，在界面策略列表框内添加一行
-            print(">>> CTPManager.create_strategy() 程序运行中添加策略", dict_arguments['strategy_id'])
+            print("CTPManager.create_strategy() 程序运行中添加策略，user_id =", dict_arguments['user_id'], 'strategy_id =', dict_arguments['strategy_id'])
             self.signal_insert_strategy.emit(obj_strategy)  # 内核向界面插入策略
             self.signal_hide_QNewStrategy.emit()  # 隐藏创建策略的小弹窗
-        elif self.__init_finished is False:  # 内核初始化未完成
+        else:  # 内核初始化未完成
             # 最后一个策略初始化完成，将内核初始化完成标志设置为True
-            if self.__list_strategy_info[-1]['user_id'] == dict_arguments['user_id'] and \
-                            self.__list_strategy_info[-1]['strategy_id'] == dict_arguments['strategy_id']:
-                self.__init_finished = True  # CTPManager初始化完成
+            # if self.__list_strategy_info[-1]['user_id'] == dict_arguments['user_id'] and \
+            #                 self.__list_strategy_info[-1]['strategy_id'] == dict_arguments['strategy_id']:
+            #     self.__init_finished = True  # CTPManager初始化完成
+            pass
 
     # 删除strategy
     def delete_strategy(self, dict_arguments):
@@ -297,13 +305,12 @@ class CTPManager(QtCore.QObject):
     # 初始化账户窗口
     def create_QAccountWidget(self):
         QApplication.processEvents()
-        print(">>> CTPManager.create_QAccountWidget() 创建“新建策略”窗口=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-        # print(">>> CTPManager.create_QAccountWidget() CTPManager内核初始化完成，开始创建窗口")
+        print("CTPManager.create_QAccountWidget() 创建“新建策略”窗口，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
         """创建“新建策略”窗口"""
         self.create_QNewStrategy()
 
-        print(">>> CTPManager.create_QAccountWidget() 开始创建总账户窗口=",
+        print("CTPManager.create_QAccountWidget() 开始创建总账户窗口，",
               time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """创建总账户窗口"""
         if True:
@@ -334,7 +341,7 @@ class CTPManager(QtCore.QObject):
             self.signal_update_pushButton_start_strategy.connect(QAccountWidget_total.slot_update_pushButton_start_strategy)
             # 绑定信号槽：更新总期货账户资金信息 -> 界面更新总账户资金信息
             self.signal_update_panel_show_account.connect(QAccountWidget_total.slot_update_panel_show_account)
-        print(">>> CTPManager.create_QAccountWidget() 创建单账户窗口=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+        print("CTPManager.create_QAccountWidget() 创建单账户窗口，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """创建单账户窗口"""
         for i_user in self.get_list_user():
             QApplication.processEvents()
@@ -368,7 +375,7 @@ class CTPManager(QtCore.QObject):
 
         self.__client_main.set_list_QAccountWidget(self.__list_QAccountWidget)  # 窗口对象列表设置为ClientMain的属性
 
-        print(">>> CTPManager.create_QAccountWidget() 窗口添加到tab_accounts=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+        print("CTPManager.create_QAccountWidget() 窗口添加到tab_accounts，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """窗口添加到tab_accounts"""
         for i_widget in self.__list_QAccountWidget:
             QApplication.processEvents()
@@ -386,7 +393,7 @@ class CTPManager(QtCore.QObject):
             # 绑定信号槽：QAccountWidget需要弹窗 -> 调用ClientMain中的槽函数slot_show_QMessageBox
             i_widget.signal_show_QMessageBox.connect(self.__client_main.slot_show_QMessageBox)
 
-        print(">>> CTPManager.create_QAccountWidget() 向界面插入策略=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+        print("CTPManager.create_QAccountWidget() 向界面插入策略，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """向界面插入策略"""
         for i_strategy in self.get_list_strategy():
             QApplication.processEvents()
@@ -400,13 +407,9 @@ class CTPManager(QtCore.QObject):
         self.__init_UI_finished = True  # 界面初始化完成标志位
         self.__client_main.set_init_UI_finished(True)  # 界面初始化完成标志位设置为ClientMain的属性
 
-        print(">>> CTPManager.create_QAccountWidget() 显示主窗口=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         self.__q_ctp.show()  # 显示主窗口
-        print(">>> CTPManager.create_QAccountWidget() 隐藏登录窗口=", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         self.__q_login_form.hide()  # 隐藏登录窗口
-
-        print(">>> CTPManager.create_QAccountWidget() 结束时间=", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-        print(">>> ClientMain.create_QAccountWidget() 界面初始化完成")
+        print("ClientMain.create_QAccountWidget() 界面初始化完成", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
 
     # 创建“新建策略窗口”
     def create_QNewStrategy(self):
@@ -434,6 +437,9 @@ class CTPManager(QtCore.QObject):
     def create_DBManager(self):
         self.__DBManager = DBManger()
 
+    def get_TradingDay(self):
+        return self.__TradingDay
+
     # 获取数据库连接实例
     def get_mdb(self):
         return self.__DBManager
@@ -455,8 +461,8 @@ class CTPManager(QtCore.QObject):
         return self.__list_strategy
 
     # 获取user对象创建状态的dict
-    def get_dict_user(self):
-        return self.__dict_user
+    def get_dict_create_user_status(self):
+        return self.__dict_create_user_status
 
     # 设置CTPManager内核初始化完成
     def set_init_finished(self, bool_input):

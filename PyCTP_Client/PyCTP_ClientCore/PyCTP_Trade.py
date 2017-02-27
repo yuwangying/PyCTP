@@ -47,10 +47,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
     def setInvestorID(self, InvestorID):
         self.__InvestorID = InvestorID
 
-    def Connect(self, frontAddr):
+    def Connect(self, frontAddr, model):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        self.SubscribePrivateTopic(PyCTP.THOST_TERT_RESTART)  # 从本次连线之后开始发送数据
+        self.SubscribePrivateTopic(model)  # 从本次连线之后开始发送数据
         self.SubscribePublicTopic(PyCTP.THOST_TERT_QUICK)
         self.RegisterFront(frontAddr)
         self.Init()
@@ -543,7 +543,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRspQryInvestorPositionDetail(self, InvestorPositionDetail, RspInfo, RequestID, IsLast):
         """ 请求查询投资者持仓明细响应 """
-        self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryInvestorPositionDetail', '查询投资者持仓明细响应', str(InvestorPositionDetail))
+        # self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryInvestorPositionDetail', '查询投资者持仓明细响应', str(InvestorPositionDetail))
         if RequestID == self.__rsp_QryInvestorPositionDetail['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryInvestorPositionDetail.update(RspInfo)
@@ -554,7 +554,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRspQryTradingAccount(self, TradingAccount, RspInfo, RequestID, IsLast):
         """ 请求查询资金账户响应 """
-        self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryTradingAccount', '查询资金账户响应', str(TradingAccount))
+        # self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryTradingAccount', '查询资金账户响应', str(TradingAccount))
         if RequestID == self.__rsp_QryTradingAccount['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryTradingAccount.update(RspInfo)

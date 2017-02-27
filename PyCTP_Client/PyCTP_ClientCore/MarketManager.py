@@ -35,13 +35,34 @@ class MarketManager:
         self.__front_address = front_address.encode()
         self.__user_id = user_id.encode()
         self.__password = password.encode()
+        # 连接行情前置
         self.__result_market_connect = Utils.code_transform(self.__market.Connect(self.__front_address))
+        if self.__result_market_connect == 0:
+            print('MarketManager.__init__() 连接行情前置成功，broker_id =', broker_id)
+        else:
+            print('MarketManager.__init__() 连接行情前置失败,broker_id =', broker_id, '返回值：', self.__result_market_connect)
+            self.__init_finished = False  # 初始化失败
+        # 登录行情账号
         self.__result_market_login = Utils.code_transform(self.__market.Login(self.__broker_id, self.__user_id, self.__password))
-        print('MarketManager.__init__() 连接行情前置', self.__result_market_connect)
-        print('MarketManager.__init__() 登陆行情账号', self.__result_market_login)
+        if self.__result_market_login == 0:
+            print('MarketManager.__init__() 登录行情账号成功，broker_id =', broker_id)
+        else:
+            print('MarketManager.__init__() 登录行情账号失败，broker_id =', broker_id, '返回值：', self.__result_market_login)
+            self.__init_finished = False  # 初始化失败
+
         # 已经订阅行情的合约列表，为每一个合约创建一个字典，键名为instrument_id，键值为list，list元素为user_id+strategy_id
         # [{'cu1608': ['80065801', '80067501']}, {'cu1609': ['80065801', '80067501']}]
-        self.__list_instrument_subscribed_detail = []
+        self.__list_instrument_subscribed_detail = list()
+
+        self.__TradingDay = self.__market.get_TradingDay()
+        print("MarketManager.__init__() 行情端口交易日：", self.__TradingDay)
+        self.__init_finished = True  # 初始化成功
+
+    def get_TradingDay(self):
+        return self.__TradingDay
+
+    def get_init_finished(self):
+        return self.__init_finished
 
     def get_result_market_connect(self):
         return self.__result_market_connect

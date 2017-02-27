@@ -183,6 +183,9 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
             self.__rsp_Login.update(RspInfo)
             self.__rsp_Login['event'].set()
 
+    def get_TradingDay(self):
+        return self.__TradingDay
+
     def OnRspUserLogout(self, RspUserLogout, RspInfo, RequestID, IsLast):
         """ 登出请求响应 """
         if RequestID == self.__rsp_Logout['RequestID'] and IsLast:
