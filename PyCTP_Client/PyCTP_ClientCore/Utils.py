@@ -485,8 +485,9 @@ def get_xml():
     # 单个期货账户的持仓明细(order结构)，{'strategy_id':{}}
     list_strategy_position_detail_for_order = list()  # 转存单个策略的持仓明细（list内的元素为order结构体）
     dict_user_position_detail_for_order = dict()
+    print(">>> len(position_detail_for_order.getElementsByTagName('position_detail_for_order')=", len(position_detail_for_order.getElementsByTagName("position_detail_for_order")))
     for i in position_detail_for_order.getElementsByTagName("position_detail_for_order"):  # i：order结构体
-        # print(">>> i =", i.toxml())
+        print(">>> i =", i.toxml())
         dict_order = dict()  # 转存xml内的order
         for j in i.getElementsByTagName("order"):  # j:order结构里面的键
             # print(">>> j =", j.toxml())
