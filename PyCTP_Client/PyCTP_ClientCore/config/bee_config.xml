@@ -24,10 +24,10 @@
 						<order flag="inserttime">"11:18:30"</order>
 					</position_detail_for_order>
 					<position_detail_for_order flag="02">
-						<order flag="instrumentid">"cu1705"</order>
-						<order flag="orderref">"100000000401"</order>
+						<order flag="instrumentid">"cu1710"</order>
+						<order flag="orderref">"100000000402"</order>
 						<order flag="userid">"063802"</order>
-						<order flag="direction">49</order>
+						<order flag="direction">"1"</order>
 						<order flag="comboffsetflag">"0"</order>
 						<order flag="combhedgeflag">"1"</order>
 						<order flag="limitprice">3401.0</order>
