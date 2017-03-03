@@ -100,14 +100,13 @@ class CTPManager(QtCore.QObject):
             self.signal_show_QMessageBox.emit(["警告", "没有行情地址"])
 
         """创建期货账户"""
-        self.signal_label_login_error_text.emit("登录期货账户")
         # 如果期货账户数量为0，向界面弹窗
         users = len(self.__socket_manager.get_list_user_info())  # 将要创建期货账户数量
         if users == 0:
             self.signal_show_QMessageBox.emit(["警告", "将要创建期货账户数量为0"])
             return  # 退出程序
-        self.__dict_create_user_failed = {}  # 保存创建失败的期货账户信息
         for i in self.__socket_manager.get_list_user_info():
+            self.signal_label_login_error_text.emit("创建期货账户"+i['userid'])
             self.create_user(i)  # 创建期货账户
 
         """创建策略"""
@@ -123,11 +122,11 @@ class CTPManager(QtCore.QObject):
         if len(self.__list_strategy_will_create) > 0:
             for i in self.__list_strategy_will_create:
                 self.create_strategy(i)  # 创建策略
-        # elif len(self.__list_strategy_will_create) == 0:
-        #     self.__init_finished = True  # CTPManager初始化完成，跳转到界面初始化或显示
+                self.signal_label_login_error_text.emit("创建策略"+i['user_id']+' '+i['strategy_id'])
 
         """登录期货账户，调用TD API方法"""
         for i_user in self.__list_user:
+            self.signal_label_login_error_text.emit("登录期货账户" + i_user.get_user_id().decode())
             i_user.login_trade_account()  # 登录期货账户，期货账户登录成功一刻开始OnRtnOrder、OnRtnTrade就开始返回历史数据
             i_user.qry_trading_account()  # 查询资金账户
             i_user.qry_investor_position()  # 查询投资者持仓
@@ -136,36 +135,73 @@ class CTPManager(QtCore.QObject):
 
         """检查期货账户调用API方法的状态"""
         # 有任何一个方法调用失败，则认为初始化期货账户失败
+        create_user_failed_count = 0  # 创建期货账户失败数量
+        self.__dict_create_user_failed = {}  # 保存创建失败的期货账户信息
+        # 遍历期货账户登录状态dict，将登录失败的user信息存放到self.__dict_create_user_failed
+        self.__dict_create_user_status = {
+            '078681': {'QryInvestorPosition': 0, 'QryInvestorPositionDetail': 0, 'connect_trade_front': 0,
+                    'QryTradingAccount': 0, 'login_trade_account': 0},
+            '083778': {'QryInvestorPosition': 0, 'QryInvestorPositionDetail': 0, 'connect_trade_front': 0,
+                       'QryTradingAccount': 0, 'login_trade_account': 0}
+            }
+        # print(">>> self.__dict_create_user_status =", len(self.__dict_create_user_status), self.__dict_create_user_status)
         for i in self.__dict_create_user_status:
+            # 样本数据{'078681': {'connect_trade_front': 0, 'QryInvestorPosition': 0, 'QryInvestorPositionDetail': 0, 'QryTradingAccount': -4, 'login_trade_account': 0}}
+            # i为键名'078681'，str类型
             for j in self.__dict_create_user_status[i]:
                 if self.__dict_create_user_status[i][j] != 0:
                     users -= 1  # 成功创建期货账户数量减一
-                    # 统计创建失败的期货账户信息
-                    self.__dict_create_user_failed[i] = {j: self.__dict_create_user_status[i][j]}
-                    # 将创建失败的期货账户user对象从self.__list_user中删除
-                    for i_user in self.__list_user:
-                        if i_user.get_user_id().decode() == 0:
-                            pass
+                    create_user_failed_count += 1  # 创建期货账户失败数量加一
+                    self.__dict_create_user_failed[i] = self.__dict_create_user_status[i]
                     break
-        # 存在创建失败的期货账户，但成功创建的期货账户数量大于0，界面显示出创建成功的期货账户，并向界面弹窗创建失败的期货账户信息
-        if 0 < users < len(self.__socket_manager.get_list_user_info()):
-            str_print = "以下期货账户创建失败\n"
-            for i in self.__dict_create_user_failed:
-                for j in self.__dict_create_user_failed[i]:
+
+        """删除创建失败的期货账户对象"""
+        # 存在创建失败的期货账户，则从期货账户对象列表里删除对象
+        if len(self.__dict_create_user_failed) > 0:
+            for i_user_id in self.__dict_create_user_failed:  # i为键名，内容为期货账号
+                for obj_user in self.__list_user:
+                    if i_user_id == obj_user.get_user_id().decode():  # 创建失败的user_id等于 对象的user_id
+                        self.__list_user.remove(obj_user)  # 从对象列表中删除对象
+                        break
+
+        """删除创建失败的期货账户对象所属的策略对象"""
+        # 从CTPManager类中self.__list_strategy中删除strategy对象即可，user类已经被删除，所以不用删除user类中的strategy
+        # print(">>> self.__dict_create_user_failed =", len(self.__dict_create_user_failed), self.__dict_create_user_failed)
+        # 遍历创建失败的期货账户信息dict
+        for i_user_id in self.__dict_create_user_failed:
+            # 遍历ctp_manager中的策略对象列表
+            shift = 0
+            for i_strategy in range(len(self.__list_strategy)):
+                if self.__list_strategy[i_strategy-shift].get_user_id() == i_user_id:
+                    self.__list_strategy.remove(self.__list_strategy[i_strategy-shift])
+                    shift += 1  # 游标调整值
+
+        """user装载从xml获取的数据"""
+        for obj_user in self.__list_user:
+            obj_user.load_xml()  # 将xml读取的数据赋值给user对象和strategy对象
+
+        """继续完成strategy对象初始化工作"""
+        for obj_strategy in self.__list_strategy:
+            obj_strategy.get_api_argument()  # 将期货账户api查询参数赋值给strategy对象
+            obj_strategy.load_xml()  # strategy装载xml
+            obj_strategy.start_run_count()  # 开始核心统计运算线程
+            # 遍历strategy初始化完成之前的order和trade回调记录，完成strategy初始化工作，遍历queue_strategy_order\queue_strategy_trade
+
+        """向界面输出创建失败的期货账户信息"""
+        if len(self.__dict_create_user_failed) > 0:
+            str_head = "以下期货账户创建失败\n"  # 消息第一行，头
+            str_main = ""  # 消息内容，每个期货账户做一行显示
+            for i in self.__dict_create_user_failed:  # i为期货账号，str
+                for j in self.__dict_create_user_failed[i]:  # j为登录信息dict的键名，即函数方法名称，str
                     if self.__dict_create_user_failed[i][j] != 0:
-                        str_print = str_print + i + ":" + j + "原因" + str(self.__dict_create_user_failed[i][j]) + "\n"
-            self.signal_show_QMessageBox.emit(["警告", str_print])
-        # 成功创建期货账户的数量为0，向界面弹窗
-        elif users == 0:
-            self.signal_show_QMessageBox.emit(["警告", "成功创建期货账户的数量为0"])
-            return  # 结束程序：没有创建成功的策略
-
-        """删除创建失败的user对象和strategy对象"""
-        # 从user对象列表删除初始化失败的user对象
-        # 待续，2017年2月24日16:59:50
-        # 从strategy对象列表删除初始化失败的strategy对象
-
-        # if self.__init_finished:  # 如果CTPManager初始化完成，跳转到界面初始化或显示
+                        str_main = str_main + i + ":" + j + "原因" + str(self.__dict_create_user_failed[i][j]) + "\n"
+            str_out = str_head + str_main
+            self.signal_show_QMessageBox.emit(["警告", str_out])
+            # 创建成功的期货账户数量为0，向界面弹窗，程序终止
+            if len(self.__list_user) == 0:
+                # self.signal_show_QMessageBox.emit(["警告", "成功创建期货账户的数量为0"])
+                return  # 结束程序：没有创建成功的策略，
+            
         self.signal_create_QAccountWidget.emit()  # 创建窗口界面
 
     # 创建MD
@@ -304,7 +340,7 @@ class CTPManager(QtCore.QObject):
 
     # 初始化账户窗口
     def create_QAccountWidget(self):
-        QApplication.processEvents()
+        # QApplication.processEvents()
         print("CTPManager.create_QAccountWidget() 创建“新建策略”窗口，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
         """创建“新建策略”窗口"""
@@ -321,11 +357,11 @@ class CTPManager(QtCore.QObject):
                                                   SocketManager=self.__socket_manager)
             # 总账户窗口设置为所有user的属性
             for i_user in self.get_list_user():
-                QApplication.processEvents()
+                # QApplication.processEvents()
                 i_user.set_QAccountWidget_total(QAccountWidget_total)
             # 总账户窗口设置为所有strategy的属性
             for i_strategy in self.get_list_strategy():
-                QApplication.processEvents()
+                # QApplication.processEvents()
                 i_strategy.set_QAccountWidget_total(QAccountWidget_total)
                 # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy() ）
                 i_strategy.signal_update_strategy.connect(QAccountWidget_total.slot_update_strategy)
@@ -344,7 +380,7 @@ class CTPManager(QtCore.QObject):
         print("CTPManager.create_QAccountWidget() 创建单账户窗口，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """创建单账户窗口"""
         for i_user in self.get_list_user():
-            QApplication.processEvents()
+            # # QApplication.processEvents()
             QAccountWidget_single = QAccountWidget(str_widget_name=i_user.get_user_id().decode(),
                                                    obj_user=i_user,
                                                    ClientMain=self.__client_main,
@@ -355,7 +391,7 @@ class CTPManager(QtCore.QObject):
 
             # 单账户窗口设置为对应期货账户的所有策略的属性
             for i_strategy in i_user.get_list_strategy():
-                QApplication.processEvents()
+                # QApplication.processEvents()
                 i_strategy.set_QAccountWidget_signal(QAccountWidget_single)
                 # 信号槽连接：策略对象修改策略 -> 窗口对象更新策略显示（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy() ）
                 i_strategy.signal_update_strategy.connect(QAccountWidget_single.slot_update_strategy)
@@ -378,7 +414,7 @@ class CTPManager(QtCore.QObject):
         print("CTPManager.create_QAccountWidget() 窗口添加到tab_accounts，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """窗口添加到tab_accounts"""
         for i_widget in self.__list_QAccountWidget:
-            QApplication.processEvents()
+            # QApplication.processEvents()
             self.__q_ctp.tab_accounts.addTab(i_widget, i_widget.get_widget_name())  # 将账户窗口添加到tab_accounts窗体里
             """信号槽连接"""
             # 下面注释代码位置转移到QAccountWidget.slot_insert_strategy()里，向窗口插入策略的时候动态绑定策略与窗口之间的信号槽关系
@@ -396,7 +432,7 @@ class CTPManager(QtCore.QObject):
         print("CTPManager.create_QAccountWidget() 向界面插入策略，", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         """向界面插入策略"""
         for i_strategy in self.get_list_strategy():
-            QApplication.processEvents()
+            # QApplication.processEvents()
             self.signal_insert_strategy.emit(i_strategy)  # 向界面插入策略
 
         """初始化开始策略按钮状态"""
@@ -509,6 +545,12 @@ class CTPManager(QtCore.QObject):
 
     def get_QCTP(self):
         return self.__q_ctp
+
+    def set_XML_Manager(self, obj_XML_Manager):
+        self.__xml_manager = obj_XML_Manager
+
+    def get_XML_Manager(self):
+        return self.__xml_manager
 
     def set_QNewStrategy(self, obj_QNewStrategy):
         self.__q_new_strategy = obj_QNewStrategy

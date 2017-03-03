@@ -127,14 +127,16 @@ class User(QtCore.QObject):
         self.__trader_api.set_user(self)  # 将该类设置为trade的属性
 
         # 读取本地xml文件，读取成功选择RESUME、读取失败选择RESTART
-        read_xml = False  # 待续，读取xml文件
+        read_xml = self.__ctp_manager.get_XML_Manager().get_read_xml_status()
+        print(">>> User.connect_trade_front() user_id =", self.__user_id.decode(), " read_xml =", read_xml)
+        # read_xml = False  # 待续，读取xml文件
         if read_xml:
-            model = PyCTP.THOST_TERT_RESUME  # 从上次断开连接到现在的数据
+            start_model = PyCTP.THOST_TERT_RESUME  # 从上次断开连接到现在的数据
         else:
-            model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
+            start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
 
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
-        connect_trade_front = self.__trader_api.Connect(self.__FrontAddress, model)
+        connect_trade_front = self.__trader_api.Connect(self.__FrontAddress, start_model)
         # 连接前置地址状态记录到CTPManager的user状态字典，成功为0
         self.__ctp_manager.get_dict_create_user_status()[self.__user_id.decode()] = {
             'connect_trade_front': connect_trade_front}
@@ -164,6 +166,7 @@ class User(QtCore.QObject):
     # 登录期货账号
     def login_trade_account(self):
         """登录期货账号"""
+        self.qry_api_interval_manager()  # API查询时间间隔管理
         login_trade_account = self.__trader_api.Login(self.__BrokerID, self.__user_id, self.__Password)
         # 登录期货账号状态记录到CTPManager的user状态字典，成功为0
         self.__ctp_manager.get_dict_create_user_status()[self.__user_id.decode()]['login_trade_account'] = login_trade_account
@@ -260,6 +263,32 @@ class User(QtCore.QObject):
                 self.__ctp_manager.set_instrument_info(self.__instrument_info)  # 将查询到的合约信息传递给CTPManager
         else:
             print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息失败", self.__instrument_info)
+
+    # 装载xml数据
+    def load_xml(self):
+        # 如果从本地硬盘中正常获取到xml
+        if self.__ctp_manager.get_XML_Manager().get_read_xml_status():
+            self.__list_statistics = list()  # 从xml文件读取的期货账户维护的统计指标
+            for i in self.__ctp_manager.get_XML_Manager().get_list_user_statistics():
+                if i['user_id'] == self.__user_id.decode():
+                    self.__list_statistics.append(i)  # user对象统计数据list装载xml数据
+            # 从xml中取出的数据格式：
+            # [{'action_count': 0, 'user_id': '078681', 'instrument_id': 'cu1705', 'open_count': 0},
+            #  {'action_count': 0, 'user_id': '078681', 'instrument_id': 'cu1710', 'open_count': 0} ]
+
+            # 将xml中取出的user统计数据，赋值给对应的策略对象
+            for obj_strategy in self.__list_strategy:  # 遍历user下的策略对象列表
+                for dict_statistics in self.__list_statistics:  # 遍历user下的统计数据列表
+                    if dict_statistics['instrument_id'] == obj_strategy.get_a_instrument_id():  # i = 'cu1705'
+                        obj_strategy.set_a_action_count(dict_statistics['action_count'])
+                        obj_strategy.set_a_open_count(dict_statistics['open_count'])
+                    elif dict_statistics['instrument_id'] == obj_strategy.get_b_instrument_id():
+                        obj_strategy.set_b_action_count(dict_statistics['action_count'])
+                        obj_strategy.set_b_open_count(dict_statistics['open_count'])
+
+    # 获统计数据
+    def get_list_user_statistics(self):
+        return self.__list_statistics
 
     # 将CTPManager类设置为user的属性
     def set_CTPManager(self, obj_CTPManager):

@@ -18,6 +18,7 @@ from User import User
 from Strategy import Strategy
 from SocketManager import SocketManager
 from QMessageBox import QMessageBox
+from XML_Manager import XML_Manager
 
 
 class ClientMain(QtCore.QObject):
@@ -573,6 +574,7 @@ if __name__ == '__main__':
     """创建对象"""
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
+    xml_manager = XML_Manager()  # 创建XML管理对象
     socket_manager = SocketManager("10.0.0.6", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
@@ -588,6 +590,7 @@ if __name__ == '__main__':
     ctp_manager.set_SocketManager(socket_manager)
     ctp_manager.set_QLoginForm(q_login)
     ctp_manager.set_QCTP(q_ctp)
+    ctp_manager.set_XML_Manager(xml_manager)
     socket_manager.set_ClientMain(client_main)
     socket_manager.set_CTPManager(ctp_manager)
     socket_manager.set_QLogin(q_login)

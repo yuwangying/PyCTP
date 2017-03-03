@@ -117,48 +117,10 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             'trader_id': self.__trader_id,
             'user_id': self.comboBox_user_id.currentText(),
             'strategy_id': str_strategy_id,
-            'list_instrument_id': [self.lineEdit_a_instrument.text(), self.lineEdit_b_instrument.text()],
-            'trade_model': '',  # 交易模型
-            'order_algorithm': self.__socket_manager.get_list_algorithm_info()[0]['name'],  # 下单算法
-            'buy_open': 0.0,
-            'sell_close': 0,
-            'sell_open': 0,
-            'buy_close': 0,
-            'spread_shift': 0,
-            'a_limit_price_shift': 0,
-            'b_limit_price_shift': 0,
-            'a_wait_price_tick': 0,
-            'b_wait_price_tick': 0,
-            'stop_loss': 0,
-            'lots': 0,
-            'lots_batch': 0,
-            'a_order_action_limit': 400,
-            'b_order_action_limit': 400,
-            'StrategyOnoff': 0,
-            'only_close': 0,
-
-            "position_a_sell_today": 0,
-            "position_b_sell": 0,
-            "position_b_sell_today": 0,
-            "position_b_buy_today": 0,
-            "position_a_sell": 0,
-            "position_b_buy_yesterday": 0,
-            "is_active": 1,
-            "position_b_sell_yesterday": 0,
-            "position_b_buy": 0,
-            "position_a_buy": 0,
-            "hold_profit": 0,
-            "close_profit": 0,
-            "commission": 0,
-            "position": 0,
-            "position_buy": 0,
-            "position_sell": 0,
-            "trade_volume": 0,
-            "amount": 0.0,
-            "average_shift": 0.0,
-            "position_a_buy_yesterday": 0,
-            "position_a_buy_today": 0,
-            "position_a_sell_yesterday": 0
+            # 'trade_model': '',  # 交易模型
+            # 'order_algorithm': self.__socket_manager.get_list_algorithm_info()[0]['name'],  # 下单算法
+            'a_instrument_id': self.lineEdit_a_instrument.text(),
+            'b_instrument_id': self.lineEdit_b_instrument.text()
         }
         # 拼接发送报文
         dict_create_strategy = {
