@@ -25,7 +25,9 @@ from MarketManager import MarketManager
 from QAccountWidget import QAccountWidget
 from QNewStrategy import QNewStrategy
 from QMessageBox import QMessageBox
+from StrategyDataModel import StrategyDataModel
 from collections import namedtuple  # Socket所需package
+from StrategyDataModel import StrategyDataModel
 import socket
 import struct
 
@@ -452,22 +454,20 @@ class CTPManager(QtCore.QObject):
         # 创建“新建策略”窗口
         self.create_QNewStrategy()
         # 全局创建一个QAccountWidget实例，分别添加到不同table中
-        self.__q_account_widget = QAccountWidget(ClientMain=self.__client_main,
-                                                 CTPManager=self,
-                                                 SocketManager=self.__socket_manager,
-                                                 User=self)
-        self.__q_account_widget2 = QAccountWidget(ClientMain=self.__client_main,
-                                                 CTPManager=self,
-                                                 SocketManager=self.__socket_manager,
-                                                 User=self)
-        self.__q_ctp.tab_accounts.addTab(self.__q_account_widget, "总账户")  # 添加"总账户"tab
-        self.__q_ctp.tab_accounts.addTab(self.__q_account_widget2, "总账户2")  # 添加"总账户"tab
+
+        # self.__q_ctp.tab_accounts.addTab(self.__q_account_widget, "总账户")  # 添加"总账户"tab
+        # self.__q_ctp.tab_accounts.addTab(self.__q_account_widget2, "总账户2")  # 添加"总账户"tab
+        # self.tabBar.addTab("所有账户")
         # self.__q_ctp.tab_accounts.currentChanged.connect(self.__q_account_widget.tab_changed)  # 连接信号槽
-        self.__q_ctp.signal_on_tab_accounts_currentChanged.connect(self.__q_account_widget.slot_tab_changed)  # 连接信号槽
+        # self.__q_ctp.signal_on_tab_accounts_currentChanged.connect(self.__q_account_widget.slot_tab_changed)  # 连接信号槽
         print(">>> CTPManager.create_QAccountWidget() len(self.__list_user) =", len(self.__list_user))
         for obj_user in self.__list_user:
             print(">>> CTPManager.create_QAccountWidget() obj_user.get_user_id().decode() =", obj_user.get_user_id().decode())
-            self.__q_ctp.tab_accounts.addTab(self.__q_account_widget, obj_user.get_user_id().decode())  # 添加单账户tab
+            self.__q_ctp.widget_QAccountWidget.tabBar.addTab(obj_user.get_user_id().decode())  # 添加单账户tab
+
+        # 创建StrategyDataModel
+        self.StrategyDataModel = StrategyDataModel(mylist=self.get_list_strategy_view())
+        self.__q_ctp.widget_QAccountWidget.tableView_Trade_Args.setModel(self.StrategyDataModel)
 
         self.__init_UI_finished = True  # 界面初始化完成标志位
         self.__client_main.set_init_UI_finished(True)  # 界面初始化完成标志位设置为ClientMain的属性

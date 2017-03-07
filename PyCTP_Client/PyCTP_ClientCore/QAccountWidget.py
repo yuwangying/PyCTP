@@ -63,7 +63,7 @@ class QAccountWidget(QWidget, Ui_Form):
     #                SocketManager=self.__socket_manager,
     #                User=self)
     # def __init__(self, str_widget_name, obj_user=None, list_user=None, parent=None, ClientMain=None, SocketManager=None, CTPManager=None):
-    def __init__(self, ClientMain=None, CTPManager=None, SocketManager=None, User=None, parent=None):
+    def __init__(self, parent=None):
         """
         Constructor
         
@@ -71,24 +71,18 @@ class QAccountWidget(QWidget, Ui_Form):
         @type QWidget
         """
         super(QAccountWidget, self).__init__(parent)
-        self.setupUi(self)  # 父类中配置界面的方法
-        self.popMenu = QtGui.QMenu(self.tableView_Trade_Args)  # 鼠标右击菜单
-        self.tabBar = QtGui.QTabBar(self.widget_tabbar)
-        self.tabBar.addTab("zhangsan")
-        self.tabBar.addTab("lisi")
-        self.tabBar.addTab("wangwu")
-        self.widget_tabbar.show()
-        self.tabBar.show()
-
-        """设置属性"""
-        self.__client_main = ClientMain  # 设置ClientMain为本类属性
-        self.__ctp_manager = CTPManager  # 设置CTPManager为本类属性
-        self.__socket_manager = SocketManager  # 设置SocketManager为本类属性
-        self.__user = User  # 可能是CTPManager对象或单个user对象
+        self.setupUi(self)  # 调用父类中配置界面的方法
+        self.popMenu = QtGui.QMenu(self.tableView_Trade_Args)  # 创建鼠标右击菜单
+        self.tabBar = QtGui.QTabBar(self.widget_tabbar)  # 创建QTabBar，选项卡
+        self.tabBar.addTab("所有账户")
+        # self.tabBar.addTab("lisi")
+        # self.tabBar.addTab("wangwu")
+        # self.widget_tabbar.show()
+        # self.tabBar.show()
 
         """初始化StrategyDataModel"""
-        self.StrategyDataModel = StrategyDataModel(mylist=self.__ctp_manager.get_list_strategy_view())
-        self.tableView_Trade_Args.setModel(self.StrategyDataModel)
+        # self.StrategyDataModel = StrategyDataModel(mylist=self.__ctp_manager.get_list_strategy_view())
+        # self.tableView_Trade_Args.setModel(self.StrategyDataModel)
 
         """
         # 设置tableWidget列的宽度
@@ -117,10 +111,10 @@ class QAccountWidget(QWidget, Ui_Form):
         # 初始化comboBox_jiaoyimoxing
         # 客户端存储的交易模型可选项，服务端仅保留策略所设置交易模型，当前交易模型空白
         # 初始化comboBox_xiadansuanfa
-        index_item = -1
-        for i in self.__socket_manager.get_list_algorithm_info():
-            index_item += 1
-            self.comboBox_xiadansuanfa.insertItem(index_item, i['name'])
+        # index_item = -1
+        # for i in self.__socket_manager.get_list_algorithm_info():
+        #     index_item += 1
+        #     self.comboBox_xiadansuanfa.insertItem(index_item, i['name'])
 
         # 添加策略菜单
         self.action_add = QtGui.QAction("添加策略", self)
@@ -186,6 +180,24 @@ class QAccountWidget(QWidget, Ui_Form):
         
     def get_ClientMain(self):
         return self.__client_main
+
+    def set_SocketManager(self, obj_SocketManager):
+        self.__socket_manager = obj_SocketManager
+
+    def get_SocketManager(self):
+        return self.__socket_manager
+
+    def set_QLogin(self, obj_QLogin):
+        self.__q_login = obj_QLogin
+
+    def get_QLogin(self):
+        return self.__q_login
+
+    def set_CTPManager(self, obj_CTPManager):
+        self.__ctp_manager = obj_CTPManager
+
+    def get_CTPManager(self):
+        return self.__ctp_manager
 
     # 形参为user对象或ctpmanager对象，ctpmanager代表所有期货账户对象的总和
     def set_user(self, obj_user):

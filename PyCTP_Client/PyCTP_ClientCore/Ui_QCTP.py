@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+from QAccountWidget import QAccountWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -21,7 +22,6 @@ try:
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -43,18 +43,18 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.centralWidget.sizePolicy().hasHeightForWidth())
         self.centralWidget.setSizePolicy(sizePolicy)
         self.centralWidget.setObjectName(_fromUtf8("centralWidget"))
-        self.verticalLayout_centerWidget = QtGui.QVBoxLayout(self.centralWidget)
-        self.verticalLayout_centerWidget.setMargin(5)
-        self.verticalLayout_centerWidget.setSpacing(5)
-        self.verticalLayout_centerWidget.setObjectName(_fromUtf8("verticalLayout_centerWidget"))
-        self.tab_accounts = QtGui.QTabWidget(self.centralWidget)
-        self.tab_accounts.setObjectName(_fromUtf8("tab_accounts"))
-        self.verticalLayout_centerWidget.addWidget(self.tab_accounts)
+        self.verticalLayout = QtGui.QVBoxLayout(self.centralWidget)
+        self.verticalLayout.setMargin(5)
+        self.verticalLayout.setSpacing(5)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.widget_QAccountWidget = QAccountWidget(self.centralWidget)
+        self.widget_QAccountWidget.setObjectName(_fromUtf8("widget_QAccountWidget"))
+        self.verticalLayout.addWidget(self.widget_QAccountWidget)
         self.tab_records = QtGui.QTabWidget(self.centralWidget)
         self.tab_records.setObjectName(_fromUtf8("tab_records"))
-        self.verticalLayout_centerWidget.addWidget(self.tab_records)
-        self.verticalLayout_centerWidget.setStretch(0, 6)
-        self.verticalLayout_centerWidget.setStretch(1, 4)
+        self.verticalLayout.addWidget(self.tab_records)
+        self.verticalLayout.setStretch(0, 6)
+        self.verticalLayout.setStretch(1, 4)
         MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtGui.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 1425, 26))
@@ -83,7 +83,6 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menu_report.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tab_accounts.setCurrentIndex(-1)
         self.tab_records.setCurrentIndex(-1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -95,6 +94,7 @@ class Ui_MainWindow(object):
         self.menu_trademodel.setTitle(_translate("MainWindow", "交易模型", None))
         self.menu_report.setTitle(_translate("MainWindow", "报告", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
+
 
 import img_rc
 

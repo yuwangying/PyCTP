@@ -8,6 +8,7 @@ Created on Wed Jul 20 08:46:13 2016
 
 import copy
 import json
+from PyQt4 import QtGui
 from PyCTP_Trade import PyCTP_Trader_API
 from PyCTP_Market import PyCTP_Market_API
 from OrderAlgorithm import OrderAlgorithm
@@ -171,8 +172,8 @@ class Strategy(QtCore.QThread):
         self.signal_handle_tick.connect(self.slot_handle_tick)
         self.tick_thread = QtCore.QThread()  # 创建线程实例
         self.tick_thread.started.connect(self.slot_handle_tick)  # 线程self.tick_thread绑定到self.slot_handle_tick
-        self.tick_thread.start()  # 启动线程
-        self.moveToThread(self.tick_thread)  # 把本类Strategy移到线程self.tick_thread里
+        # self.tick_thread.start()  # 启动线程
+        # self.moveToThread(self.tick_thread)  # 把本类Strategy移到线程self.tick_thread里
 
     # 开始核心统计运算线程
     def start_run_count(self):
@@ -183,15 +184,15 @@ class Strategy(QtCore.QThread):
         while True:
             # 计算OnRtnOrder()返回
             if self.__queue_OnRtnOrder.qsize() > 0:
-                Order = self.__queue_send_msg.get_nowait()
+                order = self.__queue_send_msg.get_nowait()
 
             # 计算OnRtnTrade()返回
             if self.__queue_OnRtnTrade.qsize() > 0:
-                Order = self.__queue_send_msg.get_nowait()
+                trade = self.__queue_send_msg.get_nowait()
 
             # 计算OnRtnDepthMarketData()返回
             if self.__queue_OnRtnDepthMarketData.qsize() > 0:
-                Order = self.__queue_send_msg.get_nowait()
+                tick = self.__queue_send_msg.get_nowait()
 
     # 设置参数
     def set_arguments(self, dict_args):
@@ -263,23 +264,28 @@ class Strategy(QtCore.QThread):
 
     def get_list_strategy_view(self):
         # ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
-        self.__list_strategy_view = [self.__strategy_on_off,
-                                            self.__user_id,
-                                            self.__strategy_id,
-                                            (self.__a_instrument_id + ',' + self.__b_instrument_id),
-                                            (self.__position_a_buy + self.__position_a_sell),
-                                            self.__position_a_buy,
-                                            self.__position_a_sell,
-                                            self.__profit_position,
-                                            self.__profit_close,
-                                            self.__commission,
-                                            self.__profit,
-                                            (self.__a_traded_count + self.__b_traded_count),
-                                            (self.__a_traded_amount + self.__b_traded_amount),
-                                            self.__a_trade_rate,
-                                            self.__b_trade_rate,
-                                            self.__trade_model,
-                                            self.__order_algorithm
+        checkBox = QtGui.QCheckBox()
+        if self.__strategy_on_off == 1:
+            checkBox.setText("开")
+        elif self.__strategy_on_off == 0:
+            checkBox.setText("关")
+        self.__list_strategy_view = [checkBox,
+                                     self.__user_id,
+                                     self.__strategy_id,
+                                     (self.__a_instrument_id + ',' + self.__b_instrument_id),
+                                     (self.__position_a_buy + self.__position_a_sell),
+                                     self.__position_a_buy,
+                                     self.__position_a_sell,
+                                     self.__profit_position,
+                                     self.__profit_close,
+                                     self.__commission,
+                                     self.__profit,
+                                     (self.__a_traded_count + self.__b_traded_count),
+                                     (self.__a_traded_amount + self.__b_traded_amount),
+                                     self.__a_trade_rate,
+                                     self.__b_trade_rate,
+                                     self.__trade_model,
+                                     self.__order_algorithm
                                             ]
         return self.__list_strategy_view
 
@@ -1214,7 +1220,8 @@ class Strategy(QtCore.QThread):
 
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
-        self.signal_handle_tick.emit(tick)  # 触发信号
+        pass
+        # self.signal_handle_tick.emit(tick)  # 触发信号
         """ 行情推送
         # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
         if tick is None:
@@ -1331,7 +1338,7 @@ class Strategy(QtCore.QThread):
             return
 
         # 刷新界面行情
-        self.spread_to_ui()
+        # self.spread_to_ui()
 
     def OnRspOrderInsert(self, InputOrder, RspInfo, RequestID, IsLast):
         """ 报单录入请求响应 """

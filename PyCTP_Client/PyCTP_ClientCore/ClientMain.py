@@ -579,7 +579,7 @@ if __name__ == '__main__':
     socket_manager.connect()
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 创建登录界面
-    q_ctp = QCTP()  # 创建最外围的大窗口
+    q_ctp = QCTP()  # 创建最外围的大窗口，同时在初始化函数内创建了QAccountWidget
 
     """设置属性"""
     client_main.set_CTPManager(ctp_manager)
@@ -603,6 +603,10 @@ if __name__ == '__main__':
     q_ctp.set_CTPManager(ctp_manager)
     q_ctp.set_SocketManager(socket_manager)
     q_ctp.set_QLogin(q_login)
+    q_ctp.widget_QAccountWidget.set_ClientMain(client_main)
+    q_ctp.widget_QAccountWidget.set_CTPManager(ctp_manager)
+    q_ctp.widget_QAccountWidget.set_SocketManager(socket_manager)
+    q_ctp.widget_QAccountWidget.set_QLogin(q_login)
 
     """绑定信号槽"""
     # 绑定信号槽：QLogin发送消息 -> SocketManager发送消息

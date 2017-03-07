@@ -86,19 +86,19 @@ class QCTP(QMainWindow, Ui_MainWindow):
     }
     """
 
-    @pyqtSlot(int)
-    def on_tab_accounts_currentChanged(self, index):
-        """
-        Slot documentation goes here.
-
-        @param index DESCRIPTION
-        @type int
-        """
-        # TODO: not implemented yet
-        # raise NotImplementedError
-        pass
-        tab_name = self.tab_accounts.tabText(index)
-        self.signal_on_tab_accounts_currentChanged.emit(tab_name)
+    # @pyqtSlot(int)
+    # def on_tab_accounts_currentChanged(self, index):
+    #     """
+    #     Slot documentation goes here.
+    #
+    #     @param index DESCRIPTION
+    #     @type int
+    #     """
+    #     # TODO: not implemented yet
+    #     # raise NotImplementedError
+    #     pass
+    #     tab_name = self.tab_accounts.tabText(index)
+    #     self.signal_on_tab_accounts_currentChanged.emit(tab_name)
 
     @pyqtSlot(int)
     def on_tab_records_currentChanged(self, index):
@@ -113,6 +113,6 @@ class QCTP(QMainWindow, Ui_MainWindow):
         pass
 
     def closeEvent(self, QCloseEvent):
-        print(">>> QCTP closeEvent")
+        print(">>> QCTP.closeEvent() ")
         QtGui.QApplication.quit()
         pass

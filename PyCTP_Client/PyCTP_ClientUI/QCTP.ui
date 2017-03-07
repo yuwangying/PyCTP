@@ -33,7 +33,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_centerWidget" stretch="6,4">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="6,4">
     <property name="spacing">
      <number>5</number>
     </property>
@@ -41,11 +41,7 @@
      <number>5</number>
     </property>
     <item>
-     <widget class="QTabWidget" name="tab_accounts">
-      <property name="currentIndex">
-       <number>-1</number>
-      </property>
-     </widget>
+     <widget class="QAccountWidget" name="widget_QAccountWidget" native="true"/>
     </item>
     <item>
      <widget class="QTabWidget" name="tab_records">
@@ -109,6 +105,14 @@
    </attribute>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QAccountWidget</class>
+   <extends>QWidget</extends>
+   <header>qaccountwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="img.qrc"/>
  </resources>

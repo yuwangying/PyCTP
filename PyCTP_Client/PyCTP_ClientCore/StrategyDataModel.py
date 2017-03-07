@@ -35,10 +35,12 @@ class StrategyDataModel(QAbstractTableModel):
         # self.rowCheckStateMap = {}
 
     def setDataList(self, mylist):
-        self.__data_list = mylist
-        self.layoutAboutToBeChanged.emit()
-        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
-        self.layoutChanged.emit()
+        print(">>> StrategyDataModel.setDataList()")
+        pass
+        # self.__data_list = mylist
+        # self.layoutAboutToBeChanged.emit()
+        # self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
+        # self.layoutChanged.emit()
 
     # def updateModel(self):
     #     dataList2 = []
@@ -70,12 +72,12 @@ class StrategyDataModel(QAbstractTableModel):
     #     self.layoutChanged.emit()
 
     def rowCount(self, parent):
-        print(">>> StrategyDataModel.columnCount() len(self.__data_list) =", len(self.__data_list))
+        # print(">>> StrategyDataModel.rowCount() self.sender()= ", self.sender(), "len(self.__data_list) =", len(self.__data_list))
         return len(self.__data_list)
 
     def columnCount(self, parent):
-        print(">>> StrategyDataModel.columnCount() len(self.__data_list[0]) =", len(self.__data_list[0]))
-        return len(self.__data_list[0])
+        # print(">>> StrategyDataModel.columnCount() self.sender()= ", self.sender(), "len(self.__data_list[0]) =", len(self.__data_list[0]))
+        return 17  # len(self.__data_list[0])
 
     # view获取数据方法
     def data(self, index, role):
@@ -83,6 +85,7 @@ class StrategyDataModel(QAbstractTableModel):
             return None
         if (index.column() == 0):
             value = self.__data_list[index.row()][index.column()].text()
+            # value = self.__data_list[index.row()][index.column()]
         else:
             value = self.__data_list[index.row()][index.column()]
         if role == QtCore.Qt.EditRole:
@@ -127,6 +130,7 @@ class StrategyDataModel(QAbstractTableModel):
         else:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
+    """
     # 设置单个单元格数据
     def setData(self, index, value, role):
         if not index.isValid():
@@ -135,8 +139,8 @@ class StrategyDataModel(QAbstractTableModel):
         # print(">>> setData() index.column() = ", index.column())
         # print(">>> setData() value = ", value)
         if role == QtCore.Qt.CheckStateRole and index.column() == 0:
-            print(">>> setData() role = ", role)
-            print(">>> setData() index.column() = ", index.column())
+            # print(">>> setData() role = ", role)
+            # print(">>> setData() index.column() = ", index.column())
             if value == QtCore.Qt.Checked:
                 self.__data_list[index.row()][index.column()].setChecked(True)
                 self.__data_list[index.row()][index.column()].setText("开")
@@ -146,13 +150,15 @@ class StrategyDataModel(QAbstractTableModel):
                 self.__data_list[index.row()][index.column()].setChecked(False)
                 self.__data_list[index.row()][index.column()].setText("关")
         else:
-            print(">>> setData() role = ", role)
-            print(">>> setData() index.column() = ", index.column())
+            pass
+            # print(">>> setData() role = ", role)
+            # print(">>> setData() index.column() = ", index.column())
         # self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
-        print(">>> setData() index.row = ", index.row())
-        print(">>> setData() index.column = ", index.column())
-        self.dataChanged.emit(index, index)
+        # print(">>> setData() index.row = ", index.row())
+        # print(">>> setData() index.column = ", index.column())
+        # self.dataChanged.emit(index, index)
         return True
+    """
 
 if __name__ == '__main__':
     app = QApplication([])
@@ -178,4 +184,3 @@ if __name__ == '__main__':
     # win.table_model.setDataList(dataList)
     # timer = threading.Timer(10, timer_func, (win, dataList2))
     # timer.start()
-    app.exec_()
