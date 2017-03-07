@@ -82,6 +82,7 @@ class Strategy(QtCore.QThread):
         self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnTrade发来的数据
         self.__queue_OnRtnDepthMarketData = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnDepthMarketData发来的数据
         self.__thread_run_count = threading.Thread(target=self.run_count)  # 创建核心统计运算线程
+        self.__list_strategy_view = list()  # 单策略对象在view视窗中所显示的数据list，list内容：['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交额', 'A成交率', 'B成交率', '交易模型', '下单算法']
 
         """持仓变量"""
         self.__position_a_buy = 0  # 策略持仓初始值为0
@@ -195,7 +196,8 @@ class Strategy(QtCore.QThread):
     # 设置参数
     def set_arguments(self, dict_args):
         self.__dict_arguments = copy.deepcopy(dict_args)  # 将形参转存为私有变量
-        print(">>> Strategy.set_arguments() dict_args =", dict_args)
+        # print(">>> Strategy.set_arguments() dict_args =", dict_args)
+        self.__trader_id = self.__ctp_manager.get_trader_id()
         self.__user_id = dict_args['user_id']
         self.__strategy_id = dict_args['strategy_id']
         self.__trade_model = dict_args['trade_model']  # 交易模型
@@ -227,40 +229,59 @@ class Strategy(QtCore.QThread):
             print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "修改策略参数，内核刷新界面")
             self.signal_update_strategy.emit(self)  # 信号槽连接：策略对象修改策略 -> 界面刷新策略
 
-    # 设置仓位
-    # def
-
     # 获取参数
     def get_arguments(self):
         self.__dict_arguments = {
             'trader_id': self.__trader_id,
             'user_id': self.__user_id,
             'strategy_id': self.__strategy_id,
-            'list_instrument_id': self.__list_instrument_id,
             'trade_model': self.__trade_model,
             'order_algorithm': self.__order_algorithm,
-            'buy_open': self.__buy_open,
-            'sell_close': self.__sell_close,
-            'sell_open': self.__sell_open,
-            'buy_close': self.__buy_close,
+            'lots': self.__lots,
+            'lots_batch': self.__lots_batch,
+            'stop_loss': self.__stop_loss,
+            'strategy_on_off': self.__strategy_on_off,
             'spread_shift': self.__spread_shift,
+            'a_instrument_id': self.__a_instrument_id,
+            'b_instrument_id': self.__b_instrument_id,
             'a_limit_price_shift': self.__a_limit_price_shift,
             'b_limit_price_shift': self.__b_limit_price_shift,
             'a_wait_price_tick': self.__a_wait_price_tick,
             'b_wait_price_tick': self.__b_wait_price_tick,
-            'stop_loss': self.__stop_loss,
-            'lots': self.__lots,
-            'lots_batch': self.__lots_batch,
             'a_order_action_limit': self.__a_order_action_limit,
             'b_order_action_limit': self.__b_order_action_limit,
-            'strategy_on_off': self.__on_off,
-            'only_close': self.__only_close,
+            'buy_open': self.__buy_open,
+            'sell_close': self.__sell_close,
+            'sell_open': self.__sell_open,
+            'buy_close': self.__buy_close,
             'sell_open_on_off': self.__sell_open_on_off,
             'buy_close_on_off': self.__buy_close_on_off,
             'sell_close_on_off': self.__sell_close_on_off,
             'buy_open_on_off': self.__buy_open_on_off
         }
         return self.__dict_arguments
+
+    def get_list_strategy_view(self):
+        # ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
+        self.__list_strategy_view = [self.__strategy_on_off,
+                                            self.__user_id,
+                                            self.__strategy_id,
+                                            (self.__a_instrument_id + ',' + self.__b_instrument_id),
+                                            (self.__position_a_buy + self.__position_a_sell),
+                                            self.__position_a_buy,
+                                            self.__position_a_sell,
+                                            self.__profit_position,
+                                            self.__profit_close,
+                                            self.__commission,
+                                            self.__profit,
+                                            (self.__a_traded_count + self.__b_traded_count),
+                                            (self.__a_traded_amount + self.__b_traded_amount),
+                                            self.__a_trade_rate,
+                                            self.__b_trade_rate,
+                                            self.__trade_model,
+                                            self.__order_algorithm
+                                            ]
+        return self.__list_strategy_view
 
     # 设置持仓
     def set_position(self, dict_args):
@@ -313,7 +334,7 @@ class Strategy(QtCore.QThread):
         self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
         self.__a_order_action_limit = dict_args['a_order_action_limit']  # A合约撤单次数限制
         self.__a_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
-        self.__on_off = dict_args['strategy_on_off']  # 策略开关，0关、1开
+        self.__strategy_on_off = dict_args['strategy_on_off']  # 策略开关，0关、1开
         self.__only_close = dict_args['only_close']  # 只平，0关、1开
 
     # 查询策略昨仓
@@ -1064,10 +1085,10 @@ class Strategy(QtCore.QThread):
 
     # 获取策略交易开关
     def get_on_off(self):
-        return self.__on_off
+        return self.__strategy_on_off
 
     def set_on_off(self, int_input):
-        self.__on_off = int_input
+        self.__strategy_on_off = int_input
         self.signal_update_strategy.emit(self)
 
     # 获取策略只平开关
@@ -1444,8 +1465,8 @@ class Strategy(QtCore.QThread):
             return
 
         # 策略开关为关则直接跳出，不执行开平仓逻辑判断，依次为：策略开关、单个期货账户开关（user）、总开关（trader）
-        if self.__on_off == 0 or self.__user.get_on_off() == 0 or self.__user.get_CTPManager().get_on_off() == 0:
-            print("Strategy.order_algorithm_one() 策略开关状态", self.__on_off, self.__user.get_on_off(), self.__user.get_CTPManager().get_on_off())
+        if self.__strategy_on_off == 0 or self.__user.get_on_off() == 0 or self.__user.get_CTPManager().get_on_off() == 0:
+            print("Strategy.order_algorithm_one() 策略开关状态", self.__strategy_on_off, self.__user.get_on_off(), self.__user.get_CTPManager().get_on_off())
             return
 
         # 价差卖平

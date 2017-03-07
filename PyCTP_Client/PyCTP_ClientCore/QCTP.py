@@ -35,6 +35,9 @@ class QCTP(QMainWindow, Ui_MainWindow):
     """
     Class documentation goes here.
     """
+    # 定义信号：TabWidget的tab页被鼠标点击（切换tab页），形参为tab_name
+    signal_on_tab_accounts_currentChanged = QtCore.pyqtSignal(str)
+
     def __init__(self, parent=None):
         """
         Constructor
@@ -82,6 +85,32 @@ class QCTP(QMainWindow, Ui_MainWindow):
         QApplication.quit()
     }
     """
+
+    @pyqtSlot(int)
+    def on_tab_accounts_currentChanged(self, index):
+        """
+        Slot documentation goes here.
+
+        @param index DESCRIPTION
+        @type int
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+        pass
+        tab_name = self.tab_accounts.tabText(index)
+        self.signal_on_tab_accounts_currentChanged.emit(tab_name)
+
+    @pyqtSlot(int)
+    def on_tab_records_currentChanged(self, index):
+        """
+        Slot documentation goes here.
+
+        @param index DESCRIPTION
+        @type int
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+        pass
 
     def closeEvent(self, QCloseEvent):
         print(">>> QCTP closeEvent")

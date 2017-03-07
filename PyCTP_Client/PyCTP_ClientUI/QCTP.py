@@ -23,3 +23,25 @@ class QCTP(QMainWindow, Ui_MainWindow):
         """
         super(QCTP, self).__init__(parent)
         self.setupUi(self)
+    
+    @pyqtSlot(int)
+    def on_tab_accounts_currentChanged(self, index):
+        """
+        Slot documentation goes here.
+        
+        @param index DESCRIPTION
+        @type int
+        """
+        # TODO: not implemented yet
+        raise NotImplementedError
+    
+    @pyqtSlot(int)
+    def on_tab_records_currentChanged(self, index):
+        """
+        Slot documentation goes here.
+        
+        @param index DESCRIPTION
+        @type int
+        """
+        # TODO: not implemented yet
+        raise NotImplementedError
