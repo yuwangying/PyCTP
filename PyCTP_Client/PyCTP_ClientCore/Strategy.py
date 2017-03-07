@@ -177,7 +177,8 @@ class Strategy(QtCore.QThread):
 
     # 开始核心统计运算线程
     def start_run_count(self):
-        self.__thread_run_count.start()
+        # self.__thread_run_count.start()
+        pass
 
     # 核心统计
     def run_count(self):
