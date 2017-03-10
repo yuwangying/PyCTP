@@ -1,3 +1,4 @@
+import os
 import sys
 from CTPManager import CTPManager
 from PyQt4 import QtGui
@@ -19,6 +20,7 @@ from Strategy import Strategy
 from SocketManager import SocketManager
 from QMessageBox import QMessageBox
 from XML_Manager import XML_Manager
+from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
 
 
 class ClientMain(QtCore.QObject):
@@ -558,57 +560,68 @@ class ClientMain(QtCore.QObject):
                             and i_widget.tableWidget_Trade_Args.item(i_row, 3).text() == obj_strategy.get_strategy_id():
                         pass
 
+
+# 创建user进程，形参为创建user初始化user所需要的所有信息，该函数被SocketManager中的信号调用
+# def create_user_process(dict):
+#     p = Process(target=global_create_user, args=(i,))  # self.__dict_total_user_process,))  # 创建user独立进程
+#     # self.__dict_total_user_process[i['userid']].append(p)  # user独立进程
+#     p.start()  # 开始进程
+
 if __name__ == '__main__':
+    print('process_id =', os.getpid(), 'thread.getName()=', threading.current_thread().getName(), ', __main__')  #
 
     app = QtGui.QApplication(sys.argv)
 
-    thread = threading.current_thread()
-    print(">>> ClientMain.__main__ thread.getName()=", thread.getName())
-
-    # 添加样式表
     file = QtCore.QFile('img/silvery.css')
     file.open(QtCore.QFile.ReadOnly)
     styleSheet = file.readAll().data().decode("utf-8")
     file.close()
 
     """创建对象"""
+
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
     xml_manager = XML_Manager()  # 创建XML管理对象
-    socket_manager = SocketManager("10.0.0.6", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager("10.0.0.4", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
-    q_login = QLogin.QLoginForm()  # 创建登录界面
-    q_ctp = QCTP()  # 创建最外围的大窗口，同时在初始化函数内创建了QAccountWidget
+    q_login = QLogin.QLoginForm()  # 登录窗口
+    q_ctp = QCTP()  # 客户端主窗口
 
-    """设置属性"""
-    client_main.set_CTPManager(ctp_manager)
-    client_main.set_SocketManager(socket_manager)
-    client_main.set_QLoginForm(q_login)
-    client_main.set_QCTP(q_ctp)
-    ctp_manager.set_ClientMain(client_main)
-    ctp_manager.set_SocketManager(socket_manager)
-    ctp_manager.set_QLoginForm(q_login)
-    ctp_manager.set_QCTP(q_ctp)
-    ctp_manager.set_XML_Manager(xml_manager)
-    socket_manager.set_ClientMain(client_main)
-    socket_manager.set_CTPManager(ctp_manager)
+    q_login.set_SocketManager(socket_manager)
+    socket_manager.set_XML_Manager(xml_manager)  # xml_manager设置为石头创可贴socket_manager的属性
     socket_manager.set_QLogin(q_login)
     socket_manager.set_QCTP(q_ctp)
-    q_login.set_ClientMain(client_main)
-    q_login.set_CTPManager(ctp_manager)
-    q_login.set_SocketManager(socket_manager)
-    q_login.set_QCTP(q_ctp)
-    q_ctp.set_ClientMain(client_main)
-    q_ctp.set_CTPManager(ctp_manager)
-    q_ctp.set_SocketManager(socket_manager)
     q_ctp.set_QLogin(q_login)
-    q_ctp.widget_QAccountWidget.set_ClientMain(client_main)
-    q_ctp.widget_QAccountWidget.set_CTPManager(ctp_manager)
-    q_ctp.widget_QAccountWidget.set_SocketManager(socket_manager)
-    q_ctp.widget_QAccountWidget.set_QLogin(q_login)
+
+
+
+    """设置属性"""
+    # client_main.set_CTPManager(ctp_manager)
+    # client_main.set_SocketManager(socket_manager)
+    # client_main.set_QLoginForm(q_login)
+    # client_main.set_QCTP(q_ctp)
+    # ctp_manager.set_ClientMain(client_main)
+    # ctp_manager.set_SocketManager(socket_manager)
+    # ctp_manager.set_QLoginForm(q_login)
+    # ctp_manager.set_QCTP(q_ctp)
+    # ctp_manager.set_XML_Manager(xml_manager)
+    # q_login.set_ClientMain(client_main)
+    # q_login.set_CTPManager(ctp_manager)
+    # q_login.set_SocketManager(socket_manager)
+    # q_login.set_QCTP(q_ctp)
+    # q_ctp.set_ClientMain(client_main)
+    # q_ctp.set_CTPManager(ctp_manager)
+    # q_ctp.set_SocketManager(socket_manager)
+    # q_ctp.set_QLogin(q_login)
+    # q_ctp.widget_QAccountWidget.set_ClientMain(client_main)
+    # q_ctp.widget_QAccountWidget.set_CTPManager(ctp_manager)
+    # q_ctp.widget_QAccountWidget.set_SocketManager(socket_manager)
+    # q_ctp.widget_QAccountWidget.set_QLogin(q_login)
 
     """绑定信号槽"""
+    #
+    socket_manager.signal_q_ctp_show.connect(q_ctp.show_me)
     # 绑定信号槽：QLogin发送消息 -> SocketManager发送消息
     q_login.signal_send_msg.connect(socket_manager.slot_send_msg)
     # 绑定信号槽：SocketManager收到消息 -> 设置q_login消息框文本
@@ -616,7 +629,7 @@ if __name__ == '__main__':
     # 绑定信号槽：SocketManager收到消息 -> 设置q_login的登录按钮是否可用
     socket_manager.signal_pushButton_login_set_enabled.connect(q_login.pushButton_login.setEnabled)
     # 绑定信号槽：SocketManager收到消息 -> 调用CTPManager的初始化方法
-    socket_manager.signal_ctp_manager_init.connect(ctp_manager.init)
+    socket_manager.signal_ctp_manager_init.connect(ctp_manager.start_init)
     # 绑定信号槽：CTPManager -> 设置q_login消息框文本
     ctp_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
     # SocketManager收到服务端修改策略参数类回报 -> CTPManager修改策略（SocketManager.signal_update_strategy -> CTPManager.slot_update_strategy()）

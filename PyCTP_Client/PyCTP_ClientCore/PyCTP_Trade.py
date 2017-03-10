@@ -52,7 +52,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         self.RegisterSpi(self)
         self.SubscribePrivateTopic(model)  # 从本次连线之后开始发送数据
         self.SubscribePublicTopic(PyCTP.THOST_TERT_QUICK)
-        self.RegisterFront(frontAddr)
+        self.RegisterFront(frontAddr.encode())
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())
         self.__rsp_Connect['event'].clear()
@@ -532,7 +532,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRspQryInvestorPosition(self, InvestorPosition, RspInfo, RequestID, IsLast):
         """ 请求查询投资者持仓响应 """
-        self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryInvestorPosition', '查询投资者持仓响应', str(InvestorPosition))
+        # self.__user.write_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'OnRspQryInvestorPosition', '查询投资者持仓响应', str(InvestorPosition))
         if RequestID == self.__rsp_QryInvestorPosition['RequestID']:
             if RspInfo is not None:
                 self.__rsp_QryInvestorPosition.update(RspInfo)
@@ -743,7 +743,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         return self.__SessionID
 
     # 获取交易日
-    def GetTradingDay(self):
+    def get_TradingDay(self):
         return self.__TradingDay
 
     # 为了解决错误而实现的函数

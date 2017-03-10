@@ -8,10 +8,10 @@ class XML_Manager():
         self.__path = "config/bee_config.xml"
         self.__list_user_statistics = list()
         self.__list_arguments = list()
-        self.__list_statistics = list()
+        self.__list_strategy_statistics = list()
         self.__list_position_detail_for_order = list()
         self.__list_position_detail_for_trade = list()
-        self.__read_xml_status = False  # 读取xml文件状态，初始值为false，读取失败
+        self.__xml_exist = False  # xml文件是否存在，初始值False
         self.read_xml()
         
     # 读取xml文件
@@ -19,34 +19,46 @@ class XML_Manager():
         # xml文件不存在跳出
         if os.path.exists(self.__path) is False:
             return
+        else:
+            self.__xml_exist = True
 
         # 解析文件employ.xml
         self.__doc_read = minidom.parse(self.__path)
         # 定位到根元素
         self.__root_read = self.__doc_read.documentElement
 
-        element_xml_status = self.__root_read.getElementsByTagName("xml_status")[0]
-        # 读取本地硬盘中xml文件的存储状态
-        if element_xml_status.attributes['status'].value == "True":
-            self.__read_xml_status = True
-        else:
-            self.__read_xml_status = False
-        # print(">>> self.__read_xml_status =", self.__read_xml_status)
-
-        self.read_arguments()
-        self.read_user_statistics()
-        self.read_statistics()
-        self.read_position_detail_for_order()
-        self.read_position_detail_for_trade()
-
+        # 测试代码，开始修改
         self.__path_write_start = "config/bee_config_start.xml"
-        element_xml_status.attributes['status'] = "False"  # 读取xml之后将保存标志赋值为“False”
+        NodeList_user_write_xml_status = self.__root_read.getElementsByTagName("user_write_xml_status")
+        for i in NodeList_user_write_xml_status:
+            dt = datetime.now().strftime('%Y-%m-%d %I:%M:%S')
+            i.attributes['datetime'] = dt
         f = open(self.__path_write_start, 'w')
         self.__doc_read.writexml(f, encoding='utf-8')  # addindent='  ', newl='\n',
         f.close()
 
-    # 读期货账户信息
-    def read_user_statistics(self):
+        self.read_user_write_xml_status()
+        self.read_user_instrument_statistics()
+        self.read_strategy_arguments()
+        self.read_strategy_statistics()
+        self.read_position_detail_for_order()
+        self.read_position_detail_for_trade()
+
+    # 读期货账户写xml文件状态信息
+    def read_user_write_xml_status(self):
+        # 期货账户
+        NodeList_user_write_xml_status = self.__root_read.getElementsByTagName("user_write_xml_status")
+        self.__list_user_write_xml_status = list()
+        for i in NodeList_user_write_xml_status:  # i:Element
+            dict_user_write_xml_status = dict()
+            dict_user_write_xml_status['user_id'] = i.attributes['user_id'].value
+            dict_user_write_xml_status['datetime'] = i.attributes['datetime'].value
+            dict_user_write_xml_status['tradingday'] = i.attributes['tradingday'].value
+            dict_user_write_xml_status['status'] = i.attributes['status'].value
+            self.__list_user_write_xml_status.append(dict_user_write_xml_status)
+
+    # 读期货账户下交易合约统计信息
+    def read_user_instrument_statistics(self):
         # 期货账户
         NodeList_user_statistics = self.__root_read.getElementsByTagName("user_statistics")
         self.__list_user_statistics = list()
@@ -57,14 +69,12 @@ class XML_Manager():
             dict_user_statistics['action_count'] = int(i.attributes['action_count'].value)
             dict_user_statistics['open_count'] = int(i.attributes['open_count'].value)
             self.__list_user_statistics.append(dict_user_statistics)
-            # print(">>> dict_user_statistics =", dict_user_statistics)
-            # print(">>> self.__list_user_statistics =", self.__list_user_statistics)
 
     # 读策略参数
-    def read_arguments(self):
+    def read_strategy_arguments(self):
         # 策略参数
         NodeList_arguments = self.__root_read.getElementsByTagName("arguments")
-        self.__list_arguments = list()
+        self.__list_strategy_arguments = list()
         for i in NodeList_arguments:
             dict_arguments = dict()
             dict_arguments['user_id'] = i.attributes['user_id'].value
@@ -105,15 +115,15 @@ class XML_Manager():
             dict_arguments['position_b_sell'] = int(i.attributes['position_b_sell'].value)
             dict_arguments['position_b_sell_today'] = int(i.attributes['position_b_sell_today'].value)
             dict_arguments['position_b_sell_yesterday'] = int(i.attributes['position_b_sell_yesterday'].value)
-            self.__list_arguments.append(dict_arguments)
+            self.__list_strategy_arguments.append(dict_arguments)
             # print(">>> dict_arguments =", dict_arguments)
             # print(">>> list_arguments =", list_arguments)
 
     # 读策略统计
-    def read_statistics(self):
+    def read_strategy_statistics(self):
         # 策略统计
         NodeList_statistics = self.__root_read.getElementsByTagName("statistics")
-        self.__list_statistics = list()
+        self.__list_strategy_statistics = list()
         for i in NodeList_statistics:
             dict_statistics = dict()
             dict_statistics['user_id'] = i.attributes['user_id'].value
@@ -134,7 +144,7 @@ class XML_Manager():
             dict_statistics['profit'] = float(i.attributes['profit'].value)
             dict_statistics['a_action_count'] = int(i.attributes['a_action_count'].value)
             dict_statistics['b_action_count'] = int(i.attributes['b_action_count'].value)
-            self.__list_statistics.append(dict_statistics)
+            self.__list_strategy_statistics.append(dict_statistics)
 
     # 读持仓明细
     def read_position_detail_for_order(self):
@@ -205,34 +215,29 @@ class XML_Manager():
         self.__dom = impl.createDocument(None, "root", None)
         self.__root = self.__dom.documentElement
 
-    def add_xml_status(self):
-        xml_status = self.__dom.createElement('xml_status')
-        xml_status.attributes['status'] = "True"
-        dt = datetime.now().strftime('%Y-%m-%d %I:%M:%S')
-        xml_status.attributes['datetime'] = dt
-        self.__root.appendChild(xml_status)
-
     # 添加期货账户数据
-    def add_user(self, list_user):
-        for i in list_user:
-            user = self.__dom.createElement('user')
-            user.attributes['user_id'] = i['user_id']
-            user.attributes['action_count'] = str(i['action_count'])
-            user.attributes['open_count'] = str(i['open_count'])
-            self.__root.appendChild(user)
+    def add_user_write_xml_status(self, list_user_write_xml_status):
+        for i in list_user_write_xml_status:
+            user_write_xml_status = self.__dom.createElement('user')
+            user_write_xml_status.attributes['user_id'] = i['user_id']
+            dt = datetime.now().strftime('%Y-%m-%d %I:%M:%S')
+            user_write_xml_status.attributes['datetime'] = dt
+            user_write_xml_status.attributes['tradingday'] = i['tradingday']
+            user_write_xml_status.attributes['status'] = i['status']
+            self.__root.appendChild(user_write_xml_status)
 
     # 添加期货账户统计数据
-    def add_user_statistics(self, list_user_statistics):
-        for i in list_user_statistics:
+    def add_user_instrument_statistics(self, list_user_instrument_statistics):
+        for i in list_user_instrument_statistics:
             # list_user_statisticsy 样本:
             # [{'action_count': 0, 'user_id': '078681', 'instrument_id': 'cu1705', 'open_count': 0},
             #  {'action_count': 0, 'user_id': '078681', 'instrument_id': 'cu1710', 'open_count': 0} ]
-            user_statistics = self.__dom.createElement('user_statistics')
-            user_statistics.attributes['user_id'] = i['user_id']
-            user_statistics.attributes['instrument_id'] = i['instrument_id']
-            user_statistics.attributes['action_count'] = str(i['action_count'])
-            user_statistics.attributes['open_count'] = str(i['open_count'])
-            self.__root.appendChild(user_statistics)
+            user_instrument_statistics = self.__dom.createElement('user_instrument_statistics')
+            user_instrument_statistics.attributes['user_id'] = i['user_id']
+            user_instrument_statistics.attributes['instrument_id'] = i['instrument_id']
+            user_instrument_statistics.attributes['action_count'] = str(i['action_count'])
+            user_instrument_statistics.attributes['open_count'] = str(i['open_count'])
+            self.__root.appendChild(user_instrument_statistics)
 
     # 添加参数数据
     def add_arguments(self, list_argument):
@@ -341,17 +346,20 @@ class XML_Manager():
             position_detail_for_trade.attributes['tradingdayrecord'] = i['tradingdayrecord']
             self.__root.appendChild(position_detail_for_trade)
 
-    def get_read_xml_status(self):
-        return self.__read_xml_status
+    def get_xml_exist(self):
+        return self.__xml_exist
 
-    def get_list_user_statistics(self):
+    def get_list_user_write_xml_status(self):
+        return self.__list_user_write_xml_status
+
+    def get_list_user_instrument_statistics(self):
         return self.__list_user_statistics
 
-    def get_list_arguments(self):
-        return self.__list_arguments
+    def get_list_strategy_arguments(self):
+        return self.__list_strategy_arguments
 
-    def get_list_statistics(self):
-        return self.__list_statistics
+    def get_list_strategy_statistics(self):
+        return self.__list_strategy_statistics
 
     def get_list_position_detail_for_order(self):
         return self.__list_position_detail_for_order
@@ -363,13 +371,13 @@ class XML_Manager():
 if __name__ == '__main__':
     xml_manager = XML_Manager()
     # xml_manager.read_xml()
-    # list_user = xml_manager.get_list_user_statistics()
-    list_user_statistics = xml_manager.get_list_user_statistics()
-    list_arguments = xml_manager.get_list_arguments()
-    list_statistics = xml_manager.get_list_statistics()
+    # list_user = xml_manager.get_list_user_instrument_statistics()
+    list_user_instrument_statistics = xml_manager.get_list_user_instrument_statistics()
+    list_arguments = xml_manager.get_list_strategy_arguments()
+    list_statistics = xml_manager.get_list_strategy_statistics()
     list_order = xml_manager.get_list_position_detail_for_order()
     list_trade = xml_manager.get_list_position_detail_for_trade()
-    print(">>> list_user_statistics =", list_user_statistics)
+    print(">>> list_user_instrument_statistics =", list_user_instrument_statistics)
     print(">>> list_arguments =", list_arguments)
     print(">>> list_statistics =", list_statistics)
     print(">>> list_order =", list_order)
@@ -377,7 +385,7 @@ if __name__ == '__main__':
 
     xml_manager.create_xml()
     # xml_manager.add_user(list_user)
-    xml_manager.add_user_statistics(list_user_statistics)
+    xml_manager.add_user_instrument_statistics(list_user_instrument_statistics)
     xml_manager.add_arguments(list_arguments)
     xml_manager.add_statistics(list_statistics)
     xml_manager.add_position_detail_for_order(list_order)

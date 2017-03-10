@@ -20,136 +20,109 @@ import pandas as pd
 from PyQt4 import QtCore
 import queue
 import threading
+import PyCTP
 
 
-class Strategy(QtCore.QThread):
+class Strategy():
     # 定义信号，必须放到__init__之前
-    signal_UI_spread_short = QtCore.pyqtSignal(str)  # 定义信号，设置单账户窗口空头价差值
-    signal_UI_spread_long = QtCore.pyqtSignal(str)
-    signal_UI_spread_short_total = QtCore.pyqtSignal(str)
-    signal_UI_spread_long_total = QtCore.pyqtSignal(str)
-    signal_UI_spread_short_change_color = QtCore.pyqtSignal(str)  # 定义信号，设置单账户窗口空头价差颜色
-    signal_UI_spread_long_change_color = QtCore.pyqtSignal(str)
-    signal_UI_spread_short_total_change_color = QtCore.pyqtSignal(str)
-    signal_UI_spread_long_total_change_color = QtCore.pyqtSignal(str)
-    signal_UI_change_color = QtCore.pyqtSignal(str)  # 定义信号，改变颜色
-    signal_UI_update_strategy = QtCore.pyqtSignal(object)  # 改写，所有策略对象的信号signal_UI_update_strategy分别连接到所有QAccountWidget对象的槽update_strategy
-    signal_update_spread_signal = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_signal连接到策略所属的单账户窗口
-    signal_update_spread_total = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_total连接到总账户窗口和所属的单账户窗口
+    # signal_UI_spread_short = QtCore.pyqtSignal(str)  # 定义信号，设置单账户窗口空头价差值
+    # signal_UI_spread_long = QtCore.pyqtSignal(str)
+    # signal_UI_spread_short_total = QtCore.pyqtSignal(str)
+    # signal_UI_spread_long_total = QtCore.pyqtSignal(str)
+    # signal_UI_spread_short_change_color = QtCore.pyqtSignal(str)  # 定义信号，设置单账户窗口空头价差颜色
+    # signal_UI_spread_long_change_color = QtCore.pyqtSignal(str)
+    # signal_UI_spread_short_total_change_color = QtCore.pyqtSignal(str)
+    # signal_UI_spread_long_total_change_color = QtCore.pyqtSignal(str)
+    # signal_UI_change_color = QtCore.pyqtSignal(str)  # 定义信号，改变颜色
+    # signal_UI_update_strategy = QtCore.pyqtSignal(object)  # 改写，所有策略对象的信号signal_UI_update_strategy分别连接到所有QAccountWidget对象的槽update_strategy
+    # signal_update_spread_signal = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_signal连接到策略所属的单账户窗口
+    # signal_update_spread_total = QtCore.pyqtSignal(dict)  # 改写：将策略对象信号signal_UI_update_spread_total连接到总账户窗口和所属的单账户窗口
 
     # 定义信号：策略对象修改策略 -> 界面刷新策略（Strategy.signal_update_strategy -> QAccountWidget.slot_update_strategy()）
-    signal_update_strategy = QtCore.pyqtSignal(object)  # 形参为Strategy对象
+    # signal_update_strategy = QtCore.pyqtSignal(object)  # 形参为Strategy对象
     # 定义信号：策略对象持仓发生变化 -> 界面刷新持仓显示（Strategy.signal_update_strategy_position -> QAccountWidget.slot_update_strategy_position）
-    signal_update_strategy_position = QtCore.pyqtSignal(object)  # 形参为Strategy对象
+    # signal_update_strategy_position = QtCore.pyqtSignal(object)  # 形参为Strategy对象
     # 定义信号：策略发送信号 -> 修改持仓按钮设置为可用，并修改文本“发送持仓”改为“设置持仓”
-    signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()
+    # signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()
     # 定义信号：转发tick到槽函数 -> self.slot_handle_tick
-    signal_handle_tick = QtCore.pyqtSignal(dict)
+    # signal_handle_tick = QtCore.pyqtSignal(dict)
 
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
-    def __init__(self, dict_args, obj_user, parent=None):
-        super(Strategy, self).__init__(parent)  # 初始化父类
+    def __init__(self, dict_args, obj_user):
+        # super(Strategy, self).__init__(parent)  # 初始化父类
         print('Strategy.__init__() 创建策略，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
         self.__user = obj_user  # user实例
-        self.__ctp_manager = obj_user.get_CTPManager()  # 将user的CTPManager属性设置为strategy的属性
         self.__dict_arguments = dict_args  # 转存形参到类的私有变量
-        self.__TradingDay = self.__ctp_manager.get_TradingDay()  # 获取交易日
-        print(">>> Strategy.__init__() self.__TradingDay =", self.__TradingDay)
-        self.__init_finished = False  # strategy对象内部属性初始化状态
-        self.__init_finished_statistics = False  # strategy统计指标初始化状态
-        self.__trade_tasking = False  # 交易任务进行中
-        self.__a_order_insert_args = dict()  # a合约报单参数
-        self.__b_order_insert_args = dict()  # b合约报单参数
-
-        self.__list_QryOrder = list()  # 属于本策略的QryOrder列表
-        self.__list_QryTrade = list()  # 属于本策略的QryTrade列表
-        self.__list_position_detail_for_order = list()  # 策略持仓明细列表，用order维护
-        self.__list_position_detail_for_trade = list()  # 策略持仓明细列表，用trade维护
-        self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
-        self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
-        self.__instrument_a_tick = None  # A合约tick（第一腿）
-        self.__instrument_b_tick = None  # B合约tick（第二腿）
-        self.__spread_long = None  # 市场多头价差：A合约买一价 - B合约买一价
-        self.__spread_long_volume = None  # 市场多头价差盘口挂单量min(A合约买一量 - B合约买一量)
-        self.__spread_short = None  # 市场空头价差：A合约卖一价 - B合约卖一价
-        self.__spread_short_volume = None  # 市场空头价差盘口挂单量：min(A合约买一量 - B合约买一量)
-        self.__spread = None  # 市场最新价价差
-        self.__order_ref_a = None  # A合约报单引用
-        self.__order_ref_b = None  # B合约报单引用
-        self.__order_ref_last = None  # 最后一次实际使用的报单引用
-        self.__dict_yesterday_position = dict()  # 本策略昨仓
-        self.__dict_statistics = dict()  # 保存统计类指标的dict
-        self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnOrder发来的数据
-        self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnTrade发来的数据
-        self.__queue_OnRtnDepthMarketData = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnDepthMarketData发来的数据
-        self.__thread_run_count = threading.Thread(target=self.run_count)  # 创建核心统计运算线程
-        self.__list_strategy_view = list()  # 单策略对象在view视窗中所显示的数据list，list内容：['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交额', 'A成交率', 'B成交率', '交易模型', '下单算法']
-
-        """持仓变量"""
-        self.__position_a_buy = 0  # 策略持仓初始值为0
-        self.__position_a_buy_today = 0
-        self.__position_a_buy_yesterday = 0
-        self.__position_a_sell = 0
-        self.__position_a_sell_today = 0
-        self.__position_a_sell_yesterday = 0
-        self.__position_b_buy = 0
-        self.__position_b_buy_today = 0
-        self.__position_b_buy_yesterday = 0
-        self.__position_b_sell = 0
-        self.__position_b_sell_today = 0
-        self.__position_b_sell_yesterday = 0
-
-        """成交统计的累计指标（trade）"""
-        self.__a_profit_close = 0  # A平仓盈亏
-        self.__b_profit_close = 0  # B平仓盈亏
-        self.__profit_close = 0  # 平仓盈亏
-        self.__commission = 0  # 手续费
-        self.__profit = 0  # 净盈亏
-        self.__a_traded_count = 0  # A成交量
-        self.__b_traded_count = 0  # B成交量
-        self.__a_traded_amount = 0  # A成交金额
-        self.__b_traded_amount = 0  # B成交金额
-        self.__a_commission_count = 0  # A手续费
-        self.__b_commission_count = 0  # B手续费
-        self.__profit_position = 0  # 持仓盈亏
-        self.__current_margin = 0  # 当前保证金总额
-
-        """报单统计的累计指标（order）"""
-        self.__a_order_value = 0  # A委托手数
-        self.__b_order_value = 0  # B委托手数
-        self.__a_order_count = 0  # A委托次数
-        self.__b_order_count = 0  # B委托次数
-        self.__a_action_count = 0  # A撤单次数
-        self.__b_action_count = 0  # B撤单次数
-        self.__a_trade_rate = 0  # A成交概率(成交手数/报单手数)
-        self.__b_trade_rate = 0  # B成交概率(成交手数/报单手数)
-
-        """界面交互标志"""
-        self.__clicked_total = False  # 策略在主窗口中被选中的标志
-        self.__clicked_signal = False  # 策略在单账户窗口中被选中的标志
-        self.__last_to_ui_spread_short = None  # 最后价差值初始值
-        self.__last_to_ui_spread_long = None  # 最后价差值初始值
+        self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取交易日
+        self.init_variable()  # 声明变量
 
         self.set_arguments(dict_args)  # 设置策略参数
+        # 获取TdApi初始化方式：PyCTP.THOST_TERT_RESUME=1 , PyCTP.THOST_TERT_RESTART=0
+        if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
+            # 装载xml数据
+            pass
+        elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:
+            # 装载server数据
+            pass
+
+        # self.init_list_position_detail_for_order()  # 初始化策略持仓明细order
+        # self.init_list_position_detail_for_trade()  # 初始化策略持仓明细trade
+
+        # self.__init_finished = False  # strategy对象内部属性初始化状态
+        # self.__init_finished_statistics = False  # strategy统计指标初始化状态
+        # self.__trade_tasking = False  # 交易任务进行中
+        # self.__a_order_insert_args = dict()  # a合约报单参数
+        # self.__b_order_insert_args = dict()  # b合约报单参数
+        # self.__list_QryOrder = list()  # 属于本策略的QryOrder列表
+        # self.__list_QryTrade = list()  # 属于本策略的QryTrade列表
+        # self.__list_position_detail_for_order = list()  # 策略持仓明细列表，用order维护
+        # self.__list_position_detail_for_trade = list()  # 策略持仓明细列表，用trade维护
+        # self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
+        # self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
+        # self.__instrument_a_tick = None  # A合约tick（第一腿）
+        # self.__instrument_b_tick = None  # B合约tick（第二腿）
+        # self.__spread_long = None  # 市场多头价差：A合约买一价 - B合约买一价
+        # self.__spread_long_volume = None  # 市场多头价差盘口挂单量min(A合约买一量 - B合约买一量)
+        # self.__spread_short = None  # 市场空头价差：A合约卖一价 - B合约卖一价
+        # self.__spread_short_volume = None  # 市场空头价差盘口挂单量：min(A合约买一量 - B合约买一量)
+        # self.__spread = None  # 市场最新价价差
+        # self.__order_ref_a = None  # A合约报单引用
+        # self.__order_ref_b = None  # B合约报单引用
+        # self.__order_ref_last = None  # 最后一次实际使用的报单引用
+        # self.__dict_yesterday_position = dict()  # 本策略昨仓
+        # self.__dict_statistics = dict()  # 保存统计类指标的dict
+        # self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnOrder发来的数据
+        # self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnTrade发来的数据
+        # self.__queue_OnRtnDepthMarketData = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnDepthMarketData发来的数据
+        # self.__thread_run_count = threading.Thread(target=self.run_count)  # 创建核心统计运算线程
+        # self.__list_strategy_view = list()  # 单策略对象在view视窗中所显示的数据list，list内容：['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交额', 'A成交率', 'B成交率', '交易模型', '下单算法']
+
+        # 界面交互标志
+        # self.__clicked_total = False  # 策略在主窗口中被选中的标志
+        # self.__clicked_signal = False  # 策略在单账户窗口中被选中的标志
+        # self.__last_to_ui_spread_short = None  # 最后价差值初始值
+        # self.__last_to_ui_spread_long = None  # 最后价差值初始值
+
+        # self.set_arguments(dict_args)  # 设置策略参数
         # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
-        """
+
         # 通过API查询的数据，统一放到期货账户登录成功之后再调用
-        self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
-        self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
-        self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
-        self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
-        self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
-        self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
-        self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
-        self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
-        self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
-        self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
-        """
+        # self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
+        # self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
+        # self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
+        # self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
+        # self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
+        # self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
+        # self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
+        # self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
+        # self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
+        # self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
+
 
         # 程序运行中新添加的策略设置为窗口类和管理类的属性
-        if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
-            self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
-            self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
+        # if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
+        #     self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
+        #     self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
 
         # 从user类的list_QryOrder中选出本策略的list_QryOrder
         # self.get_list_QryOrder()
@@ -157,49 +130,44 @@ class Strategy(QtCore.QThread):
         # self.get_list_QryTrade()
 
         # 初始化策略持仓明细列表，以及初始化统计类指标
-        self.init_list_position_detail_for_order()
-        self.init_list_position_detail_for_trade()
+        # self.init_list_position_detail_for_order()
+        # self.init_list_position_detail_for_trade()
 
         # 初始化策略持仓变量
-        self.init_position()
+        # self.init_position()
         # 初始化统计指标
-        self.init_statistics()
+        # self.init_statistics()
 
-        self.__init_finished = True
-        print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
+        # self.__init_finished = True
+        # print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
 
         # 定义内部处理tick线程
-        self.signal_handle_tick.connect(self.slot_handle_tick)
-        self.tick_thread = QtCore.QThread()  # 创建线程实例
-        self.tick_thread.started.connect(self.slot_handle_tick)  # 线程self.tick_thread绑定到self.slot_handle_tick
+        # self.signal_handle_tick.connect(self.slot_handle_tick)
+        # self.tick_thread = QtCore.QThread()  # 创建线程实例
+        # self.tick_thread.started.connect(self.slot_handle_tick)  # 线程self.tick_thread绑定到self.slot_handle_tick
         # self.tick_thread.start()  # 启动线程
         # self.moveToThread(self.tick_thread)  # 把本类Strategy移到线程self.tick_thread里
-
-    # 开始核心统计运算线程
-    def start_run_count(self):
-        # self.__thread_run_count.start()
-        pass
 
     # 核心统计
     def run_count(self):
         while True:
             # 计算OnRtnOrder()返回
             if self.__queue_OnRtnOrder.qsize() > 0:
-                order = self.__queue_send_msg.get_nowait()
+                order = self.__queue_send_msg.get()
 
             # 计算OnRtnTrade()返回
             if self.__queue_OnRtnTrade.qsize() > 0:
-                trade = self.__queue_send_msg.get_nowait()
+                trade = self.__queue_send_msg.get()
 
             # 计算OnRtnDepthMarketData()返回
             if self.__queue_OnRtnDepthMarketData.qsize() > 0:
-                tick = self.__queue_send_msg.get_nowait()
+                tick = self.__queue_send_msg.get()
 
     # 设置参数
     def set_arguments(self, dict_args):
         self.__dict_arguments = copy.deepcopy(dict_args)  # 将形参转存为私有变量
         # print(">>> Strategy.set_arguments() dict_args =", dict_args)
-        self.__trader_id = self.__ctp_manager.get_trader_id()
+        self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
         self.__strategy_id = dict_args['strategy_id']
         self.__trade_model = dict_args['trade_model']  # 交易模型
@@ -225,11 +193,6 @@ class Strategy(QtCore.QThread):
         self.__buy_close_on_off = dict_args['buy_close_on_off']    # 价差买平，开关，初始值为1，状态开
         self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
-
-        # 如果界面初始化完成、程序运行当中，每次调用该方法都触发界面类的槽函数update_strategy
-        if self.__user.get_CTPManager().get_init_finished():
-            print(">>> Strategy.set_arguments() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "修改策略参数，内核刷新界面")
-            self.signal_update_strategy.emit(self)  # 信号槽连接：策略对象修改策略 -> 界面刷新策略
 
     # 获取参数
     def get_arguments(self):
@@ -262,6 +225,47 @@ class Strategy(QtCore.QThread):
             'buy_open_on_off': self.__buy_open_on_off
         }
         return self.__dict_arguments
+
+    # 声明变量
+    def init_variable(self):
+        # 持仓变量
+        self.__position_a_buy = 0  # 策略持仓初始值为0
+        self.__position_a_buy_today = 0
+        self.__position_a_buy_yesterday = 0
+        self.__position_a_sell = 0
+        self.__position_a_sell_today = 0
+        self.__position_a_sell_yesterday = 0
+        self.__position_b_buy = 0
+        self.__position_b_buy_today = 0
+        self.__position_b_buy_yesterday = 0
+        self.__position_b_sell = 0
+        self.__position_b_sell_today = 0
+        self.__position_b_sell_yesterday = 0
+
+        # 成交统计的类计指标（trade）
+        self.__a_profit_close = 0  # A平仓盈亏
+        self.__b_profit_close = 0  # B平仓盈亏
+        self.__profit_close = 0  # 平仓盈亏
+        self.__commission = 0  # 手续费
+        self.__profit = 0  # 净盈亏
+        self.__a_traded_count = 0  # A成交量
+        self.__b_traded_count = 0  # B成交量
+        self.__a_traded_amount = 0  # A成交金额
+        self.__b_traded_amount = 0  # B成交金额
+        self.__a_commission_count = 0  # A手续费
+        self.__b_commission_count = 0  # B手续费
+        self.__profit_position = 0  # 持仓盈亏
+        self.__current_margin = 0  # 当前保证金总额
+
+        # 报单统计的累计指标（order）
+        self.__a_order_value = 0  # A委托手数
+        self.__b_order_value = 0  # B委托手数
+        self.__a_order_count = 0  # A委托次数
+        self.__b_order_count = 0  # B委托次数
+        self.__a_action_count = 0  # A撤单次数
+        self.__b_action_count = 0  # B撤单次数
+        self.__a_trade_rate = 0  # A成交概率(成交手数/报单手数)
+        self.__b_trade_rate = 0  # B成交概率(成交手数/报单手数)
 
     def get_list_strategy_view(self):
         # ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
@@ -1368,7 +1372,7 @@ class Strategy(QtCore.QThread):
         """报单回报"""
         if Utils.Strategy_print:
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
-        self.__queue_OnRtnOrder.put_nowait(Order)  # 放入队列
+        self.__queue_OnRtnOrder.put(Order)  # 放入队列
 
         # 统计order指标
         self.statistics(order=Order)
@@ -1389,7 +1393,7 @@ class Strategy(QtCore.QThread):
         """成交回报"""
         if Utils.Strategy_print:
             print('Strategy.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade', Trade)
-        self.__queue_OnRtnTrade.put_nowait(Trade)  # 放入队列
+        self.__queue_OnRtnTrade.put(Trade)  # 放入队列
 
         # 更新持仓变量
         self.update_position_for_trade(Trade)

@@ -30,6 +30,26 @@ from collections import namedtuple  # Socket所需package
 from StrategyDataModel import StrategyDataModel
 import socket
 import struct
+from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
+
+
+# 创建user(期货账户)
+def global_create_user(dict_arguments):
+    print(">>>global_create_user() dict_arguments =", dict_arguments)
+    # 不允许重复创建期货账户实例
+    # if len(self.__list_user) > 0:
+    #     for i in self.__list_user:
+    #         if i.get_user_id() == dict_arguments['userid']:
+    #             print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
+    #             return
+
+    obj_user = User(dict_arguments)
+
+    while True:
+        pass
+        print("CTPManager.create_user() user_id =", dict_arguments['userid'], ", process_id =", os.getpid())
+        time.sleep(2.0)
+
 
 
 class CTPManager(QtCore.QObject):
@@ -60,13 +80,13 @@ class CTPManager(QtCore.QObject):
         self.__init_finished = False  # 内核初始化状态，False未完成、True完成
         self.__init_UI_finished = False  # 界面初始化状态，False未完成、True完成
         self.__list_QAccountWidget = list()  # 存放窗口对象的list
-        self.__thread_init = threading.Thread(target=self.start_init)  # 创建初始化内核方法线程
+        # self.__thread_init = threading.Thread(target=self.start_init)  # 创建初始化内核方法线程
         self.signal_create_QAccountWidget.connect(self.create_QAccountWidget)  # 定义信号：调用本类的槽函数（因信号是在子进程里发出）
         self.__list_user_info = list()  # 从服务端收到的user信息list初始值
         self.__list_user_will_create = list()  # 将要创建成功的期货账户信息列表
         self.__list_strategy_info = list()  # 从服务端收到的策略信息list初始值
         self.__list_strategy_will_create = list()  # 创建成功期货账户的策略列表初始值
-        self.__list_strategy_view = list()
+        self.__dict_total_user_process = Manager().dict()  # 结构实例：{"user_id": [process, Queue_in, Queue_out], }
 
         """所有期货账户的和"""
         self.__capital = 0  # 动态权益
@@ -110,7 +130,19 @@ class CTPManager(QtCore.QObject):
             return  # 退出程序
         for i in self.__socket_manager.get_list_user_info():
             self.signal_label_login_error_text.emit("创建期货账户"+i['userid'])
-            self.create_user(i)  # 创建期货账户
+            # self.create_user(i)  # 创建期货账户
+            self.__dict_total_user_process[i['userid']] = list()
+            print(">>> self.__dict_total_user_process =", self.__dict_total_user_process, type(self.__dict_total_user_process))
+            # self.__dict_total_user_process[i['userid']][0] = Queue()  # user进程get操作的Queue结构
+            # self.__dict_total_user_process[i['userid']].append(Queue())  # user进程get操作的Queue结构
+            # self.__dict_total_user_process[i['userid']].append(Queue())  # user进程put操作的Queue结构
+            # p = Process(target=self.create_user, args=(i, self.__dict_total_user_process,))  # 创建user独立进程
+            print(">>> self.i =", i)
+            p = Process(target=global_create_user, args=(i,))  #  self.__dict_total_user_process,))  # 创建user独立进程
+            # p = Process(target=pro_f, args=(i,))  #  self.__dict_total_user_process,))  # 创建user独立进程
+            # self.__dict_total_user_process[i['userid']].append(p)  # user独立进程
+            p.start()  # 开始进程
+            # p.join()
 
         """创建策略"""
         self.signal_label_login_error_text.emit("创建策略")
@@ -233,27 +265,34 @@ class CTPManager(QtCore.QObject):
     # 创建user(期货账户)
     def create_user(self, dict_arguments):
         # 不允许重复创建期货账户实例
-        if len(self.__list_user) > 0:
-            for i in self.__list_user:
-                if i.get_user_id() == dict_arguments['userid']:
-                    print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
-                    return
+        # if len(self.__list_user) > 0:
+        #     for i in self.__list_user:
+        #         if i.get_user_id() == dict_arguments['userid']:
+        #             print("MultiUserTraderSys.create_user()已经存在user_id为", dict_arguments['userid'], "的实例，不允许重复创建")
+        #             return
 
         obj_user = User(dict_arguments, ctp_manager=self)
+
+        while True:
+            pass
+            print("CTPManager.create_user() user_id =", dict_arguments['userid'], ", process_id =", os.getpid())
+            time.sleep(2.0)
+
         # 将创建成功的期货账户对象存放到self.__list_user
-        for i in self.__dict_create_user_status:
-            if i == obj_user.get_user_id().decode():
-                if self.__dict_create_user_status[i]['connect_trade_front'] == 0:  # 连接交易前置成功
-                        # and self.__dict_create_user_status[i]['login_trade_account'] == 0 \
-                        # and self.__dict_create_user_status[i]['QryTradingAccount'] == 0 \
-                        # and self.__dict_create_user_status[i]['QryInvestorPosition'] == 0:
-                    obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
-                    self.__list_user.append(obj_user)  # user类实例添加到列表存放
-                    # obj_user.qry_api_interval_manager()  # API查询时间间隔管理
-                    # obj_user.qry_instrument_info()  # 查询合约信息
-                    print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
-                else:
-                    print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
+        # for i in self.__dict_create_user_status:
+        #     if i == obj_user.get_user_id().decode():
+        #         if self.__dict_create_user_status[i]['connect_trade_front'] == 0:  # 连接交易前置成功
+        #                 # and self.__dict_create_user_status[i]['login_trade_account'] == 0 \
+        #                 # and self.__dict_create_user_status[i]['QryTradingAccount'] == 0 \
+        #                 # and self.__dict_create_user_status[i]['QryInvestorPosition'] == 0:
+        #             obj_user.set_CTPManager(self)  # 将CTPManager类设置为user的属性
+        #             self.__list_user.append(obj_user)  # user类实例添加到列表存放
+        #             # obj_user.qry_api_interval_manager()  # API查询时间间隔管理
+        #             # obj_user.qry_instrument_info()  # 查询合约信息
+        #             print("CTPManager.create_user() 创建期货账户成功，user_id=", dict_arguments['userid'])
+        #         else:
+        #             print("CTPManager.create_user() 创建期货账户失败，user_id=", dict_arguments['userid'])
+
 
         # if self.__dict_create_user_status[dict_arguments['userid']] == 1:  # 判断是否成功创建期货账户
         #     # obj_user.set_DBManager(self.__DBManager)  # 将数据库管理类设置为user的属性

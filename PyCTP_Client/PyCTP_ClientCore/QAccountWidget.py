@@ -72,7 +72,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         super(QAccountWidget, self).__init__(parent)
         self.setupUi(self)  # 调用父类中配置界面的方法
-        self.popMenu = QtGui.QMenu(self.tableView_Trade_Args)  # 创建鼠标右击菜单
+        self.popMenu = QtGui.QMenu(self.tableWidget_Trade_Args)  # 创建鼠标右击菜单
         self.tabBar = QtGui.QTabBar(self.widget_tabbar)  # 创建QTabBar，选项卡
         self.tabBar.addTab("所有账户")
         # self.tabBar.addTab("lisi")
@@ -151,16 +151,19 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__client_main.get_SocketManager().send_msg(msg)
 
     def showEvent(self, QShowEvent):
+        pass
         # print(">>> showEvent()", self.objectName(), "widget_name=", self.__widget_name)
         # self.__client_main.set_show_widget(self)  # 显示在最前端的窗口设置为ClientMain的属性，全局唯一
         # self.__client_main.set_show_widget_name(self.__widget_name)  # 显示在最前端的窗口名称设置为ClientMain的属性，全局唯一
         # 获取tab——name
         # print(">>> tabName")
-        self.__client_main.set_showEvent(True)  # 是否有任何窗口显示了
+        # self.__client_main.set_showEvent(True)  # 是否有任何窗口显示了
+
 
     def hideEvent(self, QHideEvent):
+        pass
         # print(">>> hideEvent()", self.objectName(), "widget_name=", self.__widget_name)
-        self.__client_main.set_hideQAccountWidget(self)  # 将当前隐藏的窗口对象设置为ClienMain类的属性
+        # self.__client_main.set_hideQAccountWidget(self)  # 将当前隐藏的窗口对象设置为ClienMain类的属性
 
     # 槽函数，连接信号：QCTP.signal_on_tab_accounts_currentChanged，切换tab页的时候动态设置obj_user给QAccountWidget
     def slot_tab_changed(self, tab_name):

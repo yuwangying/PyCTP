@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-	<user action_count="0" open_count="0" user_id="078681"/>
-	<user action_count="0" open_count="0" user_id="083778"/>
 	<user_statistics user_id="078681" instrument_id="rb1705" action_count="0" open_count="0"/>
 	<user_statistics user_id="078681" instrument_id="rb1710" action_count="0" open_count="0"/>
 	<user_statistics user_id="083778" instrument_id="rb1705" action_count="0" open_count="0"/>
@@ -22,5 +20,6 @@
 	<position_detail_for_trade direction="0" hedgeflag="1" instrumentid="cu1710" offsetflag="0" orderref="100000000402" price="3401.0" strategy_id="02" tradedate="20170221" tradingday="20170220" tradingdayrecord="20170221" user_id="078681" volume="1"/>
 	<position_detail_for_trade direction="0" hedgeflag="1" instrumentid="cu1705" offsetflag="0" orderref="100000000403" price="3401.0" strategy_id="01" tradedate="20170221" tradingday="20170220" tradingdayrecord="20170221" user_id="083778" volume="1"/>
 	<position_detail_for_trade direction="0" hedgeflag="1" instrumentid="cu1710" offsetflag="0" orderref="100000000404" price="3401.0" strategy_id="02" tradedate="20170221" tradingday="20170220" tradingdayrecord="20170221" user_id="083778" volume="1"/>
-	<xml_status status="True"/>
+	<user_write_xml_status user_id="078681" datetime="2017-03-02 10:42:36" tradingday="2017-03-02" status="True"/>
+	<user_write_xml_status user_id="083778" datetime="2017-03-02 10:42:36" tradingday="2017-03-02" status="True"/>
 </root>

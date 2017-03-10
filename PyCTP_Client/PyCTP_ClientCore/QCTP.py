@@ -78,6 +78,11 @@ class QCTP(QMainWindow, Ui_MainWindow):
     def get_SocketManager(self):
         return self.__socket_manager
 
+    # 隐藏登录框且显示自己
+    def show_me(self):
+        self.__q_login.hide()
+        self.show()
+
     """
     void
     MainWindow::closeEvent(QCloseEvent * event)

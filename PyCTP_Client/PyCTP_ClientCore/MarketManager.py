@@ -21,8 +21,14 @@ class MarketManager:
     list_instrument_subscribed = []
 
     # 初始化时创建一个行情API连接，多账户交易系统只需要一个行情API
-    def __init__(self, front_address, broker_id, user_id='', password=''):
+    # def __init__(self, front_address, broker_id, user_id='', password=''):
+    def __init__(self, dict_args):
+        print('process_id =', os.getpid(), ', MarketManager.__init__() dict_arguments =', dict_args)
         # 多账户系统中，只需要创建一个行情API
+        front_address = dict_args['frontaddress']
+        broker_id = dict_args['brokerid']
+        user_id = dict_args['userid']
+        password = dict_args['password']
         s_tmp = (front_address[6:]).encode()
         n_position = s_tmp.index(b':')
         s_part1 = (s_tmp[:n_position])
@@ -54,21 +60,21 @@ class MarketManager:
         # [{'cu1608': ['80065801', '80067501']}, {'cu1609': ['80065801', '80067501']}]
         self.__list_instrument_subscribed_detail = list()
 
-        self.__TradingDay = self.__market.get_TradingDay()
+        self.__TradingDay = self.__market.get_TradingDay().decode()
         print("MarketManager.__init__() 行情端口交易日：", self.__TradingDay)
         self.__init_finished = True  # 初始化成功
 
     def get_TradingDay(self):
         return self.__TradingDay
 
-    def get_init_finished(self):
-        return self.__init_finished
-
     def get_result_market_connect(self):
         return self.__result_market_connect
 
     def get_result_market_login(self):
         return self.__result_market_login
+
+    def get_init_finished(self):
+        return self.__init_finished
 
     # 获取__market
     def get_market(self):
