@@ -20,16 +20,14 @@ Message = namedtuple("Message", "head checknum buff")
 
 
 # 创建user(期货账户)
-def static_create_user_process(dict_user_info):
+def static_create_user_process(dict_user_info, Queue_main, Queue_user):
     # print("static_create_user_process() dict_user_info =", dict_user_info)
     # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
     # ClientMain.socket_manager.signal_label_login_error_text.emit('创建User', dict_user_info['server']['user_info']['userid'])
-    obj_user = User(dict_user_info)
-    # print("static_create_user_process() obj_user.get_user_id() =", obj_user.get_user_id())
+    obj_user = User(dict_user_info, Queue_main, Queue_user)
     while True:
-        pass
-        # print("static_create_user_process() while True time.sleep(2.0) ")
-        time.sleep(1.0)
+        dict_data = Queue_main.get()  # user进程get数据
+        obj_user.handle_Queue_get(dict_data)  # user进程get到数据之后的处理
 
 
 class SocketManager(QtCore.QThread):
@@ -40,6 +38,8 @@ class SocketManager(QtCore.QThread):
     signal_update_strategy = QtCore.pyqtSignal()  # 定义信号：收到服务端收到策略类的回报消息
     signal_restore_groupBox = QtCore.pyqtSignal()  # 定义信号：收到查询策略信息后出发信号 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
     signal_q_ctp_show = QtCore.pyqtSignal()  # 定义信号：收到查询策略信息后出发信号 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
+    signal_QAccountWidget_addTabBar = QtCore.pyqtSignal(str)  # 定义信号：SocketManager发出信号 -> QAccountWidget创建tabBar
+    signal_init_tableWidget = QtCore.pyqtSignal(list)  # 定义信号：SocketManager发出信号 -> QAccountWidget初始化tableWidget
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -53,6 +53,7 @@ class SocketManager(QtCore.QThread):
         self.__queue_send_msg = queue.Queue(maxsize=100)  # 创建队列，存储将要发送的消息
         self.__thread_send_msg = threading.Thread(target=self.run_send_msg)  # 创建发送消息线程
         self.__thread_send_msg.start()
+        self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
@@ -127,6 +128,9 @@ class SocketManager(QtCore.QThread):
     def get_trader_name(self):
         return self.__trader_name
 
+    def set_dict_trader_info(self, dict_input):
+        self.__dict_trader_info = dict_input
+
     def set_list_market_info(self, list_input):
         self.__list_market_info = list_input
 
@@ -147,7 +151,7 @@ class SocketManager(QtCore.QThread):
 
     def set_list_strategy_info(self, list_input):
         self.__list_strategy_info = list_input
-        
+
     def get_list_strategy_info(self):
         return self.__list_strategy_info
 
@@ -162,6 +166,9 @@ class SocketManager(QtCore.QThread):
 
     def get_list_position_detail_for_trade(self):
         return self.__list_position_detail_for_trade
+
+    def get_dict_user_process_data(self):
+        return self.__dict_user_process_data
 
     # 连接服务器
     def connect(self):
@@ -299,7 +306,8 @@ class SocketManager(QtCore.QThread):
                     # self.__ctp_manager.set_trader_name(buff['TraderName'])
                     # self.__ctp_manager.set_trader_id(buff['TraderID'])
                     # self.__ctp_manager.set_on_off(buff['OnOff'])
-                    self.qry_market_info()  # 发送：查询行情配置，MsgType=4
+                    # self.qry_market_info()  # 发送：查询行情配置，MsgType=4
+                    self.set_dict_trader_info(buff)
                 elif buff['MsgResult'] == 1:  # 验证不通过
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -308,7 +316,7 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_list_market_info(buff['Info'])  # 将行情信息设置为ctp_manager的属性
                     self.set_list_market_info(buff['Info'])
-                    self.qry_user_info()  # 发送：查询期货账户信息，MsgType=2
+                    # self.qry_user_info()  # 发送：查询期货账户信息，MsgType=2
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -317,7 +325,7 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_list_user_info(buff['Info'])  # 将期货账户信息设置为ctp_manager的属性
                     self.set_list_user_info(buff['Info'])
-                    self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
+                    # self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -325,7 +333,7 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=11，查询下单算法", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_algorithm_info(buff['Info'])
-                    self.qry_strategy_info()  # 发送：查询策略信息，MsgType=3
+                    # self.qry_strategy_info()  # 发送：查询策略信息，MsgType=3
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -333,7 +341,8 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=3，查询策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_strategy_info(buff['Info'])
-                    self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
+                    self.signal_init_tableWidget.emit(buff['Info'])
+                    # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -341,7 +350,7 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=15，查询持仓明细order", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_position_detail_for_order(buff['Info'])
-                    self.qry_position_detial_for_trade()  # 发送：查询持仓明细trade，MsgType=17
+                    # self.qry_position_detial_for_trade()  # 发送：查询持仓明细trade，MsgType=17
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -350,9 +359,8 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_position_detail_for_trade(buff['Info'])
                     # self.signal_ctp_manager_init.emit()  # 与服务端初始化通信结束，调用CTPManager的初始化方法
-                    # 开始创建user进程
-                    self.create_user()
-                    #
+                    # self.create_user_process()  # 创建user进程
+                    self.initialize()  # 初始化，创建user进程
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -587,13 +595,66 @@ class SocketManager(QtCore.QThread):
         self.signal_label_login_error_text.emit('查询期货账户开关')
     """
 
+    # user进程将内部计算核心数据发给主进程，主进程UI显示
+    def handle_Queue_get(self, Queue_user):
+        while True:
+            dict_data = Queue_user.get()  # 主进程get，user进程put
+            user_id = dict_data['UserId']
+            data_flag = dict_data['DataFlag']
+            data_main = dict_data['DataMain']
+            print(">>> SocketManager.handle_Queue_get() user_id =", user_id, 'data_flag =', data_flag, " dict_data =", dict_data)
+
+            # 期货账户资金信息，DataFlag:'trading_account'
+            if data_flag == 'trading_account':
+                # self.__dict_user_Queue_data[user_id]['trading_account'] = data_main
+                self.__dict_user_process_data[user_id]['running']['trading_account'] = data_main
+            # 期货账户合约统计信息，DataFlag:'instrument_statistics'
+            elif data_flag == 'instrument_statistics':
+                # self.__dict_user_Queue_data[user_id]['instrument_statistics'] = data_main
+                self.__dict_user_process_data[user_id]['running']['instrument_statistics'] = data_main
+            # 策略参数，DataFlag:'strategy_arguments'，由socket收到修改策略参数类消息回报后修改
+            elif data_flag == 'strategy_arguments':
+                strategy_id = data_main['strategy_id']
+                # self.__dict_user_Queue_data[user_id]['strategy_arguments'][strategy_id] = data_main
+                self.__dict_user_process_data[user_id]['running']['strategy_arguments'][strategy_id] = data_main
+            # 策略统计，'strategy_statistics'
+            elif data_flag == 'strategy_statistics':
+                strategy_id = data_main['strategy_id']
+                # self.__dict_user_Queue_data[user_id]['strategy_statistics'][strategy_id] = data_main
+                self.__dict_user_process_data[user_id]['running']['strategy_statistics'][strategy_id] = data_main
+            elif data_flag == 'strategy_position':
+                strategy_id = data_main['strategy_id']
+                # self.__dict_user_Queue_data[user_id]['strategy_position'][strategy_id] = data_main
+                self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] = data_main
+            # 'OnRtnOrder'
+            elif data_flag == 'OnRtnOrder':
+                # self.__dict_user_Queue_data[user_id]['OnRtnOrder'].append(data_main)
+                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(data_main)
+            # 'OnRtnTrade'
+            elif data_flag == 'OnRtnTrade':
+                # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
+                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
+
+    # 主进程往对应的user通信Queue里放数据
+    def Queue_put(self, user_id, dict_data):
+        self.__dict_Queue_main[user_id].put(dict_data)
+
+    def write_dict_user_Queue_data(self, list_data):
+        pass
+
     # 创建user进程
-    def create_user(self):
-        # 组织创建user所需要的所有信息：xml文件信息和服务端传来的信息组合成一个dict
-        self.__dict_create_user_info = dict()
+    def initialize(self):
+        self.data_structure()  # 组织和创建客户端运行数据结构
+        self.create_user_process()  # 创建user进程
+        self.signal_q_ctp_show.emit()  # 显示主窗口，显示qctp，显示QCTP
+        # self.__q_ctp.show()  # 显示主窗口
+        # self.__q_login.hide()  # 隐藏登录窗口
+
+    # 组织创建user进程所需要的所有信息，含xml文件信息和server端接收信息，合并为一个dict
+    def data_structure(self):
         """
         样本数据结构
-        self.__dict_create_user_info =
+        self.__dict_user_process_data =
         {
             'user_id_1':
             {
@@ -635,106 +696,169 @@ class SocketManager(QtCore.QThread):
                     'list_position_detail_for_order': [{}, {}],
                     'list_position_detail_for_trade': [{}, {}],
                     'list_algorithm_info': {}
+                },
+                'running':
+                {
+
                 }
+            },
+            'user_id_2:
+            {
+                'xml':
+                {
+                },
+                'server':
+                {
+                },
+                'running':
+                {
+                }
+            }
         }
         """
-
-        # 遍历从服务端获取到的期货账户信息列表
+        self.__dict_user_process_data = dict()
         for i_user_info in self.__list_user_info:  # i_user_info为dict
             user_id = i_user_info['userid']  # str，期货账户id
-            self.__dict_create_user_info[user_id] = dict()
-            self.__dict_create_user_info[user_id]['xml'] = dict()  # 保存从本地xml获取到的数据
-            self.__dict_create_user_info[user_id]['server'] = dict()  # 保存从server端获取到的数据
+            self.__dict_user_process_data[user_id] = dict()
+            self.__dict_user_process_data[user_id]['xml'] = dict()  # 保存从本地xml获取到的数据
+            self.__dict_user_process_data[user_id]['server'] = dict()  # 保存从server端获取到的数据
+            self.__dict_user_process_data[user_id]['running'] = dict()  # 保存程序运行中最新的数据结构
 
             # 组织从xml获取到的数据
             if self.__xml_manager.get_xml_exist():
                 # 获取xml中user级别统计，一个user有多条，数量与user交易的合约数量相等
-                dict_user_write_xml_status = list()
-                for i_xml in self.__xml_manager.get_list_user_write_xml_status():  # i_xml为dict
+                dict_user_save_info = list()
+                for i_xml in self.__xml_manager.get_list_user_save_info():  # i_xml为dict
                     if i_xml['user_id'] == user_id:
-                        dict_user_write_xml_status.append(i_xml)
-                self.__dict_create_user_info[user_id]['xml']['dict_user_write_xml_status'] = dict_user_write_xml_status
+                        dict_user_save_info.append(i_xml)
+                self.__dict_user_process_data[user_id]['xml']['dict_user_save_info'] = dict_user_save_info
 
                 # 获取xml中的list_user_instrument_statistics
                 list_user_instrument_statistics = list()
                 for i_xml in self.__xml_manager.get_list_user_instrument_statistics():
                     if i_xml['user_id'] == user_id:
                         list_user_instrument_statistics.append(i_xml)
-                self.__dict_create_user_info[user_id]['xml']['list_user_instrument_statistics'] = list_user_instrument_statistics
+                self.__dict_user_process_data[user_id]['xml'][
+                    'list_user_instrument_statistics'] = list_user_instrument_statistics
 
                 # 获取xml中的strategy参数，数量与strategy个数相等
                 list_strategy_arguments = list()
                 for i_xml in self.__xml_manager.get_list_strategy_arguments():
                     if i_xml['user_id'] == user_id:
                         list_strategy_arguments.append(i_xml)
-                self.__dict_create_user_info[user_id]['xml']['list_strategy_arguments'] = list_strategy_arguments
+                self.__dict_user_process_data[user_id]['xml']['list_strategy_arguments'] = list_strategy_arguments
 
                 # 获取xml中的strategy统计数据，数量与strategy个数相等
                 list_strategy_statistics = list()
                 for i_xml in self.__xml_manager.get_list_strategy_statistics():
                     if i_xml['user_id'] == user_id:
                         list_strategy_statistics.append(i_xml)
-                self.__dict_create_user_info[user_id]['xml']['list_strategy_statistics'] = list_strategy_statistics
+                self.__dict_user_process_data[user_id]['xml']['list_strategy_statistics'] = list_strategy_statistics
 
                 # 获取xml中的持仓明细order数据，数量不定
                 list_position_detail_for_order = list()
                 for i_xml in self.__xml_manager.get_list_position_detail_for_order():
                     if i_xml['user_id'] == user_id:
                         list_position_detail_for_order.append(i_xml)
-                self.__dict_create_user_info[user_id]['xml']['list_position_detail_for_order'] = list_position_detail_for_order
+                self.__dict_user_process_data[user_id]['xml'][
+                    'list_position_detail_for_order'] = list_position_detail_for_order
 
                 # 获取xml中的持仓明细trade数据，数量不定
                 list_position_detail_for_trade = list()
                 for i_xml in self.__xml_manager.get_list_position_detail_for_order():
                     if i_xml['user_id'] == user_id:
                         list_position_detail_for_trade.append(i_xml)
-                self.__dict_create_user_info[user_id]['xml']['list_position_detail_for_trade'] = list_position_detail_for_trade
+                self.__dict_user_process_data[user_id]['xml'][
+                    'list_position_detail_for_trade'] = list_position_detail_for_trade
 
                 # 获取xml中的xml保存状态数据
-                self.__dict_create_user_info[user_id]['xml']['xml_exist'] = True
+                self.__dict_user_process_data[user_id]['xml']['xml_exist'] = True
             else:
                 # 获取xml失败
-                self.__dict_create_user_info[user_id]['xml']['xml_status'] = False
+                self.__dict_user_process_data[user_id]['xml']['xml_status'] = False
 
             # 组织从server获取到的数据
             if True:
+                # 获取server的数据：trader_info
+                self.__dict_user_process_data[user_id]['server']['trader_info'] = self.__dict_trader_info
+
                 # 获取server的数据：user_info
-                self.__dict_create_user_info[user_id]['server']['user_info'] = i_user_info
-                
+                self.__dict_user_process_data[user_id]['server']['user_info'] = i_user_info
+
                 # 获取server的数据：market_info
-                self.__dict_create_user_info[user_id]['server']['market_info'] = self.__list_market_info[0]
-                
+                self.__dict_user_process_data[user_id]['server']['market_info'] = self.__list_market_info[0]
+
                 # 获取server的数据：strategy_info
                 list_strategy_info = list()
                 for i_strategy_info in self.__list_strategy_info:
                     if i_strategy_info['user_id'] == user_id:
                         list_strategy_info.append(i_strategy_info)
-                self.__dict_create_user_info[user_id]['server']['strategy_info'] = list_strategy_info
-                
+                self.__dict_user_process_data[user_id]['server']['strategy_info'] = list_strategy_info
+
                 # 获取server的数据：list_position_detail_for_order
                 list_position_detail_for_order = list()
                 for i_position_detail_for_order in self.__list_position_detail_for_order:
                     if i_position_detail_for_order['userid'] == user_id:
                         list_position_detail_for_order.append(i_position_detail_for_order)
-                self.__dict_create_user_info[user_id]['server']['list_position_detail_for_order'] = list_position_detail_for_order
-                
+                self.__dict_user_process_data[user_id]['server'][
+                    'list_position_detail_for_order'] = list_position_detail_for_order
+
                 # 获取server的数据：list_position_detail_for_trade
                 list_position_detail_for_trade = list()
                 for i_position_detail_for_trade in self.__list_position_detail_for_trade:
                     if i_position_detail_for_trade['userid'] == user_id:
                         list_position_detail_for_trade.append(i_position_detail_for_trade)
-                self.__dict_create_user_info[user_id]['server']['list_position_detail_for_trade'] = list_position_detail_for_trade
+                self.__dict_user_process_data[user_id]['server'][
+                    'list_position_detail_for_trade'] = list_position_detail_for_trade
 
-        for user_id in self.__dict_create_user_info:
-            dict_user_info = self.__dict_create_user_info[user_id]
-            p = Process(target=static_create_user_process, args=(dict_user_info,))  # self.__dict_total_user_process,))  # 创建user独立进程
-            p.start()  # 开始进程
+            # 初始化程序运行中的数据结构
+            if True:
+                self.__dict_user_process_data[user_id]['running']['strategy_info'] = list_strategy_info
 
-        self.signal_q_ctp_show.emit()  # 显示主窗口
-        # self.__q_ctp.show()  # 显示主窗口
-        # self.__q_login.hide()  # 隐藏登录窗口
+    # 创建user进程
+    def create_user_process(self):
+        # 初始化存放Queue结构的dict
+        self.__dict_Queue_main = dict()  # 主进程put，user进程get
+        self.__dict_Queue_user = dict()  # user进程put，主进程get
+        self.__dict_Thread = dict()  # 存放线程对象，键名为user_id
+        self.__list_process = list()  # 存放user进程的list
+        for user_id in self.__dict_user_process_data:
+            self.signal_QAccountWidget_addTabBar.emit(user_id)  # 创建窗口的tabBar
 
-                
+            # self.__dict_user_Queue_data[user_id] = dict()
+            # self.__dict_user_Queue_data[user_id]['strategy_arguments'] = dict()  # sockt发来
+            # self.__dict_user_Queue_data[user_id]['strategy_statistics'] = dict()  # user进程发来，策略统计
+            # self.__dict_user_Queue_data[user_id]['strategy_position'] = dict()  # user进程发来，策略参数
+            # self.__dict_user_Queue_data[user_id]['instrument_statistics'] = dict()  # user进程发来，合约统计
+            # self.__dict_user_Queue_data[user_id]['OnRtnOrder'] = list()  # user进程发来，OnRtnOrder
+            # self.__dict_user_Queue_data[user_id]['OnRtnTrade'] = list()  # user进程发来，OnRtnTrade
+
+            self.__dict_user_process_data[user_id]['running'] = dict()
+            self.__dict_user_process_data[user_id]['running']['strategy_arguments'] = dict()  # sockt发来
+            self.__dict_user_process_data[user_id]['running']['strategy_statistics'] = dict()  # user进程发来，策略统计
+            self.__dict_user_process_data[user_id]['running']['strategy_position'] = dict()  # user进程发来，策略参数
+            self.__dict_user_process_data[user_id]['running']['instrument_statistics'] = dict()  # user进程发来，合约统计
+            self.__dict_user_process_data[user_id]['running']['OnRtnOrder'] = list()  # user进程发来，OnRtnOrder
+            self.__dict_user_process_data[user_id]['running']['OnRtnTrade'] = list()  # user进程发来，OnRtnTrade
+
+            dict_user_info = self.__dict_user_process_data[user_id]  # 创建user进程必须的初始化参数
+
+            Queue_main = Queue()  # 主进程put，user进程get
+            Queue_user = Queue()  # user进程put，主进程get
+            self.__dict_Queue_main[user_id] = Queue_main
+            self.__dict_Queue_user[user_id] = Queue_user
+
+            # 创建user独立进程
+            p = Process(target=static_create_user_process, args=(dict_user_info, Queue_main, Queue_user))
+            p.daemon = True  # p进程生命周期同主进程
+            self.__list_process.append(p)
+            # 主进程为每个user进程创建独立的线程，用来处理user进程put到queue的数据
+            qthread = threading.Thread(target=self.handle_Queue_get, args=(Queue_user,))
+            self.__dict_Thread[user_id] = qthread
+            qthread.setDaemon(True)  # 线程生命周期同主进程
+            qthread.start()
+            p.start()  # 开始user进程
+
 
 if __name__ == '__main__':
     # 创建socket套接字

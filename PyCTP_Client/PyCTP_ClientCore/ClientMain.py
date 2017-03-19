@@ -592,8 +592,8 @@ if __name__ == '__main__':
     socket_manager.set_XML_Manager(xml_manager)  # xml_manager设置为石头创可贴socket_manager的属性
     socket_manager.set_QLogin(q_login)
     socket_manager.set_QCTP(q_ctp)
+    q_ctp.widget_QAccountWidget.set_SocketManager(socket_manager)
     q_ctp.set_QLogin(q_login)
-
 
 
     """设置属性"""
@@ -620,8 +620,12 @@ if __name__ == '__main__':
     # q_ctp.widget_QAccountWidget.set_QLogin(q_login)
 
     """绑定信号槽"""
-    #
+    # 定义信号：收到查询策略信息后出发信号 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
     socket_manager.signal_q_ctp_show.connect(q_ctp.show_me)
+    # 定义信号，SocketManager发出信号 -> QAccountWidget创建tabBar
+    socket_manager.signal_QAccountWidget_addTabBar.connect(q_ctp.widget_QAccountWidget.slot_addTabBar)
+    # 绑定信号槽：SocketManager发出信号 -> QAccountWidget初始化tableWidget
+    socket_manager.signal_init_tableWidget.connect(q_ctp.widget_QAccountWidget.slot_init_tableWidget)
     # 绑定信号槽：QLogin发送消息 -> SocketManager发送消息
     q_login.signal_send_msg.connect(socket_manager.slot_send_msg)
     # 绑定信号槽：SocketManager收到消息 -> 设置q_login消息框文本

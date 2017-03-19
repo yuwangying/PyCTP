@@ -53,6 +53,7 @@ class QCTP(QMainWindow, Ui_MainWindow):
         status_bar = QtGui.QStatusBar()  # 创建状态栏
         status_bar.addWidget(self.message_center, stretch=1)  # 设置状态栏格式
         self.setStatusBar(status_bar)
+        self.__init_finished = False  # QCTP界面初始化完成标志位，初始值为False
 
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
@@ -82,14 +83,6 @@ class QCTP(QMainWindow, Ui_MainWindow):
     def show_me(self):
         self.__q_login.hide()
         self.show()
-
-    """
-    void
-    MainWindow::closeEvent(QCloseEvent * event)
-    {
-        QApplication.quit()
-    }
-    """
 
     # @pyqtSlot(int)
     # def on_tab_accounts_currentChanged(self, index):

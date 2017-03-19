@@ -30,66 +30,27 @@ class User():
 
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     # def __init__(self, dict_arguments, parent=None, ctp_manager=None):
-    def __init__(self, dict_arguments):
+    def __init__(self, dict_arguments, Queue_main, Queue_user):
         print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
-        # super(User, self).__init__(parent)  # 显示调用父类初始化方法，使用其信号槽机制
 
+        self.__init_arguments = dict_arguments  # 转存形参
+        self.__Queue_main = Queue_main  # 主进程put，user进程get
+        self.__Queue_user = Queue_user  # user进程put，主进程get
         self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 缓存OnRtnTrade回调数据
         self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据
         self.__threading_OnRtnOrder = threading.Thread(target=self.threading_run_OnRtnOrder)
         self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
+        self.__dict_strategy = dict()  # 存放策略对象的dict,{"strategy_id": obj_strategy}
+        self.__dict_instrument_statistics = dict()  # 合约统计dict，{'rb1705': {'open_count': 0, 'action_count': 0}}
 
-        # 从服务端获取到的user_info
-        self.__dict_user_info = dict_arguments['server']['user_info']
-        print("User.__init__() self.__dict_user_info =", self.__dict_user_info)
-        # 从服务端获取到的market_info
-        self.__dict_market_info = dict_arguments['server']['market_info']
-        print("User.__init__() self.__dict_market_info =", self.__dict_market_info)
-        # 从服务端获取到的strategy_info
-        self.__list_strategy_info = dict_arguments['server']['strategy_info']
-        print("User.__init__() self.__list_strategy_info =", self.__list_strategy_info)
-        # 从服务端获取到的list_position_detail_for_order
-        self.__list_position_detail_for_order = dict_arguments['server']['list_position_detail_for_order']
-        print("User.__init__() self.__list_position_detail_for_order =", self.__list_position_detail_for_order)
-        # 从服务端获取到的list_position_detail_for_trade
-        self.__list_position_detail_for_trade = dict_arguments['server']['list_position_detail_for_trade']
-        print("User.__init__() self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
+        self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
+        self.load_server_data(self.__init_arguments)  # 组织从server获取到的数据
 
-        self.__xml_exist = dict_arguments['xml']['xml_exist']  # xml读取是否成功
-        print("User.__init__() self.__xml_exist =", self.__xml_exist)
-        if self.__xml_exist:
-            # 从xml获取到的xml读取状态信息
-            self.__dict_user_write_xml_status = dict_arguments['xml']['dict_user_write_xml_status']
-            print("User.__init__() self.__dict_user_write_xml_status =", self.__dict_user_write_xml_status)
-            # 从xml获取到的list_strategy_arguments
-            self.__list_strategy_arguments = dict_arguments['xml']['list_strategy_arguments']
-            print("User.__init__() self.__list_strategy_arguments =", self.__list_strategy_arguments)
-            # 从xml获取到的list_strategy_statistics
-            self.__list_strategy_statistics = dict_arguments['xml']['list_strategy_statistics']
-            print("User.__init__() self.__list_strategy_statistics =", self.__list_strategy_statistics)
-            # 从xml获取到的list_user_instrument_statistics
-            self.list_user_instrument_statistics = dict_arguments['xml']['list_user_instrument_statistics']
-            print("User.__init__() self.list_user_instrument_statistics =", self.list_user_instrument_statistics)
-            # 从xml获取到的list_position_detail_for_order
-            self.__list_position_detail_for_order = dict_arguments['xml']['list_position_detail_for_order']
-            print("User.__init__() self.__list_position_detail_for_order =", self.__list_position_detail_for_order)
-            # 从xml获取到的list_position_detail_for_trade
-            self.__list_position_detail_for_trade = dict_arguments['xml']['list_position_detail_for_trade']
-            print("User.__init__() self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
-
-        self.__trader_id = self.__dict_user_info['traderid']
-        self.__user_id = self.__dict_user_info['userid']
-        self.__BrokerID = self.__dict_user_info['brokerid']
-        self.__Password = self.__dict_user_info['password']
-        self.__FrontAddress = self.__dict_user_info['frontaddress']
-        self.__on_off = self.__dict_user_info['on_off']  # 期货账户交易开关
         self.__qry_api_last_time = time.time()  # 类型浮点数，最后一次查询Trade_Api的时间
-        self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用后两位为策略编号，前十位递增一
-        self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 初始化启动模式为RESTART，如果xml文件存在且数据可用为RESUME
-
+        self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用首位固定为1，后两位为策略编号，中间部分递增1
         # self.__list_sessionid = list()  # 当前交易日，期货账户所有会话id，服务端的
-        # self.__list_position_detail_for_order = list()  # 期货账户持仓明细，内部元素结构为order
-        # self.__list_position_detail_for_trade = list()  # 期货账户持仓明细，内部元素结构为trade
+        # self.__server_list_position_detail_for_order_yesterday = list()  # 期货账户持仓明细，内部元素结构为order
+        # self.__server_list_position_detail_for_trade_yesterday = list()  # 期货账户持仓明细，内部元素结构为trade
         # self.__list_order_process = list()  # 挂单列表，未成交、部分成交还在队列中
         # self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
         # self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
@@ -117,14 +78,15 @@ class User():
         # 连接交易前置
         # 创建行情，获取交易日
         self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
-        self.__market_manager = MarketManager(self.__dict_market_info)
+        self.__market_manager = MarketManager(self.__server_dict_market_info)
         self.__dict_create_user_status['result_market_connect'] = self.__market_manager.get_result_market_connect()
         self.__dict_create_user_status['get_result_market_login'] = self.__market_manager.get_result_market_login()
         for i in self.__dict_create_user_status:
             if self.__dict_create_user_status[i] != 0:
                 print("User.__init__() 创建行情失败，user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
-        self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()
-
+        self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()  # 获取行情接口的交易日
+        self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
+        self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
         self.connect_trade_front()  # 连接交易前置
         self.login_trade_account()  # 登录期货账户，期货账户登录成功一刻开始OnRtnOrder、OnRtnTrade就开始返回历史数据
         self.qry_trading_account()  # 查询资金账户
@@ -141,21 +103,22 @@ class User():
             print("User.__init__() User创建失败 user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
             return
 
+        # 创建策略
+        for i in self.__server_list_strategy_info:
+            self.create_strategy(i)
 
-        self.create_strategy()  # 创建策略
-
-        """查询user的持仓明细"""
+        # 查询user的持仓明细
         # order结构的持仓明细
         # for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info_for_order():
         #     if i['userid'] == self.__user_id:
-        #         self.__list_position_detail_for_order.append(i)
+        #         self.__server_list_position_detail_for_order_yesterday.append(i)
 
         # trade结构的持仓明细
         # for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info_for_trade():
         #     if i['userid'] == self.__user_id:
-        #         self.__list_position_detail_for_trade.append(i)
+        #         self.__server_list_position_detail_for_trade_yesterday.append(i)
 
-        """查询成交记录"""
+        # 查询成交记录
         # time.sleep(1.0)
         # self.qry_api_interval_manager()  # API查询时间间隔管理
         # self.QryTrade()  # 保存查询当天的Trade和Order记录，正常值格式为DataFrame，异常值为None
@@ -169,7 +132,7 @@ class User():
         #     print("User.__init__() user_id=", self.__user_id, '查询成交记录失败，self.__list_QryOrder=', self.__list_QryOrder)
         # self.__ctp_manager.get_dict_create_user_status()[self.__user_id]['login_trade_account'] = login_trade_account
 
-        """查询报单记录"""
+        # 查询报单记录
         # time.sleep(1.0)
         # self.qry_api_interval_manager()  # API查询时间间隔管理
         # self.QryOrder()
@@ -183,7 +146,7 @@ class User():
 
         # print("User.__init__() user_id=", self.__user_id, "CTPManager记录User初始化信息 ", {self.__user_id: self.__ctp_manager.get_dict_create_user_status()[self.__user_id]})
 
-        """初始化策略持仓明细列表"""
+        # 初始化策略持仓明细列表
         # if self.init_list_position_detail() is not True:
         #     print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
         #     self.__init_finished = False  # 策略初始化失败
@@ -197,20 +160,6 @@ class User():
         Utils.make_dirs(s_path)  # 创建流文件路劲
         self.__trader_api = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
         self.__trader_api.set_user(self)  # 将该类设置为trade的属性
-
-        # 根据本地xml文件读取状态和信息来决定RESUME或RESTART
-        if self.__xml_exist:
-            market_TradingDay = self.__MdApi_TradingDay[:4] + '-' + self.__MdApi_TradingDay[4:6] + '-' + self.__MdApi_TradingDay[6:]
-            print("User.connect_trade_front() self.__dict_user_write_xml_status[0]['status'] =", self.__dict_user_write_xml_status[0]['status'])
-            print("User.connect_trade_front() self.__dict_user_write_xml_status[0]['tradingday'] == market_TradingDay ", self.__dict_user_write_xml_status[0]['tradingday'], market_TradingDay, self.__dict_user_write_xml_status[0]['tradingday'] == market_TradingDay)
-            if self.__dict_user_write_xml_status[0]['status'] == 'True' \
-                    and self.__dict_user_write_xml_status[0]['tradingday'] == market_TradingDay:
-                self.__TdApi_start_model = PyCTP.THOST_TERT_RESUME  # 从上次断开连接到现在的数据
-            else:
-                self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
-        else:
-            self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
-        print("User.connect_trade_front() user_id =", self.__user_id, ", self.__TdApi_start_model =", self.__TdApi_start_model, ", PyCTP.THOST_TERT_RESUME =", PyCTP.THOST_TERT_RESUME, ", PyCTP.THOST_TERT_RESTART =", PyCTP.THOST_TERT_RESTART)
 
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
         connect_trade_front = self.__trader_api.Connect(self.__FrontAddress, self.__TdApi_start_model)
@@ -266,6 +215,14 @@ class User():
         if isinstance(list_QryTradingAccount, list):
             if isinstance(list_QryTradingAccount[0], dict):
                 self.__QryTradingAccount = Utils.code_transform(list_QryTradingAccount[0])
+                self.__dict_trading_account = copy.deepcopy(self.__QryTradingAccount)  # 转存为程序运行中的数据结构，实时更新
+                dict_msg = {
+                    'DataFlag': 'trading_account',
+                    'UserId': self.__user_id,
+                    'DataMain': self.__dict_trading_account  # 最新策略统计
+                }
+                print(">>> Strategy.load_strategy_data() user_id =", self.__user_id, 'data_flag = trading_account', 'data_msg =', dict_msg)
+                self.__Queue_user.put(dict_msg)
                 self.__dict_create_user_status['QryTradingAccount'] = 0
                 print("User.__init__() user_id=", self.__user_id, '查询资金账户成功', self.__QryTradingAccount)
             else:
@@ -329,6 +286,7 @@ class User():
             time.sleep(1-time_interval)
         self.__qry_api_last_time = time.time()
 
+    """
     # 装载xml数据
     def load_xml(self):
         # 如果从本地硬盘中正常获取到xml
@@ -350,20 +308,184 @@ class User():
                     elif dict_statistics['instrument_id'] == obj_strategy.get_b_instrument_id():
                         obj_strategy.set_b_action_count(dict_statistics['action_count'])
                         obj_strategy.set_b_open_count(dict_statistics['open_count'])
+    """
+
+    # 组织从xml获取到的数据
+    def load_xml_data(self, dict_arguments):
+        # 从本地xml文件获取数据
+        self.__xml_exist = dict_arguments['xml']['xml_exist']  # xml读取是否成功
+        print("User.__init__() self.__xml_exist =", self.__xml_exist)
+        if self.__xml_exist:
+            # 从xml获取到的xml读取状态信息
+            self.__xml_dict_user_save_info = dict_arguments['xml']['dict_user_save_info']
+            print("User.__init__() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
+            # 从xml获取到的list_strategy_arguments
+            self.__xml_list_strategy_arguments = dict_arguments['xml']['list_strategy_arguments']
+            print("User.__init__() self.__xml_list_strategy_arguments =", self.__xml_list_strategy_arguments)
+            # 从xml获取到的list_strategy_statistics
+            self.__xml_list_strategy_statistics = dict_arguments['xml']['list_strategy_statistics']
+            print("User.__init__() self.__xml_list_strategy_statistics =", self.__xml_list_strategy_statistics)
+            # 从xml获取到的list_user_instrument_statistics
+            self.__xml_list_user_instrument_statistics = dict_arguments['xml']['list_user_instrument_statistics']
+            print("User.__init__() self.__xml_list_user_instrument_statistics =",
+                  self.__xml_list_user_instrument_statistics)
+            # 从xml获取到的list_position_detail_for_order
+            self.__xml_list_position_detail_for_order = dict_arguments['xml']['list_position_detail_for_order']
+            print("User.__init__() self.__xml_list_position_detail_for_order =",
+                  self.__xml_list_position_detail_for_order)
+            # 从xml获取到的list_position_detail_for_trade
+            self.__xml_list_position_detail_for_trade = dict_arguments['xml']['list_position_detail_for_trade']
+            print("User.__init__() self.__xml_list_position_detail_for_trade =",
+                  self.__xml_list_position_detail_for_trade)
+
+    # 组织从server获取到的数据
+    def load_server_data(self, dict_arguments):
+        # 从服务端获取到的trader_info
+        self.__server_dict_trader_info = dict_arguments['server']['trader_info']
+        # 从服务端获取到的user_info
+        self.__server_dict_user_info = dict_arguments['server']['user_info']
+        print("User.__init__() self.__server_dict_user_info =", self.__server_dict_user_info)
+        # 从服务端获取到的market_info
+        self.__server_dict_market_info = dict_arguments['server']['market_info']
+        print("User.__init__() self.__server_dict_market_info =", self.__server_dict_market_info)
+        # 从服务端获取到的strategy_info
+        self.__server_list_strategy_info = dict_arguments['server']['strategy_info']
+        print("User.__init__() self.__server_list_strategy_info =", self.__server_list_strategy_info)
+        # 从服务端获取到的list_position_detail_for_order
+        self.__server_list_position_detail_for_order_yesterday = dict_arguments['server'][
+            'list_position_detail_for_order']
+        print("User.__init__() self.__server_list_position_detail_for_order_yesterday =",
+              self.__server_list_position_detail_for_order_yesterday)
+        # 从服务端获取到的list_position_detail_for_trade
+        self.__server_list_position_detail_for_trade_yesterday = dict_arguments['server'][
+            'list_position_detail_for_trade']
+        print("User.__init__() self.__server_list_position_detail_for_trade_yesterday =",
+              self.__server_list_position_detail_for_trade_yesterday)
+
+        self.__trader_id = self.__server_dict_user_info['traderid']
+        self.__user_id = self.__server_dict_user_info['userid']
+        self.__BrokerID = self.__server_dict_user_info['brokerid']
+        self.__Password = self.__server_dict_user_info['password']
+        self.__FrontAddress = self.__server_dict_user_info['frontaddress']
+        self.__on_off = self.__server_dict_user_info['on_off']  # 期货账户交易开关
+
+    # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
+    def tdapi_start_model(self):
+        self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 初始化启动模式为RESTART，如果xml文件存在且数据可用为RESUME
+        if self.__xml_exist:
+            market_TradingDay = self.__MdApi_TradingDay[:4] + '-' + self.__MdApi_TradingDay[
+                                                                    4:6] + '-' + self.__MdApi_TradingDay[6:]
+            # print("User.connect_trade_front() self.__xml_dict_user_save_info[0]['status'] =", self.__xml_dict_user_save_info[0]['status'])
+            # print("User.connect_trade_front() self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay ", self.__xml_dict_user_save_info[0]['tradingday'], market_TradingDay, self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay)
+            if self.__xml_dict_user_save_info[0]['status'] == 'True' \
+                    and self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay:
+                self.__TdApi_start_model = PyCTP.THOST_TERT_RESUME  # 从上次断开连接到现在的数据
+            else:
+                self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
+        else:
+            self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
+        print("User.tdapi_start_model() user_id =", self.__user_id, ", self.__TdApi_start_model =",
+              self.__TdApi_start_model, ", PyCTP.THOST_TERT_RESUME =", PyCTP.THOST_TERT_RESUME,
+              ", PyCTP.THOST_TERT_RESTART =", PyCTP.THOST_TERT_RESTART)
+
+    # 初始化期货账户合约统计：撤单次数和开仓手数
+    def init_instrument_statistics(self):
+        if self.__TdApi_start_model == PyCTP.THOST_TERT_RESUME:  # 装载xml数据，并将数据发送给main进程
+            for i in self.__xml_list_user_instrument_statistics:
+                if i['user_id'] == self.__user_id:
+                    instrument_id = i['instrument_id']
+                    self.__dict_instrument_statistics[instrument_id] = {
+                        'action_count': i['action_count'],
+                        'open_count': i['open_count']
+                    }
+            dict_data = {
+                'DataFlag': 'instrument_statistics',
+                'UserId': self.__user_id,
+                'DataMain': self.__dict_instrument_statistics
+            }
+            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+        elif self.__TdApi_start_model == PyCTP.THOST_TERT_RESTART:
+            pass
+        print("User.init_instrument_statistics() user_id =", self.__user_id, "self.__dict_instrument_statistics =", self.__dict_instrument_statistics)
+
+    # user进程收到主进程放到Queue的数据
+    def handle_Queue_get(self, dict_data):
+        print("User.handle_Queue_get() user_id =", self.__user_id, "dict_data =", dict_data)
+        # 修改交易员开关，"MsgType":8
+        if dict_data['MsgType'] == 8:
+            self.set_trader_on_off(dict_data['OnOff'])
+        # 修改期货账户开关，"MsgType":9
+        elif dict_data['MsgType'] == 9:
+            self.set_on_off(dict_data['OnOff'])
+        # 新建策略，"MsgType":6
+        elif dict_data['MsgType'] == 6:
+            self.create_strategy(dict_data['Info'][0])
+        # 删除策略，"MsgType":7
+        elif dict_data['MsgType'] == 7:
+            # strategy_id = dict_data['Info'][0]['strategy_id']
+            # dict_position = self.__dict_strategy[strategy_id].get_position()
+            # sum_position = 0
+            # for i in dict_position:
+            #     sum_position += dict_position[i]
+            # if sum_position != 0:
+            #     print("User.handle_Queue_get() user_id =", self.__user_id, "strategy_id =", strategy_id)
+            self.delete_strategy(dict_data['Info'][0]['strategy_id'])
+        # 修改策略开关，"MsgType":13
+        elif dict_data['MsgType'] == 13:
+            strategy_id = dict_data['StrategyID']
+            on_off = dict_data['OnOff']
+            self.__dict_strategy[strategy_id].set_on_off(on_off)
+        # 修改单个策略参数(不带持仓修改)，"MsgType": 5
+        elif dict_data['MsgType'] == 5:
+            strategy_id = dict_data['Info'][0]['strategy_id']
+            dict_args = dict_data['Info'][0]
+            self.__dict_strategy[strategy_id].set_arguments(dict_args)
+        # 修改单个策略持仓，"MsgType": 12
+        elif dict_data['MsgType'] == 12:
+            strategy_id = dict_data['Info'][0]['strategy_id']
+            dict_args = dict_data['Info'][0]
+            self.__dict_strategy[strategy_id].set_position(dict_args)
 
     # 创建策略实例
-    def create_strategy(self):
-        self.__list_strategy = list()  # 存放策略实例对象的列联表
-        for i in self.__list_strategy_info:
-            obj_strategy = Strategy(i, self)
-            self.__list_strategy.append(obj_strategy)
-        self.__select_strategy = self.__list_strategy[0]
-        self.__threading_OnRtnOrder.start()  # strategy实例化完成，开始线程
-        self.__threading_OnRtnTrade.start()
+    def create_strategy(self, dict_args):
+        obj_strategy = Strategy(dict_args, self)
+        self.__dict_strategy[dict_args['strategy_id']] = obj_strategy  # 保存strategy对象的dict，由user对象维护
 
-    # 获统计数据
-    def get_list_user_statistics(self):
-        return self.__list_statistics
+    # 删除策略
+    def delete_strategy(self, strategy_id):
+        # 删除策略之前需判断：策略开关关闭、空仓
+        self.__dict_strategy.pop(strategy_id)
+
+    # 获取从server中获取的数据
+    def get_server_list_position_detail_for_order_yesterday(self):
+        return self.__server_list_position_detail_for_order_yesterday
+
+    # 获取从server中获取的数据
+    def get_server_list_position_detail_for_trade_yesterday(self):
+        return self.__server_list_position_detail_for_trade_yesterday
+
+    # 获取从xml中读取的数据
+    def get_dict_user_write_xml_status(self):
+        return self.__xml_dict_user_save_info
+
+    # 获取从xml中读取的数据
+    def get_xml_list_strategy_arguments(self):
+        return self.__xml_list_strategy_arguments
+
+    # 获取从xml中读取的数据
+    def get_xml_list_strategy_statistics(self):
+        return self.__xml_list_strategy_statistics
+
+    def get_xml_list_user_instrument_statistics(self):
+        return self.__xml_list_user_instrument_statistics
+
+    # 获取从xml中读取的数据
+    def get_xml_list_position_detail_for_order(self):
+        return self.__xml_list_position_detail_for_order
+
+    # 获取从xml中读取的数据
+    def get_xml_list_position_detail_for_trade(self):
+        return self.__xml_list_position_detail_for_trade
 
     # 将CTPManager类设置为user的属性
     def set_CTPManager(self, obj_CTPManager):
@@ -402,6 +524,14 @@ class User():
     # 获得数据库
     def get_mongodb_CTP(self):
         return self.__mongo_client.CTP
+
+    # 获取进程间通信Queue结构:main->user
+    def get_Queue_main(self):
+        return self.__Queue_main
+
+    # 获取进程间通信Queue结构:user->main
+    def get_Queue_user(self):
+        return self.__Queue_user
 
     # 从数据库获取user的strategy参数集合
     def get_col_strategy(self):
@@ -447,9 +577,14 @@ class User():
 
     # 设置user的交易开关，0关、1开
     def set_on_off(self, int_on_off):
-        print(">>>User.set_on_off() 设置期货账户交易开关，user_id=", self.__user_id, int_on_off)
+        print("User.set_on_off() user_id=", self.__user_id, "设置交易账户开关：", int_on_off)
         self.__on_off = int_on_off
-        self.signal_update_pushButton_start_strategy.emit()  # 触发信号：内核设置期货账户交易开关 -> 更新窗口“开始策略”按钮状态
+        # self.signal_update_pushButton_start_strategy.emit()  # 触发信号：内核设置期货账户交易开关 -> 更新窗口“开始策略”按钮状态
+
+    # 设置trader的交易开关，0关、1开
+    def set_trader_on_off(self, int_on_off):
+        print("User.set_trader_on_off() user_id =", self.__user_id, "设置交易员开关：", int_on_off)
+        self.__trader_on_off = int_on_off
 
     # 获取user的交易开关，0关、1开
     def get_on_off(self):
@@ -492,23 +627,36 @@ class User():
     #         if i not in self.__dict_action_counter:
     #             self.__dict_action_counter[i] = 0
 
-    # 撤单计数
-    def action_counter(self, Order):
+    # 统计合约撤单次数，被OnRtnOrder调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
+    def instrument_action_count(self, Order):
         if len(Order['OrderSysID']) == 0:  # 只统计有交易所编码的order
             return
-        if Order['OrderStatus'] != '5':  # 值为5：撤单
-            return
-        if Order['InstrumentID'] in self.__dict_action_counter:  # 已经存在的合约，撤单次数加+1
-            self.__dict_action_counter[Order['InstrumentID']] += 1
-        else:
-            self.__dict_action_counter[Order['InstrumentID']] = 1  # 不存在的合约，撤单次数设置为1
+        instrument_id = Order['InstrumentID']
+        if Order['OrderStatus'] == '5':  # 值为5：撤单
+            if instrument_id in self.__dict_instrument_statistics:  # 已经存在的合约，撤单次数加+1
+                self.__dict_instrument_statistics[instrument_id]['action_count'] += 1
+            else:  # 不存在的合约，初始化开仓手数和撤单次数
+                self.__dict_instrument_statistics[instrument_id] = {'action_count': 1, 'open_count': 0}
+            # 撤单次数赋值到策略对象的合约撤单次数
+            for strategy_id in self.__dict_strategy:
+                if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
+                    self.__dict_strategy[strategy_id].set_a_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
+                elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
+                    self.__dict_strategy[strategy_id].set_b_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
 
+    # 统计合约开仓手数，被OnRtnTrade调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
+    def instrument_open_count(self, Trade):
+        instrument_id = Trade['InstrumentID']
+        if instrument_id in self.__dict_instrument_statistics:  # 已经存在的合约，开仓手数叠加
+            self.__dict_instrument_statistics[instrument_id]['open_count'] += Trade['Volume']
+        else:  # 不存在的合约，初始化开仓手数和撤单次数
+            self.__dict_instrument_statistics[instrument_id] = {'action_count': Trade['Volume'], 'open_count': 0}
         # 撤单次数赋值到策略对象的合约撤单次数
-        for i_strategy in self.__list_strategy:
-            if i_strategy.get_a_instrument_id() == Order['InstrumentID']:
-                i_strategy.set_a_action_count(self.__dict_action_counter[Order['InstrumentID']])
-            elif i_strategy.get_b_instrument_id() == Order['InstrumentID']:
-                i_strategy.set_b_action_count(self.__dict_action_counter[Order['InstrumentID']])
+        for strategy_id in self.__dict_strategy:
+            if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
+                self.__dict_strategy[strategy_id].set_a_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
+            elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
+                self.__dict_strategy[strategy_id].set_b_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
 
     # 删除交易策略实例，从self.__list_strategy
     def del_strategy(self, strategy_id):
@@ -541,6 +689,24 @@ class User():
             Trade['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的本地系统时间
             # Trade['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
 
+            # 进程间通信：'DataFlag': 'instrument_statistics'
+            self.instrument_open_count(Trade)  # 统计合约撤单次数
+            dict_data = {
+                'DataFlag': 'instrument_statistics',
+                'UserId': self.__user_id,
+                'DataMain': self.__dict_instrument_statistics
+            }
+            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+
+            # 进程间通信：'DataFlag': 'OnRtnTrade'
+            dict_data = {
+                'DataFlag': 'OnRtnTrade',
+                'UserId': self.__user_id,
+                'DataMain': Trade
+            }
+            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+
+            # 缓存，待提取，提取发送给特定strategy对象
             self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
 
             # for i in self.__list_strategy:  # 转到strategy回调函数
@@ -565,6 +731,25 @@ class User():
             Order['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的时间
             # Order['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
 
+            self.instrument_action_count(Order)  # 统计合约撤单次数
+
+            # 进程间通信：'DataFlag': 'instrument_statistics'
+            dict_data = {
+                'DataFlag': 'instrument_statistics',
+                'UserId': self.__user_id,
+                'DataMain': self.__dict_instrument_statistics
+            }
+            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+
+            # 进程间通信：'DataFlag': 'OnRtnOrder'
+            dict_data = {
+                'DataFlag': 'OnRtnOrder',
+                'UserId': self.__user_id,
+                'DataMain': Order
+            }
+            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+
+            # 缓存，待提取，提取发送给特定strategy对象
             self.__queue_OnRtnOrder.put(Order)  # 缓存OnRtnTrade回调数据
 
             # for i in self.__list_strategy:  # 转到strategy回调函数
@@ -749,17 +934,17 @@ class User():
         order_new = copy.deepcopy(input_order)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
         # order_new中"CombOffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓order直接添加到持仓明细列表里
         if order_new['CombOffsetFlag'] == '0':
-            self.__list_position_detail_for_order.append(order_new)
+            self.__server_list_position_detail_for_order_yesterday.append(order_new)
         # order_new中"CombOffsetFlag"值="3"为平今
         if order_new['CombOffsetFlag'] == '3':
-            for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
+            for i in self.__server_list_position_detail_for_order_yesterday:  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同
                 if i['TradingDay'] == order_new['TradingDay'] \
                         and i['InstrumentID'] == order_new['InstrumentID'] \
                         and i['CombHedgeFlag'] == order_new['CombHedgeFlag']:
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
                     if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
-                        self.__list_position_detail_for_order.remove(i)
+                        self.__server_list_position_detail_for_order_yesterday.remove(i)
                         break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
@@ -768,17 +953,17 @@ class User():
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
                         order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail_for_order.remove(i)
+                        self.__server_list_position_detail_for_order_yesterday.remove(i)
         # order_new中"CombOffsetFlag"值="4"为平昨
         elif order_new['CombOffsetFlag'] == '4':
-            for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
+            for i in self.__server_list_position_detail_for_order_yesterday:  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日不相同、合约代码相同、投保标志相同
                 if i['TradingDay'] != order_new['TradingDay'] \
                         and i['InstrumentID'] == order_new['InstrumentID'] \
                         and i['CombHedgeFlag'] == order_new['CombHedgeFlag']:
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
                     if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
-                        self.__list_position_detail_for_order.remove(i)
+                        self.__server_list_position_detail_for_order_yesterday.remove(i)
                         break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
@@ -787,7 +972,7 @@ class User():
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
                         order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail_for_order.remove(i)
+                        self.__server_list_position_detail_for_order_yesterday.remove(i)
     """
 
     # 更新持仓明细列表，形参为order，统计持仓盈亏、平仓盈亏等指标需要，初始化过程和OnRtnTrade中被调用
@@ -801,17 +986,17 @@ class User():
         trade_new = copy.deepcopy(input_trade)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
         # trade_new中"OffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓order直接添加到持仓明细列表里
         if trade_new['OffsetFlag'] == '0':
-            self.__list_position_detail_for_trade.append(trade_new)
+            self.__server_list_position_detail_for_trade_yesterday.append(trade_new)
         # order_new中"OffsetFlag"值="3"为平今
         if trade_new['OffsetFlag'] == '3':
-            for i in self.__list_position_detail_for_trade:  # i为order结构体，类型为dict
+            for i in self.__server_list_position_detail_for_trade_yesterday:  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同
                 if i['TradingDay'] == trade_new['TradingDay'] \
                         and i['InstrumentID'] == trade_new['InstrumentID'] \
                         and i['CombHedgeFlag'] == trade_new['CombHedgeFlag']:
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
                     if trade_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
-                        self.__list_position_detail_for_trade.remove(i)
+                        self.__server_list_position_detail_for_trade_yesterday.remove(i)
                         break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif trade_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
@@ -820,17 +1005,17 @@ class User():
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif trade_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
                         trade_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail_for_trade.remove(i)
+                        self.__server_list_position_detail_for_trade_yesterday.remove(i)
         # order_new中"OffsetFlag"值="4"为平昨
         elif trade_new['OffsetFlag'] == '4':
-            for i in self.__list_position_detail_for_trade:  # i为order结构体，类型为dict
+            for i in self.__server_list_position_detail_for_trade_yesterday:  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日不相同、合约代码相同、投保标志相同
                 if i['TradingDay'] != trade_new['TradingDay'] \
                         and i['InstrumentID'] == trade_new['InstrumentID'] \
                         and i['CombHedgeFlag'] == trade_new['CombHedgeFlag']:
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
                     if trade_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
-                        self.__list_position_detail_for_trade.remove(i)
+                        self.__server_list_position_detail_for_trade_yesterday.remove(i)
                         break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif trade_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
@@ -839,7 +1024,7 @@ class User():
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
                     elif trade_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
                         trade_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail_for_trade.remove(i)
+                        self.__server_list_position_detail_for_trade_yesterday.remove(i)
     """
 
     # 更新账户资金信息，并刷新界面

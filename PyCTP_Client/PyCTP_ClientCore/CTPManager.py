@@ -781,3 +781,6 @@ class CTPManager(QtCore.QObject):
 
 
 
+{
+ 'user_id': '082123', 'strategy_id': '01', 'trade_model': "", 'order_algorithm': '01', 'lots': 10, 'lots_batch': 1, 'stop_loss': 0, 'on_off': 0, 'spread_shift': 0, 'a_instrument_id': 'cu1705', 'b_instrument_id': 'cu1710', 'a_limit_price_shift': 0, 'b_limit_price_shift': 0, 'a_wait_price_tick': 0, 'b_wait_price_tick': 0, 'a_order_action_limit': 400, 'b_order_action_limit': 400, 'buy_open': 0.0, 'sell_close': 0.0, 'sell_open': 0.0, 'buy_close': 0.0, 'sell_open_on_off': 0, 'buy_close_on_off': 0, 'buy_open_on_off': 0, 'sell_close_on_off': 0
+ }

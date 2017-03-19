@@ -29,15 +29,15 @@ class XML_Manager():
 
         # 测试代码，开始修改
         self.__path_write_start = "config/bee_config_start.xml"
-        NodeList_user_write_xml_status = self.__root_read.getElementsByTagName("user_write_xml_status")
-        for i in NodeList_user_write_xml_status:
+        NodeList_user_save_info = self.__root_read.getElementsByTagName("user_write_xml_status")
+        for i in NodeList_user_save_info:
             dt = datetime.now().strftime('%Y-%m-%d %I:%M:%S')
             i.attributes['datetime'] = dt
         f = open(self.__path_write_start, 'w')
         self.__doc_read.writexml(f, encoding='utf-8')  # addindent='  ', newl='\n',
         f.close()
 
-        self.read_user_write_xml_status()
+        self.read_user_save_info()
         self.read_user_instrument_statistics()
         self.read_strategy_arguments()
         self.read_strategy_statistics()
@@ -45,37 +45,37 @@ class XML_Manager():
         self.read_position_detail_for_trade()
 
     # 读期货账户写xml文件状态信息
-    def read_user_write_xml_status(self):
+    def read_user_save_info(self):
         # 期货账户
-        NodeList_user_write_xml_status = self.__root_read.getElementsByTagName("user_write_xml_status")
-        self.__list_user_write_xml_status = list()
-        for i in NodeList_user_write_xml_status:  # i:Element
-            dict_user_write_xml_status = dict()
-            dict_user_write_xml_status['user_id'] = i.attributes['user_id'].value
-            dict_user_write_xml_status['datetime'] = i.attributes['datetime'].value
-            dict_user_write_xml_status['tradingday'] = i.attributes['tradingday'].value
-            dict_user_write_xml_status['status'] = i.attributes['status'].value
-            self.__list_user_write_xml_status.append(dict_user_write_xml_status)
+        NodeList_user_save_info = self.__root_read.getElementsByTagName("user_save_info")
+        self.__list_user_save_info = list()
+        for i in NodeList_user_save_info:  # i:Element
+            dict_user_save_info = dict()
+            dict_user_save_info['user_id'] = i.attributes['user_id'].value
+            dict_user_save_info['datetime'] = i.attributes['datetime'].value
+            dict_user_save_info['tradingday'] = i.attributes['tradingday'].value
+            dict_user_save_info['status'] = i.attributes['status'].value
+            self.__list_user_save_info.append(dict_user_save_info)
 
     # 读期货账户下交易合约统计信息
     def read_user_instrument_statistics(self):
         # 期货账户
-        NodeList_user_statistics = self.__root_read.getElementsByTagName("user_statistics")
-        self.__list_user_statistics = list()
-        for i in NodeList_user_statistics:  # i:Element
+        NodeList_user_instrument_statistics = self.__root_read.getElementsByTagName("user_instrument_statistics")
+        self.__list_user_instrument_statistics = list()
+        for i in NodeList_user_instrument_statistics:  # i:Element
             dict_user_statistics = dict()
             dict_user_statistics['user_id'] = i.attributes['user_id'].value
             dict_user_statistics['instrument_id'] = i.attributes['instrument_id'].value
             dict_user_statistics['action_count'] = int(i.attributes['action_count'].value)
             dict_user_statistics['open_count'] = int(i.attributes['open_count'].value)
-            self.__list_user_statistics.append(dict_user_statistics)
+            self.__list_user_instrument_statistics.append(dict_user_statistics)
 
     # 读策略参数
     def read_strategy_arguments(self):
         # 策略参数
-        NodeList_arguments = self.__root_read.getElementsByTagName("arguments")
+        NodeList_strategy_arguments = self.__root_read.getElementsByTagName("strategy_arguments")
         self.__list_strategy_arguments = list()
-        for i in NodeList_arguments:
+        for i in NodeList_strategy_arguments:
             dict_arguments = dict()
             dict_arguments['user_id'] = i.attributes['user_id'].value
             dict_arguments['strategy_id'] = i.attributes['strategy_id'].value
@@ -122,9 +122,9 @@ class XML_Manager():
     # 读策略统计
     def read_strategy_statistics(self):
         # 策略统计
-        NodeList_statistics = self.__root_read.getElementsByTagName("statistics")
+        NodeList_strategy_statistics = self.__root_read.getElementsByTagName("strategy_statistics")
         self.__list_strategy_statistics = list()
-        for i in NodeList_statistics:
+        for i in NodeList_strategy_statistics:
             dict_statistics = dict()
             dict_statistics['user_id'] = i.attributes['user_id'].value
             dict_statistics['strategy_id'] = i.attributes['strategy_id'].value
@@ -134,8 +134,8 @@ class XML_Manager():
             dict_statistics['b_traded_count'] = int(i.attributes['b_traded_count'].value)
             dict_statistics['a_traded_amount'] = int(i.attributes['a_traded_amount'].value)
             dict_statistics['b_traded_amount'] = int(i.attributes['b_traded_amount'].value)
-            dict_statistics['a_commission_count'] = int(i.attributes['a_commission_count'].value)
-            dict_statistics['b_commission_count'] = int(i.attributes['b_commission_count'].value)
+            dict_statistics['a_commission_count'] = float(i.attributes['a_commission_count'].value)
+            dict_statistics['b_commission_count'] = float(i.attributes['b_commission_count'].value)
             dict_statistics['a_trade_rate'] = float(i.attributes['a_trade_rate'].value)
             dict_statistics['b_trade_rate'] = float(i.attributes['b_trade_rate'].value)
             dict_statistics['a_profit_close'] = int(i.attributes['a_profit_close'].value)
@@ -349,11 +349,11 @@ class XML_Manager():
     def get_xml_exist(self):
         return self.__xml_exist
 
-    def get_list_user_write_xml_status(self):
-        return self.__list_user_write_xml_status
+    def get_list_user_save_info(self):
+        return self.__list_user_save_info
 
     def get_list_user_instrument_statistics(self):
-        return self.__list_user_statistics
+        return self.__list_user_instrument_statistics
 
     def get_list_strategy_arguments(self):
         return self.__list_strategy_arguments
