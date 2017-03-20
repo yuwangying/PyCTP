@@ -20,6 +20,7 @@ from Strategy import Strategy
 from SocketManager import SocketManager
 from QMessageBox import QMessageBox
 from XML_Manager import XML_Manager
+from TimerThread import TimerThread
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
 
 
@@ -578,15 +579,15 @@ if __name__ == '__main__':
     file.close()
 
     """创建对象"""
-
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
     xml_manager = XML_Manager()  # 创建XML管理对象
-    socket_manager = SocketManager("10.0.0.4", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager("10.0.0.6", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 登录窗口
     q_ctp = QCTP()  # 客户端主窗口
+    q_login.show()
 
     q_login.set_SocketManager(socket_manager)
     socket_manager.set_XML_Manager(xml_manager)  # xml_manager设置为石头创可贴socket_manager的属性
@@ -640,9 +641,10 @@ if __name__ == '__main__':
     socket_manager.signal_update_strategy.connect(ctp_manager.slot_update_strategy)
     # CTPManager初始化内核（子线程）向界面弹窗 -> ClientMain（主线程）调用槽函数向界面弹窗
     ctp_manager.signal_show_QMessageBox.connect(client_main.slot_show_QMessageBox)
-
-    """显示界面登录界面"""
-    q_login.show()
+    # 绑定信号槽：定时刷新UI信号->定时刷新UI槽
+    q_ctp.widget_QAccountWidget.signal_update_ui.connect(q_ctp.widget_QAccountWidget.slot_update_ui)
+    # 绑定信号槽函数：界面发送策略按钮被点击->socket发送消息
+    q_ctp.widget_QAccountWidget.signal_send_msg.connect(socket_manager.slot_send_msg)
 
     sys.exit(app.exec_())
 
