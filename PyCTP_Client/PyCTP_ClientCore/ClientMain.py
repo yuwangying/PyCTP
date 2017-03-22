@@ -582,7 +582,7 @@ if __name__ == '__main__':
     client_main = ClientMain()  # 创建客户端管理类对象
     ctp_manager = CTPManager()  # 创建内核管理类对象
     xml_manager = XML_Manager()  # 创建XML管理对象
-    socket_manager = SocketManager("10.0.0.6", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager("192.168.180.130", 8888)  # 创建SocketManager对象
     socket_manager.connect()
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 登录窗口
@@ -594,6 +594,7 @@ if __name__ == '__main__':
     socket_manager.set_QLogin(q_login)
     socket_manager.set_QCTP(q_ctp)
     q_ctp.widget_QAccountWidget.set_SocketManager(socket_manager)
+    socket_manager.set_QAccountWidget(q_ctp.widget_QAccountWidget)
     q_ctp.set_QLogin(q_login)
 
 
@@ -643,8 +644,13 @@ if __name__ == '__main__':
     ctp_manager.signal_show_QMessageBox.connect(client_main.slot_show_QMessageBox)
     # 绑定信号槽：定时刷新UI信号->定时刷新UI槽
     q_ctp.widget_QAccountWidget.signal_update_ui.connect(q_ctp.widget_QAccountWidget.slot_update_ui)
-    # 绑定信号槽函数：界面发送策略按钮被点击->socket发送消息
+    # 绑定信号槽：界面发送策略按钮被点击->socket发送消息
     q_ctp.widget_QAccountWidget.signal_send_msg.connect(socket_manager.slot_send_msg)
+    # 绑定信号槽：SocketManager获得list_instrument_id -> QAccountWidget创建新建策略窗口
+    socket_manager.signal_create_QNewStrategy.connect(q_ctp.widget_QAccountWidget.create_QNewStrategy)
+    # 绑定信号槽：SocketManager收到新建策略消息 -> 界面添加一行QAccountWidget.slot_insert_strategy
+    socket_manager.signal_insert_strategy.connect(q_ctp.widget_QAccountWidget.slot_insert_strategy)
+
 
     sys.exit(app.exec_())
 

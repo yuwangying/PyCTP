@@ -40,8 +40,11 @@ class User():
         self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据
         self.__threading_OnRtnOrder = threading.Thread(target=self.threading_run_OnRtnOrder)
         self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
-        self.__dict_strategy = dict()  # 存放策略对象的dict,{"strategy_id": obj_strategy}
+        self.__dict_strategy = dict()  # 存放策略对象的dict,{strategy_id: obj_strategy}
+        self.__dict_strategy_finished = dict()  # 存放策略对象初始化完成标志{strategy_id: False}
         self.__dict_instrument_statistics = dict()  # 合约统计dict，{'rb1705': {'open_count': 0, 'action_count': 0}}
+        self.__dict_action_counter = dict()  # 记录合约撤单次数的字典，撤单操作时添加次数，交易日换日时初始化值
+        self.__dict_open_counter = dict()  # 记录合约开仓次数的字典
 
         self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
         self.load_server_data(self.__init_arguments)  # 组织从server获取到的数据
@@ -58,7 +61,6 @@ class User():
         # self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
         # self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
         # self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，
-        # self.__dict_action_counter = dict()  # 记录合约撤单次数的字典，撤单操作时添加次数，交易日换日时初始化值
         # self.__dict_open_counter = dict()  # 记录合约开仓手数的字典，交易日换日时初始化
         # self.__init_finished = False  # 初始化完成
         # self.__init_finished_succeed = True  # user初始化成功，初始化过程中遇到任何异常就设置为False
@@ -106,6 +108,12 @@ class User():
         # 创建策略
         for i in self.__server_list_strategy_info:
             self.create_strategy(i)
+
+        # user初始化完成
+        self.set_init_finished(True)
+
+        # strategy创建完成，发送进程间通信给主进程，主进程收到之后让user查询合约信息
+
 
         # 查询user的持仓明细
         # order结构的持仓明细
@@ -270,8 +278,15 @@ class User():
             if len(self.__QryInstrument) > 0:
                 self.__dict_create_user_status['QryInstrument'] = 0
                 print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功", self.__QryInstrument)
-                # self.__ctp_manager.set_got_list_instrument_info(True)  # 将获取合约信息的状态设置为真，获取成功
-                # self.__ctp_manager.set_instrument_info(self.__QryInstrument)  # 将查询到的合约信息传递给CTPManager
+
+                dict_msg = {
+                    'DataFlag': 'QryInstrument',
+                    'UserId': self.__user_id,
+                    'DataMain': self.__QryInstrument  # 最新策略统计
+                }
+                print(">>> Strategy.qry_instrument_info() user_id =", self.__user_id, 'data_flag = QryInstrument',
+                      'data_msg =', dict_msg)
+                self.__Queue_user.put(dict_msg)
             else:
                 self.__dict_create_user_status['QryInstrument'] = self.__QryInstrument
                 print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息失败", self.__QryInstrument)
@@ -373,15 +388,18 @@ class User():
     def tdapi_start_model(self):
         self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 初始化启动模式为RESTART，如果xml文件存在且数据可用为RESUME
         if self.__xml_exist:
-            market_TradingDay = self.__MdApi_TradingDay[:4] + '-' + self.__MdApi_TradingDay[
-                                                                    4:6] + '-' + self.__MdApi_TradingDay[6:]
-            # print("User.connect_trade_front() self.__xml_dict_user_save_info[0]['status'] =", self.__xml_dict_user_save_info[0]['status'])
-            # print("User.connect_trade_front() self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay ", self.__xml_dict_user_save_info[0]['tradingday'], market_TradingDay, self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay)
-            if self.__xml_dict_user_save_info[0]['status'] == 'True' \
-                    and self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay:
-                self.__TdApi_start_model = PyCTP.THOST_TERT_RESUME  # 从上次断开连接到现在的数据
-            else:
+            market_TradingDay = '-'.join([self.__MdApi_TradingDay[:4], self.__MdApi_TradingDay[4:6], self.__MdApi_TradingDay[6:]])
+            print(">>> User.tdapi_start_model() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
+            # 如果xml数据中未找到对应期货账号的user_save_info信息，模式设置为RESTART
+            if len(self.__xml_dict_user_save_info) == 0:
                 self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
+            else:
+                # 正常保存，且保存日期是当前交易日
+                if self.__xml_dict_user_save_info[0]['status'] == 'True' \
+                        and self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay:
+                    self.__TdApi_start_model = PyCTP.THOST_TERT_RESUME  # 从上次断开连接到现在的数据
+                else:
+                    self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
         else:
             self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
         print("User.tdapi_start_model() user_id =", self.__user_id, ", self.__TdApi_start_model =",
@@ -398,19 +416,21 @@ class User():
                         'action_count': i['action_count'],
                         'open_count': i['open_count']
                     }
-            dict_data = {
-                'DataFlag': 'instrument_statistics',
-                'UserId': self.__user_id,
-                'DataMain': self.__dict_instrument_statistics
-            }
-            self.__Queue_user.put(dict_data)  # user进程put，main进程get
         elif self.__TdApi_start_model == PyCTP.THOST_TERT_RESTART:
             pass
-        print("User.init_instrument_statistics() user_id =", self.__user_id, "self.__dict_instrument_statistics =", self.__dict_instrument_statistics)
+        dict_data = {
+            'DataFlag': 'instrument_statistics',
+            'UserId': self.__user_id,
+            'DataMain': self.__dict_instrument_statistics
+        }
+        print(">>> User.init_instrument_statistics() user_id =", self.__user_id,
+              'data_flag = instrument_statistics',
+              'dict_data =', dict_data)
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
     # user进程收到主进程放到Queue的数据
     def handle_Queue_get(self, dict_data):
-        print("User.handle_Queue_get() user_id =", self.__user_id, "dict_data =", dict_data)
+        print(">>> User.handle_Queue_get() user_id =", self.__user_id, "dict_data =", dict_data)
         # 修改交易员开关，"MsgType":8
         if dict_data['MsgType'] == 8:
             self.set_trader_on_off(dict_data['OnOff'])
@@ -448,13 +468,32 @@ class User():
 
     # 创建策略实例
     def create_strategy(self, dict_args):
+        strategy_id = dict_args['strategy_id']
         obj_strategy = Strategy(dict_args, self)
-        self.__dict_strategy[dict_args['strategy_id']] = obj_strategy  # 保存strategy对象的dict，由user对象维护
+        self.__dict_strategy[strategy_id] = obj_strategy  # 保存strategy对象的dict，由user对象维护
+        self.__dict_strategy_finished[strategy_id] = False  # 初始化“策略完成初始化”为False
 
     # 删除策略
     def delete_strategy(self, strategy_id):
         # 删除策略之前需判断：策略开关关闭、空仓
         self.__dict_strategy.pop(strategy_id)
+
+    # 设置策略初始化完成标志
+    def set_strategy_init_finished(self, strategy_id, bool_finished):
+        self.__dict_strategy_finished[strategy_id] = bool_finished
+        all_strategy_finished = True
+        for i_strategy_id in self.__dict_strategy_finished:
+            if self.__dict_strategy_finished[i_strategy_id] is False:
+                all_strategy_finished = False
+        if all_strategy_finished:
+            dict_msg = {
+                'DataFlag': 'all_strategy_finished',
+                'UserId': self.__user_id,
+                'DataMain': True  # 最新策略参数
+            }
+            print(">>> Strategy.set_arguments() user_id =", self.__user_id, 'data_flag =', 'all_strategy_finished',
+                  'data_msg =', dict_msg)
+            self.__Queue_user.put(dict_msg)
 
     # 获取从server中获取的数据
     def get_server_list_position_detail_for_order_yesterday(self):
@@ -601,6 +640,13 @@ class User():
     # 设置user初始化状态
     def set_init_finished(self, bool_input):
         self.__init_finished = bool_input
+        # 进程间通信：'DataFlag': 'instrument_statistics'
+        dict_data = {
+            'DataFlag': 'user_init_finished',
+            'UserId': self.__user_id,
+            'DataMain': self.__dict_instrument_statistics
+        }
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
     # 获取user初始化状态
     def get_init_finished(self):
@@ -679,7 +725,8 @@ class User():
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
         t = datetime.now()  # 取接收到回调数据的本地系统时间
-        self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
+        # self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
+        self.statistics_for_trade(Trade)  # 期货账户统计，基于trade
 
         # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
         if len(Trade['OrderRef']) == 12 and Trade['OrderRef'][:1] == '1':
@@ -716,7 +763,8 @@ class User():
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
         t = datetime.now()  #取接收到回调数据的本地系统时间
-        self.statistics(order=Order)  # 统计期货账户的合约撤单次数
+        # self.statistics(order=Order)  # 统计期货账户的合约撤单次数
+        self.statistics_for_order(Order)  # 期货账户统计，基于trade
 
         # 所有trade回调保存到DataFrame格式变量
         # series_order = Series(Order)
@@ -751,14 +799,6 @@ class User():
 
             # 缓存，待提取，提取发送给特定strategy对象
             self.__queue_OnRtnOrder.put(Order)  # 缓存OnRtnTrade回调数据
-
-            # for i in self.__list_strategy:  # 转到strategy回调函数
-            #     if Order['OrderRef'][-2:] == i.get_strategy_id():
-            #         i.OnRtnOrder(Order)
-
-        # 记录存到数据库
-        # self.__DBManager.insert_trade(Order)
-        # self.__mongo_client.CTP.get_collection(self.__user_id+'_Order').insert_one(Order)  # 记录插入到数据库
 
     # 处理OnRtnOrder的线程
     def threading_run_OnRtnOrder(self):
@@ -1111,6 +1151,43 @@ class User():
                 self.__dict_open_counter[order['InstrumentID']] += trade['Volume']
             else:
                 self.__dict_open_counter[order['InstrumentID']] = trade['Volume']  # 字典中不存在合约代码，创建命名和键值
+
+    # 统计order
+    def statistics_for_order(self, order):
+        if len(order['OrderSysID']) == 12 and order['OrderStatus'] == '5':  # 值为5：撤单
+            instrument_id = order['InstrumentID']
+            if instrument_id in self.__dict_instrument_statistics:  # 字典中存在合约代码键名
+                self.__dict_instrument_statistics[instrument_id]['action_count'] += 1  # 撤单次数加一
+            else:  # 字典中不存在合约代码键名
+                self.__dict_instrument_statistics[instrument_id]['action_count'] = 1  # 不存在的合约，撤单次数设置为1
+                self.__dict_instrument_statistics[instrument_id]['open_count'] = 0  # 不存在的合约，开仓数量设置为0
+
+            # 撤单次数赋值到策略对象的合约撤单次数
+            action_count = self.__dict_instrument_statistics[instrument_id]['action_count']
+            for strategy_id in self.__dict_strategy:
+                if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
+                    self.__dict_strategy[strategy_id].set_a_action_count(action_count)
+                elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
+                    self.__dict_strategy[strategy_id].set_b_action_count(action_count)
+
+    # 统计trade
+    def statistics_for_trade(self, trade):
+        instrument_id = trade['InstrumentID']
+        if instrument_id in self.__dict_instrument_statistics:  # 字典中存在合约代码键名
+            self.__dict_instrument_statistics[instrument_id]['open_count'] += trade['Volume']  # 开仓数量累加
+        else:  # 字典中不存在合约代码键名
+            self.__dict_instrument_statistics[instrument_id]['action_count'] = 0  # 不存在的合约，撤单次数设置为0
+            self.__dict_instrument_statistics[instrument_id]['open_count'] = trade['Volume']  # 不存在的合约，开仓数量设置为0
+
+        # 撤单次数赋值到策略对象的合约撤单次数
+        open_count = self.__dict_instrument_statistics[instrument_id]['open_count']
+        for strategy_id in self.__dict_strategy:
+            if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
+                self.__dict_strategy[strategy_id].set_a_open_count(open_count)
+            elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
+                self.__dict_strategy[strategy_id].set_b_open_count(open_count)
+
+
 if __name__ == '__main__':
     print("User.py, if __name__ == '__main__':")
         

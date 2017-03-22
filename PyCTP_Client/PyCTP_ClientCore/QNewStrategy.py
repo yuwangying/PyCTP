@@ -38,6 +38,9 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
         self.lineEdit_a_instrument.setValidator(validator_instrument_id)
         self.lineEdit_b_instrument.setValidator(validator_instrument_id)
 
+    def set_QAccountWidget(self, obj):
+        self.__QAccountWidget = obj
+
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
 
@@ -61,7 +64,7 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
 
     def get_trader_id(self):
         return self.__trader_id
-    
+
     @pyqtSlot()
     def on_pushButton_cancel_clicked(self):
         """
@@ -80,16 +83,17 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
         # raise NotImplementedError
 
         # 检查合约代码
-        if self.lineEdit_a_instrument.text() not in self.__ctp_manager.get_list_instrument_id():
+        list_instrument_id = self.__socket_manager.get_list_instrument_id()
+        if self.lineEdit_a_instrument.text() not in list_instrument_id:
             str_output = "不存在合约代码:" + self.lineEdit_a_instrument.text()
             self.label_error_msg.setText(str_output)
             return
-        if self.lineEdit_b_instrument.text() not in self.__ctp_manager.get_list_instrument_id():
+        if self.lineEdit_b_instrument.text() not in list_instrument_id:
             str_output = "不存在合约代码:" + self.lineEdit_b_instrument.text()
             self.label_error_msg.setText(str_output)
             return
         if self.lineEdit_a_instrument.text() == self.lineEdit_b_instrument.text():
-            str_output = "AB合约代码重复" + self.lineEdit_b_instrument.text()
+            str_output = "合约代码重复，请重新输入"
             self.label_error_msg.setText(str_output)
             return
 
@@ -101,21 +105,22 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             str_strategy_id = self.lineEdit_strategy_id.text()
 
         # strategy_id除重判断，针对当前user_id的已经存在的策略判断
-        for i_user in self.__ctp_manager.get_list_user():
-            if i_user.get_user_id().decode() == self.comboBox_user_id.currentText():
-                for i_strategy in i_user.get_list_strategy():
-                    if i_strategy.get_strategy_id() == str_strategy_id:
-                        str_output = "期货账户" + i_user.get_user_id().decode() + "已存在策略" + str_strategy_id + "，\n不能重复创建！"
-                        self.label_error_msg.setText(str_output)
-                        return
-                break  # 找到对应的user对象，跳出循环
+        dict_user_process_data = self.__socket_manager.get_dict_user_process_data()
+        user_id = self.comboBox_user_id.currentText()  # 新建策略窗口中显示的期货账号
+        dict_total_strategy_arguments = dict_user_process_data[user_id]['running']['strategy_arguments']
+        if str_strategy_id in dict_total_strategy_arguments:
+            str_output = "期货账户" + user_id + "已存在策略" + str_strategy_id + "，\n不能重复创建！"
+            self.label_error_msg.setText(str_output)
+            return
 
         str_output = "正在创建策略：" + self.lineEdit_strategy_id.text()
         self.label_error_msg.setText(str_output)
+
         # 新建策略参数
+        trader_id = self.__socket_manager.get_trader_id()
         dict_strategy_args = {
-            'trader_id': self.__trader_id,
-            'user_id': self.comboBox_user_id.currentText(),
+            'trader_id': trader_id,
+            'user_id': user_id,
             'strategy_id': str_strategy_id,
             # 'trade_model': '',  # 交易模型
             # 'order_algorithm': self.__socket_manager.get_list_algorithm_info()[0]['name'],  # 下单算法
@@ -128,7 +133,7 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
             'MsgSrc': 0,  # 消息源，客户端0，服务端1
             'MsgType': 6,  # 新建策略
-            'TraderID': self.__trader_id,
+            'TraderID': trader_id,
             'UserID': dict_strategy_args['user_id'],
             'Info': [dict_strategy_args]
         }
@@ -144,26 +149,23 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
 
     # 初始化期货账号菜单，组件：comboBox_user_id
     def update_comboBox_user_id_menu(self):
-        # 设置期货账号选项
-        if self.is_all_account_widget():  # 总账户页面
+        self.comboBox_user_id.clear()  # 清空菜单选项
+        tab_name = self.__QAccountWidget.get_current_tab_name()
+        if tab_name == '所有账户':  # 总账户页面
             # 插入所有user_id到item
-            self.comboBox_user_id.clear()  # 清空菜单选项
             i_row = -1
-            for i_user in self.__ctp_manager.get_list_user():
-                if self.comboBox_user_id.findText(i_user.get_user_id().decode(), QtCore.Qt.MatchExactly) == -1:
-                    i_row += 1
-                    self.comboBox_user_id.insertItem(i_row, i_user.get_user_id().decode())
+            print(">>> QNewStrategy.update_comboBox_user_id_menu() self.__socket_manager.get_list_user_info() =", self.__socket_manager.get_list_user_info())
+            for i in self.__socket_manager.get_list_user_info():
+                # if self.comboBox_user_id.findText(i_user.get_user_id().decode(), QtCore.Qt.MatchExactly) == -1:
+                i_row += 1
+                self.comboBox_user_id.insertItem(i_row, i['userid'])
             # item中显示当前鼠标所选中的user_id
             # user_id = self.__client_main.get_clicked_strategy().get_user_id()
-            # i_row = self.comboBox_user_id.findText(user_id, QtCore.Qt.MatchExactly)
-            # self.comboBox_user_id.setCurrentIndex(i_row)
-            # for i_row in range(self.comboBox_user_id.count()):
-            #     if self.comboBox_user_id.itemText(i_row) == self.__client_main.get_showQAccountWidget().get_clicked_status()['user_id']:
-            #         self.comboBox_user_id.setCurrentIndex(i_row)
+            i_row = self.comboBox_user_id.findText(self.__QAccountWidget.get_clicked_user_id(), QtCore.Qt.MatchExactly)
+            if i_row > -1:
+                self.comboBox_user_id.setCurrentIndex(i_row)
         else:  # 单账户窗口
-            self.comboBox_user_id.clear()  # 清空菜单选项
-            if self.comboBox_user_id.findText(self.__client_main.get_show_widget_name(), QtCore.Qt.MatchExactly) == -1:
-                self.comboBox_user_id.insertItem(0, self.__client_main.get_show_widget_name())
+            self.comboBox_user_id.insertItem(0, tab_name)
 
         # 清空lineEdit
         self.lineEdit_strategy_id.clear()

@@ -9,10 +9,10 @@ import threading
 import json
 import queue
 from QCTP import QCTP
+from QMessageBox import QMessageBox
 from QAccountWidget import QAccountWidget
 import time
 from PyQt4 import QtCore
-from QMessageBox import QMessageBox
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
 from User import User
 
@@ -40,6 +40,9 @@ class SocketManager(QtCore.QThread):
     signal_q_ctp_show = QtCore.pyqtSignal()  # 定义信号：收到查询策略信息后出发信号 -> groupBox界面状态还原（激活查询按钮、恢复“设置持仓”按钮）
     signal_QAccountWidget_addTabBar = QtCore.pyqtSignal(str)  # 定义信号：SocketManager发出信号 -> QAccountWidget创建tabBar
     signal_init_tableWidget = QtCore.pyqtSignal(list)  # 定义信号：SocketManager发出信号 -> QAccountWidget初始化tableWidget
+    signal_create_QNewStrategy = QtCore.pyqtSignal()  # 定义信号：SocketManager发出信号 -> QAccountWidget创建“新建策略”窗口
+    signal_insert_strategy = QtCore.pyqtSignal(dict)  # 定义信号：SocketManager发出信号 -> QAccountWidget界面插入一行策略
+    signal_QNewStrategy_hide = QtCore.pyqtSignal()  # 定义信号：SocketManager发出信号 -> QNewStrategy“新建策略窗口”隐藏
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -54,12 +57,16 @@ class SocketManager(QtCore.QThread):
         self.__thread_send_msg = threading.Thread(target=self.run_send_msg)  # 创建发送消息线程
         self.__thread_send_msg.start()
         self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
+        self.__list_instrument_info = list()  # 所有合约信息
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
 
     def get_XML_Manager(self):
         return self.__xml_manager
+
+    def set_QNewStrategy(self, obj):
+        self.__q_new_strategy = obj
 
     # 程序主窗口
     def set_QCTP(self, obj_QCTP):
@@ -169,6 +176,17 @@ class SocketManager(QtCore.QThread):
 
     def get_dict_user_process_data(self):
         return self.__dict_user_process_data
+
+    def get_list_instrument_info(self):
+        return self.__list_instrument_info
+
+    def set_list_instrument_id(self, list_instrument_info):
+        self.__list_instrument_id = list()
+        for i in list_instrument_info:
+            self.__list_instrument_id.append(i['InstrumentID'])
+
+    def get_list_instrument_id(self):
+        return self.__list_instrument_id
 
     # 连接服务器
     def connect(self):
@@ -385,7 +403,12 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=6，新建策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.create_strategy(buff['Info'][0])  # 内核创建策略对象
-                    self.create_strategy(buff['Info'][0])  # 与同进程的UI通信，UI
+                    # self.create_strategy(buff['Info'][0])
+                    # 进程间通信：main->user
+                    user_id = buff['Info'][0]['user_id']  # 策略参数dict
+                    self.signal_insert_strategy.emit(buff['Info'][0])  # 界面中新插入一行策略
+                    self.signal_QNewStrategy_hide.emit()  # 隐藏新建策略窗口
+                    self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() ", buff['MsgErrorReason'])
                     QMessageBox().showMessage("错误", buff['MsgErrorReason'])
@@ -393,10 +416,8 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=5，修改策略参数", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     dict_args = buff['Info'][0]  # 策略参数dict
-                    for i_strategy in self.__ctp_manager.get_list_strategy():
-                        if i_strategy.get_user_id() == dict_args['user_id'] and i_strategy.get_strategy_id() == dict_args['strategy_id']:
-                            i_strategy.set_arguments(dict_args)
-                            break
+                    user_id = dict_args['user_id']
+                    self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=5 修改策略参数失败")
             elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
@@ -602,12 +623,23 @@ class SocketManager(QtCore.QThread):
             user_id = dict_data['UserId']
             data_flag = dict_data['DataFlag']
             data_main = dict_data['DataMain']
-            print(">>> SocketManager.handle_Queue_get() user_id =", user_id, 'data_flag =', data_flag, " dict_data =", dict_data)
+            # print(">>> SocketManager.handle_Queue_get() user_id =", user_id, 'data_flag =', data_flag, " dict_data =", dict_data)
 
+            # 查询期货账户信息，DataFlag:'
             # 期货账户资金信息，DataFlag:'trading_account'
-            if data_flag == 'trading_account':
-                # self.__dict_user_Queue_data[user_id]['trading_account'] = data_main
-                self.__dict_user_process_data[user_id]['running']['trading_account'] = data_main
+            if data_flag == 'QryInstrument':
+                if len(self.__list_instrument_info) > 0:
+                    pass
+                elif len(self.__list_instrument_info) == 0:
+                    self.__list_instrument_info = data_main  # 保存所有合约信息为本类属性
+                    self.set_list_instrument_id(self.__list_instrument_info)  # 设置合约代码list
+                    # print(">>> SocketManager.handle_Queue_get() self.__list_instrument_info =", self.__list_instrument_info)
+                    # 待续，创建窗口：新建策略窗口，2017年3月20日16:58:50
+                    # self.__QAccountWidget.create_QNewStrategy()  # 初始化“新建策略”弹窗
+                    self.signal_create_QNewStrategy.emit()
+            # 期货账户初始化完成
+            elif data_flag == 'all_strategy_finished':
+                pass
             # 期货账户合约统计信息，DataFlag:'instrument_statistics'
             elif data_flag == 'instrument_statistics':
                 # self.__dict_user_Queue_data[user_id]['instrument_statistics'] = data_main
@@ -626,6 +658,7 @@ class SocketManager(QtCore.QThread):
                 strategy_id = data_main['strategy_id']
                 # self.__dict_user_Queue_data[user_id]['strategy_position'][strategy_id] = data_main
                 self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] = data_main
+                print(">>> SocketManager.handle_Queue_get() self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] =", self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id])
             # 'OnRtnOrder'
             elif data_flag == 'OnRtnOrder':
                 # self.__dict_user_Queue_data[user_id]['OnRtnOrder'].append(data_main)
@@ -642,7 +675,7 @@ class SocketManager(QtCore.QThread):
     def write_dict_user_Queue_data(self, list_data):
         pass
 
-    # 创建user进程
+    # 开始初始化
     def initialize(self):
         self.data_structure()  # 组织和创建客户端运行数据结构
         self.create_user_process()  # 创建user进程
@@ -813,7 +846,12 @@ class SocketManager(QtCore.QThread):
 
             # 初始化程序运行中的数据结构
             if True:
-                self.__dict_user_process_data[user_id]['running']['strategy_info'] = list_strategy_info
+                self.__dict_user_process_data[user_id]['running']['strategy_arguments'] = list_strategy_info  # server中获取发来
+                self.__dict_user_process_data[user_id]['running']['strategy_statistics'] = dict()  # user进程发来，策略统计
+                self.__dict_user_process_data[user_id]['running']['strategy_position'] = dict()  # user进程发来，策略参数
+                self.__dict_user_process_data[user_id]['running']['instrument_statistics'] = dict()  # user进程发来，合约统计
+                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'] = list()  # user进程发来，OnRtnOrder
+                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'] = list()  # user进程发来，OnRtnTrade
 
     # 创建user进程
     def create_user_process(self):
@@ -825,15 +863,6 @@ class SocketManager(QtCore.QThread):
         for user_id in self.__dict_user_process_data:
             self.signal_QAccountWidget_addTabBar.emit(user_id)  # 创建窗口的tabBar
 
-            # self.__dict_user_Queue_data[user_id] = dict()
-            # self.__dict_user_Queue_data[user_id]['strategy_arguments'] = dict()  # sockt发来
-            # self.__dict_user_Queue_data[user_id]['strategy_statistics'] = dict()  # user进程发来，策略统计
-            # self.__dict_user_Queue_data[user_id]['strategy_position'] = dict()  # user进程发来，策略参数
-            # self.__dict_user_Queue_data[user_id]['instrument_statistics'] = dict()  # user进程发来，合约统计
-            # self.__dict_user_Queue_data[user_id]['OnRtnOrder'] = list()  # user进程发来，OnRtnOrder
-            # self.__dict_user_Queue_data[user_id]['OnRtnTrade'] = list()  # user进程发来，OnRtnTrade
-
-            self.__dict_user_process_data[user_id]['running'] = dict()
             self.__dict_user_process_data[user_id]['running']['strategy_arguments'] = dict()  # sockt发来
             self.__dict_user_process_data[user_id]['running']['strategy_statistics'] = dict()  # user进程发来，策略统计
             self.__dict_user_process_data[user_id]['running']['strategy_position'] = dict()  # user进程发来，策略参数

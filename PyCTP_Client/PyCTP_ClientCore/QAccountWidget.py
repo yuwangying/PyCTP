@@ -12,6 +12,8 @@ from Ui_QAccountWidget import Ui_Form
 import json
 from Strategy import Strategy
 from QMessageBox import QMessageBox
+from QNewStrategy import QNewStrategy
+from PyQt4.QtGui import QApplication, QCompleter, QLineEdit, QStringListModel
 from StrategyDataModel import StrategyDataModel
 import threading
 import time
@@ -76,42 +78,34 @@ class QAccountWidget(QWidget, Ui_Form):
         super(QAccountWidget, self).__init__(parent)
         self.setupUi(self)  # 调用父类中配置界面的方法
         self.popMenu = QtGui.QMenu(self.tableWidget_Trade_Args)  # 创建鼠标右击菜单
+        self.tableWidget_Trade_Args.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.tabBar = QtGui.QTabBar(self.widget_tabbar)  # 创建QTabBar，选项卡
         self.tabBar.currentChanged.connect(self.slot_tab_changed)  # 信号槽连接：信号为自带的currentChanged，槽函数为slot_tab_changed，QTabBar切换tab时触发
         self.__dict_clicked_info = dict()  # 记录鼠标点击策略，{tab_name: strategy_id,}
+        self.__clicked_user_id = ''  # 初始化鼠标点击的策略的user_id
+        self.__clicked_strategy_id = ''  # 初始化鼠标点击的策略的strategy_id
         self.slot_addTabBar("所有账户")
-        # self.tabBar.addTab("所有账户")
 
         self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
 
-        """初始化StrategyDataModel"""
-        # self.StrategyDataModel = StrategyDataModel(mylist=self.__ctp_manager.get_list_strategy_view())
-        # self.tableView_Trade_Args.setModel(self.StrategyDataModel)
-
-        """
         # 设置tableWidget列的宽度
-        # self.tableWidget_Trade_Args.setColumnWidth(0, 50)  # 开关
-        # self.tableWidget_Trade_Args.setColumnWidth(1, 90)  # 期货账号
-        # self.tableWidget_Trade_Args.setColumnWidth(2, 90)  # 策略编号
-        # self.tableWidget_Trade_Args.setColumnWidth(3, 120)  # 交易合约
-        # self.tableWidget_Trade_Args.setColumnWidth(4, 90)  # 总持仓
-        # self.tableWidget_Trade_Args.setColumnWidth(5, 90)  # 买持仓
-        # self.tableWidget_Trade_Args.setColumnWidth(6, 90)  # 卖持仓
-        # self.tableWidget_Trade_Args.setColumnWidth(7, 90)  # 持仓盈亏
-        # self.tableWidget_Trade_Args.setColumnWidth(8, 90)  # 平仓盈亏
-        # self.tableWidget_Trade_Args.setColumnWidth(9, 90)  # 手续费，缺少净盈亏
-        # self.tableWidget_Trade_Args.setColumnWidth(10, 90)  # 成交量
-        # self.tableWidget_Trade_Args.setColumnWidth(11, 90)  # 成交额
-        # self.tableWidget_Trade_Args.setColumnWidth(12, 90)  # 平均滑点， 换成A成交率、B成交率
-        # self.tableWidget_Trade_Args.setColumnWidth(13, 90)  # 交易模型
-        # self.tableWidget_Trade_Args.setColumnWidth(14, 90)  # 下单算法
-        """
-
-        # 禁用GroupBox中的按钮
-        # self.pushButton_set_strategy.setEnabled(False)
-        # self.pushButton_query_strategy.setEnabled(False)
-        # self.pushButton_set_position.setEnabled(False)
-
+        self.tableWidget_Trade_Args.setColumnWidth(0, 50)  # 开关
+        self.tableWidget_Trade_Args.setColumnWidth(1, 90)  # 期货账号
+        self.tableWidget_Trade_Args.setColumnWidth(2, 90)  # 策略编号
+        self.tableWidget_Trade_Args.setColumnWidth(3, 120)  # 交易合约
+        self.tableWidget_Trade_Args.setColumnWidth(4, 90)  # 总持仓
+        self.tableWidget_Trade_Args.setColumnWidth(5, 90)  # 买持仓
+        self.tableWidget_Trade_Args.setColumnWidth(6, 90)  # 卖持仓
+        self.tableWidget_Trade_Args.setColumnWidth(7, 90)  # 持仓盈亏
+        self.tableWidget_Trade_Args.setColumnWidth(8, 90)  # 平仓盈亏
+        self.tableWidget_Trade_Args.setColumnWidth(9, 90)  # 手续费
+        self.tableWidget_Trade_Args.setColumnWidth(10, 90)  # 净盈亏
+        self.tableWidget_Trade_Args.setColumnWidth(11, 90)  # 成交量
+        self.tableWidget_Trade_Args.setColumnWidth(12, 90)  # 成交额
+        self.tableWidget_Trade_Args.setColumnWidth(13, 90)  # A成交率
+        self.tableWidget_Trade_Args.setColumnWidth(14, 90)  # B成交率
+        self.tableWidget_Trade_Args.setColumnWidth(15, 90)  # 交易模型
+        self.tableWidget_Trade_Args.setColumnWidth(16, 90)  # 下单算法
         # 初始化comboBox_jiaoyimoxing
         # 客户端存储的交易模型可选项，服务端仅保留策略所设置交易模型，当前交易模型空白
         # 初始化comboBox_xiadansuanfa
@@ -124,30 +118,16 @@ class QAccountWidget(QWidget, Ui_Form):
         self.action_add = QtGui.QAction("添加策略", self)
         self.action_add.triggered.connect(self.slot_action_add_strategy)
         self.popMenu.addAction(self.action_add)
+
         # 删除策略菜单
         self.action_del = QtGui.QAction("删除策略", self)
         self.action_del.triggered.connect(self.slot_action_del_strategy)
         self.popMenu.addAction(self.action_del)
 
-        """信号槽绑定"""
-        self.__signal_pushButton_set_position_setEnabled_connected = False  # 信号槽绑定标志，初始值为False
-        self.Signal_SendMsg.connect(self.slot_SendMsg)  # 绑定信号、槽函数
-        self.signal_lineEdit_duotoujiacha_setText.connect(self.lineEdit_duotoujiacha.setText)
-        self.signal_lineEdit_kongtoujiacha_setText.connect(self.lineEdit_kongtoujiacha.setText)
-        self.signal_lineEdit_duotoujiacha_setStyleSheet.connect(self.lineEdit_duotoujiacha.setStyleSheet)
-        self.signal_lineEdit_kongtoujiacha_setStyleSheet.connect(self.lineEdit_kongtoujiacha.setStyleSheet)
-
-        """类局部变量声明"""
-        self.__spread_long = None  # 界面价差初始值
-        self.__spread_short = None  # 界面价差初始值
-        self.__item_on_off_status = None  # 策略开关item的状态，dict
-        self.__item_only_close_status = None  # 策略开关item的状态，dict
-        self.__clicked_item = None  # 鼠标点击的item对象
-        self.__clicked_status = None  # 鼠标点击的信息
-
-        self.__timer_thread = threading.Thread(target=self.thread_update_ui)  # 定时刷新UI线程
+        # 定时刷新UI线程
+        self.__timer_thread = threading.Thread(target=self.thread_update_ui)
         self.__timer_thread.daemon = True
-        self.__timer_thread.start()
+        self.__timer_thread.start()  # 待续，策略全部初始化完成之后再开始线程，2017年3月21日14:27:33
         # self.__timer = QtCore.QTimer()  # 定时器
         # self.__timer.setInterval(500)  # 时间间隔500s
         # self.__timer.setSingleShot(False)  # 非一次性定时器
@@ -163,7 +143,7 @@ class QAccountWidget(QWidget, Ui_Form):
     # 定时刷新UI线程
     def thread_update_ui(self):
         while True:
-            time.sleep(1)
+            time.sleep(500)
             self.signal_update_ui.emit()  # 定时刷新UI信号
 
     # 定时刷新UI槽函数
@@ -173,11 +153,11 @@ class QAccountWidget(QWidget, Ui_Form):
         self.update_groupBox_part()
 
     # 自定义槽
-    @pyqtSlot(str)
-    def slot_SendMsg(self, msg):
-        print("QAccountWidget.slot_SendMsg()", msg)
-        # send json to server
-        self.__client_main.get_SocketManager().send_msg(msg)
+    # @pyqtSlot(str)
+    # def slot_SendMsg(self, msg):
+    #     print("QAccountWidget.slot_SendMsg()", msg)
+    #     # send json to server
+    #     self.__client_main.get_SocketManager().send_msg(msg)
 
     def slot_addTabBar(self, user_id):
         self.__dict_clicked_info[user_id] = dict()
@@ -239,9 +219,18 @@ class QAccountWidget(QWidget, Ui_Form):
     def get_user(self):
         return self.__user
 
+    def get_current_tab_name(self):
+        return self.__current_tab_name
+
     def get_widget_name(self):
         # print(">>> QAccountWidget.get_widget_name() widget_name=", self.__widget_name, 'user_id=', self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
         return self.__widget_name
+
+    def get_clicked_user_id(self):
+        return self.__clicked_user_id
+
+    def get_clicked_strategy_id(self):
+        return self.__clicked_strategy_id
 
     # 设置窗口名称
     def set_widget_name(self, str_name):
@@ -291,6 +280,31 @@ class QAccountWidget(QWidget, Ui_Form):
             return False
         else:
             return True
+
+    # 创建“新建策略窗口”
+    def create_QNewStrategy(self):
+        # print(">>> QAccountWidget.create_QNewStrategy()")
+        self.__q_new_strategy = QNewStrategy()
+        completer = QCompleter()
+        model = QStringListModel()
+        list_instrument_id = self.__socket_manager.get_list_instrument_id()
+        model.setStringList(list_instrument_id)
+        completer.setModel(model)
+        self.__q_new_strategy.lineEdit_a_instrument.setCompleter(completer)
+        self.__q_new_strategy.lineEdit_b_instrument.setCompleter(completer)
+        self.__q_new_strategy.set_QAccountWidget(self)
+        self.__q_new_strategy.set_SocketManager(self.__socket_manager)
+        self.__socket_manager.set_QNewStrategy(self.__q_new_strategy)
+        # self.__q_new_strategy.set_CTPManager(self)  # CTPManager设置为新建策略窗口属性
+        # self.__q_new_strategy.set_SocketManager(self.__socket_manager)  # SocketManager设置为新建策略窗口属性
+        # self.__q_new_strategy.set_trader_id(self.__trader_id)  # 设置trade_id属性
+        # self.__client_main.set_QNewStrategy(self.__q_new_strategy)  # 新建策略窗口设置为ClientMain属性
+        # self.signal_hide_QNewStrategy.connect(self.get_QNewStrategy().hide)  # 绑定信号槽，新创建策略成功后隐藏“新建策略弹窗”
+
+        # 绑定信号槽：新建策略窗新建策略指令 -> SocketManager.slot_send_msg
+        self.__q_new_strategy.signal_send_msg.connect(self.__socket_manager.slot_send_msg)
+        # 绑定信号槽：SocketManager收到新建策略回报 -> QNewStrategy隐藏“新建策略窗口”
+        self.__socket_manager.signal_QNewStrategy_hide.connect(self.__q_new_strategy.hide)
 
     """
     # 向界面插入策略，形参是任何策略对象，该方法自动判断策略是否属于本窗口
@@ -402,7 +416,9 @@ class QAccountWidget(QWidget, Ui_Form):
         item_strategy_on_off.setText('关')
         item_user_id = QtGui.QTableWidgetItem(dict_strategy_arguments['user_id'])  # 期货账号
         item_strategy_id = QtGui.QTableWidgetItem(dict_strategy_arguments['strategy_id'])  # 策略编号
-        str_instruments = ','.join([dict_strategy_arguments['a_instrument_id'], dict_strategy_arguments['b_instrument_id']])
+        a_instrument_id = dict_strategy_arguments['list_instrument_id'][0]
+        b_instrument_id = dict_strategy_arguments['list_instrument_id'][1]
+        str_instruments = ','.join([a_instrument_id, b_instrument_id])
         item_instrument_id = QtGui.QTableWidgetItem(str_instruments)  # 交易合约
         # item_position = QtGui.QTableWidgetItem(
         #     str(dict_strategy_position['position_a_buy'] + dict_strategy_position['position_a_sell']))  # 总持仓
@@ -664,32 +680,36 @@ class QAccountWidget(QWidget, Ui_Form):
                 dict_strategy_arguments = dict_user_process_data[user_id]['running']['strategy_arguments']
                 dict_strategy_position = dict_user_process_data[user_id]['running']['strategy_position']
                 dict_strategy_statistics = dict_user_process_data[user_id]['running']['strategy_statistics']
+                # print(">>> QAccountWidget.update_tableWidget_Trade_Args() dict_strategy_position =", dict_strategy_position)
+                # print(">>> QAccountWidget.update_tableWidget_Trade_Args() dict_user_process_data[user_id]['running'] =", dict_user_process_data[user_id]['running'])
+
                 for strategy_id in dict_strategy_arguments:
-                    dict_update_data_on_strategy = dict()
-                    dict_update_data_on_strategy['strategy_on_off'] = dict_strategy_arguments[strategy_id]['on_off']
-                    dict_update_data_on_strategy['user_id'] = dict_strategy_arguments[strategy_id]['user_id']
-                    dict_update_data_on_strategy['strategy_id'] = dict_strategy_arguments[strategy_id]['strategy_id']
-                    dict_update_data_on_strategy['trade_instrument'] = ','.join([dict_strategy_arguments[strategy_id]['a_instrument_id'],dict_strategy_arguments[strategy_id]['b_instrument_id']])
-                    dict_update_data_on_strategy['trade_model'] = dict_strategy_arguments[strategy_id]['trade_model']
-                    dict_update_data_on_strategy['order_algorithm'] = dict_strategy_arguments[strategy_id]['order_algorithm']
+                    dict_update_data_one_strategy = dict()
+                    # print(">>> QAccountWidget.update_tableWidget_Trade_Args() dict_strategy_arguments[strategy_id] =", dict_strategy_arguments[strategy_id])
+                    dict_update_data_one_strategy['strategy_on_off'] = dict_strategy_arguments[strategy_id]['on_off']
+                    dict_update_data_one_strategy['user_id'] = dict_strategy_arguments[strategy_id]['user_id']
+                    dict_update_data_one_strategy['strategy_id'] = dict_strategy_arguments[strategy_id]['strategy_id']
+                    dict_update_data_one_strategy['trade_instrument'] = ','.join([dict_strategy_arguments[strategy_id]['a_instrument_id'],dict_strategy_arguments[strategy_id]['b_instrument_id']])
+                    dict_update_data_one_strategy['trade_model'] = dict_strategy_arguments[strategy_id]['trade_model']
+                    dict_update_data_one_strategy['order_algorithm'] = dict_strategy_arguments[strategy_id]['order_algorithm']
                     for i_strategy_id in dict_strategy_position:
                         if strategy_id == i_strategy_id:
-                            dict_update_data_on_strategy['position'] = dict_strategy_position[strategy_id]['position_a_buy'] + dict_strategy_position[strategy_id]['position_a_sell']
-                            dict_update_data_on_strategy['position_buy'] = dict_strategy_position[strategy_id]['position_a_buy']
-                            dict_update_data_on_strategy['position_sell'] = dict_strategy_position[strategy_id]['position_a_sell']
+                            dict_update_data_one_strategy['position'] = dict_strategy_position[strategy_id]['position_a_buy'] + dict_strategy_position[strategy_id]['position_a_sell']
+                            dict_update_data_one_strategy['position_buy'] = dict_strategy_position[strategy_id]['position_a_buy']
+                            dict_update_data_one_strategy['position_sell'] = dict_strategy_position[strategy_id]['position_a_sell']
                             break
                     for i_strategy_id in dict_strategy_statistics:
                         if strategy_id == i_strategy_id:
-                            dict_update_data_on_strategy['profit_position'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_position']
-                            dict_update_data_on_strategy['profit_close'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
-                            dict_update_data_on_strategy['profit'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
-                            dict_update_data_on_strategy['commission'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['commission']
-                            dict_update_data_on_strategy['total_traded_count'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_count']
-                            dict_update_data_on_strategy['total_traded_amount'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_amount']
-                            dict_update_data_on_strategy['a_trade_rate'] = dict_strategy_statistics[strategy_id]['a_trade_rate']
-                            dict_update_data_on_strategy['b_trade_rate'] = dict_strategy_statistics[strategy_id]['b_trade_rate']
+                            dict_update_data_one_strategy['profit_position'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_position']
+                            dict_update_data_one_strategy['profit_close'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
+                            dict_update_data_one_strategy['profit'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
+                            dict_update_data_one_strategy['commission'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['commission']
+                            dict_update_data_one_strategy['total_traded_count'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_count']
+                            dict_update_data_one_strategy['total_traded_amount'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_amount']
+                            dict_update_data_one_strategy['a_trade_rate'] = dict_strategy_statistics[strategy_id]['a_trade_rate']
+                            dict_update_data_one_strategy['b_trade_rate'] = dict_strategy_statistics[strategy_id]['b_trade_rate']
                             break
-                    list_update_data.append(dict_update_data_on_strategy)
+                    list_update_data.append(dict_update_data_one_strategy)
         # 将list_update_data更新到界面，数据样本如下：
         # list_update_data = [{'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '083778', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '01', 'b_trade_rate': 0.0}, {'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '083778', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '02', 'b_trade_rate': 0.0}, {'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '078681', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '01', 'b_trade_rate': 0.0}, {'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '078681', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '02', 'b_trade_rate': 0.0}]
 
@@ -697,7 +717,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> QAccountWidget.update_tableWidget_Trade_Args() 界面更新数据list_update_data =", list_update_data)
         for i in range(len(list_update_data)):
             dict_strategy_data = list_update_data[i]
-            self.update_tableWidget_Trade_Args_one(i, dict_strategy_data)  # 更新策略列表中的单行，形参：行标、数据
+            self.update_tableWidget_Trade_Args_one_part(i, dict_strategy_data)  # 更新策略列表中的单行，形参：行标、数据
 
         # 清空多余的行
         if row_count > len(list_update_data):
@@ -706,22 +726,23 @@ class QAccountWidget(QWidget, Ui_Form):
                 # print(">>> QAccountWidget.update_tableWidget_Trade_Args() 清除行数 =", i)
 
     # 更新策略列表中的单行，形参：行标、数据
-    def update_tableWidget_Trade_Args_one(self, row, data):
+    def update_tableWidget_Trade_Args_one_part(self, row, data):
         # 开关
-        item_on_off = self.tableWidget_Trade_Args.item(row, 0)
-        if data['strategy_on_off'] == 0:
-            item_on_off.setText("关")
-            item_on_off.setCheckState(QtCore.Qt.Unchecked)
-        elif data['strategy_on_off'] == 1:
-            item_on_off.setText("开")
-            item_on_off.setCheckState(QtCore.Qt.Checked)
-        else:
-            print(">>> QAccountWidget.update_tableWidget_Trade_Args_one() user_id=", data['user_id'], "strategy_id=",
-                  data['strategy_id'], "策略参数strategy_on_off值异常", data['strategy_on_off'])
-        if self.__item_on_off_status is not None:
-            if self.__item_on_off_status['enable'] == 0:
-                item_on_off.setFlags(item_on_off.flags() ^ (QtCore.Qt.ItemIsEnabled))  # 激活item
-                self.__item_on_off_status['enable'] = 1  # 0禁用、1激活
+        # print(">>> QAccountWidget.update_tableWidget_Trade_Args_one_part() user_id=", data['user_id'], "strategy_id=", data['strategy_id'], "data =", data)
+        # item_on_off = self.tableWidget_Trade_Args.item(row, 0)
+        # if data['strategy_on_off'] == 0:
+        #     item_on_off.setText("关")
+        #     item_on_off.setCheckState(QtCore.Qt.Unchecked)
+        # elif data['strategy_on_off'] == 1:
+        #     item_on_off.setText("开")
+        #     item_on_off.setCheckState(QtCore.Qt.Checked)
+        # else:
+        #     print(">>> QAccountWidget.update_tableWidget_Trade_Args_one_part() user_id=", data['user_id'], "strategy_id=",
+        #           data['strategy_id'], "策略参数strategy_on_off值异常", data['strategy_on_off'])
+        # if self.__item_on_off_status is not None:
+        #     if self.__item_on_off_status['enable'] == 0:
+        #         item_on_off.setFlags(item_on_off.flags() ^ (QtCore.Qt.ItemIsEnabled))  # 激活item
+        #         self.__item_on_off_status['enable'] = 1  # 0禁用、1激活
         # 期货账号
         self.tableWidget_Trade_Args.item(row, 1).setText(data['user_id'])
         # 策略编号
@@ -792,6 +813,49 @@ class QAccountWidget(QWidget, Ui_Form):
         self.tableWidget_Trade_Args.item(row, 15).setText('')
         # 下单算法
         self.tableWidget_Trade_Args.item(row, 16).setText('')
+
+    # 清空groupBox
+    def clean_groupBox(self):
+        self.lineEdit_qihuozhanghao.setText('')  # 期货账号
+        self.lineEdit_celuebianhao.setText('')  # 策略编号
+        self.comboBox_jiaoyimoxing.setCurrentIndex(-1)
+        self.comboBox_xiadansuanfa.setCurrentIndex(-1)
+        self.lineEdit_zongshou.setText('')  # 总手
+        self.lineEdit_meifen.setText('')  # 每份
+        self.spinBox_zhisun.setValue(0)  # 止损
+        self.spinBox_rangjia.setValue(0)  # 超价触发
+        self.spinBox_Abaodanpianyi.setValue(0)  # A报价偏移
+        self.spinBox_Bbaodanpianyi.setValue(0)  # B报价偏移
+        self.spinBox_Adengdai.setValue(0)  # A撤单等待
+        self.spinBox_Bdengdai.setValue(0)  # B撤单等待
+        self.lineEdit_Achedanxianzhi.setText('')  # A撤单限制
+        self.lineEdit_Bchedanxianzhi.setText('')  # B撤单限制
+        self.lineEdit_Achedan.setText('')  # A撤单
+        self.lineEdit_Bchedan.setText('')  # B撤单
+        self.doubleSpinBox_kongtoukai.setValue(0)  # 空头开
+        # self.doubleSpinBox_kongtoukai.setSingleStep(obj_strategy.get_a_price_tick())  # 设置step
+        self.doubleSpinBox_kongtouping.setValue(0)  # 空头平
+        # self.doubleSpinBox_kongtouping.setSingleStep(obj_strategy.get_a_price_tick())  # 设置step
+        self.doubleSpinBox_duotoukai.setValue(0)  # 多头开
+        # self.doubleSpinBox_duotoukai.setSingleStep(obj_strategy.get_a_price_tick())  # 设置step
+        self.doubleSpinBox_duotouping.setValue(0)  # 多头平
+        # self.doubleSpinBox_duotouping.setSingleStep(obj_strategy.get_a_price_tick())  # 设置step
+        # 空头开-开关
+        self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
+        # 空头平-开关
+        self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)
+        # 多头开-开关
+        self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)
+        # 多头平-开关
+        self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
+        self.lineEdit_Azongsell.setText('')  # A总卖
+        self.lineEdit_Azuosell.setText('')  # A昨卖
+        self.lineEdit_Bzongbuy.setText('')  # B总买
+        self.lineEdit_Bzuobuy.setText('')  # B昨买
+        self.lineEdit_Azongbuy.setText('')  # A总买
+        self.lineEdit_Azuobuy.setText('')  # A昨买
+        self.lineEdit_Bzongsell.setText('')  # B总卖
+        self.lineEdit_Bzuosell.setText('')  # B昨卖
 
     # 更新单个策略的界面显示，调用情景：鼠标点击tableWidget、发送参数、发送持仓、查询、插入策略
     @QtCore.pyqtSlot(object)
@@ -997,6 +1061,9 @@ class QAccountWidget(QWidget, Ui_Form):
             return
         clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
         clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
+        if clicked_user_id == '' or clicked_strategy_id == '':
+            self.clean_groupBox()  # 清空groupBox
+            return
         dict_user_data = self.__socket_manager.get_dict_user_process_data()[clicked_user_id][
             'running']  # 获取被选中的期货账户的所有数据
         # print(">>> QAccountWidget.update_groupBox() clicked_user_id =", clicked_user_id, "clicked_strategy_id", clicked_strategy_id, "dict_user_data =", dict_user_data)
@@ -1009,8 +1076,16 @@ class QAccountWidget(QWidget, Ui_Form):
         b_instrument_id = dict_strategy_arguments['b_instrument_id']
         # a_price_tick = dict_strategy_arguments['a_price_tick']
         # b_price_tick = dict_strategy_arguments['b_price_tick']
-        a_action_count = dict_instrument_statistics[a_instrument_id]['action_count']  # A合约撤单次数
-        b_action_count = dict_instrument_statistics[b_instrument_id]['action_count']  # B合约撤单次数
+        # a_action_count = dict_instrument_statistics[a_instrument_id]['action_count']  # A合约撤单次数
+        # b_action_count = dict_instrument_statistics[b_instrument_id]['action_count']  # B合约撤单次数
+        if a_instrument_id in dict_instrument_statistics:
+            a_action_count = dict_instrument_statistics[a_instrument_id]['action_count']  # A合约撤单次数
+        else:
+            a_action_count = 0
+        if b_instrument_id in dict_instrument_statistics:
+            b_action_count = dict_instrument_statistics[b_instrument_id]['action_count']  # B合约撤单次数
+        else:
+            b_action_count = 0
 
         self.lineEdit_qihuozhanghao.setText(clicked_user_id)  # 期货账号
         self.lineEdit_celuebianhao.setText(clicked_strategy_id)  # 策略编号
@@ -1076,20 +1151,28 @@ class QAccountWidget(QWidget, Ui_Form):
             return
         clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
         clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
+        if clicked_strategy_id == '' or clicked_user_id == '':
+            return
         dict_user_data = self.__socket_manager.get_dict_user_process_data()[clicked_user_id]['running']  # 获取被选中的期货账户的所有数据
-        # print(">>> QAccountWidget.update_groupBox() clicked_user_id =", clicked_user_id, "clicked_strategy_id", clicked_strategy_id, "dict_user_data =", dict_user_data)
+        # print(">>> QAccountWidget.update_groupBox_part() clicked_user_id =", clicked_user_id, "clicked_strategy_id", clicked_strategy_id, "dict_user_data =", dict_user_data)
         dict_strategy_arguments = dict_user_data['strategy_arguments'][clicked_strategy_id]
         dict_strategy_statistics = dict_user_data['strategy_statistics'][clicked_strategy_id]
         dict_strategy_position = dict_user_data['strategy_position'][clicked_strategy_id]
         dict_instrument_statistics = dict_user_data['instrument_statistics']
+        # print(">>> QAccountWidget.update_groupBox_part() dict_instrument_statistics =", dict_instrument_statistics)
         # dict_trading_account = dict_user_data['trading_account']  # 期货账户资金情况
         a_instrument_id = dict_strategy_arguments['a_instrument_id']
         b_instrument_id = dict_strategy_arguments['b_instrument_id']
         # a_price_tick = dict_strategy_arguments['a_price_tick']
         # b_price_tick = dict_strategy_arguments['b_price_tick']
-        a_action_count = dict_instrument_statistics[a_instrument_id]['action_count']  # A合约撤单次数
-        b_action_count = dict_instrument_statistics[b_instrument_id]['action_count']  # B合约撤单次数
-
+        if a_instrument_id in dict_instrument_statistics:
+            a_action_count = dict_instrument_statistics[a_instrument_id]['action_count']  # A合约撤单次数
+        else:
+            a_action_count = 0
+        if b_instrument_id in dict_instrument_statistics:
+            b_action_count = dict_instrument_statistics[b_instrument_id]['action_count']  # B合约撤单次数
+        else:
+            b_action_count = 0
         self.lineEdit_qihuozhanghao.setText(clicked_user_id)  # 期货账号
         self.lineEdit_celuebianhao.setText(clicked_strategy_id)  # 策略编号
         # index_comboBox = self.comboBox_jiaoyimoxing.findText(dict_strategy_arguments['trade_model'])  # 交易模型
@@ -1394,8 +1477,11 @@ class QAccountWidget(QWidget, Ui_Form):
     @pyqtSlot()
     def slot_action_add_strategy(self):
         print(">>> QAccountWidget.slot_action_add_strategy() called")
-        self.__client_main.get_QNewStrategy().update_comboBox_user_id_menu()  # 更新新建策略框中的期货账号可选项菜单
-        self.__client_main.get_QNewStrategy().show()
+        # self.__client_main.get_QNewStrategy().update_comboBox_user_id_menu()  # 更新新建策略框中的期货账号可选项菜单
+        # self.__q_new_strategy
+        # 设置期货账号可选项
+        self.__q_new_strategy.update_comboBox_user_id_menu()
+        self.__q_new_strategy.show()
         # todo...
 
     # 鼠标右击弹出菜单中的“删除策略”
@@ -1881,7 +1967,8 @@ class QAccountWidget(QWidget, Ui_Form):
         @type QPoint
         """
         # TODO: not implemented yet
-        self.popMenu.exec_(QtGui.QCursor.pos())
+        print(">>> QAccountWidget.on_tableWidget_Trade_Args_customContextMenuRequested() 鼠标右击捕获事件")
+        self.popMenu.exec_(QtGui.QCursor.pos())  # 在鼠标点击位置显示菜单窗口
 
     # 找出策略所在的行标，如果不存在该窗口则返回None，存在于该窗口中则返回具体行数int值
     def find_strategy(self, obj_strategy):
@@ -2024,6 +2111,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+        pass
 
 
 
