@@ -86,7 +86,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
     @pyqtSlot()
     def on_pushButton_login_clicked(self):
         thread = threading.current_thread()
-        print(">>> QLogin.on_pushButton_login_clicked() thread.getName()=", thread.getName())
+        print("QLogin.on_pushButton_login_clicked() thread.getName()=", thread.getName())
         """
         Slot documentation goes here.
         """

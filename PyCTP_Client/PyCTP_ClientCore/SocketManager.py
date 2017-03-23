@@ -359,6 +359,7 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=3，查询策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_strategy_info(buff['Info'])
+                    print(">>> ScoketManager.receive_msg() self.signal_init_tableWidget.emit(buff['Info'])")
                     self.signal_init_tableWidget.emit(buff['Info'])
                     # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -623,7 +624,7 @@ class SocketManager(QtCore.QThread):
             user_id = dict_data['UserId']
             data_flag = dict_data['DataFlag']
             data_main = dict_data['DataMain']
-            # print(">>> SocketManager.handle_Queue_get() user_id =", user_id, 'data_flag =', data_flag, " dict_data =", dict_data)
+            print("SocketManager.handle_Queue_get() 进程通信user->main，user_id =", user_id, 'data_flag =', data_flag)  # , " dict_data =", dict_data)
 
             # 查询期货账户信息，DataFlag:'
             # 期货账户资金信息，DataFlag:'trading_account'
@@ -654,11 +655,12 @@ class SocketManager(QtCore.QThread):
                 strategy_id = data_main['strategy_id']
                 # self.__dict_user_Queue_data[user_id]['strategy_statistics'][strategy_id] = data_main
                 self.__dict_user_process_data[user_id]['running']['strategy_statistics'][strategy_id] = data_main
+            # 策略仓位
             elif data_flag == 'strategy_position':
                 strategy_id = data_main['strategy_id']
                 # self.__dict_user_Queue_data[user_id]['strategy_position'][strategy_id] = data_main
                 self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] = data_main
-                print(">>> SocketManager.handle_Queue_get() self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] =", self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id])
+                # print(">>> SocketManager.handle_Queue_get() self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] =", self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id])
             # 'OnRtnOrder'
             elif data_flag == 'OnRtnOrder':
                 # self.__dict_user_Queue_data[user_id]['OnRtnOrder'].append(data_main)

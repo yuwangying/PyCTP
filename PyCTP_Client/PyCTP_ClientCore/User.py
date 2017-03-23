@@ -45,6 +45,7 @@ class User():
         self.__dict_instrument_statistics = dict()  # 合约统计dict，{'rb1705': {'open_count': 0, 'action_count': 0}}
         self.__dict_action_counter = dict()  # 记录合约撤单次数的字典，撤单操作时添加次数，交易日换日时初始化值
         self.__dict_open_counter = dict()  # 记录合约开仓次数的字典
+        self.__list_panel_show_account_data = list()  # 界面更新期货账户资金情况数据结构
 
         self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
         self.load_server_data(self.__init_arguments)  # 组织从server获取到的数据
@@ -224,14 +225,14 @@ class User():
             if isinstance(list_QryTradingAccount[0], dict):
                 self.__QryTradingAccount = Utils.code_transform(list_QryTradingAccount[0])
                 self.__dict_trading_account = copy.deepcopy(self.__QryTradingAccount)  # 转存为程序运行中的数据结构，实时更新
-                dict_msg = {
-                    'DataFlag': 'trading_account',
-                    'UserId': self.__user_id,
-                    'DataMain': self.__dict_trading_account  # 最新策略统计
-                }
-                print(">>> Strategy.load_strategy_data() user_id =", self.__user_id, 'data_flag = trading_account', 'data_msg =', dict_msg)
-                self.__Queue_user.put(dict_msg)
-                self.__dict_create_user_status['QryTradingAccount'] = 0
+                # dict_msg = {
+                #     'DataFlag': 'trading_account',
+                #     'UserId': self.__user_id,
+                #     'DataMain': self.__dict_trading_account  # 最新策略统计
+                # }
+                # print(">>> User.qry_trading_account() user_id =", self.__user_id, 'data_flag = trading_account', 'data_msg =', dict_msg)
+                # self.__Queue_user.put(dict_msg)
+                self.__dict_create_user_status['QryTradingAccount'] = 0  # user初始化状态信息
                 print("User.__init__() user_id=", self.__user_id, '查询资金账户成功', self.__QryTradingAccount)
             else:
                 print("User.__init__() user_id=", self.__user_id, '查询资金账户失败', Utils.code_transform(list_QryTradingAccount))
@@ -277,15 +278,14 @@ class User():
         if isinstance(self.__QryInstrument, list):
             if len(self.__QryInstrument) > 0:
                 self.__dict_create_user_status['QryInstrument'] = 0
-                print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功", self.__QryInstrument)
+                # print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功", self.__QryInstrument)
 
                 dict_msg = {
                     'DataFlag': 'QryInstrument',
                     'UserId': self.__user_id,
                     'DataMain': self.__QryInstrument  # 最新策略统计
                 }
-                print(">>> Strategy.qry_instrument_info() user_id =", self.__user_id, 'data_flag = QryInstrument',
-                      'data_msg =', dict_msg)
+                # print(">>> User.qry_instrument_info() user_id =", self.__user_id, 'data_flag = QryInstrument', 'data_msg =', dict_msg)
                 self.__Queue_user.put(dict_msg)
             else:
                 self.__dict_create_user_status['QryInstrument'] = self.__QryInstrument
@@ -423,14 +423,12 @@ class User():
             'UserId': self.__user_id,
             'DataMain': self.__dict_instrument_statistics
         }
-        print(">>> User.init_instrument_statistics() user_id =", self.__user_id,
-              'data_flag = instrument_statistics',
-              'dict_data =', dict_data)
+        print("User.init_instrument_statistics() 进程通信user->main，user_id =", self.__user_id, 'data_flag = instrument_statistics', 'dict_data =', dict_data)
         self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
     # user进程收到主进程放到Queue的数据
     def handle_Queue_get(self, dict_data):
-        print(">>> User.handle_Queue_get() user_id =", self.__user_id, "dict_data =", dict_data)
+        print(">>> User.handle_Queue_get() 进程通信main->user，user_id =", self.__user_id, "dict_data =", dict_data)
         # 修改交易员开关，"MsgType":8
         if dict_data['MsgType'] == 8:
             self.set_trader_on_off(dict_data['OnOff'])
@@ -655,6 +653,95 @@ class User():
     # 获取交易日
     def GetTradingDay(self):
         return self.__TradingDay
+
+    # 获取用户自己维护的账户资金情况
+    def get_dict_trading_account(self):
+        return self.__dict_trading_account
+
+    # 获取从TdApi获取到的账户资金情况数据接口
+    def get_QryTradingAccount(self):
+        return self.__QryTradingAccount
+
+    # 获取界面tableWidget窗口更新所需的数据,单个策略数据为一个list,所有策略的数据合并为一个list
+    def get_table_widget_data(self):
+        list_table_widget_data = []  # 一个user下面所有的策略数据
+        for strategy_id in self.__dict_strategy:
+            list_strategy_data = []  # 单个策略数据
+            strategy_arguments = self.__dict_strategy[strategy_id].get_arguments()
+            strategy_position = self.__dict_strategy[strategy_id].get_position()
+            strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
+            a_instrument_id = strategy_arguments['a_instrument_id']
+            b_instrument_id = strategy_arguments['b_instrument_id']
+            list_strategy_data[0] = strategy_arguments['on_off']  # 策略开关
+            list_strategy_data[1] = strategy_arguments['user_id']
+            list_strategy_data[2] = strategy_arguments['strategy_id']
+            list_strategy_data[3] = ','.join([a_instrument_id, b_instrument_id])
+            list_strategy_data[4] = strategy_position['position']
+            list_strategy_data[5] = strategy_position['position_b_sell']  # 买持仓=B总卖
+            list_strategy_data[6] = strategy_position['position_a_buy']  # 卖持仓=B总买
+            list_strategy_data[7] = strategy_statistics['profit_position']
+            list_strategy_data[8] = strategy_statistics['profit_close']
+            list_strategy_data[9] = strategy_statistics['commission']
+            list_strategy_data[10] = strategy_statistics['profit']
+            list_strategy_data[11] = strategy_statistics['total_traded_count']
+            list_strategy_data[12] = strategy_statistics['total_traded_amount']
+            list_strategy_data[13] = strategy_statistics['a_trade_rate']
+            list_strategy_data[14] = strategy_statistics['b_trade_rate']
+            list_strategy_data[15] = strategy_arguments['trade_model']
+            list_strategy_data[16] = strategy_arguments['order_algorithm']
+            # list_strategy_data的后半部分放groupBox更新所需数据
+            list_strategy_data[17] = strategy_arguments['losts']  # 总手
+            list_strategy_data[18] = strategy_arguments['lots_batch']  # 每份
+            list_strategy_data[19] = strategy_arguments['stop_loss']  # 价差止损
+            list_strategy_data[20] = strategy_arguments['spread_shift']  # 超价触发
+            list_strategy_data[21] = strategy_arguments['a_wait_price_tick']  # A撤单等待
+            list_strategy_data[22] = strategy_arguments['a_limit_price_shift']  # A报单偏移
+            list_strategy_data[23] = strategy_arguments['b_wait_price_tick']  # B报单等待
+            list_strategy_data[24] = strategy_arguments['b_limit_price_shift']  # B报单偏移
+            list_strategy_data[25] = strategy_arguments['a_order_action_limit']  # A撤单限制
+            list_strategy_data[26] = strategy_arguments['b_order_action_limit']  # B撤单限制
+            if a_instrument_id in self.__dict_instrument_statistics[a_instrument_id]:
+                a_action_count = self.__dict_instrument_statistics[a_instrument_id]['action_count']
+            else:
+                a_action_count = 0
+            if b_instrument_id in self.__dict_instrument_statistics[b_instrument_id]:
+                b_action_count = self.__dict_instrument_statistics[b_instrument_id]['action_count']
+            else:
+                b_action_count = 0
+            list_strategy_data[27] = a_action_count  # A撤单次数
+            list_strategy_data[28] = b_action_count  # B撤单次数
+            list_strategy_data[29] = strategy_arguments['position_a_sell']  # A总卖
+            list_strategy_data[30] = strategy_arguments['position_a_sell_yesterday']  # A昨卖
+            list_strategy_data[31] = strategy_arguments['position_a_buy']  # A总买
+            list_strategy_data[32] = strategy_arguments['position_a_buy_yesterday']  # A总卖
+            list_strategy_data[33] = strategy_arguments['position_b_sell_yesterday']  # B昨卖
+            list_strategy_data[34] = strategy_arguments['position_b_buy_yesterday']  # B昨买
+            list_strategy_data[35] = 1  # 待续,2017年3月23日22:47:24,strategy_arguments['price_tick']  # 最小跳价
+            list_table_widget_data.append(list_strategy_data)
+        return list_table_widget_data
+
+    # 获取界面panel_show_account_data(账户资金条)更新所需的数据,一个user的数据是一个list
+    def get_panel_show_account_data(self):
+        profit_position = 0  # 所有策略持仓盈亏求和
+        profit_close = 0  # 所有策略平仓盈亏求和
+        commission = 0  # 所有策略手续费求和
+        used_margin = 0  # 所有策略占用保证金求和
+        for strategy_id in self.__dict_strategy:
+            strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
+            profit_position += strategy_statistics['profit_position']
+            profit_close += strategy_statistics['profit_close']
+            commission += strategy_statistics['commission']
+        self.__list_panel_show_account_data[0] = 0  # 动态权益
+        self.__list_panel_show_account_data[1] = self.__QryTradingAccount['PreBalance']  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
+        self.__list_panel_show_account_data[2] = profit_position  # 持仓盈亏
+        self.__list_panel_show_account_data[3] = profit_close  # 平仓盈亏
+        self.__list_panel_show_account_data[4] = profit_position  # 手续费
+        self.__list_panel_show_account_data[5] = 0  # 可用资金
+        self.__list_panel_show_account_data[6] = 0  # 占用保证金
+        self.__list_panel_show_account_data[7] = 0  # 风险度
+        self.__list_panel_show_account_data[8] = self.__QryTradingAccount['Deposit']  # 今日入金
+        self.__list_panel_show_account_data[9] = self.__QryTradingAccount['Withdraw']  # 今日出金
+        return self.__list_panel_show_account_data
 
     # 获取报单引用，自增1，位置处于第1到第10位，共9位阿拉伯数字，user的所有策略共用
     def add_order_ref_part2(self):

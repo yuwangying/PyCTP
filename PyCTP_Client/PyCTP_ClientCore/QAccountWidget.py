@@ -125,30 +125,33 @@ class QAccountWidget(QWidget, Ui_Form):
         self.popMenu.addAction(self.action_del)
 
         # 定时刷新UI线程
-        self.__timer_thread = threading.Thread(target=self.thread_update_ui)
-        self.__timer_thread.daemon = True
-        self.__timer_thread.start()  # 待续，策略全部初始化完成之后再开始线程，2017年3月21日14:27:33
-        # self.__timer = QtCore.QTimer()  # 定时器
-        # self.__timer.setInterval(500)  # 时间间隔500s
-        # self.__timer.setSingleShot(False)  # 非一次性定时器
-        # self.__timer.timeout.connect(self.slot_update_ui)  # 连接信号槽
-        # self.__timer.start()
+        # self.__timer_thread = threading.Thread(target=self.thread_update_ui)
+        # self.__timer_thread.daemon = True
+        # self.__timer_thread.start()  # 待续，策略全部初始化完成之后再开始线程，2017年3月21日14:27:33
+        self.__timer = QtCore.QTimer()  # 定时器
+        self.__timer.setInterval(1)  # 时间间隔500s
+        self.__timer.setSingleShot(False)  # 非一次性定时器
+        self.__timer.timeout.connect(self.slot_update_ui)  # 连接信号槽
+        self.__timer.start()
 
     # 初始化创建tableWidget内的item，根据期货账户的策略数量总和来决定行数
-    def slot_init_tableWidget(self, list_strategy_arguments):
-        print("QAccountWidget.slot_init_tableWidget() list_strategy_arguments =", list_strategy_arguments)
-        for i in list_strategy_arguments:
+    def slot_init_tableWidget(self, list_strategy_data):
+        # print("QAccountWidget.slot_init_tableWidget() list_strategy_data =", list_strategy_data)
+        for i in list_strategy_data:
             self.slot_insert_strategy(i)
 
-    # 定时刷新UI线程
+    # py自带thread实现定时器，定时刷新UI线程
     def thread_update_ui(self):
         while True:
-            time.sleep(500)
-            self.signal_update_ui.emit()  # 定时刷新UI信号
 
-    # 定时刷新UI槽函数
+            self.signal_update_ui.emit()  # 定时刷新UI信号
+            time.sleep(1)
+
+    # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
         # print(">>> QAccountWidget.slot_update_ui() 刷新UI，", time.strftime("%H:%M:%S"))
+        # self.get_update_tableWidget_data()  # 获取更新界面数据
+        QtGui.QApplication.processEvents()
         self.update_tableWidget_Trade_Args()
         self.update_groupBox_part()
 
@@ -162,7 +165,7 @@ class QAccountWidget(QWidget, Ui_Form):
     def slot_addTabBar(self, user_id):
         self.__dict_clicked_info[user_id] = dict()
         self.tabBar.addTab(user_id)
-        print(">>> QAccountWidget.slot_addTabBar() self.__dict_clicked_info =", self.__dict_clicked_info)
+        print("QAccountWidget.slot_addTabBar() self.__dict_clicked_info =", self.__dict_clicked_info)
 
     def showEvent(self, QShowEvent):
         pass
@@ -185,7 +188,9 @@ class QAccountWidget(QWidget, Ui_Form):
         if len(self.__dict_clicked_info[self.__current_tab_name]) > 0:
             row = self.__dict_clicked_info[self.__current_tab_name]['row']
             self.tableWidget_Trade_Args.setCurrentCell(row, 0)
-        self.update_tableWidget_Trade_Args()
+        # self.update_tableWidget_Trade_Args()
+        # 初始化一遍tableWidget
+        # self.slot_init_tableWidget(self.get_update_tableWidget_data())
         self.update_groupBox()
 
     def set_ClientMain(self, obj_ClientMain):
@@ -405,7 +410,6 @@ class QAccountWidget(QWidget, Ui_Form):
     """
 
     # 向界面插入策略，形参是任何策略对象，所有策略数量有增加时调用该方法
-    # 形参dict{'user_id': '012345', 'strategy_id': '01'}
     def slot_insert_strategy(self, dict_strategy_arguments):
         # 总账户窗口或策略所属的单账户窗口
         i_row = self.tableWidget_Trade_Args.rowCount()  # 将要出入到的行标
@@ -667,11 +671,59 @@ class QAccountWidget(QWidget, Ui_Form):
             elif self.tableWidget_Trade_Args.rowCount() > 0:
                 self.set_on_tableWidget_Trade_Args_cellClicked(0, 0)
 
-    # 更新tableWidget_Trade_Args
-    def update_tableWidget_Trade_Args(self):
-        row_count = self.tableWidget_Trade_Args.rowCount()  # 将要出入到的行标
-        if row_count == 0:
-            return
+    # 界面增加一行，内容空白
+    def slot_insert_row(self):
+        i_row = self.tableWidget_Trade_Args.rowCount()
+        self.tableWidget_Trade_Args.insertRow(i_row)
+        item_strategy_on_off = QtGui.QTableWidgetItem()  # 开关
+        item_strategy_on_off.setCheckState(QtCore.Qt.Unchecked)
+        item_strategy_on_off.setText('关')
+        item_user_id = QtGui.QTableWidgetItem('')  # 期货账号
+        item_strategy_id = QtGui.QTableWidgetItem('')  # 策略编号
+        item_instrument_id = QtGui.QTableWidgetItem('')  # 交易合约
+        item_position = QtGui.QTableWidgetItem('0')  # 总持仓
+        item_position_buy = QtGui.QTableWidgetItem('0')  # 买持仓
+        item_position_sell = QtGui.QTableWidgetItem('0')  # 卖持仓
+        item_position_profit = QtGui.QTableWidgetItem('0')  # 持仓盈亏
+        item_close_profit = QtGui.QTableWidgetItem('0')  # 平仓盈亏
+        item_commission = QtGui.QTableWidgetItem('0')  # 手续费
+        item_profit = QtGui.QTableWidgetItem('0')  # 净盈亏
+        item_trade_count = QtGui.QTableWidgetItem('0')  # 成交量
+        item_amount = QtGui.QTableWidgetItem('0')  # 成交金额
+        item_a_trade_rate = QtGui.QTableWidgetItem('0.0')  # A成交率
+        item_b_trade_rate = QtGui.QTableWidgetItem('0.0')  # B成交率
+        item_trade_model = QtGui.QTableWidgetItem('')  # 交易模型
+        item_order_algorithm = QtGui.QTableWidgetItem('')  # 下单算法
+        self.tableWidget_Trade_Args.setItem(i_row, 0, item_strategy_on_off)  # 开关
+        self.tableWidget_Trade_Args.setItem(i_row, 1, item_user_id)  # 期货账号
+        self.tableWidget_Trade_Args.setItem(i_row, 2, item_strategy_id)  # 策略编号
+        self.tableWidget_Trade_Args.setItem(i_row, 3, item_instrument_id)  # 交易合约
+        self.tableWidget_Trade_Args.setItem(i_row, 4, item_position)  # 总持仓
+        self.tableWidget_Trade_Args.setItem(i_row, 5, item_position_buy)  # 买持仓
+        self.tableWidget_Trade_Args.setItem(i_row, 6, item_position_sell)  # 卖持仓
+        self.tableWidget_Trade_Args.setItem(i_row, 7, item_position_profit)  # 持仓盈亏
+        self.tableWidget_Trade_Args.setItem(i_row, 8, item_close_profit)  # 平仓盈亏
+        self.tableWidget_Trade_Args.setItem(i_row, 9, item_commission)  # 手续费
+        self.tableWidget_Trade_Args.setItem(i_row, 10, item_profit)  # 净盈亏
+        self.tableWidget_Trade_Args.setItem(i_row, 11, item_trade_count)  # 成交量
+        self.tableWidget_Trade_Args.setItem(i_row, 12, item_amount)  # 成交金额
+        self.tableWidget_Trade_Args.setItem(i_row, 13, item_a_trade_rate)  # A成交率
+        self.tableWidget_Trade_Args.setItem(i_row, 14, item_b_trade_rate)  # B成交率
+        self.tableWidget_Trade_Args.setItem(i_row, 15, item_trade_model)  # 交易模型
+        self.tableWidget_Trade_Args.setItem(i_row, 16, item_order_algorithm)  # 下单算法
+
+    # 界面删除一行
+    def slot_delete_row(self, row=-1):
+        # 传入形参则删除指定行
+        if row > -1:
+            self.tableWidget_Trade_Args.removeRow(row)
+        # 未传入形参则删除最后一行
+        else:
+            row_count = self.tableWidget_Trade_Args.rowCount()
+            self.tableWidget_Trade_Args.removeRow(row_count)
+
+    # 获取要更新tableWidget的数据
+    def get_update_tableWidget_data(self):
         # 获取要更新的数据
         dict_user_process_data = self.__socket_manager.get_dict_user_process_data()
         list_update_data = list()  # list_update_data是要更新到界面的数据
@@ -680,41 +732,153 @@ class QAccountWidget(QWidget, Ui_Form):
                 dict_strategy_arguments = dict_user_process_data[user_id]['running']['strategy_arguments']
                 dict_strategy_position = dict_user_process_data[user_id]['running']['strategy_position']
                 dict_strategy_statistics = dict_user_process_data[user_id]['running']['strategy_statistics']
-                # print(">>> QAccountWidget.update_tableWidget_Trade_Args() dict_strategy_position =", dict_strategy_position)
-                # print(">>> QAccountWidget.update_tableWidget_Trade_Args() dict_user_process_data[user_id]['running'] =", dict_user_process_data[user_id]['running'])
 
                 for strategy_id in dict_strategy_arguments:
                     dict_update_data_one_strategy = dict()
-                    # print(">>> QAccountWidget.update_tableWidget_Trade_Args() dict_strategy_arguments[strategy_id] =", dict_strategy_arguments[strategy_id])
                     dict_update_data_one_strategy['strategy_on_off'] = dict_strategy_arguments[strategy_id]['on_off']
                     dict_update_data_one_strategy['user_id'] = dict_strategy_arguments[strategy_id]['user_id']
                     dict_update_data_one_strategy['strategy_id'] = dict_strategy_arguments[strategy_id]['strategy_id']
-                    dict_update_data_one_strategy['trade_instrument'] = ','.join([dict_strategy_arguments[strategy_id]['a_instrument_id'],dict_strategy_arguments[strategy_id]['b_instrument_id']])
+                    dict_update_data_one_strategy['trade_instrument'] = ','.join(
+                        [dict_strategy_arguments[strategy_id]['a_instrument_id'],
+                         dict_strategy_arguments[strategy_id]['b_instrument_id']])
                     dict_update_data_one_strategy['trade_model'] = dict_strategy_arguments[strategy_id]['trade_model']
-                    dict_update_data_one_strategy['order_algorithm'] = dict_strategy_arguments[strategy_id]['order_algorithm']
+                    dict_update_data_one_strategy['order_algorithm'] = dict_strategy_arguments[strategy_id][
+                        'order_algorithm']
                     for i_strategy_id in dict_strategy_position:
                         if strategy_id == i_strategy_id:
-                            dict_update_data_one_strategy['position'] = dict_strategy_position[strategy_id]['position_a_buy'] + dict_strategy_position[strategy_id]['position_a_sell']
-                            dict_update_data_one_strategy['position_buy'] = dict_strategy_position[strategy_id]['position_a_buy']
-                            dict_update_data_one_strategy['position_sell'] = dict_strategy_position[strategy_id]['position_a_sell']
+                            dict_update_data_one_strategy['position'] = dict_strategy_position[strategy_id][
+                                                                            'position_a_buy'] + \
+                                                                        dict_strategy_position[strategy_id][
+                                                                            'position_a_sell']
+                            dict_update_data_one_strategy['position_buy'] = dict_strategy_position[strategy_id][
+                                'position_a_buy']
+                            dict_update_data_one_strategy['position_sell'] = dict_strategy_position[strategy_id][
+                                'position_a_sell']
                             break
                     for i_strategy_id in dict_strategy_statistics:
                         if strategy_id == i_strategy_id:
-                            dict_update_data_one_strategy['profit_position'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_position']
-                            dict_update_data_one_strategy['profit_close'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
-                            dict_update_data_one_strategy['profit'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
-                            dict_update_data_one_strategy['commission'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['commission']
-                            dict_update_data_one_strategy['total_traded_count'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_count']
-                            dict_update_data_one_strategy['total_traded_amount'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_amount']
-                            dict_update_data_one_strategy['a_trade_rate'] = dict_strategy_statistics[strategy_id]['a_trade_rate']
-                            dict_update_data_one_strategy['b_trade_rate'] = dict_strategy_statistics[strategy_id]['b_trade_rate']
+                            dict_update_data_one_strategy[
+                                'profit_position'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_position']
+                            dict_update_data_one_strategy[
+                                'profit_close'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
+                            dict_update_data_one_strategy[
+                                'profit'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
+                            dict_update_data_one_strategy[
+                                'commission'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['commission']
+                            dict_update_data_one_strategy[
+                                'total_traded_count'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_count']
+                            dict_update_data_one_strategy[
+                                'total_traded_amount'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_amount']
+                            dict_update_data_one_strategy['a_trade_rate'] = dict_strategy_statistics[strategy_id][
+                                'a_trade_rate']
+                            dict_update_data_one_strategy['b_trade_rate'] = dict_strategy_statistics[strategy_id][
+                                'b_trade_rate']
                             break
                     list_update_data.append(dict_update_data_one_strategy)
-        # 将list_update_data更新到界面，数据样本如下：
-        # list_update_data = [{'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '083778', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '01', 'b_trade_rate': 0.0}, {'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '083778', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '02', 'b_trade_rate': 0.0}, {'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '078681', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '01', 'b_trade_rate': 0.0}, {'total_traded_amount': '待', 'trade_instrument': 'rb1710,rb1705', 'position': 0, 'trade_model': '', 'total_traded_count': '待', 'commission': '待', 'profit': '0', 'a_trade_rate': 0.0, 'profit_position': '待', 'order_algorithm': '01', 'position_sell': 0, 'strategy_on_off': 1, 'user_id': '078681', 'profit_close': 0, 'position_buy': 0, 'strategy_id': '02', 'b_trade_rate': 0.0}]
+        return list_update_data
 
-        # 遍历需要更新到界面的数据
-        # print(">>> QAccountWidget.update_tableWidget_Trade_Args() 界面更新数据list_update_data =", list_update_data)
+    # 更新tableWidget_Trade_Args
+    def update_tableWidget_Trade_Args(self):
+        row_count = self.tableWidget_Trade_Args.rowCount()  # 将要出入到的行标
+        if row_count == 0:
+            return
+        # 获取要更新的数据
+        dict_user_process_data = self.__socket_manager.get_dict_user_process_data()
+        # list_update_data = list()  # list_update_data是要更新到界面的数据
+        # for user_id in dict_user_process_data:
+        #     if self.__current_tab_name == "所有账户" or self.__current_tab_name == user_id:
+        #         dict_strategy_arguments = dict_user_process_data[user_id]['running']['strategy_arguments']
+        #         dict_strategy_position = dict_user_process_data[user_id]['running']['strategy_position']
+        #         dict_strategy_statistics = dict_user_process_data[user_id]['running']['strategy_statistics']
+        #         # print(">>> ::QAccountWidget.update_tableWidget_Trade_Args() dict_strategy_arguments =", dict_strategy_arguments)
+        #         for strategy_id in dict_strategy_arguments:
+        #             dict_update_data_one_strategy = dict()
+        #             # try:
+        #             #     print(">>> QAccountWidget.update_tableWidget_Trade_Args() dict_strategy_arguments[strategy_id] =", dict_strategy_arguments[strategy_id])
+        #             # except:
+        #             #     print(">>> except:QAccountWidget.update_tableWidget_Trade_Args() dict_strategy_arguments =", dict_strategy_arguments)
+        #             #     print(">>> except:QAccountWidget.update_tableWidget_Trade_Args() strategy_id =", strategy_id)
+        #             dict_update_data_one_strategy['strategy_on_off'] = dict_strategy_arguments[strategy_id]['on_off']
+        #             dict_update_data_one_strategy['user_id'] = dict_strategy_arguments[strategy_id]['user_id']
+        #             dict_update_data_one_strategy['strategy_id'] = dict_strategy_arguments[strategy_id]['strategy_id']
+        #             dict_update_data_one_strategy['trade_instrument'] = ','.join([dict_strategy_arguments[strategy_id]['a_instrument_id'],dict_strategy_arguments[strategy_id]['b_instrument_id']])
+        #             dict_update_data_one_strategy['trade_model'] = dict_strategy_arguments[strategy_id]['trade_model']
+        #             dict_update_data_one_strategy['order_algorithm'] = dict_strategy_arguments[strategy_id]['order_algorithm']
+        #             for i_strategy_id in dict_strategy_position:
+        #                 if strategy_id == i_strategy_id:
+        #                     dict_update_data_one_strategy['position'] = dict_strategy_position[strategy_id]['position_a_buy'] + dict_strategy_position[strategy_id]['position_a_sell']
+        #                     dict_update_data_one_strategy['position_buy'] = dict_strategy_position[strategy_id]['position_a_buy']
+        #                     dict_update_data_one_strategy['position_sell'] = dict_strategy_position[strategy_id]['position_a_sell']
+        #                     break
+        #             for i_strategy_id in dict_strategy_statistics:
+        #                 if strategy_id == i_strategy_id:
+        #                     dict_update_data_one_strategy['profit_position'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_position']
+        #                     dict_update_data_one_strategy['profit_close'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
+        #                     dict_update_data_one_strategy['profit'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['profit_close']
+        #                     dict_update_data_one_strategy['commission'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['commission']
+        #                     dict_update_data_one_strategy['total_traded_count'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_count']
+        #                     dict_update_data_one_strategy['total_traded_amount'] = '待'  # 待续，需改为dict_strategy_statistics[strategy_id]['total_traded_amount']
+        #                     dict_update_data_one_strategy['a_trade_rate'] = dict_strategy_statistics[strategy_id]['a_trade_rate']
+        #                     dict_update_data_one_strategy['b_trade_rate'] = dict_strategy_statistics[strategy_id]['b_trade_rate']
+        #                     break
+        #             list_update_data.append(dict_update_data_one_strategy)
+        # # 将list_update_data更新到界面，数据样本如下：
+        # # 遍历需要更新到界面的数据
+        # # print(">>> QAccountWidget.update_tableWidget_Trade_Args() 界面更新数据list_update_data =", list_update_data)
+        # print(">>> QAccountWidget.slot_remove_strategy() list_update_data =", list_update_data)
+        list_update_data = [{'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'ru1705,ru1709', 'strategy_id': '03', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'cu1705,cu1707', 'strategy_id': '07', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'rb1705,rb1710', 'strategy_id': '01', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'zn1705,zn1710', 'strategy_id': '09', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'rb1705,rb1710', 'strategy_id': '05', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'rb1705,rb1712', 'strategy_id': '06', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'zn1705,zn1707', 'strategy_id': '08', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'ru1705,ru1704', 'strategy_id': '04', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'rb1710,rb1705', 'strategy_id': '02', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 1, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '058176', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'rb1705,rb1706', 'strategy_id': '03', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '063802', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'zn1705,zn1707', 'strategy_id': '01', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '063802', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'rb1705,rb1707', 'strategy_id': '04', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '063802', 'position_sell': 0},
+         {'total_traded_amount': '待', 'profit_close': '待', 'commission': '待', 'profit': '待',
+          'trade_instrument': 'cu1705,cu1706', 'strategy_id': '02', 'order_algorithm': '', 'profit_position': '待',
+          'strategy_on_off': 0, 'trade_model': '', 'a_trade_rate': 0, 'total_traded_count': '待', 'b_trade_rate': 0,
+          'position_buy': 0, 'position': 0, 'user_id': '063802', 'position_sell': 0}]
+
         for i in range(len(list_update_data)):
             dict_strategy_data = list_update_data[i]
             self.update_tableWidget_Trade_Args_one_part(i, dict_strategy_data)  # 更新策略列表中的单行，形参：行标、数据
@@ -723,7 +887,6 @@ class QAccountWidget(QWidget, Ui_Form):
         if row_count > len(list_update_data):
             for i in range(len(list_update_data), row_count, 1):
                 self.clean_tableWidget_Trade_Args_one(i)
-                # print(">>> QAccountWidget.update_tableWidget_Trade_Args() 清除行数 =", i)
 
     # 更新策略列表中的单行，形参：行标、数据
     def update_tableWidget_Trade_Args_one_part(self, row, data):

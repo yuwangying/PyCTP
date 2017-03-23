@@ -221,8 +221,7 @@ class Strategy():
             'UserId': self.__user_id,
             'DataMain': strategy_arguments  # 最新策略参数
         }
-        print(">>> Strategy.set_arguments() user_id =", self.__user_id, 'data_flag =', 'strategy_arguments',
-              'data_msg =', dict_msg)
+        # print(">>> Strategy.set_arguments() user_id =", self.__user_id, 'data_flag =', 'strategy_arguments', 'data_msg =', dict_msg)
         self.__user.get_Queue_user().put(dict_msg)
 
     # 获取参数
@@ -231,6 +230,7 @@ class Strategy():
             'trader_id': self.__trader_id,
             'user_id': self.__user_id,
             'strategy_id': self.__strategy_id,
+            'on_off': self.__strategy_on_off,
             'trade_model': self.__trade_model,
             'order_algorithm': self.__order_algorithm,
             'lots': self.__lots,
@@ -348,7 +348,7 @@ class Strategy():
     def init_strategy_data(self):
         # RESUM模式启动，xml数据可用，装载xml数据
         if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
-            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME")
+            # print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME")
             # 持仓明细order
             self.__list_position_detail_for_order = list()  # 初始化本策略持仓明细order
             for i in self.__user.get_xml_list_position_detail_for_order():
@@ -368,20 +368,23 @@ class Strategy():
                     self.__dict_statistics = i
                     self.set_statistics(self.__dict_statistics)  # 设置策略统计
                     break
-            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
-                  "self.__dict_statistics =", self.__dict_statistics)
+            # print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__dict_statistics =", self.__dict_statistics)
 
             # 进程间通信：策略统计
+            dict_statistics = dict()
+            for key in self.__dict_statistics:
+                dict_statistics[key] = str(self.__dict_statistics[key])
             dict_msg = {
                 'DataFlag': 'strategy_statistics',
                 'UserId': self.__user_id,
-                'DataMain': self.__dict_statistics  # 最新策略统计
+                # 'DataMain': self.__dict_statistics  # 最新策略统计
+                'DataMain': dict_statistics  # 最新策略统计
             }
-            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
+            # print("Strategy.init_strategy_data() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
             self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
         # RESTART模式启动，xml数据不可用，装载server数据
         elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:  # RESTART模式启动，xml数据不可用
-            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART")
+            # print("Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART")
             # 装载server数据
             # 昨日持仓明细order
             self.__list_position_detail_for_order = list()
@@ -750,15 +753,17 @@ class Strategy():
             self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday  # B总卖
             self.__position = self.__position_a_buy + self.__position_a_sell  # 总持仓
 
-        data_main = self.get_position()
-        data_main['strategy_id'] = self.__strategy_id  # dict结构体中加入strategy_id
+        strategy_position = self.get_position()
+        data_main = {}
+        for key in strategy_position:
+            data_main[key] = str(strategy_position[key])
+        data_main['strategy_id'] = self.__strategy_id  # data_main中加入键strategy_id
         dict_msg = {
             'DataFlag': 'strategy_position',
             'UserId': self.__user_id,
             'DataMain': data_main  # 最新策略持仓
         }
-        print(">>> Strategy.init_position() user_id =", self.__user_id, 'data_flag = strategy_position',
-              'data_msg =', dict_msg)
+        # print(">>> Strategy.init_position() user_id =", self.__user_id, 'data_flag = strategy_position', 'data_msg =', dict_msg)
         self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
 
     # 统计指标
@@ -1317,8 +1322,7 @@ class Strategy():
             'UserId': self.__user_id,
             'DataMain': data_main  # 最新策略统计
         }
-        print(">>> Strategy.set_statistics() user_id =", self.__user_id, 'data_flag = strategy_statistics',
-              'data_msg =', dict_msg)
+        # print(">>> Strategy.set_statistics() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
         self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
 
     def get_statistics(self):
