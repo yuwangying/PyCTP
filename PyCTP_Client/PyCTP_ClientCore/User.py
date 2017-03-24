@@ -116,7 +116,7 @@ class User():
         # 定时进程间通信,user子进程发送信息给main进程,主进程接收到信息后更新界面
         self.__timer_thread = threading.Thread(target=self.timer_queue_put)
         self.__timer_thread.daemon = True
-        # self.__timer_thread.start()
+        self.__timer_thread.start()
 
         # strategy创建完成，发送进程间通信给主进程，主进程收到之后让user查询合约信息
 
@@ -752,19 +752,18 @@ class User():
     # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程
     def timer_queue_put(self):
         while True:
-            # dict_msg = {
-            #     'DataFlag': 'panel_show_account_data',
-            #     'UserId': self.__user_id,
-            #     'DataMain': self.get_panel_show_account_data()
-            # }
-            # self.__Queue_user.put(dict_msg)  # 进程通信:发送资金账户更新信息
-            if self.__user_id == '058176':
-                dict_msg = {
-                    'DataFlag': 'table_widget_data',
-                    'UserId': self.__user_id,
-                    'DataMain': self.get_table_widget_data()  # 进程通信:发送策略信息
-                }
-                self.__Queue_user.put(dict_msg)
+            dict_msg = {
+                'DataFlag': 'panel_show_account_data',
+                'UserId': self.__user_id,
+                'DataMain': self.get_panel_show_account_data()
+            }
+            self.__Queue_user.put(dict_msg)  # 进程通信:发送资金账户更新信息
+            dict_msg = {
+                'DataFlag': 'table_widget_data',
+                'UserId': self.__user_id,
+                'DataMain': self.get_table_widget_data()  # 进程通信:发送策略信息
+            }
+            self.__Queue_user.put(dict_msg)
             time.sleep(1.0)
 
     # 获取报单引用，自增1，位置处于第1到第10位，共9位阿拉伯数字，user的所有策略共用
@@ -773,10 +772,10 @@ class User():
         return self.__order_ref_part2
 
     # 添加交易策略实例，到self.__list_strategy
-    def add_strategy(self, obj_strategy):
-        self.__list_strategy.append(obj_strategy)  # 将交易策略实例添加到本类的交易策略列表
-        self.__trader_api.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
-        obj_strategy.set_user(self)  # 将user设置为strategy属性
+    # def add_strategy(self, obj_strategy):
+    #     self.__list_strategy.append(obj_strategy)  # 将交易策略实例添加到本类的交易策略列表
+    #     self.__trader_api.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
+    #     obj_strategy.set_user(self)  # 将user设置为strategy属性
 
     # 添加合约代码到user类的self.__dict_action_counter
     # def add_instrument_id_action_counter(self, list_instrument_id):

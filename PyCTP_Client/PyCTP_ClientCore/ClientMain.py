@@ -580,7 +580,7 @@ if __name__ == '__main__':
 
     """创建对象"""
     client_main = ClientMain()  # 创建客户端管理类对象
-    ctp_manager = CTPManager()  # 创建内核管理类对象
+    # ctp_manager = CTPManager()  # 创建内核管理类对象
     xml_manager = XML_Manager()  # 创建XML管理对象
     socket_manager = SocketManager("192.168.180.130", 8888)  # 创建SocketManager对象
     socket_manager.connect()
@@ -635,13 +635,13 @@ if __name__ == '__main__':
     # 绑定信号槽：SocketManager收到消息 -> 设置q_login的登录按钮是否可用
     socket_manager.signal_pushButton_login_set_enabled.connect(q_login.pushButton_login.setEnabled)
     # 绑定信号槽：SocketManager收到消息 -> 调用CTPManager的初始化方法
-    socket_manager.signal_ctp_manager_init.connect(ctp_manager.start_init)
+    # socket_manager.signal_ctp_manager_init.connect(ctp_manager.start_init)
     # 绑定信号槽：CTPManager -> 设置q_login消息框文本
-    ctp_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
+    # ctp_manager.signal_label_login_error_text.connect(q_login.label_login_error.setText)
     # SocketManager收到服务端修改策略参数类回报 -> CTPManager修改策略（SocketManager.signal_update_strategy -> CTPManager.slot_update_strategy()）
-    socket_manager.signal_update_strategy.connect(ctp_manager.slot_update_strategy)
+    # socket_manager.signal_update_strategy.connect(ctp_manager.slot_update_strategy)
     # CTPManager初始化内核（子线程）向界面弹窗 -> ClientMain（主线程）调用槽函数向界面弹窗
-    ctp_manager.signal_show_QMessageBox.connect(client_main.slot_show_QMessageBox)
+    # ctp_manager.signal_show_QMessageBox.connect(client_main.slot_show_QMessageBox)
     # 绑定信号槽：定时刷新UI信号->定时刷新UI槽
     q_ctp.widget_QAccountWidget.signal_update_ui.connect(q_ctp.widget_QAccountWidget.slot_update_ui)
     # 绑定信号槽：界面发送策略按钮被点击->socket发送消息

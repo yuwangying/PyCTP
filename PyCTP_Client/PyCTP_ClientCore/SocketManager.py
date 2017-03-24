@@ -304,10 +304,9 @@ class SocketManager(QtCore.QThread):
         print(">>> SocketManager.run_send_msg() thread.getName()=", thread.getName())
         # 发消息
         while True:
-            if self.__queue_send_msg.qsize() > 0:
-                tmp_msg = self.__queue_send_msg.get()
-                if tmp_msg is not None:
-                    self.send_msg_to_server(tmp_msg)
+            tmp_msg = self.__queue_send_msg.get()
+            if tmp_msg is not None:
+                self.send_msg_to_server(tmp_msg)
 
     # 处理收到的消息
     def receive_msg(self, buff):
@@ -439,17 +438,18 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=7，删除策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     dict_args = {'user_id': buff['UserID'], 'strategy_id': buff['StrategyID']}
-                    self.__ctp_manager.delete_strategy(dict_args)
+                    # self.__ctp_manager.delete_strategy(dict_args)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=7 删除策略失败")
             elif buff['MsgType'] == 13:  # 修改策略交易开关
                 print("SocketManager.receive_msg() MsgType=13，修改策略交易开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    for i_strategy in self.__ctp_manager.get_list_strategy():
-                        if i_strategy.get_user_id() == buff['UserID'] \
-                                and i_strategy.get_strategy_id() == buff['StrategyID']:
-                            i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
-                            break
+                    pass
+                    # for i_strategy in self.__ctp_manager.get_list_strategy():
+                    #     if i_strategy.get_user_id() == buff['UserID'] \
+                    #             and i_strategy.get_strategy_id() == buff['StrategyID']:
+                    #         i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
+                    #         break
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
             elif buff['MsgType'] == 14:  # 修改策略只平开关
@@ -465,16 +465,18 @@ class SocketManager(QtCore.QThread):
             elif buff['MsgType'] == 8:  # 修改交易员开关
                 print("SocketManager.receive_msg() MsgType=8，修改交易员开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    self.__ctp_manager.set_on_off(buff['OnOff'])  # 设置内核中交易员开关
+                    # self.__ctp_manager.set_on_off(buff['OnOff'])  # 设置内核中交易员开关
+                    pass
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=8 修改交易员开关失败")
             elif buff['MsgType'] == 9:  # 修改期货账户开关
                 print("SocketManager.receive_msg() MsgType=9，修改期货账户开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    for i_user in self.__ctp_manager.get_list_user():
-                        if i_user.get_user_id().decode() == buff['UserID']:
-                            i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
-                            break
+                    pass
+                    # for i_user in self.__ctp_manager.get_list_user():
+                    #     if i_user.get_user_id().decode() == buff['UserID']:
+                    #         i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
+                    #         break
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
@@ -623,8 +625,8 @@ class SocketManager(QtCore.QThread):
     # user进程将内部计算核心数据发给主进程，主进程UI显示
     def handle_Queue_get(self, Queue_user):
         while True:
-            start_time = time.time()
             dict_data = Queue_user.get()  # 主进程get，user进程put
+            start_time = time.time()
             user_id = dict_data['UserId']
             data_flag = dict_data['DataFlag']
             data_main = dict_data['DataMain']
@@ -675,7 +677,7 @@ class SocketManager(QtCore.QThread):
             elif data_flag == 'OnRtnTrade':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
-            print(">>> handle_Queue_get take user_id = %s data_flag = %s time = %s " %(user_id, data_flag, time.time() - start_time))
+            print(">>> handle_Queue_get take user_id = %s data_flag = %s time = %s " %(user_id, data_flag, str(time.time() - start_time))
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):
