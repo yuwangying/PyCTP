@@ -6,7 +6,7 @@ Module implementing QAccountWidget.
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import QWidget
 from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtCore import QPoint
+from PyQt4.QtCore import QPoint, QModelIndex
 from PyQt4.QtGui import QTabBar
 from Ui_QAccountWidget import Ui_Form
 import json
@@ -77,8 +77,8 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         super(QAccountWidget, self).__init__(parent)
         self.setupUi(self)  # 调用父类中配置界面的方法
-        self.popMenu = QtGui.QMenu(self.tableWidget_Trade_Args)  # 创建鼠标右击菜单
-        self.tableWidget_Trade_Args.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.popMenu = QtGui.QMenu(self.tableView_Trade_Args)  # 创建鼠标右击菜单
+        self.tableView_Trade_Args.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.tabBar = QtGui.QTabBar(self.widget_tabbar)  # 创建QTabBar，选项卡
         self.tabBar.currentChanged.connect(self.slot_tab_changed)  # 信号槽连接：信号为自带的currentChanged，槽函数为slot_tab_changed，QTabBar切换tab时触发
         self.__dict_clicked_info = dict()  # 记录鼠标点击策略，{tab_name: strategy_id,}
@@ -89,23 +89,23 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
 
         # 设置tableWidget列的宽度
-        self.tableWidget_Trade_Args.setColumnWidth(0, 50)  # 开关
-        self.tableWidget_Trade_Args.setColumnWidth(1, 90)  # 期货账号
-        self.tableWidget_Trade_Args.setColumnWidth(2, 90)  # 策略编号
-        self.tableWidget_Trade_Args.setColumnWidth(3, 120)  # 交易合约
-        self.tableWidget_Trade_Args.setColumnWidth(4, 90)  # 总持仓
-        self.tableWidget_Trade_Args.setColumnWidth(5, 90)  # 买持仓
-        self.tableWidget_Trade_Args.setColumnWidth(6, 90)  # 卖持仓
-        self.tableWidget_Trade_Args.setColumnWidth(7, 90)  # 持仓盈亏
-        self.tableWidget_Trade_Args.setColumnWidth(8, 90)  # 平仓盈亏
-        self.tableWidget_Trade_Args.setColumnWidth(9, 90)  # 手续费
-        self.tableWidget_Trade_Args.setColumnWidth(10, 90)  # 净盈亏
-        self.tableWidget_Trade_Args.setColumnWidth(11, 90)  # 成交量
-        self.tableWidget_Trade_Args.setColumnWidth(12, 90)  # 成交额
-        self.tableWidget_Trade_Args.setColumnWidth(13, 90)  # A成交率
-        self.tableWidget_Trade_Args.setColumnWidth(14, 90)  # B成交率
-        self.tableWidget_Trade_Args.setColumnWidth(15, 90)  # 交易模型
-        self.tableWidget_Trade_Args.setColumnWidth(16, 90)  # 下单算法
+        # self.tableWidget_Trade_Args.setColumnWidth(0, 50)  # 开关
+        # self.tableWidget_Trade_Args.setColumnWidth(1, 90)  # 期货账号
+        # self.tableWidget_Trade_Args.setColumnWidth(2, 90)  # 策略编号
+        # self.tableWidget_Trade_Args.setColumnWidth(3, 120)  # 交易合约
+        # self.tableWidget_Trade_Args.setColumnWidth(4, 90)  # 总持仓
+        # self.tableWidget_Trade_Args.setColumnWidth(5, 90)  # 买持仓
+        # self.tableWidget_Trade_Args.setColumnWidth(6, 90)  # 卖持仓
+        # self.tableWidget_Trade_Args.setColumnWidth(7, 90)  # 持仓盈亏
+        # self.tableWidget_Trade_Args.setColumnWidth(8, 90)  # 平仓盈亏
+        # self.tableWidget_Trade_Args.setColumnWidth(9, 90)  # 手续费
+        # self.tableWidget_Trade_Args.setColumnWidth(10, 90)  # 净盈亏
+        # self.tableWidget_Trade_Args.setColumnWidth(11, 90)  # 成交量
+        # self.tableWidget_Trade_Args.setColumnWidth(12, 90)  # 成交额
+        # self.tableWidget_Trade_Args.setColumnWidth(13, 90)  # A成交率
+        # self.tableWidget_Trade_Args.setColumnWidth(14, 90)  # B成交率
+        # self.tableWidget_Trade_Args.setColumnWidth(15, 90)  # 交易模型
+        # self.tableWidget_Trade_Args.setColumnWidth(16, 90)  # 下单算法
         # 初始化comboBox_jiaoyimoxing
         # 客户端存储的交易模型可选项，服务端仅保留策略所设置交易模型，当前交易模型空白
         # 初始化comboBox_xiadansuanfa
@@ -124,6 +124,11 @@ class QAccountWidget(QWidget, Ui_Form):
         self.action_del.triggered.connect(self.slot_action_del_strategy)
         self.popMenu.addAction(self.action_del)
 
+        # 创建数据模型
+        self.__StrategyDataModel = StrategyDataModel(parent=self)
+        # 对tableView_Trade_Args设置数据模型对象
+        self.tableView_Trade_Args.setModel(self.__StrategyDataModel)
+
         # 定时刷新UI线程
         # self.__timer_thread = threading.Thread(target=self.thread_update_ui)
         # self.__timer_thread.daemon = True
@@ -133,6 +138,14 @@ class QAccountWidget(QWidget, Ui_Form):
         # self.__timer.setSingleShot(False)  # 非一次性定时器
         # self.__timer.timeout.connect(self.slot_update_ui)  # 连接信号槽
         # self.__timer.start()
+
+        self.__timer_thread = threading.Thread(target=self.thread_update_tableView)
+        self.__timer_thread.daemon = True
+        self.__timer_thread.start()
+
+    # 固定数据测试
+    def thread_update_tableView(self):
+        self.__StrategyDataModel.setDataList([])
 
     # 初始化创建tableWidget内的item，根据期货账户的策略数量总和来决定行数
     def slot_init_tableWidget(self, list_strategy_data):
@@ -192,6 +205,11 @@ class QAccountWidget(QWidget, Ui_Form):
         # 初始化一遍tableWidget
         # self.slot_init_tableWidget(self.get_update_tableWidget_data())
         self.update_groupBox()
+
+    # 设置tableView更新所需数据
+    def slot_set_data_list(self, data_list):
+        # print(">>> QAccountWidget.slot_set_data_list() data_list =", data_list)
+        self.__StrategyDataModel.setDataList(data_list)
 
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
@@ -1961,6 +1979,30 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
+
+    @pyqtSlot(QModelIndex)
+    def on_tableView_Trade_Args_clicked(self, index):
+        """
+        Slot documentation goes here.
+
+        @param index DESCRIPTION
+        @type QModelIndex
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+        pass
+
+    @pyqtSlot(QModelIndex)
+    def on_tableView_Trade_Args_activated(self, index):
+        """
+        Slot documentation goes here.
+
+        @param index DESCRIPTION
+        @type QModelIndex
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+        pass
     
     @pyqtSlot(int)
     def on_checkBox_kongtoukai_stateChanged(self, p0):
@@ -2130,6 +2172,20 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         print(">>> QAccountWidget.on_tableWidget_Trade_Args_customContextMenuRequested() 鼠标右击捕获事件")
+        self.popMenu.exec_(QtGui.QCursor.pos())  # 在鼠标点击位置显示菜单窗口
+
+    # 鼠标右击捕获事件
+    @pyqtSlot(QPoint)
+    def on_tableView_Trade_Args_customContextMenuRequested(self, pos):
+        print("QAccountWidget.on_tableWidget_Trade_Args_customContextMenuRequested() called 鼠标右击捕获事件")
+        """
+        Slot documentation goes here.
+
+        @param pos DESCRIPTION
+        @type QPoint
+        """
+        # TODO: not implemented yet
+        print(">>> QAccountWidget.on_tableView_Trade_Args_customContextMenuRequested() 鼠标右击捕获事件")
         self.popMenu.exec_(QtGui.QCursor.pos())  # 在鼠标点击位置显示菜单窗口
 
     # 找出策略所在的行标，如果不存在该窗口则返回None，存在于该窗口中则返回具体行数int值

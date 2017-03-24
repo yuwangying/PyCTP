@@ -13,12 +13,12 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,2,10">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="2,4,24">
    <property name="spacing">
-    <number>1</number>
+    <number>2</number>
    </property>
    <property name="margin">
-    <number>1</number>
+    <number>2</number>
    </property>
    <item>
     <widget class="QWidget" name="widget_tabbar" native="true"/>
@@ -354,7 +354,7 @@
    </item>
    <item>
     <widget class="QWidget" name="container_trade" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="10,4">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="80,33">
       <property name="spacing">
        <number>1</number>
       </property>
@@ -362,98 +362,10 @@
        <number>1</number>
       </property>
       <item>
-       <widget class="QTableWidget" name="tableWidget_Trade_Args">
-        <property name="selectionMode">
-         <enum>QAbstractItemView::SingleSelection</enum>
-        </property>
+       <widget class="QTableView" name="tableView_Trade_Args">
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
         </property>
-        <column>
-         <property name="text">
-          <string>开关</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>期货账号</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>策略编号</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>交易合约</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>总持仓</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>买持仓</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>卖持仓</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>持仓盈亏</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>平仓盈亏</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>手续费</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>净盈亏</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>成交量</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>成交额</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>A成交率</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>B成交率</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>交易模型</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>下单算法</string>
-         </property>
-        </column>
        </widget>
       </item>
       <item>

@@ -23,9 +23,9 @@ class StrategyDataModel(QAbstractTableModel):
     they are an integral part of the model
     """
 
-    def __init__(self, parent=None, mylist=None, header=None, *args):
+    def __init__(self, parent=None, data_list=[], header=None, *args):
         QAbstractTableModel.__init__(self, parent, *args)
-        self.__data_list = mylist
+        self.__data_list = data_list
         header = ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
         self.__header = header
         # self.timer = QtCore.QTimer()
@@ -34,13 +34,41 @@ class StrategyDataModel(QAbstractTableModel):
         # self.timer.start(60000)
         # self.rowCheckStateMap = {}
 
-    def setDataList(self, mylist):
-        print(">>> StrategyDataModel.setDataList()")
-        pass
-        # self.__data_list = mylist
-        # self.layoutAboutToBeChanged.emit()
-        # self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
-        # self.layoutChanged.emit()
+    def setDataList(self, data_list):
+        # print(">>> StrategyDataModel.setDataList() data_list =", data_list)
+        # self.__data_list = data_list
+        self.__data_list = [[0, '058176', '17', 'zn1705,zn1707', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 629080995, 67469229, 5.4e-323,
+          2.7575735028013114e-289, 2.1219957915e-314, 0, 6.256259635004206e-309, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '07', 'cu1705,cu1707', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 1321149352, 67469252, 4e-323,
+          2.7576188336738166e-289, 3e-323, 0, 3.2850879371313305e-299, 0, 0, 1321149364, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '14', 'zn1705,zn1704', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 1936028260, 574235251,
+          3.453684153625054e+175, 1.7053696840786863e+256, 8.371700744886554e-144, 0, 4.263082912219336e-96, 0,
+          942747439, 909192752, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '05', 'rb1705,rb1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 1321149239, 67469252, 3e-323,
+          2.7576188336737624e-289, 3e-323, 0, 2.757618833673767e-289, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '09', 'zn1705,zn1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', -858856648, 67469113, 3.5e-323,
+          2.7573477472540627e-289, 2e-323, 0, 2.757347747254068e-289, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '15', 'zn1705,zn1802', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 629080995, 67469229, 5.4e-323,
+          2.7575735028013114e-289, 2.1219957915e-314, 0, 6.256259635004206e-309, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '04', 'ru1705,ru1704', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 1701995620, 975336307,
+          2.872470422317026e+161, 4.5060609429814827e-144, 1.1607131484395217e-28, 0, 7.116394681647004e-144, 0,
+          825175866, 825110584, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '06', 'rb1705,rb1712', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 1321149347, 67469252, 3e-323,
+          2.75761883367376e-289, 2.1219957915e-314, 0, 6.25675067809271e-309, 0, 0, 1321149357, 0, 0, 0, 0, 0, 0, 0, 0,
+          1], [0, '058176', '03', 'ru1705,ru1709', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 1701995620, 975336307,
+               2.872470422317026e+161, 4.5060609429814827e-144, 1.1607131484395217e-28, 0, 7.116394681647004e-144, 0,
+               825175866, 825110584, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '08', 'zn1705,zn1707', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', -858856537, 67469113, 3.5e-323,
+          2.7573477472541165e-289, 1e-323, 0, 3.2850879371313305e-299, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '16', 'zn1705,zn1704', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 629080995, 67469229, 5.4e-323,
+          2.7575735028013114e-289, 2.1219957915e-314, 0, 6.256259635004206e-309, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [0, '058176', '01', 'rb1705,rb1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 20, 1, 0.0, 0.0, 0.0, 0, 0.0, 0,
+          400, 400, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+         [1, '058176', '02', 'rb1710,rb1705', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 80, 1, 0.0, 0.0, 0.0, 0, 0.0, 0,
+          400, 400, 0, 0, 0, 0, 0, 0, 0, 0, 1]]
+        self.layoutAboutToBeChanged.emit()
+        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
+        self.layoutChanged.emit()
 
     # def updateModel(self):
     #     dataList2 = []
@@ -84,7 +112,8 @@ class StrategyDataModel(QAbstractTableModel):
         if not index.isValid():
             return None
         if (index.column() == 0):
-            value = self.__data_list[index.row()][index.column()].text()
+            # value = self.__data_list[index.row()][index.column()].text()
+            value = self.__data_list[index.row()][index.column()]
             # value = self.__data_list[index.row()][index.column()]
         else:
             value = self.__data_list[index.row()][index.column()]
@@ -95,7 +124,11 @@ class StrategyDataModel(QAbstractTableModel):
         elif role == QtCore.Qt.CheckStateRole:
             if index.column() == 0:
                 # print(">>> data() row,col = %d, %d" % (index.row(), index.column()))
-                if self.__data_list[index.row()][index.column()].isChecked():
+                # if self.__data_list[index.row()][index.column()].isChecked():
+                #     return QtCore.Qt.Checked
+                # else:
+                #     return QtCore.Qt.Unchecked
+                if self.__data_list[index.row()][index.column()] == 1:
                     return QtCore.Qt.Checked
                 else:
                     return QtCore.Qt.Unchecked
@@ -120,15 +153,15 @@ class StrategyDataModel(QAbstractTableModel):
             self.layoutChanged.emit()
 
     # checkBox勾选状态
-    def flags(self, index):
-        if not index.isValid():
-            return None
+    # def flags(self, index):
+    #     if not index.isValid():
+    #         return None
         # print(">>> flags() index.column() = ", index.column())
-        if index.column() == 0:
-            # return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
-        else:
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        # if index.column() == 0:
+        #     # return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable
+        #     # return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
+        # else:
+        #     return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     """
     # 设置单个单元格数据

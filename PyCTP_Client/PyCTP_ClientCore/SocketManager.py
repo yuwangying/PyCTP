@@ -43,6 +43,7 @@ class SocketManager(QtCore.QThread):
     signal_create_QNewStrategy = QtCore.pyqtSignal()  # 定义信号：SocketManager发出信号 -> QAccountWidget创建“新建策略”窗口
     signal_insert_strategy = QtCore.pyqtSignal(dict)  # 定义信号：SocketManager发出信号 -> QAccountWidget界面插入一行策略
     signal_QNewStrategy_hide = QtCore.pyqtSignal()  # 定义信号：SocketManager发出信号 -> QNewStrategy“新建策略窗口”隐藏
+    signal_set_data_list = QtCore.pyqtSignal(list)  # 定义信号:SocketManager发出信号 -> QAccountWidget接收tableView数据模型,并刷新界面
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -265,6 +266,7 @@ class SocketManager(QtCore.QThread):
         # thread = threading.current_thread()
         # print(">>> SocketManager.run() thread.getName()=", thread.getName())
         while True:
+            start_time = time.time()
             # 收消息
             if self.__RecvN:  # RecvN状态正常
                 try:
@@ -294,6 +296,7 @@ class SocketManager(QtCore.QThread):
                     else:
                         print("SocketManager.run() 接收到的数据有误", m.buff)
                         continue
+            print(">>> SocketManager run() takes time = %s" % (time.time() - start_time))
 
     # 发送消息线程
     def run_send_msg(self):
@@ -360,7 +363,7 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_strategy_info(buff['Info'])
                     print(">>> ScoketManager.receive_msg() self.signal_init_tableWidget.emit(buff['Info'])")
-                    self.signal_init_tableWidget.emit(buff['Info'])
+                    # self.signal_init_tableWidget.emit(buff['Info'])
                     # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
@@ -620,15 +623,18 @@ class SocketManager(QtCore.QThread):
     # user进程将内部计算核心数据发给主进程，主进程UI显示
     def handle_Queue_get(self, Queue_user):
         while True:
+            start_time = time.time()
             dict_data = Queue_user.get()  # 主进程get，user进程put
             user_id = dict_data['UserId']
             data_flag = dict_data['DataFlag']
             data_main = dict_data['DataMain']
-            print("SocketManager.handle_Queue_get() 进程通信user->main，user_id =", user_id, 'data_flag =', data_flag)  # , " dict_data =", dict_data)
+            # print("SocketManager.handle_Queue_get() 进程通信user->main，user_id =", user_id, 'data_flag =', data_flag, " data_main =", data_main)
 
             # 查询期货账户信息，DataFlag:'
             # 期货账户资金信息，DataFlag:'trading_account'
-            if data_flag == 'QryInstrument':
+            if data_flag == 'table_widget_data':
+                self.signal_set_data_list.emit(data_main)
+            elif data_flag == 'QryInstrument':
                 if len(self.__list_instrument_info) > 0:
                     pass
                 elif len(self.__list_instrument_info) == 0:
@@ -669,6 +675,7 @@ class SocketManager(QtCore.QThread):
             elif data_flag == 'OnRtnTrade':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
+            print(">>> handle_Queue_get take user_id = %s data_flag = %s time = %s " %(user_id, data_flag, time.time() - start_time))
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):

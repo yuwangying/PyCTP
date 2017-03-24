@@ -320,3 +320,25 @@ if __name__ == "__main__":
         """
         # TODO: not implemented yet
         raise NotImplementedError
+    
+    @pyqtSlot(QModelIndex)
+    def on_tableView_Trade_Args_clicked(self, index):
+        """
+        Slot documentation goes here.
+        
+        @param index DESCRIPTION
+        @type QModelIndex
+        """
+        # TODO: not implemented yet
+        raise NotImplementedError
+    
+    @pyqtSlot(QModelIndex)
+    def on_tableView_Trade_Args_activated(self, index):
+        """
+        Slot documentation goes here.
+        
+        @param index DESCRIPTION
+        @type QModelIndex
+        """
+        # TODO: not implemented yet
+        raise NotImplementedError

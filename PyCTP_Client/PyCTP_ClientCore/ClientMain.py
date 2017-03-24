@@ -650,7 +650,8 @@ if __name__ == '__main__':
     socket_manager.signal_create_QNewStrategy.connect(q_ctp.widget_QAccountWidget.create_QNewStrategy)
     # 绑定信号槽：SocketManager收到新建策略消息 -> 界面添加一行QAccountWidget.slot_insert_strategy
     socket_manager.signal_insert_strategy.connect(q_ctp.widget_QAccountWidget.slot_insert_strategy)
-
+    # 绑定信号槽: SocketManager发送data_list -> QAccountWidget.tableView_Trade_Args接收数据,刷新界面
+    socket_manager.signal_set_data_list.connect(q_ctp.widget_QAccountWidget.slot_set_data_list)
 
     sys.exit(app.exec_())
 
