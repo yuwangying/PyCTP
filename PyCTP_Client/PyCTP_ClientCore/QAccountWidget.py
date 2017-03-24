@@ -128,11 +128,11 @@ class QAccountWidget(QWidget, Ui_Form):
         # self.__timer_thread = threading.Thread(target=self.thread_update_ui)
         # self.__timer_thread.daemon = True
         # self.__timer_thread.start()  # 待续，策略全部初始化完成之后再开始线程，2017年3月21日14:27:33
-        self.__timer = QtCore.QTimer()  # 定时器
-        self.__timer.setInterval(1)  # 时间间隔500s
-        self.__timer.setSingleShot(False)  # 非一次性定时器
-        self.__timer.timeout.connect(self.slot_update_ui)  # 连接信号槽
-        self.__timer.start()
+        # self.__timer = QtCore.QTimer()  # 定时器
+        # self.__timer.setInterval(1)  # 时间间隔500s
+        # self.__timer.setSingleShot(False)  # 非一次性定时器
+        # self.__timer.timeout.connect(self.slot_update_ui)  # 连接信号槽
+        # self.__timer.start()
 
     # 初始化创建tableWidget内的item，根据期货账户的策略数量总和来决定行数
     def slot_init_tableWidget(self, list_strategy_data):
@@ -1687,7 +1687,6 @@ class QAccountWidget(QWidget, Ui_Form):
                 json_delete_strategy = json.dumps(dict_delete_strategy)
                 self.signal_send_msg.emit(json_delete_strategy)
                 break  # 找到对应的策略对象，跳出for循环
-        # todo...
 
     @pyqtSlot()
     def on_pushButton_query_account_clicked(self):

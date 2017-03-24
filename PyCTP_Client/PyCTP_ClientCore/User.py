@@ -114,9 +114,9 @@ class User():
         self.set_init_finished(True)
 
         # 定时进程间通信,user子进程发送信息给main进程,主进程接收到信息后更新界面
-        # self.__timer_thread = threading.Thread(target=self.timer_queue_put)
-        # self.__timer_thread.daemon = True
-        # self.__timer_thread.start()
+        self.__timer_thread = threading.Thread(target=self.timer_queue_put)
+        self.__timer_thread.daemon = True
+        self.__timer_thread.start()
 
         # strategy创建完成，发送进程间通信给主进程，主进程收到之后让user查询合约信息
 
@@ -677,56 +677,57 @@ class User():
             strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
             a_instrument_id = strategy_arguments['a_instrument_id']
             b_instrument_id = strategy_arguments['b_instrument_id']
-            list_strategy_data[0] = strategy_arguments['on_off']  # 策略开关
-            list_strategy_data[1] = strategy_arguments['user_id']
-            list_strategy_data[2] = strategy_arguments['strategy_id']
-            list_strategy_data[3] = ','.join([a_instrument_id, b_instrument_id])
-            list_strategy_data[4] = strategy_position['position']
-            list_strategy_data[5] = strategy_position['position_b_sell']  # 买持仓=B总卖
-            list_strategy_data[6] = strategy_position['position_a_buy']  # 卖持仓=B总买
-            list_strategy_data[7] = strategy_statistics['profit_position']
-            list_strategy_data[8] = strategy_statistics['profit_close']
-            list_strategy_data[9] = strategy_statistics['commission']
-            list_strategy_data[10] = strategy_statistics['profit']
-            list_strategy_data[11] = strategy_statistics['total_traded_count']
-            list_strategy_data[12] = strategy_statistics['total_traded_amount']
-            list_strategy_data[13] = strategy_statistics['a_trade_rate']
-            list_strategy_data[14] = strategy_statistics['b_trade_rate']
-            list_strategy_data[15] = strategy_arguments['trade_model']
-            list_strategy_data[16] = strategy_arguments['order_algorithm']
-            # list_strategy_data的后半部分放groupBox更新所需数据
-            list_strategy_data[17] = strategy_arguments['losts']  # 总手
-            list_strategy_data[18] = strategy_arguments['lots_batch']  # 每份
-            list_strategy_data[19] = strategy_arguments['stop_loss']  # 价差止损
-            list_strategy_data[20] = strategy_arguments['spread_shift']  # 超价触发
-            list_strategy_data[21] = strategy_arguments['a_wait_price_tick']  # A撤单等待
-            list_strategy_data[22] = strategy_arguments['a_limit_price_shift']  # A报单偏移
-            list_strategy_data[23] = strategy_arguments['b_wait_price_tick']  # B报单等待
-            list_strategy_data[24] = strategy_arguments['b_limit_price_shift']  # B报单偏移
-            list_strategy_data[25] = strategy_arguments['a_order_action_limit']  # A撤单限制
-            list_strategy_data[26] = strategy_arguments['b_order_action_limit']  # B撤单限制
-            if a_instrument_id in self.__dict_instrument_statistics[a_instrument_id]:
+            list_strategy_data.append(strategy_arguments['on_off'])  # 0:策略开关
+            list_strategy_data.append(strategy_arguments['user_id'])  # 1:
+            list_strategy_data.append(strategy_arguments['strategy_id'])  # 2:
+            list_strategy_data.append(','.join([a_instrument_id, b_instrument_id]))  # 3:
+            list_strategy_data.append(strategy_position['position'])  # 4:
+            list_strategy_data.append(strategy_position['position_b_sell'])  # 5:买持仓=B总卖
+            list_strategy_data.append(strategy_position['position_a_buy'])  # 6:卖持仓=B总买
+            list_strategy_data.append(strategy_statistics['profit_position'])  # 7:
+            list_strategy_data.append(strategy_statistics['profit_close'])  # 8:
+            list_strategy_data.append(strategy_statistics['commission'])  # 9:
+            list_strategy_data.append(strategy_statistics['profit'])  # 10:
+            list_strategy_data.append(strategy_statistics['total_traded_count'])  # 11:
+            list_strategy_data.append(strategy_statistics['total_traded_amount'])  # 12:
+            list_strategy_data.append(strategy_statistics['a_trade_rate'])  # 13:
+            list_strategy_data.append(strategy_statistics['b_trade_rate'])  # 14:
+            list_strategy_data.append(strategy_arguments['trade_model'])  # 15:
+            list_strategy_data.append(strategy_arguments['order_algorithm'])  # 16:
+            # list_strategy_data的后半部分放oupBox更新所需数据
+            list_strategy_data.append(strategy_arguments['lots'])  # 17: 总手
+            list_strategy_data.append(strategy_arguments['lots_batch'])  # 18: 每份
+            list_strategy_data.append(strategy_arguments['stop_loss'])  # 19: 价差止损
+            list_strategy_data.append(strategy_arguments['spread_shift'])  # 20: 超价触发
+            list_strategy_data.append(strategy_arguments['a_wait_price_tick'])  # 21: A撤单等待
+            list_strategy_data.append(strategy_arguments['a_limit_price_shift'])  # 22: A报单偏移
+            list_strategy_data.append(strategy_arguments['b_wait_price_tick'])  # B报单等待
+            list_strategy_data.append(strategy_arguments['b_limit_price_shift'])  # B报单偏移
+            list_strategy_data.append(strategy_arguments['a_order_action_limit'])  # A撤单限制
+            list_strategy_data.append(strategy_arguments['b_order_action_limit'])  # B撤单限制
+            if a_instrument_id in self.__dict_instrument_statistics:
                 a_action_count = self.__dict_instrument_statistics[a_instrument_id]['action_count']
             else:
                 a_action_count = 0
-            if b_instrument_id in self.__dict_instrument_statistics[b_instrument_id]:
+            if b_instrument_id in self.__dict_instrument_statistics:
                 b_action_count = self.__dict_instrument_statistics[b_instrument_id]['action_count']
             else:
                 b_action_count = 0
-            list_strategy_data[27] = a_action_count  # A撤单次数
-            list_strategy_data[28] = b_action_count  # B撤单次数
-            list_strategy_data[29] = strategy_arguments['position_a_sell']  # A总卖
-            list_strategy_data[30] = strategy_arguments['position_a_sell_yesterday']  # A昨卖
-            list_strategy_data[31] = strategy_arguments['position_a_buy']  # A总买
-            list_strategy_data[32] = strategy_arguments['position_a_buy_yesterday']  # A总卖
-            list_strategy_data[33] = strategy_arguments['position_b_sell_yesterday']  # B昨卖
-            list_strategy_data[34] = strategy_arguments['position_b_buy_yesterday']  # B昨买
-            list_strategy_data[35] = 1  # 待续,2017年3月23日22:47:24,strategy_arguments['price_tick']  # 最小跳价
+            list_strategy_data.append(a_action_count)  # A撤单次数
+            list_strategy_data.append(b_action_count)  # B撤单次数
+            list_strategy_data.append(strategy_position['position_a_sell'])  # A总卖
+            list_strategy_data.append(strategy_position['position_a_sell_yesterday'])  # A昨卖
+            list_strategy_data.append(strategy_position['position_a_buy'])  # A总买
+            list_strategy_data.append(strategy_position['position_a_buy_yesterday'])  # A总卖
+            list_strategy_data.append(strategy_position['position_b_sell_yesterday'])  # B昨卖
+            list_strategy_data.append(strategy_position['position_b_buy_yesterday'])  # B昨买
+            list_strategy_data.append(1)  # 待续,2017年3月23日22:47:24,strategy_arguments['price_tick']  # 最小跳价
             list_table_widget_data.append(list_strategy_data)
         return list_table_widget_data
 
     # 获取界面panel_show_account_data(账户资金条)更新所需的数据,一个user的数据是一个list
     def get_panel_show_account_data(self):
+        list_panel_show_account_data = list()
         profit_position = 0  # 所有策略持仓盈亏求和
         profit_close = 0  # 所有策略平仓盈亏求和
         commission = 0  # 所有策略手续费求和
@@ -736,33 +737,34 @@ class User():
             profit_position += strategy_statistics['profit_position']
             profit_close += strategy_statistics['profit_close']
             commission += strategy_statistics['commission']
-        self.__list_panel_show_account_data[0] = 0  # 动态权益
-        self.__list_panel_show_account_data[1] = self.__QryTradingAccount['PreBalance']  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
-        self.__list_panel_show_account_data[2] = profit_position  # 持仓盈亏
-        self.__list_panel_show_account_data[3] = profit_close  # 平仓盈亏
-        self.__list_panel_show_account_data[4] = commission  # 手续费
-        self.__list_panel_show_account_data[5] = 0  # 可用资金
-        self.__list_panel_show_account_data[6] = 0  # 占用保证金
-        self.__list_panel_show_account_data[7] = 0  # 风险度
-        self.__list_panel_show_account_data[8] = self.__QryTradingAccount['Deposit']  # 今日入金
-        self.__list_panel_show_account_data[9] = self.__QryTradingAccount['Withdraw']  # 今日出金
-        return self.__list_panel_show_account_data
+        list_panel_show_account_data.append(0)  # 动态权益
+        list_panel_show_account_data.append(self.__QryTradingAccount['PreBalance'])  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
+        list_panel_show_account_data.append(profit_position)  # 持仓盈亏
+        list_panel_show_account_data.append(profit_close)  # 平仓盈亏
+        list_panel_show_account_data.append(commission)  # 手续费
+        list_panel_show_account_data.append(0)  # 可用资金
+        list_panel_show_account_data.append(0)  # 占用保证金
+        list_panel_show_account_data.append(0)  # 风险度
+        list_panel_show_account_data.append(self.__QryTradingAccount['Deposit'])  # 今日入金
+        list_panel_show_account_data.append(self.__QryTradingAccount['Withdraw'])  # 今日出金
+        return list_panel_show_account_data
 
     # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程
     def timer_queue_put(self):
-        pass
-        dict_msg = {
-            'DataFlag': 'panel_show_account_data',
-            'UserId': self.__user_id,
-            'DataMain': self.get_panel_show_account_data()
-        }
-        self.__Queue_user.put(dict_msg)  # 进程通信:发送资金账户更新信息
-        dict_msg = {
-            'DataFlag': 'table_widget_data',
-            'UserId': self.__user_id,
-            'DataMain': self.get_table_widget_data()  # 近场通信:发送策略信息
-        }
-        self.__Queue_user.put(dict_msg)
+        while True:
+            dict_msg = {
+                'DataFlag': 'panel_show_account_data',
+                'UserId': self.__user_id,
+                'DataMain': self.get_panel_show_account_data()
+            }
+            self.__Queue_user.put(dict_msg)  # 进程通信:发送资金账户更新信息
+            dict_msg = {
+                'DataFlag': 'table_widget_data',
+                'UserId': self.__user_id,
+                'DataMain': self.get_table_widget_data()  # 进程通信:发送策略信息
+            }
+            self.__Queue_user.put(dict_msg)
+            time.sleep(1.0)
 
     # 获取报单引用，自增1，位置处于第1到第10位，共9位阿拉伯数字，user的所有策略共用
     def add_order_ref_part2(self):
