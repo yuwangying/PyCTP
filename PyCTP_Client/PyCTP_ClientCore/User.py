@@ -113,6 +113,11 @@ class User():
         # user初始化完成
         self.set_init_finished(True)
 
+        # 定时进程间通信,user子进程发送信息给main进程,主进程接收到信息后更新界面
+        # self.__timer_thread = threading.Thread(target=self.timer_queue_put)
+        # self.__timer_thread.daemon = True
+        # self.__timer_thread.start()
+
         # strategy创建完成，发送进程间通信给主进程，主进程收到之后让user查询合约信息
 
 
@@ -735,13 +740,29 @@ class User():
         self.__list_panel_show_account_data[1] = self.__QryTradingAccount['PreBalance']  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
         self.__list_panel_show_account_data[2] = profit_position  # 持仓盈亏
         self.__list_panel_show_account_data[3] = profit_close  # 平仓盈亏
-        self.__list_panel_show_account_data[4] = profit_position  # 手续费
+        self.__list_panel_show_account_data[4] = commission  # 手续费
         self.__list_panel_show_account_data[5] = 0  # 可用资金
         self.__list_panel_show_account_data[6] = 0  # 占用保证金
         self.__list_panel_show_account_data[7] = 0  # 风险度
         self.__list_panel_show_account_data[8] = self.__QryTradingAccount['Deposit']  # 今日入金
         self.__list_panel_show_account_data[9] = self.__QryTradingAccount['Withdraw']  # 今日出金
         return self.__list_panel_show_account_data
+
+    # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程
+    def timer_queue_put(self):
+        pass
+        dict_msg = {
+            'DataFlag': 'panel_show_account_data',
+            'UserId': self.__user_id,
+            'DataMain': self.get_panel_show_account_data()
+        }
+        self.__Queue_user.put(dict_msg)  # 进程通信:发送资金账户更新信息
+        dict_msg = {
+            'DataFlag': 'table_widget_data',
+            'UserId': self.__user_id,
+            'DataMain': self.get_table_widget_data()  # 近场通信:发送策略信息
+        }
+        self.__Queue_user.put(dict_msg)
 
     # 获取报单引用，自增1，位置处于第1到第10位，共9位阿拉伯数字，user的所有策略共用
     def add_order_ref_part2(self):
