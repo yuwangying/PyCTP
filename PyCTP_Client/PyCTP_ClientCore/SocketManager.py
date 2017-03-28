@@ -47,6 +47,7 @@ class SocketManager(QtCore.QThread):
     # signal_set_data_list = QtCore.pyqtSignal(list)  # 定义信号:SocketManager发出信号 -> QAccountWidget接收tableView数据模型,并刷新界面
     signal_update_panel_show_account = QtCore.pyqtSignal(list)  # 定义信号：SocketManger收到进程通信user进程发来的资金账户信息 -> 向界面发送数据，并更新界面
     signal_activate_query_strategy_pushbutton = QtCore.pyqtSignal()  # 定义信号：SocketManager收到查询策略回报消息 -> 向界面发送信号，激活查询策略按钮
+    signal_tab_changed = QtCore.pyqtSignal()  # 定义信号：SocketMananger收到查询策略
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -395,6 +396,9 @@ class SocketManager(QtCore.QThread):
                     # self.signal_init_tableWidget.emit(buff['Info'])
                     # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
                     # user进程初始化完成，则将信息转发给user进程
+                    if self.__total_process_finished:
+                        self.process_communicate_query_strategy(buff['Info'])
+                        # self.signal_tab_changed.emit()  # 主动触发一次tab_changed操作，目的更新界面全部元素
                     # self.process_communicate_query_strategy(buff['Info'])
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
@@ -766,9 +770,7 @@ class SocketManager(QtCore.QThread):
                 print(">>> SocketManager.handle_Queue_get() data_flag == 'user_init_finished'")
                 self.__dict_user_process_finished[user_id] = data_main
                 if len(self.__dict_user_process_finished) == len(self.__list_process):
-                    print(">>> 全部进程初始化完毕")
                     self.__total_process_finished = True
-
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):
@@ -993,7 +995,6 @@ class SocketManager(QtCore.QThread):
     # 收到查询策略回报，MsgType=3，进程间通信，将策略参数发送给对应的user进程
     def process_communicate_query_strategy(self, list_data):
         for i in list_data:
-            # print(">>> SocketManager.process_communicate_query_strategy() i =", i)
             user_id = i['user_id']
             strategy_id = i['strategy_id']
             msg_process = {'MsgType': 3, 'UserID': user_id, 'StrategyID': strategy_id, 'Info': [i]}

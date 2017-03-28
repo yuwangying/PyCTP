@@ -37,15 +37,12 @@ class StrategyDataModel(QAbstractTableModel):
         # self.timer.start(60000)
         # self.rowCheckStateMap = {}
 
+    # 更新tableView内全部元素
     def slot_set_data_list(self, data_list):
         # print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
+        print(">>> StrategyDataModel.slot_set_data_list() called")
         self.__data_list = copy.deepcopy(data_list)
-        # print(">>> StrategyDataModel.slot_set_data_list() self.__data_list =", self.__data_list)
         self.__row = len(self.__data_list)
-        # if len(data_list) > 0:
-        #     print(">>> StrategyDataModel.slot_set_data_list() len(data_list) =", len(data_list), "type(data_list[0][0]) =", type(data_list[0][0]))
-
-
         if self.__row != 0:
             # self.emit(SIGNAL("layoutAboutToBeChanged()"))
             # self.layoutAboutToBeChanged.emit()
@@ -54,10 +51,20 @@ class StrategyDataModel(QAbstractTableModel):
             #     self.__data_list.reverse()
             # self.emit(SIGNAL("layoutChanged()"))
             # self.layoutChanged.emit()
-
         self.layoutAboutToBeChanged.emit()
         self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
         self.layoutChanged.emit()
+
+    # 更新tableView部分元素，策略开关除外
+    def slot_set_data_list_part(self, data_list):
+        print(">>> StrategyDataModel.slot_set_data_list_part() called")
+        self.__data_list = copy.deepcopy(data_list)
+        self.__row = len(self.__data_list)
+        if self.__row != 0:
+            self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
+        # self.layoutAboutToBeChanged.emit()
+        self.dataChanged.emit(self.createIndex(0, 1), self.createIndex(self.rowCount(0), self.columnCount(0)))
+        # self.layoutChanged.emit()
 
     # def updateModel(self):
     #     dataList2 = []

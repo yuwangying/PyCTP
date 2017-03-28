@@ -172,45 +172,14 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
-        # 组织刷新tableView的数据
-        # self.__list_update_table_view_data = list()
-        # if self.__current_tab_name == '所有账户':
-        #     dict_table_view_data = self.__socket_manager.get_dict_table_view_data()
-        #     for i in dict_table_view_data:
-        #         self.__list_update_table_view_data.extend(dict_table_view_data[i])
-        #     # self.StrategyDataModel.slot_set_data_list(self.__list_update_table_view_data)
-        # else:
-        #     self.__list_update_table_view_data = self.__socket_manager.get_dict_table_view_data()[self.__current_tab_name]
         list_update_table_view_data = self.get_list_update_table_view_data()
-        # print(">>> QAccountWidget.slot_update_ui() list_update_table_view_data =", list_update_table_view_data)
-        self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
+        self.StrategyDataModel.slot_set_data_list_part(list_update_table_view_data)  # 更新界面tableView
 
-        # self.__list_update_group_box_data = list()
-        # # 组织刷新groupBox数据，当期货账户不存在策略时，list长度为0
-        # if len(self.__list_update_table_view_data) > 0:  # 当存在需要更新tableView的策略信息
-        #     for i in self.__list_update_table_view_data:
-        #         if i[1] == self.__clicked_user_id and i[2] == self.__clicked_strategy_id:
-        #             self.__list_update_group_box_data = i
-        #             # print(">>> QAccountWidget.slot_update_ui() self.__list_update_group_box_data =", self.__list_update_group_box_data)
-        #             break
         list_update_group_box_data = self.get_list_update_group_box_data()
-        # print(">>> QAccountWidget.slot_update_ui() list_update_group_box_data =", list_update_group_box_data)
         if len(list_update_group_box_data) > 0:
             self.slot_update_group_box_statistics()
         else:
-            # print(">>> QAccountWidget.slot_update_ui() 更新groupBox的数据为空，清空groupBox界面")
             self.clear_group_box()
-        # print(">>> self.__list_update_group_box_data =", self.__list_update_group_box_data)
-        # self.update_groupBox(self.__list_update_group_box_data)  # 更新界面groupBox
-        # print(">>> QAccountWidget.slot_update_ui() ", time.strftime("%H:%M:%S"), "len(self.__list_update_table_view_data) =", len(self.__list_update_table_view_data), self.__list_update_table_view_data)
-
-
-    # 自定义槽
-    # @pyqtSlot(str)
-    # def slot_SendMsg(self, msg):
-    #     print("QAccountWidget.slot_SendMsg()", msg)
-    #     # send json to server
-    #     self.__client_main.get_SocketManager().send_msg(msg)
 
     def slot_addTabBar(self, user_id):
         self.__dict_clicked_info[user_id] = {}
@@ -233,6 +202,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 槽函数，连接信号：QCTP.signal_on_tab_accounts_currentChanged，切换tab页的时候动态设置obj_user给QAccountWidget
     def slot_tab_changed(self, int_tab_index):
+        self.__current_tab_index = int_tab_index  # 保存当前tab的index
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
         print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
@@ -2330,6 +2300,8 @@ class QAccountWidget(QWidget, Ui_Form):
     # 激活“查询”按钮
     def slot_activate_query_strategy_pushbutton(self):
         self.pushButton_query_strategy.setEnabled(True)
+        self.slot_tab_changed(self.__current_tab_index)  # 主动触发一次tab_changed操作，目的更新界面全部元素
+        # print(">>> QAccountWidget.slot_activate_query_strategy_pushbutton() 主动触发一次tab_changed操作，目的更新界面全部元素")
 
     @pyqtSlot(bool)
     def on_checkBox_kongtoukai_clicked(self, checked):
