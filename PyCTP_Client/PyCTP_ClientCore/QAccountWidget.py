@@ -210,7 +210,7 @@ class QAccountWidget(QWidget, Ui_Form):
         if self.__total_process_finished:  # 所有进程初始化完成标志位，初始值为False
             on_off = self.__socket_manager.get_dict_user_on_off()[self.__current_tab_name]
             if on_off == 1:
-                self.pushButton_start_strategy.setText('关闭策略')
+                self.pushButton_start_strategy.setText('停止策略')
             else:
                 self.pushButton_start_strategy.setText('开始策略')
         print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)

@@ -520,6 +520,8 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=8，修改交易员开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_on_off(buff['OnOff'])  # 设置内核中交易员开关
+                    self.__dict_user_on_off['所有账户'] = buff['OnOff']
+                    print(">>> SocketManager.receive_msg() self.__dict_user_on_off =", self.__dict_user_on_off)
                     for user_id in self.__dict_Queue_main:
                         self.__dict_Queue_main[user_id].put(buff)  # 将修改交易员开关回报发送给所有user进程
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -528,6 +530,8 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=9，修改期货账户开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     user_id = buff['UserID']
+                    self.__dict_user_on_off[user_id] = buff['OnOff']
+                    print(">>> SocketManager.receive_msg() self.__dict_user_on_off =", self.__dict_user_on_off)
                     self.__dict_Queue_main[user_id].put(buff)  # 将修改期货账户开关回报发送给user进程
                     # for i_user in self.__ctp_manager.get_list_user():
                     #     if i_user.get_user_id().decode() == buff['UserID']:
