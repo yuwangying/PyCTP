@@ -183,10 +183,6 @@ class ClientMain(QtCore.QObject):
     def get_list_QAccountWidget(self):
         return self.__list_QAccountWidget
 
-    @QtCore.pyqtSlot(list)
-    def slot_show_QMessageBox(self, list_args):
-        QMessageBox().showMessage(list_args[0], list_args[1])
-
     """
     # 处理socket_manager发来的消息
     @QtCore.pyqtSlot(dict)
@@ -649,9 +645,15 @@ if __name__ == '__main__':
     # 绑定信号槽：SocketManager获得list_instrument_id -> QAccountWidget创建新建策略窗口
     socket_manager.signal_create_QNewStrategy.connect(q_ctp.widget_QAccountWidget.create_QNewStrategy)
     # 绑定信号槽：SocketManager收到新建策略消息 -> 界面添加一行QAccountWidget.slot_insert_strategy
-    socket_manager.signal_insert_strategy.connect(q_ctp.widget_QAccountWidget.slot_insert_strategy)
+    # socket_manager.signal_insert_strategy.connect(q_ctp.widget_QAccountWidget.slot_insert_strategy)
     # 绑定信号槽: SocketManager发送data_list -> QAccountWidget.tableView_Trade_Args接收数据,刷新界面
-    socket_manager.signal_set_data_list.connect(q_ctp.widget_QAccountWidget.slot_set_data_list)
+    # socket_manager.signal_set_data_list.connect(q_ctp.widget_QAccountWidget.slot_set_data_list)
+    # 绑定信号槽：SocketManger收到进程通信user进程发来的资金账户信息 -> 向界面发送数据，并更新界面
+    socket_manager.signal_update_panel_show_account.connect(q_ctp.widget_QAccountWidget.slot_update_panel_show_account)
+    # 绑定信号槽：SocketManager发送data_list -> QAccountWidget.tableView_Trade_Args接收数据,刷新界面
+    # socket_manager.signal_set_data_list.connect(q_ctp.widget_QAccountWidget.StrategyDataModel.slot_set_data_list)
+    # 右击菜单隐藏 -> 右击菜单信息初始化为空
+    q_ctp.widget_QAccountWidget.popMenu.aboutToHide.connect(q_ctp.widget_QAccountWidget.slot_init_right_click)
 
     sys.exit(app.exec_())
 

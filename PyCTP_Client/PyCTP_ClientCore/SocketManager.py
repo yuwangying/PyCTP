@@ -8,6 +8,7 @@ import struct
 import threading
 import json
 import queue
+import copy
 from QCTP import QCTP
 from QMessageBox import QMessageBox
 from QAccountWidget import QAccountWidget
@@ -43,7 +44,8 @@ class SocketManager(QtCore.QThread):
     signal_create_QNewStrategy = QtCore.pyqtSignal()  # 定义信号：SocketManager发出信号 -> QAccountWidget创建“新建策略”窗口
     signal_insert_strategy = QtCore.pyqtSignal(dict)  # 定义信号：SocketManager发出信号 -> QAccountWidget界面插入一行策略
     signal_QNewStrategy_hide = QtCore.pyqtSignal()  # 定义信号：SocketManager发出信号 -> QNewStrategy“新建策略窗口”隐藏
-    signal_set_data_list = QtCore.pyqtSignal(list)  # 定义信号:SocketManager发出信号 -> QAccountWidget接收tableView数据模型,并刷新界面
+    # signal_set_data_list = QtCore.pyqtSignal(list)  # 定义信号:SocketManager发出信号 -> QAccountWidget接收tableView数据模型,并刷新界面
+    signal_update_panel_show_account = QtCore.pyqtSignal(list)  # 定义信号：SocketManger收到进程通信user进程发来的资金账户信息 -> 向界面发送数据，并更新界面
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -59,6 +61,13 @@ class SocketManager(QtCore.QThread):
         self.__thread_send_msg.start()
         self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
         self.__list_instrument_info = list()  # 所有合约信息
+        self.__list_update_widget_data = list()  # 向ui发送更新界面信号的数据结构
+        self.__dict_table_view_data = dict()  # 保存所有期货账户更新tableView的数据
+        self.__dict_panel_show_account_data = dict()  # 保存所有期货账户更新panel_show_account的数据
+        self.__clicked_row = -1  # 鼠标点击tableView中的行数，初始值为-1
+        self.__clicked_column = -1
+        self.__clicked_user_id = ''  # 鼠标点击的策略信息中user_id，初始值为空字符串，界面被点击时修改值
+        self.__clicked_strategy_id = ''
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
@@ -188,6 +197,18 @@ class SocketManager(QtCore.QThread):
 
     def get_list_instrument_id(self):
         return self.__list_instrument_id
+
+    def set_clicked_info(self, row, column, user_id, strategy_id):
+        self.__clicked_row = row
+        self.__clicked_column = column
+        self.__clicked_user_id = user_id
+        self.__clicked_strategy_id = strategy_id
+
+    def get_dict_table_view_data(self):
+        return self.__dict_table_view_data
+
+    def get_dict_panel_show_account_data(self):
+        return self.__dict_panel_show_account_data
 
     # 连接服务器
     def connect(self):
@@ -345,6 +366,12 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_list_user_info(buff['Info'])  # 将期货账户信息设置为ctp_manager的属性
                     self.set_list_user_info(buff['Info'])
+                    self.__update_ui_user_id = buff['Info'][0]['userid']
+                    for i in buff['Info']:
+                        user_id = i['userid']
+                        self.__dict_table_view_data[user_id] = list()  # 初始化更新tableView的数据
+                        self.__dict_panel_show_account_data[user_id] = list()  # 初始化更新panel_show_account的数据
+                    # print(">>> self.__update_ui_user_id =", self.__update_ui_user_id)
                     # self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
@@ -409,7 +436,7 @@ class SocketManager(QtCore.QThread):
                     # self.create_strategy(buff['Info'][0])
                     # 进程间通信：main->user
                     user_id = buff['Info'][0]['user_id']  # 策略参数dict
-                    self.signal_insert_strategy.emit(buff['Info'][0])  # 界面中新插入一行策略
+                    # self.signal_insert_strategy.emit(buff['Info'][0])  # 界面中新插入一行策略
                     self.signal_QNewStrategy_hide.emit()  # 隐藏新建策略窗口
                     self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -426,12 +453,15 @@ class SocketManager(QtCore.QThread):
             elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
                 print("SocketManager.receive_msg() MsgType=12，修改策略持仓", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    # 更新内核中的策略持仓
-                    for i_strategy in self.__ctp_manager.get_list_strategy():
-                        if i_strategy.get_user_id() == buff['UserID'] \
-                                and i_strategy.get_strategy_id() == buff['StrategyID']:
-                            i_strategy.set_position(buff['Info'][0])
-                            break
+                    # # 更新内核中的策略持仓
+                    # for i_strategy in self.__ctp_manager.get_list_strategy():
+                    #     if i_strategy.get_user_id() == buff['UserID'] \
+                    #             and i_strategy.get_strategy_id() == buff['StrategyID']:
+                    #         i_strategy.set_position(buff['Info'][0])
+                    #         break
+                    dict_args = buff['Info'][0]  # 策略参数dict
+                    user_id = dict_args['user_id']
+                    self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=12 修改策略持仓失败")
             elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
@@ -439,6 +469,9 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     dict_args = {'user_id': buff['UserID'], 'strategy_id': buff['StrategyID']}
                     # self.__ctp_manager.delete_strategy(dict_args)
+                    # {'MsgSendFlag': 1, 'MsgResult': 0, 'MsgErrorReason': '', 'MsgRef': 15, 'UserID': '058176', 'StrategyID': '20', 'MsgType': 7, 'MsgSrc': 0, 'TraderID': '1601'}
+                    user_id = buff['UserID']
+                    self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=7 删除策略失败")
             elif buff['MsgType'] == 13:  # 修改策略交易开关
@@ -630,12 +663,56 @@ class SocketManager(QtCore.QThread):
             user_id = dict_data['UserId']
             data_flag = dict_data['DataFlag']
             data_main = dict_data['DataMain']
+            self.__list_widget_data = data_main  # 转存最新的策略列表信息，包含gorupBox更新所需信息
             # print("SocketManager.handle_Queue_get() 进程通信user->main，user_id =", user_id, 'data_flag =', data_flag, " data_main =", data_main)
 
-            # 查询期货账户信息，DataFlag:'
-            # 期货账户资金信息，DataFlag:'trading_account'
-            if data_flag == 'table_widget_data':
-                self.signal_set_data_list.emit(data_main)
+            if data_flag == 'table_widget_data':  # 更新策略列表信息
+                self.__dict_table_view_data[user_id] = data_main  # 主进程接收并更新user进程发来的界面更新数据-tableView
+                # current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
+                # # 更新tableView
+                # if current_tab_name == '所有账户':
+                #     # 收到任何user发来的数据添加到list的尾部，合并为一个list，发送信号更新界面tableView
+                #     print(">>> SocketManager.handle_Queue_get() 拼接之前，self.__list_update_widget_data =", len(self.__list_update_widget_data), self.__list_update_widget_data)
+                #     self.__list_update_widget_data.extend(data_main)
+                #     print(">>> SocketManager.handle_Queue_get() 拼接之后，self.__list_update_widget_data =", len(self.__list_update_widget_data), self.__list_update_widget_data)
+                #     # 收到特定的user_id发来的数据更新界面，并清空更新界面的树结构，一直循环
+                #     # print(">>> SocketManager.handle_Queue_get() if user_id == self.__update_ui_user_id", user_id, self.__update_ui_user_id)
+                #     if user_id == self.__update_ui_user_id:
+                #         # print(">>> SocketManager.handle_Queue_get() 刷新界面，self.__list_update_widget_data =", len(self.__list_update_widget_data), self.__list_update_widget_data)
+                #         list_update_widget_data = copy.deepcopy(self.__list_update_widget_data)
+                #         self.signal_set_data_list.emit(list_update_widget_data)
+                #         self.__list_update_widget_data.clear()
+                # else:
+                #     # 收到与tabName相同的期货账户更新界面
+                #     if user_id == current_tab_name:
+                #         self.signal_set_data_list.emit(data_main)
+
+                # # 更新groupBox
+                # if self.__clicked_strategy_id != '' and self.__clicked_user_id != '':
+                #     if current_tab_name == '所有账户':
+                #         # 收到任何user发来的数据添加到list的尾部，合并为一个list，发送信号更新界面tableView
+                #         self.__list_update_widget_data.extend(data_main)
+                #         # 收到特定的user_id发来的数据更新界面，并清空更新界面的树结构，一直循环
+                #         if user_id == self.__update_ui_user_id:
+                #             self.signal_set_data_list.emit(self.__list_update_widget_data)
+                #             self.__list_update_widget_data = list()
+                #     elif user_id == current_tab_name:
+                #         if len(data_main) > 0:
+                #             self.signal_set_data_list.emit(data_main)
+                #             try:
+                #                 list_update_group_box = data_main[self.__clicked_row]
+                #             except:
+                #                 print(">>> SocketManager.handle_Queue_get() user_id =", user_id," data_main =", data_main)
+                #             # print(">>> SocketManager.handle_Queue_get() list_update_group_box =", list_update_group_box)
+            elif data_flag == 'panel_show_account_data':  # 更新账户资金情况
+                self.__dict_panel_show_account_data[user_id] = data_main  # 主进程接收并更新user进程发来的界面更新数据-panel_show_account
+                # current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
+                # if current_tab_name == '所有账户':
+                #     pass
+                # else:
+                #     # 收到与tabName相同的期货账户更新界面
+                #     if user_id == current_tab_name:
+                #         self.signal_update_panel_show_account.emit(data_main)
             elif data_flag == 'QryInstrument':
                 if len(self.__list_instrument_info) > 0:
                     pass
@@ -677,7 +754,7 @@ class SocketManager(QtCore.QThread):
             elif data_flag == 'OnRtnTrade':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
-            print(">>> handle_Queue_get take user_id = %s data_flag = %s time = %s " %(user_id, data_flag, str(time.time() - start_time))
+            # print(">>> handle_Queue_get take user_id = %s data_flag = %s time = %s " %(user_id, data_flag, str(time.time() - start_time)))
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):

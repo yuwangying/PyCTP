@@ -161,7 +161,7 @@ class Strategy():
     # 设置参数
     def set_arguments(self, dict_args):
         self.__dict_arguments = copy.deepcopy(dict_args)  # 将形参转存为私有变量
-        # print(">>> Strategy.set_arguments() dict_args =", dict_args)
+        print(">>> Strategy.set_arguments() dict_args =", dict_args)
         self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
         self.__strategy_id = dict_args['strategy_id']
@@ -172,8 +172,10 @@ class Strategy():
         self.__stop_loss = dict_args['stop_loss']  # 止损，单位为最小跳数
         self.__strategy_on_off = dict_args['strategy_on_off']  # 策略开关，0关、1开
         self.__spread_shift = dict_args['spread_shift']  # 价差让价（超价触发）
-        self.__a_instrument_id = dict_args['list_instrument_id'][0]  # A合约代码
-        self.__b_instrument_id = dict_args['list_instrument_id'][1]  # B合约代码
+        # self.__a_instrument_id = dict_args['list_instrument_id'][0]  # A合约代码
+        # self.__b_instrument_id = dict_args['list_instrument_id'][1]  # B合约代码
+        self.__a_instrument_id = dict_args['a_instrument_id']  # B合约代码
+        self.__b_instrument_id = dict_args['b_instrument_id']  # B合约代码
         self.__a_limit_price_shift = dict_args['a_limit_price_shift']  # A合约报价偏移
         self.__b_limit_price_shift = dict_args['b_limit_price_shift']  # B合约报价偏移
         self.__a_wait_price_tick = dict_args['a_wait_price_tick']  # A合约挂单等待最小跳数
@@ -189,40 +191,40 @@ class Strategy():
         self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
 
-        strategy_arguments = {
-            'user_id': self.__user_id,
-            'strategy_id': self.__strategy_id,
-            'trade_model': self.__trade_model,
-            'order_algorithm': self.__order_algorithm,
-            'lots': self.__lots,
-            'lots_batch': self.__lots_batch,
-            'stop_loss': self.__stop_loss,
-            'on_off': self.__strategy_on_off,
-            'spread_shift': self.__spread_shift,
-            'a_instrument_id': self.__a_instrument_id,
-            'b_instrument_id': self.__b_instrument_id,
-            'a_limit_price_shift': self.__a_limit_price_shift,
-            'b_limit_price_shift': self.__b_limit_price_shift,
-            'a_wait_price_tick': self.__a_wait_price_tick,
-            'b_wait_price_tick': self.__b_wait_price_tick,
-            'a_order_action_limit': self.__a_order_action_limit,
-            'b_order_action_limit': self.__b_order_action_limit,
-            'buy_open': self.__buy_open,
-            'sell_close': self.__sell_close,
-            'sell_open': self.__sell_open,
-            'buy_close': self.__buy_close,
-            'sell_open_on_off': self.__sell_open_on_off,
-            'buy_close_on_off': self.__buy_close_on_off,
-            'buy_open_on_off': self.__sell_close_on_off,
-            'sell_close_on_off': self.__buy_open_on_off
-        }
-        dict_msg = {
-            'DataFlag': 'strategy_arguments',
-            'UserId': self.__user_id,
-            'DataMain': strategy_arguments  # 最新策略参数
-        }
+        # strategy_arguments = {
+        #     'user_id': self.__user_id,
+        #     'strategy_id': self.__strategy_id,
+        #     'trade_model': self.__trade_model,
+        #     'order_algorithm': self.__order_algorithm,
+        #     'lots': self.__lots,
+        #     'lots_batch': self.__lots_batch,
+        #     'stop_loss': self.__stop_loss,
+        #     'on_off': self.__strategy_on_off,
+        #     'spread_shift': self.__spread_shift,
+        #     'a_instrument_id': self.__a_instrument_id,
+        #     'b_instrument_id': self.__b_instrument_id,
+        #     'a_limit_price_shift': self.__a_limit_price_shift,
+        #     'b_limit_price_shift': self.__b_limit_price_shift,
+        #     'a_wait_price_tick': self.__a_wait_price_tick,
+        #     'b_wait_price_tick': self.__b_wait_price_tick,
+        #     'a_order_action_limit': self.__a_order_action_limit,
+        #     'b_order_action_limit': self.__b_order_action_limit,
+        #     'buy_open': self.__buy_open,
+        #     'sell_close': self.__sell_close,
+        #     'sell_open': self.__sell_open,
+        #     'buy_close': self.__buy_close,
+        #     'sell_open_on_off': self.__sell_open_on_off,
+        #     'buy_close_on_off': self.__buy_close_on_off,
+        #     'buy_open_on_off': self.__sell_close_on_off,
+        #     'sell_close_on_off': self.__buy_open_on_off
+        # }
+        # dict_msg = {
+        #     'DataFlag': 'strategy_arguments',
+        #     'UserId': self.__user_id,
+        #     'DataMain': strategy_arguments  # 最新策略参数
+        # }
         # print(">>> Strategy.set_arguments() user_id =", self.__user_id, 'data_flag =', 'strategy_arguments', 'data_msg =', dict_msg)
-        self.__user.get_Queue_user().put(dict_msg)
+        # self.__user.get_Queue_user().put(dict_msg)
 
     # 获取参数
     def get_arguments(self):
@@ -1269,6 +1271,7 @@ class Strategy():
             'DataFlag': 'strategy_position',
             'UserId': self.__user_id,
             'DataMain': data_main  # 最新策略持仓
+
         }
         print(">>> Strategy.set_position() user_id =", self.__user_id, 'data_flag = strategy_position',
               'data_msg =', dict_msg)
@@ -2236,6 +2239,10 @@ class Strategy():
                 and self.__position_a_sell_yesterday == self.__position_b_buy_yesterday \
                 and len(self.__list_order_pending) == 0:
             self.__trade_tasking = False
+
+
+
+
         else:
             self.__trade_tasking = True
 

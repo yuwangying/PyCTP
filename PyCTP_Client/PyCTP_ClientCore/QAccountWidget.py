@@ -77,13 +77,17 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         super(QAccountWidget, self).__init__(parent)
         self.setupUi(self)  # 调用父类中配置界面的方法
+        self.tableView_Trade_Args.setSortingEnabled(True)
+        self.tableView_Trade_Args.horizontalHeader().setMovable(True)
         self.popMenu = QtGui.QMenu(self.tableView_Trade_Args)  # 创建鼠标右击菜单
         self.tableView_Trade_Args.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.tabBar = QtGui.QTabBar(self.widget_tabbar)  # 创建QTabBar，选项卡
         self.tabBar.currentChanged.connect(self.slot_tab_changed)  # 信号槽连接：信号为自带的currentChanged，槽函数为slot_tab_changed，QTabBar切换tab时触发
-        self.__dict_clicked_info = dict()  # 记录鼠标点击策略，{tab_name: strategy_id,}
+        self.__dict_clicked_info = {'所有账户': {}}  # 记录鼠标点击策略，{tab_name: strategy_id,}
+        self.__current_tab_name = ''
         self.__clicked_user_id = ''  # 初始化鼠标点击的策略的user_id
         self.__clicked_strategy_id = ''  # 初始化鼠标点击的策略的strategy_id
+        self.__list_update_widget_data = list()  # 界面tableView正在显示和更新的数据，有SocketManager通过信号槽发送来
         self.slot_addTabBar("所有账户")
 
         self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
@@ -125,33 +129,39 @@ class QAccountWidget(QWidget, Ui_Form):
         self.popMenu.addAction(self.action_del)
 
         # 创建数据模型
-        self.__StrategyDataModel = StrategyDataModel(parent=self)
+        self.StrategyDataModel = StrategyDataModel(parent=self)
+        self.StrategyDataModel.set_QAccountWidget(self)
         # 对tableView_Trade_Args设置数据模型对象
-        self.tableView_Trade_Args.setModel(self.__StrategyDataModel)
+        self.tableView_Trade_Args.setModel(self.StrategyDataModel)
 
         # 定时刷新UI线程
         # self.__timer_thread = threading.Thread(target=self.thread_update_ui)
         # self.__timer_thread.daemon = True
         # self.__timer_thread.start()  # 待续，策略全部初始化完成之后再开始线程，2017年3月21日14:27:33
-        # self.__timer = QtCore.QTimer()  # 定时器
-        # self.__timer.setInterval(1)  # 时间间隔500s
-        # self.__timer.setSingleShot(False)  # 非一次性定时器
-        # self.__timer.timeout.connect(self.slot_update_ui)  # 连接信号槽
-        # self.__timer.start()
+        self.__timer = QtCore.QTimer()  # 定时器
+        self.__timer.setInterval(500)  # 时间间隔500ms
+        self.__timer.setSingleShot(False)  # 非一次性定时器
+        self.__timer.timeout.connect(self.slot_update_ui)  # 连接信号槽
+        self.__timer.start()
 
-        self.__timer_thread = threading.Thread(target=self.thread_update_tableView)
-        self.__timer_thread.daemon = True
-        self.__timer_thread.start()
+        # self.__timer_thread = threading.Thread(target=self.thread_update_tableView)
+        # self.__timer_thread.daemon = True
+        # self.__timer_thread.start()
 
     # 固定数据测试
-    def thread_update_tableView(self):
-        self.__StrategyDataModel.setDataList([])
+    # def thread_update_tableView(self):
+    #     self.StrategyDataModel.slot_set_data_list([])
 
     # 初始化创建tableWidget内的item，根据期货账户的策略数量总和来决定行数
     def slot_init_tableWidget(self, list_strategy_data):
         # print("QAccountWidget.slot_init_tableWidget() list_strategy_data =", list_strategy_data)
         for i in list_strategy_data:
             self.slot_insert_strategy(i)
+
+    # 右击“添加删除策略”菜单消失时初始化鼠标点击信息
+    def slot_init_right_click(self):
+        self.__right_clicked_user_id = ''
+        self.__right_clicked_strategy_id = ''
 
     # py自带thread实现定时器，定时刷新UI线程
     def thread_update_ui(self):
@@ -162,11 +172,36 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
-        # print(">>> QAccountWidget.slot_update_ui() 刷新UI，", time.strftime("%H:%M:%S"))
-        # self.get_update_tableWidget_data()  # 获取更新界面数据
-        QtGui.QApplication.processEvents()
-        self.update_tableWidget_Trade_Args()
-        self.update_groupBox_part()
+        # 组织刷新tableView的数据
+        # self.__list_update_table_view_data = list()
+        # if self.__current_tab_name == '所有账户':
+        #     dict_table_view_data = self.__socket_manager.get_dict_table_view_data()
+        #     for i in dict_table_view_data:
+        #         self.__list_update_table_view_data.extend(dict_table_view_data[i])
+        #     # self.StrategyDataModel.slot_set_data_list(self.__list_update_table_view_data)
+        # else:
+        #     self.__list_update_table_view_data = self.__socket_manager.get_dict_table_view_data()[self.__current_tab_name]
+        list_update_table_view_data = self.get_list_update_table_view_data()
+        self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
+
+        # self.__list_update_group_box_data = list()
+        # # 组织刷新groupBox数据，当期货账户不存在策略时，list长度为0
+        # if len(self.__list_update_table_view_data) > 0:  # 当存在需要更新tableView的策略信息
+        #     for i in self.__list_update_table_view_data:
+        #         if i[1] == self.__clicked_user_id and i[2] == self.__clicked_strategy_id:
+        #             self.__list_update_group_box_data = i
+        #             # print(">>> QAccountWidget.slot_update_ui() self.__list_update_group_box_data =", self.__list_update_group_box_data)
+        #             break
+        list_update_group_box_data = self.get_list_update_group_box_data()
+        if len(list_update_group_box_data) > 0:
+            self.slot_update_group_box_statistics()
+        else:
+            # print(">>> QAccountWidget.slot_update_ui() 更新groupBox的数据为空，清空groupBox界面")
+            self.clear_group_box()
+        # print(">>> self.__list_update_group_box_data =", self.__list_update_group_box_data)
+        # self.update_groupBox(self.__list_update_group_box_data)  # 更新界面groupBox
+        # print(">>> QAccountWidget.slot_update_ui() ", time.strftime("%H:%M:%S"), "len(self.__list_update_table_view_data) =", len(self.__list_update_table_view_data), self.__list_update_table_view_data)
+
 
     # 自定义槽
     # @pyqtSlot(str)
@@ -176,7 +211,7 @@ class QAccountWidget(QWidget, Ui_Form):
     #     self.__client_main.get_SocketManager().send_msg(msg)
 
     def slot_addTabBar(self, user_id):
-        self.__dict_clicked_info[user_id] = dict()
+        self.__dict_clicked_info[user_id] = {}
         self.tabBar.addTab(user_id)
         print("QAccountWidget.slot_addTabBar() self.__dict_clicked_info =", self.__dict_clicked_info)
 
@@ -197,19 +232,45 @@ class QAccountWidget(QWidget, Ui_Form):
     # 槽函数，连接信号：QCTP.signal_on_tab_accounts_currentChanged，切换tab页的时候动态设置obj_user给QAccountWidget
     def slot_tab_changed(self, int_tab_index):
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
-        print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
-        if len(self.__dict_clicked_info[self.__current_tab_name]) > 0:
-            row = self.__dict_clicked_info[self.__current_tab_name]['row']
-            self.tableWidget_Trade_Args.setCurrentCell(row, 0)
+        print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
+        print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
+        # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
+        dict_tab_clicked_info = self.__dict_clicked_info[self.__current_tab_name]
+        # if len(self.get_list_update_table_view_data()) == 0:
+        #     return
+        if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
+            row = dict_tab_clicked_info['row']
+            column = dict_tab_clicked_info['column']
+            index = self.tableView_Trade_Args.model().index(row, column)
+            self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
+            self.__clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
+            self.tableView_Trade_Args.setCurrentIndex(index)  # 设置当前行
+
+            list_update_group_box_data = self.get_list_update_group_box_data()
+            if len(list_update_group_box_data) > 0:
+                self.slot_update_group_box()  # 切换tab时更新groupBox中所有元素一次
+                print(">>> QAccountWidget.slot_tab_changed() 切换tab时更新groupBox中所有元素一次")
+            else:
+                self.clear_group_box()
+
+        else:
+            self.__clicked_user_id = ''
+            self.__clicked_strategy_id = ''
+        # self.slot_set_data_list([])  # 切换tab时清空tableView
+        # if len(self.__dict_clicked_info[self.__current_tab_name]) > 0:
+        #     row = self.__dict_clicked_info[self.__current_tab_name]['row']
+            # self.tableWidget_Trade_Args.setCurrentCell(row, 0)
+        # 待续，2017年3月26日23:20:18，切换tab的时候设置记忆中的行，可用方法setCurrentIndex
         # self.update_tableWidget_Trade_Args()
         # 初始化一遍tableWidget
         # self.slot_init_tableWidget(self.get_update_tableWidget_data())
-        self.update_groupBox()
+        # self.update_groupBox()
 
     # 设置tableView更新所需数据
-    def slot_set_data_list(self, data_list):
-        # print(">>> QAccountWidget.slot_set_data_list() data_list =", data_list)
-        self.__StrategyDataModel.setDataList(data_list)
+    # def slot_set_data_list(self, data_list):
+        # print(">>> QAccountWidget.slot_set_data_list() data_list =", len(data_list), data_list)
+        # self.__list_update_widget_data = data_list
+        # self.StrategyDataModel.slot_set_data_list(data_list)
 
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
@@ -296,6 +357,29 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def get_signal_pushButton_set_position_setEnabled_connected(self):
         return self.__signal_pushButton_set_position_setEnabled_connected
+
+    # 获取更新talbeView的数据
+    def get_list_update_table_view_data(self):
+        # 组织刷新tableView的数据
+        self.__list_update_table_view_data = list()
+        if self.__current_tab_name == '所有账户':
+            dict_table_view_data = self.__socket_manager.get_dict_table_view_data()
+            for i in dict_table_view_data:
+                self.__list_update_table_view_data.extend(dict_table_view_data[i])
+        else:
+            self.__list_update_table_view_data = self.__socket_manager.get_dict_table_view_data()[ self.__current_tab_name]
+        return self.__list_update_table_view_data
+
+   # 获取更新groupBox的数据
+    def get_list_update_group_box_data(self):
+        self.__list_update_group_box_data = list()
+        # 组织刷新groupBox数据，当期货账户不存在策略时，list长度为0
+        if len(self.__list_update_table_view_data) > 0:  # 当存在需要更新tableView的策略信息
+            for i in self.__list_update_table_view_data:
+                if i[1] == self.__clicked_user_id and i[2] == self.__clicked_strategy_id:
+                    self.__list_update_group_box_data = i
+                    break
+        return self.__list_update_group_box_data
 
     # 判断当前窗口是否单账户
     def is_single_user_widget(self):
@@ -1235,6 +1319,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
         # self.slot_update_strategy_position(obj_strategy)  # 调用slot_update_strategy是连带调用slot_update_strategy_position
 
+    """
     # 更新groupBox：更新全部item
     def update_groupBox(self):
         # 鼠标未点击任何策略之前，不更新groupBox
@@ -1324,6 +1409,181 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Azuobuy.setText(str(dict_strategy_position['position_a_buy_yesterday']))  # A昨买
         self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))  # B总卖
         self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))  # B昨卖
+    """
+
+    # 更新groupBox：全部元素
+    def slot_update_group_box(self):
+        self.lineEdit_qihuozhanghao.setText(self.__list_update_group_box_data[1])  # 期货账号
+        self.lineEdit_celuebianhao.setText(self.__list_update_group_box_data[2])  # 策略编号
+        index_comboBox = self.comboBox_jiaoyimoxing.findText(self.__list_update_group_box_data[15])  # 交易模型
+        if index_comboBox != -1:
+            self.comboBox_jiaoyimoxing.setCurrentIndex(index_comboBox)
+        index_comboBox = self.comboBox_xiadansuanfa.findText(self.__list_update_group_box_data[16])  # 下单算法
+        if index_comboBox != -1:
+            self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+        self.lineEdit_zongshou.setText(self.__list_update_group_box_data[17])  # 总手
+        self.lineEdit_meifen.setText(self.__list_update_group_box_data[18])  # 每份
+        self.spinBox_zhisun.setValue(self.__list_update_group_box_data[19])  # 止损
+        self.spinBox_rangjia.setValue(self.__list_update_group_box_data[20])  # 超价触发
+        self.spinBox_Abaodanpianyi.setValue(self.__list_update_group_box_data[22])  # A报价偏移
+        self.spinBox_Bbaodanpianyi.setValue(self.__list_update_group_box_data[24])  # B报价偏移
+        self.spinBox_Adengdai.setValue(self.__list_update_group_box_data[21])  # A撤单等待
+        self.spinBox_Bdengdai.setValue(self.__list_update_group_box_data[23])  # B撤单等待
+        self.lineEdit_Achedanxianzhi.setText(self.__list_update_group_box_data[25])  # A撤单限制
+        self.lineEdit_Bchedanxianzhi.setText(self.__list_update_group_box_data[26])  # B撤单限制
+        self.lineEdit_Achedan.setText(self.__list_update_group_box_data[27])  # A撤单
+        self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[28])  # B撤单
+        self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[36])  # 空头开
+        self.doubleSpinBox_kongtoukai.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[37])  # 空头平
+        self.doubleSpinBox_kongtouping.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_duotoukai.setValue(self.__list_update_group_box_data[38])  # 多头开
+        self.doubleSpinBox_duotoukai.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_duotouping.setValue(self.__list_update_group_box_data[39])  # 多头平
+        self.doubleSpinBox_duotouping.setSingleStep(1)  # 设置step
+        # 空头开-开关
+        if self.__list_update_group_box_data[40] == 0:
+            self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
+        elif self.__list_update_group_box_data[40] == 1:
+            self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)
+        # 空头平-开关
+        if self.__list_update_group_box_data[41] == 0:
+            self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)
+        elif self.__list_update_group_box_data[41] == 1:
+            self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)
+        # 多头开-开关
+        if self.__list_update_group_box_data[43] == 0:
+            self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)
+        elif self.__list_update_group_box_data[43] == 1:
+            self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)
+        # 多头平-开关
+        if self.__list_update_group_box_data[42] == 0:
+            self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
+        elif self.__list_update_group_box_data[42] == 1:
+            self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)
+        self.lineEdit_Azongsell.setText(self.__list_update_group_box_data[29])  # A总卖
+        self.lineEdit_Azuosell.setText(self.__list_update_group_box_data[30])  # A昨卖
+        self.lineEdit_Bzongbuy.setText(self.__list_update_group_box_data[6])  # B总买
+        self.lineEdit_Bzuobuy.setText(self.__list_update_group_box_data[34])  # B昨买
+        self.lineEdit_Azongbuy.setText(self.__list_update_group_box_data[31])  # A总买
+        self.lineEdit_Azuobuy.setText(self.__list_update_group_box_data[32])  # A昨买
+        self.lineEdit_Bzongsell.setText(self.__list_update_group_box_data[5])  # B总卖
+        self.lineEdit_Bzuosell.setText(self.__list_update_group_box_data[33])  # B昨卖
+        self.lineEdit_Azongsell.setEnabled(False)
+        self.lineEdit_Azuosell.setEnabled(False)
+        self.lineEdit_Bzongbuy.setEnabled(False)
+        self.lineEdit_Bzuobuy.setEnabled(False)
+        self.lineEdit_Azongbuy.setEnabled(False)
+        self.lineEdit_Azuobuy.setEnabled(False)
+        self.lineEdit_Bzongsell.setEnabled(False)
+        self.lineEdit_Bzuosell.setEnabled(False)
+        self.pushButton_set_position.setText("设置持仓")
+
+    # 更新groupBox：仅更新统计类指标，不更新用户输入参数
+    def slot_update_group_box_statistics(self):
+        # self.lineEdit_qihuozhanghao.setText(self.__list_update_group_box_data[1])  # 期货账号
+        # self.lineEdit_celuebianhao.setText(self.__list_update_group_box_data[2])  # 策略编号
+        # index_comboBox = self.comboBox_jiaoyimoxing.findText(self.__list_update_group_box_data[15])  # 交易模型
+        # if index_comboBox != -1:
+        #     self.comboBox_jiaoyimoxing.setCurrentIndex(index_comboBox)
+        # index_comboBox = self.comboBox_xiadansuanfa.findText(self.__list_update_group_box_data[16])  # 下单算法
+        # if index_comboBox != -1:
+        #     self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+        # self.lineEdit_zongshou.setText(self.__list_update_group_box_data[17])  # 总手
+        # self.lineEdit_meifen.setText(self.__list_update_group_box_data[18])  # 每份
+        # self.spinBox_zhisun.setValue(self.__list_update_group_box_data[19])  # 止损
+        # self.spinBox_rangjia.setValue(self.__list_update_group_box_data[20])  # 超价触发
+        # self.spinBox_Abaodanpianyi.setValue(self.__list_update_group_box_data[22])  # A报价偏移
+        # self.spinBox_Bbaodanpianyi.setValue(self.__list_update_group_box_data[24])  # B报价偏移
+        # self.spinBox_Adengdai.setValue(self.__list_update_group_box_data[21])  # A撤单等待
+        # self.spinBox_Bdengdai.setValue(self.__list_update_group_box_data[23])  # B撤单等待
+        # self.lineEdit_Achedanxianzhi.setText(self.__list_update_group_box_data[25])  # A撤单限制
+        # self.lineEdit_Bchedanxianzhi.setText(self.__list_update_group_box_data[26])  # B撤单限制
+        self.lineEdit_Achedan.setText(self.__list_update_group_box_data[27])  # A撤单
+        self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[28])  # B撤单
+        # self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[36])  # 空头开
+        # self.doubleSpinBox_kongtoukai.setSingleStep(1)  # 设置step
+        # self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[37])  # 空头平
+        # self.doubleSpinBox_kongtouping.setSingleStep(1)  # 设置step
+        # self.doubleSpinBox_duotoukai.setValue(self.__list_update_group_box_data[38])  # 多头开
+        # self.doubleSpinBox_duotoukai.setSingleStep(1)  # 设置step
+        # self.doubleSpinBox_duotouping.setValue(self.__list_update_group_box_data[39])  # 多头平
+        # self.doubleSpinBox_duotouping.setSingleStep(1)  # 设置step
+        # # 空头开-开关
+        # if self.__list_update_group_box_data[40] == 0:
+        #     self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
+        # elif self.__list_update_group_box_data[40] == 1:
+        #     self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)
+        # # 空头平-开关
+        # if self.__list_update_group_box_data[41] == 0:
+        #     self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)
+        # elif self.__list_update_group_box_data[41] == 1:
+        #     self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)
+        # # 多头开-开关
+        # if self.__list_update_group_box_data[43] == 0:
+        #     self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)
+        # elif self.__list_update_group_box_data[43] == 1:
+        #     self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)
+        # # 多头平-开关
+        # if self.__list_update_group_box_data[42] == 0:
+        #     self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
+        # elif self.__list_update_group_box_data[42] == 1:
+        #     self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)
+        # 当仓位输入框被激活为可编辑状态时，不更新持仓的item
+        if self.lineEdit_Azongsell.isEnabled() is False:
+            self.lineEdit_Azongsell.setText(self.__list_update_group_box_data[29])  # A总卖
+            self.lineEdit_Azuosell.setText(self.__list_update_group_box_data[30])  # A昨卖
+            self.lineEdit_Bzongbuy.setText(self.__list_update_group_box_data[6])  # B总买
+            self.lineEdit_Bzuobuy.setText(self.__list_update_group_box_data[34])  # B昨买
+            self.lineEdit_Azongbuy.setText(self.__list_update_group_box_data[31])  # A总买
+            self.lineEdit_Azuobuy.setText(self.__list_update_group_box_data[32])  # A昨买
+            self.lineEdit_Bzongsell.setText(self.__list_update_group_box_data[5])  # B总卖
+            self.lineEdit_Bzuosell.setText(self.__list_update_group_box_data[33])  # B昨卖
+
+    # 清空groupBox界面
+    def clear_group_box(self):
+        str_none = ''
+        int_none = 0
+        self.lineEdit_qihuozhanghao.setText(str_none)  # 期货账号
+        self.lineEdit_celuebianhao.setText(str_none)  # 策略编号
+        self.comboBox_jiaoyimoxing.setCurrentIndex(-1)
+        self.comboBox_xiadansuanfa.setCurrentIndex(-1)
+        self.lineEdit_zongshou.setText(str_none)  # 总手
+        self.lineEdit_meifen.setText(str_none)  # 每份
+        self.spinBox_zhisun.setValue(int_none)  # 止损
+        self.spinBox_rangjia.setValue(int_none)  # 超价触发
+        self.spinBox_Abaodanpianyi.setValue(int_none)  # A报价偏移
+        self.spinBox_Bbaodanpianyi.setValue(int_none)  # B报价偏移
+        self.spinBox_Adengdai.setValue(int_none)  # A撤单等待
+        self.spinBox_Bdengdai.setValue(int_none)  # B撤单等待
+        self.lineEdit_Achedanxianzhi.setText(str_none)  # A撤单限制
+        self.lineEdit_Bchedanxianzhi.setText(str_none)  # B撤单限制
+        self.lineEdit_Achedan.setText(str_none)  # A撤单
+        self.lineEdit_Bchedan.setText(str_none)  # B撤单
+        self.doubleSpinBox_kongtoukai.setValue(int_none)  # 空头开
+        self.doubleSpinBox_kongtoukai.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_kongtouping.setValue(int_none)  # 空头平
+        self.doubleSpinBox_kongtouping.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_duotoukai.setValue(int_none)  # 多头开
+        self.doubleSpinBox_duotoukai.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_duotouping.setValue(int_none)  # 多头平
+        self.doubleSpinBox_duotouping.setSingleStep(1)  # 设置step
+        # 空头开-开关
+        self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
+        # 空头平-开关
+        self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)
+        # 多头开-开关
+        self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)
+        # 多头平-开关
+        self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
+        self.lineEdit_Azongsell.setText(str_none)  # A总卖
+        self.lineEdit_Azuosell.setText(str_none)  # A昨卖
+        self.lineEdit_Bzongbuy.setText(str_none)  # B总买
+        self.lineEdit_Bzuobuy.setText(str_none)  # B昨买
+        self.lineEdit_Azongbuy.setText(str_none)  # A总买
+        self.lineEdit_Azuobuy.setText(str_none)  # A昨买
+        self.lineEdit_Bzongsell.setText(str_none)  # B总卖
+        self.lineEdit_Bzuosell.setText(str_none)  # B昨卖
 
     # 更新groupBox：更新除用户输入部分的item
     def update_groupBox_part(self):
@@ -1623,25 +1883,26 @@ class QAccountWidget(QWidget, Ui_Form):
                 break
 
     # 更新界面：“账户资金”框，panel_show_account
+    """
     @QtCore.pyqtSlot(dict)
     def slot_update_panel_show_account(self, dict_args):
         print(">>> QAccountWidget.slot_update_panel_show_account() dict_args=", dict_args)
-        """
-        参数实例
-        {
-        'Capital': 1760786.59375,
-        'PreBalance': 1760668.7,
-        'PositionProfit': 200.0,
-        'CloseProfit': 0.0,
-        'Commission': 82.10625,
-        'Available': 1629190.59375,
-        'CurrMargin': 131396.0,
-        'FrozenMargin': 0.0,
-        'Risk': 0.07462346684510018
-        'Deposit': 0.0,
-        'Withdraw': 0.0,
-        }
-        """
+
+        # 参数实例
+        # {
+        # 'Capital': 1760786.59375,
+        # 'PreBalance': 1760668.7,
+        # 'PositionProfit': 200.0,
+        # 'CloseProfit': 0.0,
+        # 'Commission': 82.10625,
+        # 'Available': 1629190.59375,
+        # 'CurrMargin': 131396.0,
+        # 'FrozenMargin': 0.0,
+        # 'Risk': 0.07462346684510018
+        # 'Deposit': 0.0,
+        # 'Withdraw': 0.0,
+        # }
+
         self.label_value_dongtaiquanyi.setText(str(int(dict_args['Capital'])))  # 动态权益
         self.label_value_jingtaiquanyi.setText(str(int(dict_args['PreBalance'])))  # 静态权益
         self.label_value_chicangyingkui.setText(str(int(dict_args['PositionProfit'])))  # 持仓盈亏
@@ -1653,6 +1914,20 @@ class QAccountWidget(QWidget, Ui_Form):
         self.label_value_fengxiandu.setText(str(int(dict_args['Risk']*100))+'%')  # 风险度
         self.label_value_jinrirujin.setText(str(int(dict_args['Deposit'])))  # 今日入金
         self.label_value_jinrichujin.setText(str(int(dict_args['Withdraw'])))  # 今日出金
+    """
+
+    # 更新界面：“账户资金”框，panel_show_account
+    def slot_update_panel_show_account(self, list_data):
+        self.label_value_dongtaiquanyi.setText(list_data[0])  # 动态权益
+        self.label_value_jingtaiquanyi.setText(list_data[1])  # 静态权益
+        self.label_value_chicangyingkui.setText(list_data[2])  # 持仓盈亏
+        self.label_value_pingcangyingkui.setText(list_data[3])  # 平仓盈亏
+        self.label_value_shouxufei.setText(list_data[4])  # 手续费
+        self.label_value_keyongzijin.setText(list_data[5])  # 可用资金
+        self.label_value_zhanyongbaozhengjin.setText(list_data[6])  # 占用保证金
+        self.label_value_fengxiandu.setText(list_data[7])  # 风险度
+        self.label_value_jinrirujin.setText(list_data[8])  # 今日入金
+        self.label_value_jinrichujin.setText(list_data[9])  # 今日出金
 
     # 鼠标右击弹出菜单中的“添加策略”
     @pyqtSlot()
@@ -1665,6 +1940,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__q_new_strategy.show()
         # todo...
 
+    """
     # 鼠标右击弹出菜单中的“删除策略”
     @pyqtSlot()
     def slot_action_del_strategy(self):
@@ -1705,6 +1981,37 @@ class QAccountWidget(QWidget, Ui_Form):
                 json_delete_strategy = json.dumps(dict_delete_strategy)
                 self.signal_send_msg.emit(json_delete_strategy)
                 break  # 找到对应的策略对象，跳出for循环
+    """
+
+    # 鼠标右击弹出菜单中的“删除策略”
+    @pyqtSlot()
+    def slot_action_del_strategy(self):
+        print(">>> QAccountWidget.slot_action_del_strategy() 删除策略，user_id =", self.__clicked_user_id, "strategy_id =", self.__clicked_strategy_id)
+        # 判断策略是否可以安全删除：策略无持仓，开关为关闭
+        list_update_group_box_data = self.get_list_update_group_box_data()
+        if list_update_group_box_data[0] == 1:
+            print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除策略开关为开的策略")
+            return
+        # B总卖、B总买、A总卖、A总买
+        if list_update_group_box_data[5] != '0' \
+                or list_update_group_box_data[6] != '0' \
+                or list_update_group_box_data[29] != '0' \
+                or list_update_group_box_data[31] != '0':
+            print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除有持仓的策略", list_update_group_box_data[5], list_update_group_box_data[6], list_update_group_box_data[29], list_update_group_box_data[31], type(list_update_group_box_data[31]))
+            return
+
+        print(">>> QAccountWidget.slot_action_del_strategy() self.get_list_update_group_box_data() =", self.get_list_update_group_box_data())
+        dict_msg = {
+            'MsgRef': self.__socket_manager.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 7,  # 删除策略
+            'TraderID': self.__socket_manager.get_trader_id(),
+            'UserID': self.__clicked_user_id,
+            'StrategyID':self.__clicked_strategy_id
+            }
+        json_msg = json.dumps(dict_msg)
+        self.signal_send_msg.emit(json_msg)
 
     @pyqtSlot()
     def on_pushButton_query_account_clicked(self):
@@ -1816,17 +2123,17 @@ class QAccountWidget(QWidget, Ui_Form):
         self.doubleSpinBox_kongtoukai.setValue(value)
         value = self.doubleSpinBox_kongtouping.value() - price_tick  # 计算更新值
         self.doubleSpinBox_kongtouping.setValue(value)
-    
-    @pyqtSlot()
-    def on_pushButton_set_strategy_clicked(self):
-        """
-        Slot documentation goes here.
-        """
-        # TODO: not implemented yet
-        # raise NotImplementedError
-        # 参数排错处理
+
+    # 修改策略参数，参数排错
+    def arguments_examine(self):
+        # QMessageBox().showMessage("错误", "总手、每份参数错误！")
+        if len(self.lineEdit_qihuozhanghao.text()) <= 0 or len(self.lineEdit_celuebianhao.text()) <= 0:
+            # self.signal_show_QMessageBox.emit(["错误", "参数错误"])
+            QMessageBox().showMessage("错误", "请选择策略！")
+            return
         if len(self.lineEdit_zongshou.text()) == 0 or len(self.lineEdit_meifen.text()) == 0:
-            self.signal_show_QMessageBox.emit(["错误", "参数错误"])
+            # self.signal_show_QMessageBox.emit(["错误", "参数错误"])
+            QMessageBox().showMessage("错误", "总手、每份参数错误！")
             return
         if int(self.lineEdit_zongshou.text()) <= 0:  # 正确值：总手大于零的整数
             self.signal_show_QMessageBox.emit(["错误", "‘总手’必须为大于零的整数"])
@@ -1843,6 +2150,16 @@ class QAccountWidget(QWidget, Ui_Form):
         elif self.doubleSpinBox_duotoukai.value() >= self.doubleSpinBox_duotouping.value():  # 正确值：多头开 < 多头平
             self.signal_show_QMessageBox.emit(["警告", "‘多头开’必须小于‘多头平’"])
             return
+    
+    @pyqtSlot()
+    def on_pushButton_set_strategy_clicked(self):
+        print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() called")
+        """
+        Slot documentation goes here.
+        """
+        # TODO: not implemented yet
+        # raise NotImplementedError
+        self.arguments_examine()  # 参数排错
         dict_args = {
             "MsgRef": self.__socket_manager.msg_ref_add(),
             "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
@@ -1908,15 +2225,15 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzuosell.setEnabled(False)
             # self.pushButton_set_position.setEnabled(False)  # 禁用按钮
             dict_setPosition = {
-                "MsgRef": self.__client_main.get_SocketManager().msg_ref_add(),
+                "MsgRef": self.__socket_manager.msg_ref_add(),
                 "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
                 "MsgType": 12,  # 修改单条策略持仓
-                "TraderID": self.__client_main.get_trader_id(),  # trader_id
+                "TraderID": self.__socket_manager.get_trader_id(),  # trader_id
                 "UserID": self.lineEdit_qihuozhanghao.text(),  # user_id
                 "StrategyID": self.lineEdit_celuebianhao.text(),  # strategy_id
                 "MsgSrc": 0,
                 "Info": [{
-                    "trader_id": self.__client_main.get_trader_id(),  # trader_id
+                    "trader_id": self.__socket_manager.get_trader_id(),  # trader_id
                     "user_id": self.lineEdit_qihuozhanghao.text(),  # user_id
                     "strategy_id": self.lineEdit_celuebianhao.text(),  # strategy_id
                     "position_a_buy": int(self.lineEdit_Azongbuy.text()),  # A总买
@@ -1990,7 +2307,16 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-        pass
+        row = index.row()
+        column = index.column()
+        self.__clicked_user_id = self.tableView_Trade_Args.model().index(row, 1).data()
+        self.__clicked_strategy_id = self.tableView_Trade_Args.model().index(row, 2).data()
+        self.__dict_clicked_info[self.__current_tab_name] = {'user_id': self.__clicked_user_id, 'strategy_id': self.__clicked_strategy_id, 'row': row, 'column': column}
+
+        print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__dict_clicked_info =", self.__dict_clicked_info)
+        self.__socket_manager.set_clicked_info(row, column, self.__clicked_user_id, self.__clicked_strategy_id)
+        self.get_list_update_group_box_data()  # 获取最新groupBox的更新数据
+        self.slot_update_group_box()
 
     @pyqtSlot(QModelIndex)
     def on_tableView_Trade_Args_activated(self, index):
@@ -2171,7 +2497,6 @@ class QAccountWidget(QWidget, Ui_Form):
         @type QPoint
         """
         # TODO: not implemented yet
-        print(">>> QAccountWidget.on_tableWidget_Trade_Args_customContextMenuRequested() 鼠标右击捕获事件")
         self.popMenu.exec_(QtGui.QCursor.pos())  # 在鼠标点击位置显示菜单窗口
 
     # 鼠标右击捕获事件
@@ -2185,8 +2510,14 @@ class QAccountWidget(QWidget, Ui_Form):
         @type QPoint
         """
         # TODO: not implemented yet
-        print(">>> QAccountWidget.on_tableView_Trade_Args_customContextMenuRequested() 鼠标右击捕获事件")
-        self.popMenu.exec_(QtGui.QCursor.pos())  # 在鼠标点击位置显示菜单窗口
+        index = self.tableView_Trade_Args.indexAt(pos)
+        if index.isValid():
+            self.action_del.setDisabled(False)
+            self.popMenu.exec_(QtGui.QCursor.pos())  # 在鼠标点击位置显示菜单窗口
+        else:
+            self.action_del.setDisabled(True)
+            self.popMenu.exec_(QtGui.QCursor.pos())  # 在鼠标点击位置显示菜单窗口
+
 
     # 找出策略所在的行标，如果不存在该窗口则返回None，存在于该窗口中则返回具体行数int值
     def find_strategy(self, obj_strategy):

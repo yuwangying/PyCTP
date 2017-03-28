@@ -394,7 +394,7 @@ class User():
         self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 初始化启动模式为RESTART，如果xml文件存在且数据可用为RESUME
         if self.__xml_exist:
             market_TradingDay = '-'.join([self.__MdApi_TradingDay[:4], self.__MdApi_TradingDay[4:6], self.__MdApi_TradingDay[6:]])
-            print(">>> User.tdapi_start_model() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
+            # print(">>> User.tdapi_start_model() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
             # 如果xml数据中未找到对应期货账号的user_save_info信息，模式设置为RESTART
             if len(self.__xml_dict_user_save_info) == 0:
                 self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
@@ -452,7 +452,7 @@ class User():
             #     sum_position += dict_position[i]
             # if sum_position != 0:
             #     print("User.handle_Queue_get() user_id =", self.__user_id, "strategy_id =", strategy_id)
-            self.delete_strategy(dict_data['Info'][0]['strategy_id'])
+            self.delete_strategy(dict_data['StrategyID'])
         # 修改策略开关，"MsgType":13
         elif dict_data['MsgType'] == 13:
             strategy_id = dict_data['StrategyID']
@@ -682,8 +682,8 @@ class User():
             list_strategy_data.append(strategy_arguments['strategy_id'])  # 2:
             list_strategy_data.append(','.join([a_instrument_id, b_instrument_id]))  # 3:
             list_strategy_data.append(strategy_position['position'])  # 4:
-            list_strategy_data.append(strategy_position['position_b_sell'])  # 5:买持仓=B总卖
-            list_strategy_data.append(strategy_position['position_a_buy'])  # 6:卖持仓=B总买
+            list_strategy_data.append(str(strategy_position['position_b_sell']))  # 5:买持仓=B总卖
+            list_strategy_data.append(str(strategy_position['position_b_buy']))  # 6:卖持仓=B总买
             list_strategy_data.append(strategy_statistics['profit_position'])  # 7:
             list_strategy_data.append(strategy_statistics['profit_close'])  # 8:
             list_strategy_data.append(strategy_statistics['commission'])  # 9:
@@ -695,16 +695,16 @@ class User():
             list_strategy_data.append(strategy_arguments['trade_model'])  # 15:
             list_strategy_data.append(strategy_arguments['order_algorithm'])  # 16:
             # list_strategy_data的后半部分放oupBox更新所需数据
-            list_strategy_data.append(strategy_arguments['lots'])  # 17: 总手
-            list_strategy_data.append(strategy_arguments['lots_batch'])  # 18: 每份
+            list_strategy_data.append(str(strategy_arguments['lots']))  # 17: 总手
+            list_strategy_data.append(str(strategy_arguments['lots_batch']))  # 18: 每份
             list_strategy_data.append(strategy_arguments['stop_loss'])  # 19: 价差止损
             list_strategy_data.append(strategy_arguments['spread_shift'])  # 20: 超价触发
             list_strategy_data.append(strategy_arguments['a_wait_price_tick'])  # 21: A撤单等待
             list_strategy_data.append(strategy_arguments['a_limit_price_shift'])  # 22: A报单偏移
-            list_strategy_data.append(strategy_arguments['b_wait_price_tick'])  # B报单等待
-            list_strategy_data.append(strategy_arguments['b_limit_price_shift'])  # B报单偏移
-            list_strategy_data.append(strategy_arguments['a_order_action_limit'])  # A撤单限制
-            list_strategy_data.append(strategy_arguments['b_order_action_limit'])  # B撤单限制
+            list_strategy_data.append(strategy_arguments['b_wait_price_tick'])  # 23:B报单等待
+            list_strategy_data.append(strategy_arguments['b_limit_price_shift'])  # 24:B报单偏移
+            list_strategy_data.append(str(strategy_arguments['a_order_action_limit']))  # 25:A撤单限制
+            list_strategy_data.append(str(strategy_arguments['b_order_action_limit']))  # 26:B撤单限制
             if a_instrument_id in self.__dict_instrument_statistics:
                 a_action_count = self.__dict_instrument_statistics[a_instrument_id]['action_count']
             else:
@@ -713,15 +713,23 @@ class User():
                 b_action_count = self.__dict_instrument_statistics[b_instrument_id]['action_count']
             else:
                 b_action_count = 0
-            list_strategy_data.append(a_action_count)  # A撤单次数
-            list_strategy_data.append(b_action_count)  # B撤单次数
-            list_strategy_data.append(strategy_position['position_a_sell'])  # A总卖
-            list_strategy_data.append(strategy_position['position_a_sell_yesterday'])  # A昨卖
-            list_strategy_data.append(strategy_position['position_a_buy'])  # A总买
-            list_strategy_data.append(strategy_position['position_a_buy_yesterday'])  # A总卖
-            list_strategy_data.append(strategy_position['position_b_sell_yesterday'])  # B昨卖
-            list_strategy_data.append(strategy_position['position_b_buy_yesterday'])  # B昨买
-            list_strategy_data.append(1)  # 待续,2017年3月23日22:47:24,strategy_arguments['price_tick']  # 最小跳价
+            list_strategy_data.append(str(a_action_count))  # 27:A撤单次数
+            list_strategy_data.append(str(b_action_count))  # 28:B撤单次数
+            list_strategy_data.append(str(strategy_position['position_a_sell']))  # 29:A总卖
+            list_strategy_data.append(str(strategy_position['position_a_sell_yesterday']))  # 30:A昨卖
+            list_strategy_data.append(str(strategy_position['position_a_buy']))  # 31:A总买
+            list_strategy_data.append(str(strategy_position['position_a_buy_yesterday']))  # 32:A昨买
+            list_strategy_data.append(str(strategy_position['position_b_sell_yesterday']))  # 33:B昨卖
+            list_strategy_data.append(str(strategy_position['position_b_buy_yesterday']))  # 34:B昨买
+            list_strategy_data.append(1)  # 待续,2017年3月23日22:47:24,strategy_arguments['price_tick']  # 35:最小跳价
+            list_strategy_data.append(strategy_arguments['sell_open'])  # 36:卖开
+            list_strategy_data.append(strategy_arguments['buy_close'])  # 37:买平
+            list_strategy_data.append(strategy_arguments['sell_close'])  # 38:卖平
+            list_strategy_data.append(strategy_arguments['buy_open'])  # 39:买开
+            list_strategy_data.append(strategy_arguments['sell_open_on_off'])  # 40:卖开-开关
+            list_strategy_data.append(strategy_arguments['buy_close_on_off'])  # 41:买平-开关
+            list_strategy_data.append(strategy_arguments['sell_close_on_off'])  # 42:卖平-开关
+            list_strategy_data.append(strategy_arguments['buy_open_on_off'])  # 43:买开-开关
             list_table_widget_data.append(list_strategy_data)
         return list_table_widget_data
 
@@ -737,16 +745,16 @@ class User():
             profit_position += strategy_statistics['profit_position']
             profit_close += strategy_statistics['profit_close']
             commission += strategy_statistics['commission']
-        list_panel_show_account_data.append(0)  # 动态权益
-        list_panel_show_account_data.append(self.__QryTradingAccount['PreBalance'])  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
-        list_panel_show_account_data.append(profit_position)  # 持仓盈亏
-        list_panel_show_account_data.append(profit_close)  # 平仓盈亏
-        list_panel_show_account_data.append(commission)  # 手续费
-        list_panel_show_account_data.append(0)  # 可用资金
-        list_panel_show_account_data.append(0)  # 占用保证金
-        list_panel_show_account_data.append(0)  # 风险度
-        list_panel_show_account_data.append(self.__QryTradingAccount['Deposit'])  # 今日入金
-        list_panel_show_account_data.append(self.__QryTradingAccount['Withdraw'])  # 今日出金
+        list_panel_show_account_data.append('0')  # 动态权益
+        list_panel_show_account_data.append(str(self.__QryTradingAccount['PreBalance']))  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
+        list_panel_show_account_data.append(str(profit_position))  # 持仓盈亏
+        list_panel_show_account_data.append(str(profit_close))  # 平仓盈亏
+        list_panel_show_account_data.append(str(commission))  # 手续费
+        list_panel_show_account_data.append(str(0))  # 可用资金
+        list_panel_show_account_data.append(str(0))  # 占用保证金
+        list_panel_show_account_data.append(str(0))  # 风险度
+        list_panel_show_account_data.append(str(self.__QryTradingAccount['Deposit']))  # 今日入金
+        list_panel_show_account_data.append(str(self.__QryTradingAccount['Withdraw']))  # 今日出金
         return list_panel_show_account_data
 
     # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程
