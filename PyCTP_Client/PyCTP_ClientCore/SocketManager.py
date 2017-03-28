@@ -46,6 +46,7 @@ class SocketManager(QtCore.QThread):
     signal_QNewStrategy_hide = QtCore.pyqtSignal()  # 定义信号：SocketManager发出信号 -> QNewStrategy“新建策略窗口”隐藏
     # signal_set_data_list = QtCore.pyqtSignal(list)  # 定义信号:SocketManager发出信号 -> QAccountWidget接收tableView数据模型,并刷新界面
     signal_update_panel_show_account = QtCore.pyqtSignal(list)  # 定义信号：SocketManger收到进程通信user进程发来的资金账户信息 -> 向界面发送数据，并更新界面
+    signal_activate_query_strategy_pushbutton = QtCore.pyqtSignal()  # 定义信号：SocketManager收到查询策略回报消息 -> 向界面发送信号，激活查询策略按钮
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -68,6 +69,8 @@ class SocketManager(QtCore.QThread):
         self.__clicked_column = -1
         self.__clicked_user_id = ''  # 鼠标点击的策略信息中user_id，初始值为空字符串，界面被点击时修改值
         self.__clicked_strategy_id = ''
+        self.__dict_user_process_finished = dict()  # 子进程初始化完成信息
+        self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
@@ -391,9 +394,13 @@ class SocketManager(QtCore.QThread):
                     print(">>> ScoketManager.receive_msg() self.signal_init_tableWidget.emit(buff['Info'])")
                     # self.signal_init_tableWidget.emit(buff['Info'])
                     # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
+                    # user进程初始化完成，则将信息转发给user进程
+                    # self.process_communicate_query_strategy(buff['Info'])
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
+                # 收到查询策略回报消息，激活“查询”按钮
+                self.signal_activate_query_strategy_pushbutton.emit()
             elif buff['MsgType'] == 15:  # 收到：查询持仓明细order，MsgType=15
                 print("SocketManager.receive_msg() MsgType=15，查询持仓明细order", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
@@ -755,6 +762,13 @@ class SocketManager(QtCore.QThread):
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
             # print(">>> handle_Queue_get take user_id = %s data_flag = %s time = %s " %(user_id, data_flag, str(time.time() - start_time)))
+            elif data_flag == 'user_init_finished':
+                print(">>> SocketManager.handle_Queue_get() data_flag == 'user_init_finished'")
+                self.__dict_user_process_finished[user_id] = data_main
+                if len(self.__dict_user_process_finished) == len(self.__list_process):
+                    print(">>> 全部进程初始化完毕")
+                    self.__total_process_finished = True
+
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):
@@ -975,6 +989,15 @@ class SocketManager(QtCore.QThread):
             qthread.setDaemon(True)  # 线程生命周期同主进程
             qthread.start()
             p.start()  # 开始user进程
+
+    # 收到查询策略回报，MsgType=3，进程间通信，将策略参数发送给对应的user进程
+    def process_communicate_query_strategy(self, list_data):
+        for i in list_data:
+            # print(">>> SocketManager.process_communicate_query_strategy() i =", i)
+            user_id = i['user_id']
+            strategy_id = i['strategy_id']
+            msg_process = {'MsgType': 3, 'UserID': user_id, 'StrategyID': strategy_id, 'Info': [i]}
+            self.__dict_Queue_main[user_id].put(msg_process)
 
 
 if __name__ == '__main__':

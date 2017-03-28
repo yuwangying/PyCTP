@@ -239,14 +239,38 @@ class QAccountWidget(QWidget, Ui_Form):
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         dict_tab_clicked_info = self.__dict_clicked_info[self.__current_tab_name]
         print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
-        # if len(self.get_list_update_table_view_data()) == 0:
-        #     return
+
         if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
             row = dict_tab_clicked_info['row']
             column = dict_tab_clicked_info['column']
             index = self.tableView_Trade_Args.model().index(row, column)
             self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
             self.__clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
+
+            list_update_table_view_data = self.get_list_update_table_view_data()
+            self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
+
+            print(">>> QAccountWidget.slot_tab_changed() len(dict_tab_clicked_info) > 0, row =", row, "column =", column)
+            # QModelIndex
+            # index = tableViewPowerDegree->currentIndex();
+            # int
+            # row = index.row() + 1;
+            # int
+            # column = 1;
+            # QModelIndex
+            # newIndex = tableViewPowerDegree->model()->index(row, column);
+            # tableViewPowerDegree->selectionModel()->select(newIndex, QItemSelectionModel::Select);
+            # tableViewPowerDegree->setCurrentIndex(newIndex);
+            # tableViewPowerDegree->setFocus();
+
+            # QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows;
+            # m_tableView->selectionModel()->select(index, flags);
+            # item_selection_model = QtGui.QItemSelectionModel()
+            # item_selection_model = QtGui.QItemSelectionModel.ClearAndSelect | QtGui.QItemSelectionModel.Rows
+            # self.tableView_Trade_Args.setSelectionModel(item_selection_model)
+            # self.tableView_Trade_Args.selectionMode().select(index, QtGui.QItemSelectionModel.Select)  # item_selection_model)  #
+            # self.tableView_Trade_Args.setCurrentIndex(index)
+            # self.tableView_Trade_Args.setFocus()
             # self.tableView_Trade_Args.setCurrentIndex(index)  # 设置当前行
 
             list_update_group_box_data = self.get_list_update_group_box_data()
@@ -256,6 +280,11 @@ class QAccountWidget(QWidget, Ui_Form):
             else:
                 self.clear_group_box()
 
+            selection_model = QtGui.QItemSelectionModel(self.tableView_Trade_Args.model())
+            self.tableView_Trade_Args.setSelectionModel(selection_model)
+            self.tableView_Trade_Args.selectionModel().select(index, QtGui.QItemSelectionModel.Select)
+            self.tableView_Trade_Args.setCurrentIndex(index)
+            self.tableView_Trade_Args.setFocus()
         else:
             self.__clicked_user_id = ''
             self.__clicked_strategy_id = ''
@@ -2209,6 +2238,10 @@ class QAccountWidget(QWidget, Ui_Form):
     @pyqtSlot()
     def on_pushButton_set_position_clicked(self):
         # print(">>> QAccountWidget.on_pushButton_set_position_clicked() widget_name=", self.__widget_name, "self.pushButton_set_position.text()=", self.pushButton_set_position.text())
+        # 参数排错
+        if len(self.lineEdit_qihuozhanghao.text()) == 0 or len(self.lineEdit_celuebianhao.text()) == 0:
+            print(">>> QAccountWidget.on_pushButton_set_position_clicked() 期货账号或策略编号为空")
+            return
         if self.pushButton_set_position.text() == "设置持仓":
             self.pushButton_set_position.setText("发送持仓")  # 修改按钮显示的字符
             # 解禁仓位显示lineEdit，允许编辑
@@ -2221,6 +2254,7 @@ class QAccountWidget(QWidget, Ui_Form):
             self.lineEdit_Bzongsell.setEnabled(True)
             self.lineEdit_Bzuosell.setEnabled(True)
         elif self.pushButton_set_position.text() == "发送持仓":
+            self.pushButton_set_position.setText("设置持仓")  # 修改按钮显示的字符
             self.lineEdit_Azongbuy.setEnabled(False)  # 禁用文本框
             self.lineEdit_Azuobuy.setEnabled(False)
             self.lineEdit_Azongsell.setEnabled(False)
@@ -2276,21 +2310,26 @@ class QAccountWidget(QWidget, Ui_Form):
         # 获取界面参数框里显示的期货账号的策略编号
         self.pushButton_query_strategy.setEnabled(False)  # 点击按钮之后禁用，等收到消息后激活
         # 单账户窗口中查询单账户的所有策略，总账户窗口中查询所有期货账户策略
-        str_user_id = self.__widget_name if self.is_single_user_widget() else ''
+        # str_user_id = self.__widget_name if self.is_single_user_widget() else ''
+        str_user_id = ''
         dict_query_strategy = {'MsgRef': self.__socket_manager.msg_ref_add(),
                                'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
                                'MsgSrc': 0,  # 消息源，客户端0，服务端1
                                'MsgType': 3,  # 查询策略
-                               'TraderID': self.__ctp_manager.get_trader_id(),
+                               'TraderID': self.__socket_manager.get_trader_id(),
                                'UserID': str_user_id,
                                'StrategyID': ''}
         json_query_strategy = json.dumps(dict_query_strategy)
         self.signal_send_msg.emit(json_query_strategy)
 
         # 测试用：触发保存df_order和df_trade保存到本地
-        if self.is_single_user_widget():
-            print(">>> QAccountWidget.on_pushButton_query_strategy_clicked() 保存df_order和df_trade到本地, widget_name=", self.__widget_name, "user_id =", self.__user.get_user_id().decode())
-            self.__user.save_df_order_trade()
+        # if self.is_single_user_widget():
+        #     print(">>> QAccountWidget.on_pushButton_query_strategy_clicked() 保存df_order和df_trade到本地, widget_name=", self.__widget_name, "user_id =", self.__user.get_user_id().decode())
+        #     self.__user.save_df_order_trade()
+
+    # 激活“查询”按钮
+    def slot_activate_query_strategy_pushbutton(self):
+        self.pushButton_query_strategy.setEnabled(True)
 
     @pyqtSlot(bool)
     def on_checkBox_kongtoukai_clicked(self, checked):

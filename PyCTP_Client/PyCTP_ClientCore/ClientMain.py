@@ -652,8 +652,10 @@ if __name__ == '__main__':
     socket_manager.signal_update_panel_show_account.connect(q_ctp.widget_QAccountWidget.slot_update_panel_show_account)
     # 绑定信号槽：SocketManager发送data_list -> QAccountWidget.tableView_Trade_Args接收数据,刷新界面
     # socket_manager.signal_set_data_list.connect(q_ctp.widget_QAccountWidget.StrategyDataModel.slot_set_data_list)
-    # 右击菜单隐藏 -> 右击菜单信息初始化为空
+    # 绑定信号槽：右击菜单隐藏 -> 右击菜单信息初始化为空
     q_ctp.widget_QAccountWidget.popMenu.aboutToHide.connect(q_ctp.widget_QAccountWidget.slot_init_right_click)
+    # 绑定信号槽：SocketManager收到查询策略回报消息 -> 向界面发送信号，激活查询策略按钮
+    socket_manager.signal_activate_query_strategy_pushbutton.connect(q_ctp.widget_QAccountWidget.slot_activate_query_strategy_pushbutton)
 
     sys.exit(app.exec_())
 

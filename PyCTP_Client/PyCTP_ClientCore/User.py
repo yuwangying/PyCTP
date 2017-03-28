@@ -468,6 +468,8 @@ class User():
             strategy_id = dict_data['Info'][0]['strategy_id']
             dict_args = dict_data['Info'][0]
             self.__dict_strategy[strategy_id].set_position(dict_args)
+        # 查询策略
+
 
     # 创建策略实例
     def create_strategy(self, dict_args):
@@ -647,7 +649,7 @@ class User():
         dict_data = {
             'DataFlag': 'user_init_finished',
             'UserId': self.__user_id,
-            'DataMain': self.__dict_instrument_statistics
+            'DataMain': 'True'
         }
         self.__Queue_user.put(dict_data)  # user进程put，main进程get
 

@@ -38,7 +38,7 @@ class StrategyDataModel(QAbstractTableModel):
         # self.rowCheckStateMap = {}
 
     def slot_set_data_list(self, data_list):
-        print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
+        # print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
         self.__data_list = copy.deepcopy(data_list)
         # print(">>> StrategyDataModel.slot_set_data_list() self.__data_list =", self.__data_list)
         self.__row = len(self.__data_list)
@@ -148,27 +148,27 @@ class StrategyDataModel(QAbstractTableModel):
             self.layoutChanged.emit()
 
     # checkBox勾选状态
-    # def flags(self, index):
-    #     # print(">>> StrategyDataModel.flags() type(index) =", type(index))
-    #     # if len(self.__q_account_widget.get_list_update_table_view_data()) == 0:
-    #     #     return
-    #     if not index.isValid():
-    #         return None
-    #     # print(">>> flags() index.column() = ", index.column(), index.row())
-    #     if index.column() == 0:
-    #         # return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable
-    #         # return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
-    #         # print(">>> flags() column == 0")
-    #         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
-    #     else:
-    #         # return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-    #         # print(">>> flags() column != 0")
-    #         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+    def flags(self, index):
+        # print(">>> StrategyDataModel.flags() type(index) =", type(index))
+        # if len(self.__q_account_widget.get_list_update_table_view_data()) == 0:
+        #     return
+        if not index.isValid():
+            return QAbstractTableModel.flags(self, index)
+        # print(">>> flags() index.column() = ", index.column(), index.row())
+        if index.column() == 0:
+            # return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable
+            # return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
+            # print(">>> flags() column == 0")
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
+        else:
+            # return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+            # print(">>> flags() column != 0")
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def set_QAccountWidget(self, obj):
         self.__q_account_widget = obj
 
-    """
+
     # 设置单个单元格数据
     def setData(self, index, value, role):
         if not index.isValid():
@@ -190,16 +190,16 @@ class StrategyDataModel(QAbstractTableModel):
             # else:
             #     self.__data_list[row][column].setChecked(False)
             #     self.__data_list[row][column].setText("关")
-            if value == 1:
+            if value == QtCore.Qt.Checked:
                 # self.__data_list[row][column].setChecked(True)
                 # self.__data_list[row][column].setText("开")
                 # if studentInfos.size() > index.row():
                 #     emit StudentInfoIsChecked(studentInfos[index.row()])
-                return QtCore.Qt.Checked
-            else:
+                self.__data_list[row][0] = 1
+            elif value == QtCore.Qt.Unchecked:
                 # self.__data_list[row][column].setChecked(False)
                 # self.__data_list[row][column].setText("关")
-                return QtCore.Qt.Unchecked
+                self.__data_list[row][0] = 0
             pass
         else:
             pass
@@ -210,7 +210,7 @@ class StrategyDataModel(QAbstractTableModel):
         # print(">>> setData() index.column = ", index.column())
         self.dataChanged.emit(index, index)
         return True
-    """
+
 
 if __name__ == '__main__':
     app = QApplication([])
