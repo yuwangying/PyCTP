@@ -182,6 +182,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # else:
         #     self.__list_update_table_view_data = self.__socket_manager.get_dict_table_view_data()[self.__current_tab_name]
         list_update_table_view_data = self.get_list_update_table_view_data()
+        # print(">>> QAccountWidget.slot_update_ui() list_update_table_view_data =", list_update_table_view_data)
         self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
 
         # self.__list_update_group_box_data = list()
@@ -193,6 +194,7 @@ class QAccountWidget(QWidget, Ui_Form):
         #             # print(">>> QAccountWidget.slot_update_ui() self.__list_update_group_box_data =", self.__list_update_group_box_data)
         #             break
         list_update_group_box_data = self.get_list_update_group_box_data()
+        # print(">>> QAccountWidget.slot_update_ui() list_update_group_box_data =", list_update_group_box_data)
         if len(list_update_group_box_data) > 0:
             self.slot_update_group_box_statistics()
         else:
@@ -236,6 +238,7 @@ class QAccountWidget(QWidget, Ui_Form):
         print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         dict_tab_clicked_info = self.__dict_clicked_info[self.__current_tab_name]
+        print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
         # if len(self.get_list_update_table_view_data()) == 0:
         #     return
         if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
@@ -244,12 +247,12 @@ class QAccountWidget(QWidget, Ui_Form):
             index = self.tableView_Trade_Args.model().index(row, column)
             self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
             self.__clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
-            self.tableView_Trade_Args.setCurrentIndex(index)  # 设置当前行
+            # self.tableView_Trade_Args.setCurrentIndex(index)  # 设置当前行
 
             list_update_group_box_data = self.get_list_update_group_box_data()
             if len(list_update_group_box_data) > 0:
                 self.slot_update_group_box()  # 切换tab时更新groupBox中所有元素一次
-                print(">>> QAccountWidget.slot_tab_changed() 切换tab时更新groupBox中所有元素一次")
+                # print(">>> QAccountWidget.slot_tab_changed() 切换tab时更新groupBox中所有元素一次")
             else:
                 self.clear_group_box()
 
@@ -1122,6 +1125,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Bzongsell.setText('')  # B总卖
         self.lineEdit_Bzuosell.setText('')  # B昨卖
 
+    """
     # 更新单个策略的界面显示，调用情景：鼠标点击tableWidget、发送参数、发送持仓、查询、插入策略
     @QtCore.pyqtSlot(object)
     def slot_update_strategy(self, obj_strategy):
@@ -1136,7 +1140,7 @@ class QAccountWidget(QWidget, Ui_Form):
               "strategy_id=", obj_strategy.get_strategy_id(),
               "self.sender()=", self.sender(),
               "dict_strategy_args=", dict_strategy_args)
-        """更新tableWidget"""
+        # 更新tableWidget
         for i_row in range(self.tableWidget_Trade_Args.rowCount()):
             # 在table中找到对应的策略行，更新界面显示，跳出for
             if self.tableWidget_Trade_Args.item(i_row, 2).text() == obj_strategy.get_user_id() and self.tableWidget_Trade_Args.item(i_row, 3).text() == obj_strategy.get_strategy_id():
@@ -1222,7 +1226,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 item_order_algorithm.setText(dict_strategy_args['order_algorithm'])
 
                 break  # 在tableWidget中找到对应的策略行，结束for循环
-        """更新groupBox"""
+        # 更新groupBox
         if self.__clicked_strategy == obj_strategy:  # 只更新在当前窗口中被鼠标选中的策略
             # print(">>> QAccountWidget.slot_update_strategy() 更新groupBox，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
             # 期货账号
@@ -1320,6 +1324,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # self.slot_update_strategy_position(obj_strategy)  # 调用slot_update_strategy是连带调用slot_update_strategy_position
 
     """
+
     # 更新groupBox：更新全部item
     def update_groupBox(self):
         # 鼠标未点击任何策略之前，不更新groupBox
@@ -1411,6 +1416,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))  # B昨卖
     """
 
+    """
     # 更新groupBox：全部元素
     def slot_update_group_box(self):
         self.lineEdit_qihuozhanghao.setText(self.__list_update_group_box_data[1])  # 期货账号

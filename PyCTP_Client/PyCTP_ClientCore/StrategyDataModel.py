@@ -38,35 +38,40 @@ class StrategyDataModel(QAbstractTableModel):
         # self.rowCheckStateMap = {}
 
     def slot_set_data_list(self, data_list):
-        # print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
-        self.__data_list = copy.deepcopy(data_list)
-        # print(">>> StrategyDataModel.slot_set_data_list() self.__data_list =", self.__data_list)
-        self.__row = len(self.__data_list)
-        # if len(data_list) > 0:
-        #     print(">>> StrategyDataModel.slot_set_data_list() len(data_list) =", len(data_list), "type(data_list[0][0]) =", type(data_list[0][0]))
+        if len(data_list) == 0:
+            self.__data_list = []
+            self.__row = 0
+            self.__column = 0
+        else:
+            print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
+            self.__data_list = copy.deepcopy(data_list)
+            # print(">>> StrategyDataModel.slot_set_data_list() self.__data_list =", self.__data_list)
+            self.__row = len(self.__data_list)
+            # if len(data_list) > 0:
+            #     print(">>> StrategyDataModel.slot_set_data_list() len(data_list) =", len(data_list), "type(data_list[0][0]) =", type(data_list[0][0]))
 
-        for i in self.__data_list:
-            # print(">>>>>>>i[0] = ", i[0], type(i[0]))
-            # if i[1] == '058176' and i[2] =='02':
-            #     print("i[0] =", i[0])
-            checkbox_on_off = QtGui.QCheckBox()
-            if i[0] == 1:
-                checkbox_on_off.setText('开')
-                checkbox_on_off.setChecked(True)
-                i[0] = checkbox_on_off
-            else:
-                checkbox_on_off.setText('关')
-                checkbox_on_off.setChecked(False)
-                i[0] = checkbox_on_off
+            for i in self.__data_list:
+                # print(">>>>>>>i[0] = ", i[0], type(i[0]))
+                # if i[1] == '058176' and i[2] =='02':
+                #     print("i[0] =", i[0])
+                checkbox_on_off = QtGui.QCheckBox()
+                if i[0] == 1:
+                    checkbox_on_off.setText('开')
+                    checkbox_on_off.setChecked(True)
+                    # i[0] = checkbox_on_off
+                else:
+                    checkbox_on_off.setText('关')
+                    checkbox_on_off.setChecked(False)
+                    # i[0] = checkbox_on_off
 
-        if self.__row != 0:
-            # self.emit(SIGNAL("layoutAboutToBeChanged()"))
-            # self.layoutAboutToBeChanged.emit()
-            self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
-            # if order == Qt.DescendingOrder:
-            #     self.__data_list.reverse()
-            # self.emit(SIGNAL("layoutChanged()"))
-            # self.layoutChanged.emit()
+            if self.__row != 0:
+                # self.emit(SIGNAL("layoutAboutToBeChanged()"))
+                # self.layoutAboutToBeChanged.emit()
+                self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
+                # if order == Qt.DescendingOrder:
+                #     self.__data_list.reverse()
+                # self.emit(SIGNAL("layoutChanged()"))
+                # self.layoutChanged.emit()
 
         self.layoutAboutToBeChanged.emit()
         self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
@@ -120,8 +125,8 @@ class StrategyDataModel(QAbstractTableModel):
             #     value = 1
             # else:
             #     value = 0
-            value = self.__data_list[row][column].text()
-            # value = self.__data_list[row][column]
+            # value = self.__data_list[row][column].text()
+            value = self.__data_list[row][column]
             # value = self.__data_list[index.row()][index.column()]
         else:
             value = self.__data_list[row][column]
@@ -132,7 +137,11 @@ class StrategyDataModel(QAbstractTableModel):
         elif role == QtCore.Qt.CheckStateRole:
             if column == 0:
                 # print(">>> data() row,col = %d, %d" % (index.row(), index.column()))
-                if self.__data_list[row][column].isChecked():
+                # if self.__data_list[row][column].isChecked():
+                #     return QtCore.Qt.Checked
+                # else:
+                #     return QtCore.Qt.Unchecked
+                if self.__data_list[row][column] == 1:
                     return QtCore.Qt.Checked
                 else:
                     return QtCore.Qt.Unchecked
@@ -158,21 +167,28 @@ class StrategyDataModel(QAbstractTableModel):
 
     # checkBox勾选状态
     def flags(self, index):
+        print(">>> StrategyDataModel.flags() type(index) =", type(index))
         # if len(self.__q_account_widget.get_list_update_table_view_data()) == 0:
         #     return
-
         if not index.isValid():
-            return None
-        # print(">>> flags() index.column() = ", index.column())
+            return 0
+        if index.data() is None:
+            return 0
+        # print(">>> flags() index.column() = ", index.column(), index.row())
         if index.column() == 0:
             # return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable
+            # return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
+            # print(">>> flags() column == 0")
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
         else:
+            # return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+            # print(">>> flags() column != 0")
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def set_QAccountWidget(self, obj):
         self.__q_account_widget = obj
 
+    """
     # 设置单个单元格数据
     def setData(self, index, value, role):
         if not index.isValid():
@@ -186,14 +202,25 @@ class StrategyDataModel(QAbstractTableModel):
             # print(">>> setData() role = ", role)
             # print(">>> setData() index.column() = ", index.column())
             # print(">>> setData() index.value = ", value)
-            if value == QtCore.Qt.Checked:
-                self.__data_list[row][column].setChecked(True)
-                self.__data_list[row][column].setText("开")
+            # if value == QtCore.Qt.Checked:
+            #     self.__data_list[row][column].setChecked(True)
+            #     self.__data_list[row][column].setText("开")
+            #     # if studentInfos.size() > index.row():
+            #     #     emit StudentInfoIsChecked(studentInfos[index.row()])
+            # else:
+            #     self.__data_list[row][column].setChecked(False)
+            #     self.__data_list[row][column].setText("关")
+            if value == 1:
+                # self.__data_list[row][column].setChecked(True)
+                # self.__data_list[row][column].setText("开")
                 # if studentInfos.size() > index.row():
                 #     emit StudentInfoIsChecked(studentInfos[index.row()])
+                return QtCore.Qt.Checked
             else:
-                self.__data_list[row][column].setChecked(False)
-                self.__data_list[row][column].setText("关")
+                # self.__data_list[row][column].setChecked(False)
+                # self.__data_list[row][column].setText("关")
+                return QtCore.Qt.Unchecked
+            pass
         else:
             pass
             # print(">>> setData() role = ", role)
@@ -203,7 +230,7 @@ class StrategyDataModel(QAbstractTableModel):
         # print(">>> setData() index.column = ", index.column())
         self.dataChanged.emit(index, index)
         return True
-
+    """
 
 if __name__ == '__main__':
     app = QApplication([])
