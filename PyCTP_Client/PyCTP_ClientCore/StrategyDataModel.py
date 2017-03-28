@@ -62,9 +62,12 @@ class StrategyDataModel(QAbstractTableModel):
         self.__row = len(self.__data_list)
         if self.__row != 0:
             self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
-        # self.layoutAboutToBeChanged.emit()
-        self.dataChanged.emit(self.createIndex(0, 1), self.createIndex(self.rowCount(0), self.columnCount(0)))
-        # self.layoutChanged.emit()
+        self.layoutAboutToBeChanged.emit()
+        t1 = self.index(0, 1)  # 左上角
+        t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
+        # self.dataChanged.emit(self.createIndex(0, 1), self.createIndex(self.rowCount(0), self.columnCount(0)))
+        self.dataChanged.emit(t1, t2)
+        self.layoutChanged.emit()
 
     # def updateModel(self):
     #     dataList2 = []
