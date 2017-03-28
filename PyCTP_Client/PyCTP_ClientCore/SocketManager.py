@@ -72,6 +72,7 @@ class SocketManager(QtCore.QThread):
         self.__clicked_strategy_id = ''
         self.__dict_user_process_finished = dict()  # 子进程初始化完成信息
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
+        self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
@@ -214,6 +215,12 @@ class SocketManager(QtCore.QThread):
     def get_dict_panel_show_account_data(self):
         return self.__dict_panel_show_account_data
 
+    def get_dict_user_on_off(self):
+        return self.__dict_user_on_off
+
+    def get_total_process_finished(self):
+        return self.__total_process_finished
+
     # 连接服务器
     def connect(self):
         # 创建socket套接字
@@ -353,6 +360,7 @@ class SocketManager(QtCore.QThread):
                     # self.__ctp_manager.set_on_off(buff['OnOff'])
                     # self.qry_market_info()  # 发送：查询行情配置，MsgType=4
                     self.set_dict_trader_info(buff)
+                    self.__dict_user_on_off['所有账户'] = buff['OnOff']
                 elif buff['MsgResult'] == 1:  # 验证不通过
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -373,8 +381,10 @@ class SocketManager(QtCore.QThread):
                     self.__update_ui_user_id = buff['Info'][0]['userid']
                     for i in buff['Info']:
                         user_id = i['userid']
+                        self.__dict_user_on_off[user_id] = i['on_off']
                         self.__dict_table_view_data[user_id] = list()  # 初始化更新tableView的数据
                         self.__dict_panel_show_account_data[user_id] = list()  # 初始化更新panel_show_account的数据
+                    print(">>> self.__dict_user_on_off =", self.__dict_user_on_off)
                     # print(">>> self.__update_ui_user_id =", self.__update_ui_user_id)
                     # self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -510,13 +520,15 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=8，修改交易员开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_on_off(buff['OnOff'])  # 设置内核中交易员开关
-                    pass
+                    for user_id in self.__dict_Queue_main:
+                        self.__dict_Queue_main[user_id].put(buff)  # 将修改交易员开关回报发送给所有user进程
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=8 修改交易员开关失败")
             elif buff['MsgType'] == 9:  # 修改期货账户开关
                 print("SocketManager.receive_msg() MsgType=9，修改期货账户开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    pass
+                    user_id = buff['UserID']
+                    self.__dict_Queue_main[user_id].put(buff)  # 将修改期货账户开关回报发送给user进程
                     # for i_user in self.__ctp_manager.get_list_user():
                     #     if i_user.get_user_id().decode() == buff['UserID']:
                     #         i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
@@ -771,6 +783,7 @@ class SocketManager(QtCore.QThread):
                 self.__dict_user_process_finished[user_id] = data_main
                 if len(self.__dict_user_process_finished) == len(self.__list_process):
                     self.__total_process_finished = True
+                    self.__QAccountWidget.set_total_process_finished(True)
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):

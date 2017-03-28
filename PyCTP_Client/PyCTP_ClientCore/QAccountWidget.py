@@ -76,6 +76,8 @@ class QAccountWidget(QWidget, Ui_Form):
         @type QWidget
         """
         super(QAccountWidget, self).__init__(parent)
+        self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
+
         self.setupUi(self)  # 调用父类中配置界面的方法
         self.tableView_Trade_Args.setSortingEnabled(True)
         self.tableView_Trade_Args.horizontalHeader().setMovable(True)
@@ -204,6 +206,13 @@ class QAccountWidget(QWidget, Ui_Form):
     def slot_tab_changed(self, int_tab_index):
         self.__current_tab_index = int_tab_index  # 保存当前tab的index
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
+        # 更新期货账户开关或所有账户开关按钮
+        if self.__total_process_finished:  # 所有进程初始化完成标志位，初始值为False
+            on_off = self.__socket_manager.get_dict_user_on_off()[self.__current_tab_name]
+            if on_off == 1:
+                self.pushButton_start_strategy.setText('关闭策略')
+            else:
+                self.pushButton_start_strategy.setText('开始策略')
         print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
@@ -317,6 +326,9 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def get_clicked_strategy_id(self):
         return self.__clicked_strategy_id
+
+    def set_total_process_finished(self, bool_input):
+        self.__total_process_finished = bool_input
 
     # 设置窗口名称
     def set_widget_name(self, str_name):
@@ -2033,12 +2045,11 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
+    """
     @pyqtSlot()
     def on_pushButton_start_strategy_clicked(self):
-        """
-        Slot documentation goes here.
-        """
+        # Slot documentation goes here.
         # TODO: not implemented yet
         # raise NotImplementedError
         if self.is_single_user_widget():
@@ -2092,6 +2103,37 @@ class QAccountWidget(QWidget, Ui_Form):
             self.signal_send_msg.emit(json_trade_onoff)
         else:
             print("QAccountWidget.on_pushButton_start_strategy_clicked() 按钮显示状态与内核值不一致，不发送指令交易开关指令，widget_name=", self.__widget_name, "按钮显示：", self.pushButton_start_strategy.text(), "内核开关值：", on_off)
+    """
+
+    @pyqtSlot()
+    def on_pushButton_start_strategy_clicked(self):
+        if self.pushButton_start_strategy.text() == '开始策略':
+            # self.pushButton_start_strategy.setEnabled(False)  # 将按钮禁用
+            self.pushButton_start_strategy.setText('停止策略')
+            on_off = 1
+        elif self.pushButton_start_strategy.text() == '停止策略':
+            self.pushButton_start_strategy.setText('开始策略')
+            on_off = 0
+
+        if self.__current_tab_name == '所有账户':
+            dict_trade_onoff = {
+                'MsgRef': self.__socket_manager.msg_ref_add(),
+                'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                'MsgType': 8,  # 交易员交易开关
+                'TraderID': self.__socket_manager.get_trader_id(),
+                'OnOff': on_off}
+        else:
+            dict_trade_onoff = {
+                'MsgRef': self.__socket_manager.msg_ref_add(),
+                'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+                'MsgSrc': 0,  # 消息源，客户端0，服务端1
+                'MsgType': 9,  # 期货账户开关
+                'TraderID': self.__socket_manager.get_trader_id(),
+                'UserID': self.__current_tab_name,
+                'OnOff': on_off}
+        json_trade_onoff = json.dumps(dict_trade_onoff)
+        self.signal_send_msg.emit(json_trade_onoff)
 
     # 联动加
     @pyqtSlot()

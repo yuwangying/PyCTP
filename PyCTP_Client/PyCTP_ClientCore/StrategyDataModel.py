@@ -40,7 +40,7 @@ class StrategyDataModel(QAbstractTableModel):
     # 更新tableView内全部元素
     def slot_set_data_list(self, data_list):
         # print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
-        print(">>> StrategyDataModel.slot_set_data_list() called")
+        # print(">>> StrategyDataModel.slot_set_data_list() called")
         self.__data_list = copy.deepcopy(data_list)
         self.__row = len(self.__data_list)
         if self.__row != 0:
@@ -57,7 +57,7 @@ class StrategyDataModel(QAbstractTableModel):
 
     # 更新tableView部分元素，策略开关除外
     def slot_set_data_list_part(self, data_list):
-        print(">>> StrategyDataModel.slot_set_data_list_part() called")
+        # print(">>> StrategyDataModel.slot_set_data_list_part() called")
         self.__data_list = copy.deepcopy(data_list)
         self.__row = len(self.__data_list)
         if self.__row != 0:
