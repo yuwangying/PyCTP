@@ -498,24 +498,22 @@ class SocketManager(QtCore.QThread):
             elif buff['MsgType'] == 13:  # 修改策略交易开关
                 print("SocketManager.receive_msg() MsgType=13，修改策略交易开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    pass
-                    # for i_strategy in self.__ctp_manager.get_list_strategy():
-                    #     if i_strategy.get_user_id() == buff['UserID'] \
-                    #             and i_strategy.get_strategy_id() == buff['StrategyID']:
-                    #         i_strategy.set_on_off(buff['OnOff'])  # 更新内核中策略开关
-                    #         break
+                    # 进程通信，将消息发给对应的user进程
+                    user_id = buff['UserID']
+                    self.__dict_Queue_main[user_id].put(buff)
+                    # self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 更新一次全部数据
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
-            elif buff['MsgType'] == 14:  # 修改策略只平开关
-                print("SocketManager.receive_msg() MsgType=14，修改策略只平开关", buff)
-                if buff['MsgResult'] == 0:  # 消息结果成功
-                    for i_strategy in self.__ctp_manager.get_list_strategy():
-                        if i_strategy.get_user_id() == buff['UserID'] \
-                                and i_strategy.get_strategy_id() == buff['StrategyID']:
-                            i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
-                            break
-                elif buff['MsgResult'] == 1:  # 消息结果失败
-                    print("SocketManager.receive_msg() MsgType=14 修改策略只平开关失败")
+            # elif buff['MsgType'] == 14:  # 修改策略只平开关
+            #     print("SocketManager.receive_msg() MsgType=14，修改策略只平开关", buff)
+            #     if buff['MsgResult'] == 0:  # 消息结果成功
+            #         for i_strategy in self.__ctp_manager.get_list_strategy():
+            #             if i_strategy.get_user_id() == buff['UserID'] \
+            #                     and i_strategy.get_strategy_id() == buff['StrategyID']:
+            #                 i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
+            #                 break
+            #     elif buff['MsgResult'] == 1:  # 消息结果失败
+            #         print("SocketManager.receive_msg() MsgType=14 修改策略只平开关失败")
             elif buff['MsgType'] == 8:  # 修改交易员开关
                 print("SocketManager.receive_msg() MsgType=8，修改交易员开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功

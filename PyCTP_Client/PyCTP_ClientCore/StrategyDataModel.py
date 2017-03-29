@@ -31,22 +31,26 @@ class StrategyDataModel(QAbstractTableModel):
         self.__header = header
         self.__row = 0
         self.__column = 0
+        self.__is_set_data = False  # 是否给数据模型设置值，初始值为False
+        self.__update_once = False  # 是否更新一遍全部数据，初始值为False
         # self.timer = QtCore.QTimer()
         # self.change_flag = True
         # self.timer.timeout.connect(self.updateModel)
         # self.timer.start(60000)
         # self.rowCheckStateMap = {}
 
+    """
     # 更新tableView内全部元素
     def slot_set_data_list(self, data_list):
         # print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
         # print(">>> StrategyDataModel.slot_set_data_list() called")
-        self.__data_list = copy.deepcopy(data_list)
+        # self.__data_list = copy.deepcopy(data_list)
+        self.__data_list = data_list
         self.__row = len(self.__data_list)
-        if self.__row != 0:
+        # if self.__row != 0:
+            # self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
             # self.emit(SIGNAL("layoutAboutToBeChanged()"))
             # self.layoutAboutToBeChanged.emit()
-            self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
             # if order == Qt.DescendingOrder:
             #     self.__data_list.reverse()
             # self.emit(SIGNAL("layoutChanged()"))
@@ -54,20 +58,33 @@ class StrategyDataModel(QAbstractTableModel):
         self.layoutAboutToBeChanged.emit()
         self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
         self.layoutChanged.emit()
+    """
 
-    # 更新tableView部分元素，策略开关除外
-    def slot_set_data_list_part(self, data_list):
-        # print(">>> StrategyDataModel.slot_set_data_list_part() called")
-        self.__data_list = copy.deepcopy(data_list)
-        self.__row = len(self.__data_list)
-        if self.__row != 0:
-            self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
-        self.layoutAboutToBeChanged.emit()
-        t1 = self.index(0, 1)  # 左上角
-        t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
-        # self.dataChanged.emit(self.createIndex(0, 1), self.createIndex(self.rowCount(0), self.columnCount(0)))
-        self.dataChanged.emit(t1, t2)
-        self.layoutChanged.emit()
+    # 更新tableView
+    def slot_set_data_list(self, data_list):
+        # print(">>> StrategyDataModel.slot_set_data_list() called")
+        len_data_list = len(data_list)  # 最新数据的长度
+        # 已经设置过数据、数据长度相同、未切换tab页
+        if not self.__update_once and self.__is_set_data and self.__row == len_data_list and self.__QAccountWidget.get_current_tab_name() == self.__last_tab_name:
+            t1 = self.index(0, 1)  # 左上角
+            t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
+            self.dataChanged.emit(t1, t2)
+        else:
+            self.__data_list = data_list
+            self.__row = len(self.__data_list)
+            if self.__row != 0:
+                self.__is_set_data = True
+            self.layoutAboutToBeChanged.emit()
+            if self.__row != 0:
+                self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
+            self.layoutChanged.emit()
+            self.__update_once = False  # 更新一次界面请求的值设置为False
+            print(">>>slot_set_data_list() self.__update_once = False")
+
+        self.__last_tab_name = self.__QAccountWidget.get_current_tab_name()  # 保存最后一次tabName
+
+    def set_update_once(self, bool_input):
+        self.__update_once = bool_input
 
     # def updateModel(self):
     #     dataList2 = []
@@ -112,27 +129,19 @@ class StrategyDataModel(QAbstractTableModel):
             return None
         column = index.column()
         row = index.row()
-        if column == 0:
-            # if self.__data_list[row][column].text() == '开':
-            #     value = 1
-            # else:
-            #     value = 0
-            # value = self.__data_list[row][column].text()
-            value = self.__data_list[row][column]
-            # value = self.__data_list[index.row()][index.column()]
-        else:
-            value = self.__data_list[row][column]
+
+        value = self.__data_list[row][column]
         if role == QtCore.Qt.EditRole:
             return value
         elif role == QtCore.Qt.DisplayRole:
+            if column == 0:
+                if value == 0:
+                    value = '关'
+                else:
+                    value = '开'
             return value
         elif role == QtCore.Qt.CheckStateRole:
             if column == 0:
-                # print(">>> data() row,col = %d, %d" % (index.row(), index.column()))
-                # if self.__data_list[row][column].isChecked():
-                #     return QtCore.Qt.Checked
-                # else:
-                #     return QtCore.Qt.Unchecked
                 if self.__data_list[row][column] == 1:
                     return QtCore.Qt.Checked
                 else:
@@ -160,7 +169,7 @@ class StrategyDataModel(QAbstractTableModel):
     # checkBox勾选状态
     def flags(self, index):
         # print(">>> StrategyDataModel.flags() type(index) =", type(index))
-        # if len(self.__q_account_widget.get_list_update_table_view_data()) == 0:
+        # if len(self.__QAccountWidget.get_list_update_table_view_data()) == 0:
         #     return
         if not index.isValid():
             return QAbstractTableModel.flags(self, index)
@@ -176,8 +185,7 @@ class StrategyDataModel(QAbstractTableModel):
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def set_QAccountWidget(self, obj):
-        self.__q_account_widget = obj
-
+        self.__QAccountWidget = obj
 
     # 设置单个单元格数据
     def setData(self, index, value, role):
@@ -185,39 +193,23 @@ class StrategyDataModel(QAbstractTableModel):
             return False
         row = index.row()
         column = index.column()
-        # print(">>> setData() role = ", role)
-        # print(">>> setData() index.column() = ", index.column())
-        # print(">>> setData() value = ", value)
-        if role == QtCore.Qt.CheckStateRole and index.column() == 0:
-            # print(">>> setData() role = ", role)
-            # print(">>> setData() index.column() = ", index.column())
-            # print(">>> setData() index.value = ", value)
-            # if value == QtCore.Qt.Checked:
-            #     self.__data_list[row][column].setChecked(True)
-            #     self.__data_list[row][column].setText("开")
-            #     # if studentInfos.size() > index.row():
-            #     #     emit StudentInfoIsChecked(studentInfos[index.row()])
-            # else:
-            #     self.__data_list[row][column].setChecked(False)
-            #     self.__data_list[row][column].setText("关")
+        if role == QtCore.Qt.CheckStateRole and column == 0:
             if value == QtCore.Qt.Checked:
-                # self.__data_list[row][column].setChecked(True)
-                # self.__data_list[row][column].setText("开")
-                # if studentInfos.size() > index.row():
-                #     emit StudentInfoIsChecked(studentInfos[index.row()])
                 self.__data_list[row][0] = 1
+                on_off = 1
             elif value == QtCore.Qt.Unchecked:
-                # self.__data_list[row][column].setChecked(False)
-                # self.__data_list[row][column].setText("关")
                 self.__data_list[row][0] = 0
-            pass
+                on_off = 0
+            dict_args = {
+                'user_id': self.__data_list[row][1],
+                'strategy_id': self.__data_list[row][2],
+                'on_off': on_off
+            }
+            self.__QAccountWidget.send_msg_revise_strategy_on_off(dict_args)
+        elif role == QtCore.Qt.DisplayRole:
+            self.__data_list[row][4] = value
         else:
             pass
-            # print(">>> setData() role = ", role)
-            # print(">>> setData() index.column() = ", index.column())
-        # self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
-        # print(">>> setData() index.row = ", index.row())
-        # print(">>> setData() index.column = ", index.column())
         self.dataChanged.emit(index, index)
         return True
 

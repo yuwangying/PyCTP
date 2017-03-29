@@ -175,7 +175,7 @@ class QAccountWidget(QWidget, Ui_Form):
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
         list_update_table_view_data = self.get_list_update_table_view_data()
-        self.StrategyDataModel.slot_set_data_list_part(list_update_table_view_data)  # 更新界面tableView
+        self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
 
         list_update_group_box_data = self.get_list_update_group_box_data()
         if len(list_update_group_box_data) > 0:
@@ -381,7 +381,7 @@ class QAccountWidget(QWidget, Ui_Form):
             for i in dict_table_view_data:
                 self.__list_update_table_view_data.extend(dict_table_view_data[i])
         else:
-            self.__list_update_table_view_data = self.__socket_manager.get_dict_table_view_data()[ self.__current_tab_name]
+            self.__list_update_table_view_data = self.__socket_manager.get_dict_table_view_data()[self.__current_tab_name]
         return self.__list_update_table_view_data
 
    # 获取更新groupBox的数据
@@ -2027,6 +2027,20 @@ class QAccountWidget(QWidget, Ui_Form):
             'UserID': self.__clicked_user_id,
             'StrategyID':self.__clicked_strategy_id
             }
+        json_msg = json.dumps(dict_msg)
+        self.signal_send_msg.emit(json_msg)
+
+    def send_msg_revise_strategy_on_off(self, dict_args):
+        dict_msg = {
+            'MsgRef': self.__socket_manager.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 13,  # 修改策略开关
+            'TraderID': self.__socket_manager.get_trader_id(),
+            'UserID': dict_args['user_id'],
+            'StrategyID': dict_args['strategy_id'],
+            'OnOff': dict_args['on_off']
+        }
         json_msg = json.dumps(dict_msg)
         self.signal_send_msg.emit(json_msg)
 
