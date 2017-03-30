@@ -112,5 +112,5 @@ class QCTP(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, QCloseEvent):
         print(">>> QCTP.closeEvent() ")
-        QtGui.QApplication.quit()
-        pass
+        self.widget_QAccountWidget.get_SocketManager().set_recive_msg_flag(False)
+        QtCore.QCoreApplication.instance().quit()

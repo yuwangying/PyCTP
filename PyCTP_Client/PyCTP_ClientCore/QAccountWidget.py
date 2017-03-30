@@ -93,6 +93,10 @@ class QAccountWidget(QWidget, Ui_Form):
         self.slot_addTabBar("所有账户")
 
         self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
+        self.__spread_long = 0  # 界面价差初始值
+        self.__spread_long_last = 0
+        self.__spread_short = 0
+        self.__spread_short_last = 0
 
         # 设置tableWidget列的宽度
         # self.tableWidget_Trade_Args.setColumnWidth(0, 50)  # 开关
@@ -282,6 +286,21 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> QAccountWidget.slot_set_data_list() data_list =", len(data_list), data_list)
         # self.__list_update_widget_data = data_list
         # self.StrategyDataModel.slot_set_data_list(data_list)
+
+    # 更新界面行情：[多头价差, 空头价差]
+    def slot_update_spread_ui(self, list_data):
+        self.__spread_long = list_data[0]
+        self.__spread_short = list_data[1]
+        if self.__spread_long != self.__spread_long_last:
+            print(">>> QAccountWidget.slot_update_spread_ui() 更新多头价差", self.__spread_long)
+            self.lineEdit_duotoujiacha.setText(str(self.__spread_long))
+            pass
+        if self.__spread_short != self.__spread_short_last:
+            print(">>> QAccountWidget.slot_update_spread_ui() 更新空头价差", self.__spread_short)
+            self.lineEdit_kongtoujiacha.setText(str(self.__spread_short))
+            pass
+        self.__spread_long_last = self.__spread_long
+        self.__spread_short_last = self.__spread_short
 
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
@@ -1863,6 +1882,11 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__spread_long = dict_input['spread_long']  # 储存最后值，与后来的值比较，如果之变化就刷新界面
         self.__spread_short = dict_input['spread_short']
 
+    # 间接槽函数，目的槽函数在StrategyDataModel.slot_update_strategy_on_off()
+    def slot_update_strategy_on_off(self, dict_args):
+        # self.StrategyDataModel.slot_update_strategy_on_off(dict_args)
+        pass
+
     # 点击“发送”按钮后的参数更新，要更新的策略为goupBox中显示的user_id、strategy_id对应的
     def update_groupBox_trade_args_for_set(self):
         # 遍历策略列表，找到与界面显示相同的策略对象实例
@@ -2389,6 +2413,10 @@ class QAccountWidget(QWidget, Ui_Form):
         print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__dict_clicked_info =", self.__dict_clicked_info)
         self.__socket_manager.set_clicked_info(row, column, self.__clicked_user_id, self.__clicked_strategy_id)
         self.get_list_update_group_box_data()  # 获取最新groupBox的更新数据
+        a_instrument_id = self.__list_update_group_box_data[3][:6]
+        b_instrument_id = self.__list_update_group_box_data[3][7:]
+        list_instrument_id = [a_instrument_id, b_instrument_id]
+        self.__socket_manager.get_market_manager().group_box_sub_market(list_instrument_id)
         self.slot_update_group_box()
 
     @pyqtSlot(QModelIndex)

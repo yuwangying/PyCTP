@@ -477,11 +477,13 @@ class User():
         obj_strategy = Strategy(dict_args, self)
         self.__dict_strategy[strategy_id] = obj_strategy  # 保存strategy对象的dict，由user对象维护
         self.__dict_strategy_finished[strategy_id] = False  # 初始化“策略完成初始化”为False
+        self.__market_manager.set_dict_strategy(self.__dict_strategy)  # 将策略对象dict设置为market_manager属性
 
     # 删除策略
     def delete_strategy(self, strategy_id):
         # 删除策略之前需判断：策略开关关闭、空仓
         self.__dict_strategy.pop(strategy_id)
+        self.__market_manager.set_dict_strategy(self.__dict_strategy)  # 将策略对象dict设置为market_manager属性
 
     # 设置策略初始化完成标志
     def set_strategy_init_finished(self, strategy_id, bool_finished):

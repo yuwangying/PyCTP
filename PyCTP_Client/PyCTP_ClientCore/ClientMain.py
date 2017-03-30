@@ -657,6 +657,9 @@ if __name__ == '__main__':
     # 绑定信号槽：SocketManager收到查询策略回报消息 -> 向界面发送信号，激活查询策略按钮
     socket_manager.signal_activate_query_strategy_pushbutton.connect(q_ctp.widget_QAccountWidget.slot_activate_query_strategy_pushbutton)
 
+    # 绑定信号槽：SocketManager收到修改策略回报 -> 界面tableView更新特定index
+    socket_manager.signal_update_strategy_on_off.connect(q_ctp.widget_QAccountWidget.StrategyDataModel.slot_update_strategy_on_off)
+
     sys.exit(app.exec_())
 
 

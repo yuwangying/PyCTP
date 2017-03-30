@@ -229,8 +229,10 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
         #                                                                      ignore_index=True,
         #                                                                      verify_integrity=False)
         # 遍历策略列表，并将tick转发给策略类对应处理方法
-        for i in self.__list_strategy:
-            i.OnRtnDepthMarketData(tick)
+        # for i in self.__list_strategy:
+        #     i.OnRtnDepthMarketData(tick)
+
+        self.__market_manager.OnRtnDepthMarketData(tick)  # 转行情回调给MarketManager.OnRtnDepthMarketData()
 
     # 将strategy实例的list设置为本类属性，在strategy实例中实现行情推送回调函数
     def set_strategy(self, list_strategy):
@@ -238,4 +240,7 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def get_strategy(self):
         return self.__list_strategy
+
+    def set_MarketManager(self, obj):
+        self.__market_manager = obj
 

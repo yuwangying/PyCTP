@@ -64,56 +64,59 @@ class StrategyDataModel(QAbstractTableModel):
     def slot_set_data_list(self, data_list):
         # print(">>> StrategyDataModel.slot_set_data_list() called")
         len_data_list = len(data_list)  # 最新数据的长度
-        # 已经设置过数据、数据长度相同、未切换tab页
+        # 更新tableView整个区域：已经设置过数据、数据长度相同、未切换tab页
         if not self.__update_once and self.__is_set_data and self.__row == len_data_list and self.__QAccountWidget.get_current_tab_name() == self.__last_tab_name:
+            # not self.__update_once and
             t1 = self.index(0, 1)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
             self.dataChanged.emit(t1, t2)
+        # 更新tableView部分区域：一般定时刷新任务时只刷新部分
         else:
-            self.__data_list = data_list
+            self.__data_list = copy.deepcopy(data_list)
             self.__row = len(self.__data_list)
             if self.__row != 0:
                 self.__is_set_data = True
+                for i in self.__data_list:
+                    checkbox = QtGui.QCheckBox()
+                    if i[0] == 1:
+                        checkbox.setText("开")
+                        checkbox.setCheckState(QtCore.Qt.Checked)
+                    else:
+                        checkbox.setText("关")
+                        checkbox.setCheckState(QtCore.Qt.Unchecked)
+                    i[0] = checkbox
+
             self.layoutAboutToBeChanged.emit()
             if self.__row != 0:
                 self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
             self.layoutChanged.emit()
             self.__update_once = False  # 更新一次界面请求的值设置为False
-            print(">>>slot_set_data_list() self.__update_once = False")
+            # print(">>>slot_set_data_list() self.__update_once = False")
 
         self.__last_tab_name = self.__QAccountWidget.get_current_tab_name()  # 保存最后一次tabName
 
+    def slot_update_strategy_on_off(self, dict_args):
+        current_tab_name = self.__QAccountWidget.get_current_tab_name()
+        user_id = dict_args['UserID']
+        strategy_id = dict_args['StrategyID']
+        on_off = dict_args['OnOff']
+        if current_tab_name == '所有账户' or current_tab_name == user_id:
+            for i in range(len(self.__data_list)):
+                if self.__data_list[i][1] == user_id and self.__data_list[i][2] == strategy_id:
+                    row = i
+                    print(">>> StrategyDataModel.slot_update_strategy_on_off() 需要更新的行数, row=", row)
+                    if on_off == 1:
+                        self.__data_list[row][0].setText('开')
+                        self.__data_list[row][0].setCheckState(QtCore.Qt.Checked)
+                    else:
+                        self.__data_list[row][0].setText('关')
+                        self.__data_list[row][0].setCheckState(QtCore.Qt.UnChecked)
+                    index = self.index(row, 0)
+                    self.dataChanged.emit(index, index)
+                    break
+
     def set_update_once(self, bool_input):
         self.__update_once = bool_input
-
-    # def updateModel(self):
-    #     dataList2 = []
-    #     if self.change_flag is True:
-    #         dataList2 = [
-    #             [QtGui.QCheckBox("关"), 0, '063802', '01', 'rb1705,rb1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '063802', '02', 'cu1705,cu1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '063802', '03', 'zn1705,zn1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '063802', '04', 'rb1705,rb1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '063802', '01', 'zn1705,zn1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '063802', '02', 'ru1705,ru1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '063802', '02', 'ni1705,ni1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '063802', '01', 'rb1705,rb1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #         ]
-    #         self.change_flag = False
-    #     elif self.change_flag is False:
-    #         dataList2 = [
-    #             [QtGui.QCheckBox("关"), 0, '058176', '01', 'rb1705,rb1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '058176', '02', 'cu1705,cu1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #             [QtGui.QCheckBox("关"), 0, '058176', '03', 'zn1705,zn1710', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'MA', '01'],
-    #         ]
-    #         self.change_flag = True
-    #
-    #     self.__data_list = dataList2
-    #     self.layoutAboutToBeChanged.emit()
-    #     # self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))  # 更新整个view
-    #     self.dataChanged.emit(self.createIndex(2, 3),
-    #                           self.createIndex(self.rowCount(0), self.columnCount(0)))  # 更新特定item
-    #     self.layoutChanged.emit()
 
     def rowCount(self, parent):
         # print(">>> StrategyDataModel.rowCount() self.sender()= ", self.sender(), "len(self.__data_list) =", len(self.__data_list))
@@ -122,30 +125,6 @@ class StrategyDataModel(QAbstractTableModel):
     def columnCount(self, parent):
         # print(">>> StrategyDataModel.columnCount() self.sender()= ", self.sender(), "len(self.__data_list[0]) =", len(self.__data_list[0]))
         return 17  # len(self.__data_list[0])
-
-    # view获取数据方法
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-        column = index.column()
-        row = index.row()
-
-        value = self.__data_list[row][column]
-        if role == QtCore.Qt.EditRole:
-            return value
-        elif role == QtCore.Qt.DisplayRole:
-            if column == 0:
-                if value == 0:
-                    value = '关'
-                else:
-                    value = '开'
-            return value
-        elif role == QtCore.Qt.CheckStateRole:
-            if column == 0:
-                if self.__data_list[row][column] == 1:
-                    return QtCore.Qt.Checked
-                else:
-                    return QtCore.Qt.Unchecked
 
     # 列标题
     def headerData(self, col, orientation, role):
@@ -187,6 +166,57 @@ class StrategyDataModel(QAbstractTableModel):
     def set_QAccountWidget(self, obj):
         self.__QAccountWidget = obj
 
+    # view获取数据方法
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        column = index.column()
+        row = index.row()
+        if column == 0:
+            value = self.__data_list[row][column].text()
+        else:
+            value = self.__data_list[row][column]
+        if role == QtCore.Qt.EditRole:
+            return value
+        elif role == QtCore.Qt.DisplayRole:
+            if column == 0:
+                if value == "关":
+                    value = '关'
+                else:
+                    value = '开'
+            return value
+        # ForegroundRole字体颜色
+        elif role == QtCore.Qt.ForegroundRole and index.column() == 1:
+            return QtGui.QColor(255, 0, 0)
+        elif role == QtCore.Qt.ForegroundRole and index.column() == 2:
+            return QtGui.QColor(0, 255, 0)
+        # FontRole 字体样式，加粗、斜体、字体等等
+        elif role == QtCore.Qt.FontRole and index.column() == 1:
+            font = QtGui.QFont()
+            font.setBold(True)
+            return font
+        elif role == QtCore.Qt.FontRole and index.column() == 2:
+            font = QtGui.QFont()
+            font.setBold(True)  # 加粗
+            return font
+        # TextAlignmentRole排列字体对其样式：居中、左对齐……
+        elif role == QtCore.Qt.TextAlignmentRole and index.column() == 1:
+            return QtCore.Qt.AlignCenter
+        elif role == QtCore.Qt.TextAlignmentRole and index.column() == 2:
+            return QtCore.Qt.AlignCenter
+        elif role == QtCore.Qt.BackgroundRole and index.column() == 1:
+            return QtGui.QColor(0, 255, 0)
+        elif role == QtCore.Qt.CheckStateRole:
+            if column == 0:
+                if value == "关":
+                    return self.__data_list[row][column].checkState()
+                    # return QtCore.Qt.Unchecked
+                else:
+                    return self.__data_list[row][column].checkState()
+                    # return QtCore.Qt.Checked
+
+
+
     # 设置单个单元格数据
     def setData(self, index, value, role):
         if not index.isValid():
@@ -194,11 +224,13 @@ class StrategyDataModel(QAbstractTableModel):
         row = index.row()
         column = index.column()
         if role == QtCore.Qt.CheckStateRole and column == 0:
+            print(">>>setData() value = ", value)
+            print(">>>setData() QtCore.Qt.Checked = ", QtCore.Qt.Checked)
             if value == QtCore.Qt.Checked:
-                self.__data_list[row][0] = 1
+                self.__data_list[row][0].setCheckState(QtCore.Qt.Checked)
                 on_off = 1
             elif value == QtCore.Qt.Unchecked:
-                self.__data_list[row][0] = 0
+                self.__data_list[row][0].setCheckState(QtCore.Qt.Unchecked)
                 on_off = 0
             dict_args = {
                 'user_id': self.__data_list[row][1],

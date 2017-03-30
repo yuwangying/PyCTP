@@ -12,6 +12,7 @@ import copy
 from QCTP import QCTP
 from QMessageBox import QMessageBox
 from QAccountWidget import QAccountWidget
+from MarketManager import MarketManagerForUi
 import time
 from PyQt4 import QtCore
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
@@ -48,6 +49,7 @@ class SocketManager(QtCore.QThread):
     signal_update_panel_show_account = QtCore.pyqtSignal(list)  # 定义信号：SocketManger收到进程通信user进程发来的资金账户信息 -> 向界面发送数据，并更新界面
     signal_activate_query_strategy_pushbutton = QtCore.pyqtSignal()  # 定义信号：SocketManager收到查询策略回报消息 -> 向界面发送信号，激活查询策略按钮
     signal_tab_changed = QtCore.pyqtSignal()  # 定义信号：SocketMananger收到查询策略
+    signal_update_strategy_on_off = QtCore.pyqtSignal(dict)  # 定义信号：SocketManager收到修改策略开关回报 -> 界面talbeView更新特定的index
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -60,6 +62,7 @@ class SocketManager(QtCore.QThread):
         self.__RecvN = True  # RecvN方法运行状态，True正常，False异常
         self.__queue_send_msg = queue.Queue(maxsize=100)  # 创建队列，存储将要发送的消息
         self.__thread_send_msg = threading.Thread(target=self.run_send_msg)  # 创建发送消息线程
+        self.__thread_send_msg.setDaemon(True)  # 设置主线程退出该线程也退出
         self.__thread_send_msg.start()
         self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
         self.__list_instrument_info = list()  # 所有合约信息
@@ -73,12 +76,16 @@ class SocketManager(QtCore.QThread):
         self.__dict_user_process_finished = dict()  # 子进程初始化完成信息
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
+        self.__recive_msg_flag = True  # 接收socket消息线程运行标志
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
 
     def get_XML_Manager(self):
         return self.__xml_manager
+
+    def get_market_manager(self):
+        return self.__market_manager_for_ui
 
     def set_QNewStrategy(self, obj):
         self.__q_new_strategy = obj
@@ -221,6 +228,10 @@ class SocketManager(QtCore.QThread):
     def get_total_process_finished(self):
         return self.__total_process_finished
 
+    # 接收socket消息线程结束标志位，False结束线程，True运行线程
+    def set_recive_msg_flag(self, bool_in):
+        self.__recive_msg_flag = bool_in
+
     # 连接服务器
     def connect(self):
         # 创建socket套接字
@@ -297,7 +308,7 @@ class SocketManager(QtCore.QThread):
     def run(self):
         # thread = threading.current_thread()
         # print(">>> SocketManager.run() thread.getName()=", thread.getName())
-        while True:
+        while self.__recive_msg_flag:
             start_time = time.time()
             # 收消息
             if self.__RecvN:  # RecvN状态正常
@@ -329,11 +340,12 @@ class SocketManager(QtCore.QThread):
                         print("SocketManager.run() 接收到的数据有误", m.buff)
                         continue
             print(">>> SocketManager run() takes time = %s" % (time.time() - start_time))
+        print(">>> SocketManager run() stop")
 
     # 发送消息线程
     def run_send_msg(self):
-        thread = threading.current_thread()
-        print(">>> SocketManager.run_send_msg() thread.getName()=", thread.getName())
+        # thread = threading.current_thread()
+        # print(">>> SocketManager.run_send_msg() thread.getName()=", thread.getName())
         # 发消息
         while True:
             tmp_msg = self.__queue_send_msg.get()
@@ -369,6 +381,14 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_list_market_info(buff['Info'])  # 将行情信息设置为ctp_manager的属性
                     self.set_list_market_info(buff['Info'])
+                    # dict_args = {
+                    #     'frontaddress': buff['Info'][''],
+                    #     'brokerid': buff['Info'][''],
+                    #     'userid': buff['Info'][''],
+                    #     'password': buff['Info']['']
+                    # }
+                    self.__market_manager_for_ui = MarketManagerForUi(buff['Info'][0])
+                    self.__market_manager_for_ui.signal_update_spread_ui.connect(self.__QAccountWidget.slot_update_spread_ui)
                     # self.qry_user_info()  # 发送：查询期货账户信息，MsgType=2
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
@@ -502,6 +522,7 @@ class SocketManager(QtCore.QThread):
                     user_id = buff['UserID']
                     self.__dict_Queue_main[user_id].put(buff)
                     # self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 更新一次全部数据
+                    self.signal_update_strategy_on_off.emit(buff)  # 发送信号，更新tableView中特定的index
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
             # elif buff['MsgType'] == 14:  # 修改策略只平开关
