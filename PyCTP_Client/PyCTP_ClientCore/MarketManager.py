@@ -264,6 +264,9 @@ class MarketManagerForUi(QObject):
     def get_market(self):
         return self.__market
 
+    def set_QAccountWidget(self, obj):
+        self.__QAccountWidget = obj
+
     # 订阅行情，过滤已经订阅过的行情
     def sub_market(self, list_instrument_id, user_id, strategy_id):
         list_instrument_id_to_sub = copy.deepcopy(list_instrument_id)  # 保存将要订阅的合约列表
@@ -326,6 +329,8 @@ class MarketManagerForUi(QObject):
     def group_box_sub_market(self, list_instrument_id):
         self.__a_instrument_id = list_instrument_id[0]
         self.__b_instrument_id = list_instrument_id[1]
+        print(">>> MarketManager.group_box_sub_market() self.__a_instrument_id =", self.__a_instrument_id, "self.__b_instrument_id =", self.__b_instrument_id)
+
         # 整理将要订阅的合约代码list
         list_instrument_id_will_subscribe = []  # 将要订阅行情的合约列表
         for instrument_id in list_instrument_id:
@@ -345,9 +350,8 @@ class MarketManagerForUi(QObject):
                 self.__list_instrument_subscribed_detail_group_box.append(list_instrument_id_will_subscribe[i])
                 # 转换编码类型，MdApi接收b''类型
                 list_instrument_id_will_subscribe[i] = list_instrument_id_will_subscribe[i].encode()
-            print('MarketManagerForUi.sub_market() 订阅行情',
-                  Utils.code_transform(self.__market.SubMarketData(list_instrument_id_will_subscribe)))
-            print('MarketManagerForUi.sub_market() 所有订阅行情', self.__list_instrument_subscribed_detail_group_box)
+            print('MarketManagerForUi.group_box_sub_market() list_instrument_id_will_subscribe =', list_instrument_id_will_subscribe)
+            print('MarketManagerForUi.group_box_sub_market() self.__market.SubMarketData() =',  Utils.code_transform(self.__market.SubMarketData(list_instrument_id_will_subscribe)))
 
         # 整理将要退订行情的合约代码list
         list_instrument_id_will_unsubscribe = []
@@ -362,6 +366,7 @@ class MarketManagerForUi(QObject):
 
         # 退订行情
         if len(list_instrument_id_will_unsubscribe) > 0:
+            time.sleep(1.0)
             for i in range(len(list_instrument_id_will_unsubscribe)):
                 # 从所有订阅行情列表中删除退订的策略
                 for instrument_id in self.__list_instrument_subscribed_detail_group_box:
@@ -370,8 +375,10 @@ class MarketManagerForUi(QObject):
                         break
                 # 转换编码类型，MdApi接收b''类型
                 list_instrument_id_will_unsubscribe[i] = list_instrument_id_will_unsubscribe[i].encode()
-            print('MarketManagerForUi.sub_market() 退订行情', Utils.code_transform(self.__market.UnSubMarketData(list_instrument_id_will_subscribe)))
-            print('MarketManagerForUi.sub_market() 所有订阅行情', self.__list_instrument_subscribed_detail_group_box)
+            print('MarketManagerForUi.group_box_sub_market() list_instrument_id_will_unsubscribe =', list_instrument_id_will_unsubscribe)
+            print('MarketManagerForUi.group_box_sub_market() self.__market.UnSubMarketData() =', Utils.code_transform(self.__market.UnSubMarketData(list_instrument_id_will_unsubscribe)))
+
+        print('MarketManagerForUi.group_box_sub_market() 用户维护的所有订阅行情', self.__list_instrument_subscribed_detail_group_box)
 
     # 登出行情账号，包含登出、断开连接、释放实例
     def un_connect(self):

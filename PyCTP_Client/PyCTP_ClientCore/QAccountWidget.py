@@ -2032,6 +2032,7 @@ class QAccountWidget(QWidget, Ui_Form):
         list_update_group_box_data = self.get_list_update_group_box_data()
         if list_update_group_box_data[0] == 1:
             print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除策略开关为开的策略")
+            QMessageBox().showMessage("错误", "不允许删除策略开关为开的策略！")
             return
         # B总卖、B总买、A总卖、A总买
         if list_update_group_box_data[5] != '0' \

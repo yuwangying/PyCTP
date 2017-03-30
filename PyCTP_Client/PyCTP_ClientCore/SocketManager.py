@@ -388,6 +388,7 @@ class SocketManager(QtCore.QThread):
                     #     'password': buff['Info']['']
                     # }
                     self.__market_manager_for_ui = MarketManagerForUi(buff['Info'][0])
+                    self.__market_manager_for_ui.set_QAccountWidget(self.__QAccountWidget)  # 窗口对象设置为其属性
                     self.__market_manager_for_ui.signal_update_spread_ui.connect(self.__QAccountWidget.slot_update_spread_ui)
                     # self.qry_user_info()  # 发送：查询期货账户信息，MsgType=2
                 elif buff['MsgResult'] == 1:  # 消息结果失败
