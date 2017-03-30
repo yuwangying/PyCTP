@@ -222,11 +222,11 @@ class QAccountWidget(QWidget, Ui_Form):
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         dict_tab_clicked_info = self.__dict_clicked_info[self.__current_tab_name]
         print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
+        # 主动触发鼠标单击事件
 
         if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
             row = dict_tab_clicked_info['row']
             column = dict_tab_clicked_info['column']
-            index = self.tableView_Trade_Args.model().index(row, column)
             self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
             self.__clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
 
@@ -234,27 +234,6 @@ class QAccountWidget(QWidget, Ui_Form):
             self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
 
             print(">>> QAccountWidget.slot_tab_changed() len(dict_tab_clicked_info) > 0, row =", row, "column =", column)
-            # QModelIndex
-            # index = tableViewPowerDegree->currentIndex();
-            # int
-            # row = index.row() + 1;
-            # int
-            # column = 1;
-            # QModelIndex
-            # newIndex = tableViewPowerDegree->model()->index(row, column);
-            # tableViewPowerDegree->selectionModel()->select(newIndex, QItemSelectionModel::Select);
-            # tableViewPowerDegree->setCurrentIndex(newIndex);
-            # tableViewPowerDegree->setFocus();
-
-            # QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows;
-            # m_tableView->selectionModel()->select(index, flags);
-            # item_selection_model = QtGui.QItemSelectionModel()
-            # item_selection_model = QtGui.QItemSelectionModel.ClearAndSelect | QtGui.QItemSelectionModel.Rows
-            # self.tableView_Trade_Args.setSelectionModel(item_selection_model)
-            # self.tableView_Trade_Args.selectionMode().select(index, QtGui.QItemSelectionModel.Select)  # item_selection_model)  #
-            # self.tableView_Trade_Args.setCurrentIndex(index)
-            # self.tableView_Trade_Args.setFocus()
-            # self.tableView_Trade_Args.setCurrentIndex(index)  # 设置当前行
 
             list_update_group_box_data = self.get_list_update_group_box_data()
             if len(list_update_group_box_data) > 0:
@@ -263,11 +242,13 @@ class QAccountWidget(QWidget, Ui_Form):
             else:
                 self.clear_group_box()
 
-            selection_model = QtGui.QItemSelectionModel(self.tableView_Trade_Args.model())
-            self.tableView_Trade_Args.setSelectionModel(selection_model)
-            self.tableView_Trade_Args.selectionModel().select(index, QtGui.QItemSelectionModel.Select)
-            self.tableView_Trade_Args.setCurrentIndex(index)
-            self.tableView_Trade_Args.setFocus()
+            # selection_model = QtGui.QItemSelectionModel(self.tableView_Trade_Args.model())
+            # self.tableView_Trade_Args.setSelectionModel(selection_model)
+            # self.tableView_Trade_Args.selectionModel().select(index, QtGui.QItemSelectionModel.Select)
+            # self.tableView_Trade_Args.setCurrentIndex(index)
+            # self.tableView_Trade_Args.setFocus()
+            # 主动触发鼠标单击事件，还原记忆中tab点击位置
+
         else:
             self.__clicked_user_id = ''
             self.__clicked_strategy_id = ''
@@ -292,11 +273,11 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__spread_long = list_data[0]
         self.__spread_short = list_data[1]
         if self.__spread_long != self.__spread_long_last:
-            print(">>> QAccountWidget.slot_update_spread_ui() 更新多头价差", self.__spread_long)
+            # print(">>> QAccountWidget.slot_update_spread_ui() 更新多头价差", self.__spread_long)
             self.lineEdit_duotoujiacha.setText(str(self.__spread_long))
             pass
         if self.__spread_short != self.__spread_short_last:
-            print(">>> QAccountWidget.slot_update_spread_ui() 更新空头价差", self.__spread_short)
+            # print(">>> QAccountWidget.slot_update_spread_ui() 更新空头价差", self.__spread_short)
             self.lineEdit_kongtoujiacha.setText(str(self.__spread_short))
             pass
         self.__spread_long_last = self.__spread_long
