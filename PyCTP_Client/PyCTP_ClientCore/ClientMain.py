@@ -568,6 +568,7 @@ if __name__ == '__main__':
     print('process_id =', os.getpid(), 'thread.getName()=', threading.current_thread().getName(), ', __main__')  #
 
     app = QtGui.QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
 
     file = QtCore.QFile('img/silvery.css')
     file.open(QtCore.QFile.ReadOnly)
@@ -575,7 +576,7 @@ if __name__ == '__main__':
     file.close()
 
     """创建对象"""
-    client_main = ClientMain()  # 创建客户端管理类对象
+    # client_main = ClientMain()  # 创建客户端管理类对象
     # ctp_manager = CTPManager()  # 创建内核管理类对象
     xml_manager = XML_Manager()  # 创建XML管理对象
     socket_manager = SocketManager("192.168.180.130", 8888)  # 创建SocketManager对象
