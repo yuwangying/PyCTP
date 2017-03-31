@@ -48,12 +48,43 @@ class QCTP(QMainWindow, Ui_MainWindow):
         super(QCTP, self).__init__(parent)
         self.setupUi(self)
 
+        # 托盘
+        self.hideAction = QtGui.QAction("&隐藏", self, triggered=self.hide)
+        self.showAction = QtGui.QAction("&显示", self, triggered=self.showNormal)
+        self.quitAction = QtGui.QAction("&退出", self, triggered=self.quitWindow)
+        # self.quitAction = QtGui.QAction("&退出", self, triggered=QtGui.qApp.quit)
+        self.trayIconMenu = QtGui.QMenu(self)
+        self.trayIconMenu.addAction(self.hideAction)
+        self.trayIconMenu.addAction(self.showAction)
+        self.trayIconMenu.addSeparator()
+        self.trayIconMenu.addAction(self.quitAction)
+        self.icon = QtGui.QIcon('img/rocket.ico')
+        self.trayIcon = QtGui.QSystemTrayIcon()
+        self.trayIcon.setToolTip("小蜜蜂套利系统")
+        self.trayIcon.setIcon(self.icon)
+        self.setWindowIcon(self.icon)
+        self.trayIcon.activated.connect(self.iconActivated)
+        self.trayIcon.setContextMenu(self.trayIconMenu)
+        self.trayIcon.show()
+
         self.message_center = MessageCenter(self)
 
         status_bar = QtGui.QStatusBar()  # 创建状态栏
         status_bar.addWidget(self.message_center, stretch=1)  # 设置状态栏格式
         self.setStatusBar(status_bar)
         self.__init_finished = False  # QCTP界面初始化完成标志位，初始值为False
+
+    # 托盘图标被点击，槽函数
+    def iconActivated(self, reason):
+        if reason in (QtGui.QSystemTrayIcon.Trigger, QtGui.QSystemTrayIcon.DoubleClick):
+            self.show()
+
+    # 托盘菜单：退出
+    @pyqtSlot()
+    def quitWindow(self):
+        print(">>> QCTP.quitWindow() ")
+        self.widget_QAccountWidget.get_SocketManager().set_recive_msg_flag(False)
+        QtCore.QCoreApplication.instance().quit()
 
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
@@ -112,5 +143,5 @@ class QCTP(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, QCloseEvent):
         print(">>> QCTP.closeEvent() ")
-        self.widget_QAccountWidget.get_SocketManager().set_recive_msg_flag(False)
-        QtCore.QCoreApplication.instance().quit()
+        # self.widget_QAccountWidget.get_SocketManager().set_recive_msg_flag(False)
+        # QtCore.QCoreApplication.instance().quit()
