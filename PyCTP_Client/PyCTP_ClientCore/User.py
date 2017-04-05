@@ -470,7 +470,6 @@ class User():
             self.__dict_strategy[strategy_id].set_position(dict_args)
         # 查询策略
 
-
     # 创建策略实例
     def create_strategy(self, dict_args):
         strategy_id = dict_args['strategy_id']
@@ -1281,8 +1280,12 @@ class User():
             if instrument_id in self.__dict_instrument_statistics:  # 字典中存在合约代码键名
                 self.__dict_instrument_statistics[instrument_id]['action_count'] += 1  # 撤单次数加一
             else:  # 字典中不存在合约代码键名
-                self.__dict_instrument_statistics[instrument_id]['action_count'] = 1  # 不存在的合约，撤单次数设置为1
-                self.__dict_instrument_statistics[instrument_id]['open_count'] = 0  # 不存在的合约，开仓数量设置为0
+                self.__dict_instrument_statistics[instrument_id] = {
+                    'action_count': 1,  # 不存在的合约，撤单次数设置为1
+                    'open_count': 0  # 不存在的合约，开仓数量设置为0
+                }
+                # self.__dict_instrument_statistics[instrument_id]['action_count'] = 1  # 不存在的合约，撤单次数设置为1
+                # self.__dict_instrument_statistics[instrument_id]['open_count'] = 0  # 不存在的合约，开仓数量设置为0
 
             # 撤单次数赋值到策略对象的合约撤单次数
             action_count = self.__dict_instrument_statistics[instrument_id]['action_count']
@@ -1298,8 +1301,12 @@ class User():
         if instrument_id in self.__dict_instrument_statistics:  # 字典中存在合约代码键名
             self.__dict_instrument_statistics[instrument_id]['open_count'] += trade['Volume']  # 开仓数量累加
         else:  # 字典中不存在合约代码键名
-            self.__dict_instrument_statistics[instrument_id]['action_count'] = 0  # 不存在的合约，撤单次数设置为0
-            self.__dict_instrument_statistics[instrument_id]['open_count'] = trade['Volume']  # 不存在的合约，开仓数量设置为0
+            self.__dict_instrument_statistics[instrument_id] = {
+                'action_count': 0,  # 不存在的合约，撤单次数设置为0
+                'open_count': trade['Volume']  # 不存在的合约，开仓数量设置为本次值
+            }
+            # self.__dict_instrument_statistics[instrument_id]['action_count'] = 0  # 不存在的合约，撤单次数设置为0
+            # self.__dict_instrument_statistics[instrument_id]['open_count'] = trade['Volume']  # 不存在的合约，开仓数量设置为0
 
         # 撤单次数赋值到策略对象的合约撤单次数
         open_count = self.__dict_instrument_statistics[instrument_id]['open_count']

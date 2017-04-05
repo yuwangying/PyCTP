@@ -660,6 +660,8 @@ if __name__ == '__main__':
 
     # 绑定信号槽：SocketManager收到修改策略回报 -> 界面tableView更新特定index
     socket_manager.signal_update_strategy_on_off.connect(q_ctp.widget_QAccountWidget.StrategyDataModel.slot_update_strategy_on_off)
+    # 绑定信号槽：SocketManager收到下单算法信息 -> 界面groupBox初始化下单算法选项
+    socket_manager.signal_init_groupBox_order_algorithm.connect(q_ctp.widget_QAccountWidget.slot_init_groupBox_order_algorithm)
 
     sys.exit(app.exec_())
 

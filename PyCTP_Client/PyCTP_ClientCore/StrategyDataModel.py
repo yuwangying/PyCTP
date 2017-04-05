@@ -33,6 +33,7 @@ class StrategyDataModel(QAbstractTableModel):
         self.__column = 0
         self.__is_set_data = False  # 是否给数据模型设置值，初始值为False
         self.__update_once = False  # 是否更新一遍全部数据，初始值为False
+        self.__set_resizeColumnsToContents_flags = False  # 设置过列宽标志位为False
         # self.timer = QtCore.QTimer()
         # self.change_flag = True
         # self.timer.timeout.connect(self.updateModel)
@@ -70,6 +71,11 @@ class StrategyDataModel(QAbstractTableModel):
             t1 = self.index(0, 1)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
             self.dataChanged.emit(t1, t2)
+            if not self.__set_resizeColumnsToContents_flags:
+                self.__QAccountWidget.tableView_Trade_Args.resizeColumnsToContents()  # tableView列宽自动适应
+                self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
+                self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
+                print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
         # 更新tableView部分区域：一般定时刷新任务时只刷新部分
         else:
             self.__data_list = copy.deepcopy(data_list)

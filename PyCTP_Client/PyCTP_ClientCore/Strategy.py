@@ -391,13 +391,20 @@ class Strategy():
             # 昨日持仓明细order
             self.__list_position_detail_for_order = list()
             for i in self.__user.get_server_list_position_detail_for_order_yesterday():
-                if i['strategy_id'] == self.__strategy_id:
+                # print(">>> Strategy.init_strategy_data() i =", i)
+                if i['strategyid'] == self.__strategy_id:
                     self.__list_position_detail_for_order.append(i)
+            if len(self.__list_position_detail_for_order) > 0:
+                print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_order) =", len(self.__list_position_detail_for_order))
+
             # 昨日持仓明细trade
             self.__list_position_detail_for_trade = list()
             for i in self.__user.get_server_list_position_detail_for_trade_yesterday():
-                if i['strategy_id'] == self.__strategy_id:
+                # print(">>> Strategy.init_strategy_data() 持仓明细i =", i)
+                if i['strategyid'] == self.__strategy_id:
                     self.__list_position_detail_for_trade.append(i)
+            if len(self.__list_position_detail_for_trade) > 0:
+                print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_trade)", len(self.__list_position_detail_for_trade))
 
             # 设置策略统计
             self.set_statistics(self.get_statistics())

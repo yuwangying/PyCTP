@@ -83,6 +83,9 @@ class QAccountWidget(QWidget, Ui_Form):
         self.tableView_Trade_Args.horizontalHeader().setMovable(True)
         self.popMenu = QtGui.QMenu(self.tableView_Trade_Args)  # 创建鼠标右击菜单
         self.tableView_Trade_Args.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.tableView_Trade_Args.resizeColumnsToContents()  # tableView列宽自动适应
+        # self.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
+
         self.tabBar = QtGui.QTabBar(self.widget_tabbar)  # 创建QTabBar，选项卡
         self.tabBar.currentChanged.connect(self.slot_tab_changed)  # 信号槽连接：信号为自带的currentChanged，槽函数为slot_tab_changed，QTabBar切换tab时触发
         self.__dict_clicked_info = {'所有账户': {}}  # 记录鼠标点击策略，{tab_name: strategy_id,}
@@ -169,6 +172,12 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__right_clicked_user_id = ''
         self.__right_clicked_strategy_id = ''
 
+    # 初始化界面中groupBox的下单算法选项
+    def slot_init_groupBox_order_algorithm(self, list_input):
+        print(">>> init_groupBox_order_algorithm() 初始化下单算法", list_input)
+        for i in range(len(list_input)):
+            self.comboBox_xiadansuanfa.insertItem(i, list_input[i]['name'])
+
     # py自带thread实现定时器，定时刷新UI线程
     def thread_update_ui(self):
         while True:
@@ -206,6 +215,13 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> hideEvent()", self.objectName(), "widget_name=", self.__widget_name)
         # self.__client_main.set_hideQAccountWidget(self)  # 将当前隐藏的窗口对象设置为ClienMain类的属性
 
+    # 交易员登录成功，主界面“开始策略”关闭策略
+    def slot_init_ui_on_off(self, int_input):
+        if int_input == 1:
+            self.pushButton_start_strategy.setText('停止策略')
+        else:
+            self.pushButton_start_strategy.setText('开始策略')
+
     # 槽函数，连接信号：QCTP.signal_on_tab_accounts_currentChanged，切换tab页的时候动态设置obj_user给QAccountWidget
     def slot_tab_changed(self, int_tab_index):
         self.__current_tab_index = int_tab_index  # 保存当前tab的index
@@ -217,13 +233,12 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.pushButton_start_strategy.setText('停止策略')
             else:
                 self.pushButton_start_strategy.setText('开始策略')
-        print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
-        print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
+        print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name, "int_tab_index =", int_tab_index)
+        # print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         dict_tab_clicked_info = self.__dict_clicked_info[self.__current_tab_name]
-        print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
+        # print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
         # 主动触发鼠标单击事件
-
         if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
             row = dict_tab_clicked_info['row']
             column = dict_tab_clicked_info['column']
@@ -1430,12 +1445,14 @@ class QAccountWidget(QWidget, Ui_Form):
     """
     # 更新groupBox：全部元素
     def slot_update_group_box(self):
+        print(">>> QAccountWidget.slot_update_group_box() ", "self.__list_update_group_box_data =", self.__list_update_group_box_data)
         self.lineEdit_qihuozhanghao.setText(self.__list_update_group_box_data[1])  # 期货账号
         self.lineEdit_celuebianhao.setText(self.__list_update_group_box_data[2])  # 策略编号
         index_comboBox = self.comboBox_jiaoyimoxing.findText(self.__list_update_group_box_data[15])  # 交易模型
         if index_comboBox != -1:
             self.comboBox_jiaoyimoxing.setCurrentIndex(index_comboBox)
         index_comboBox = self.comboBox_xiadansuanfa.findText(self.__list_update_group_box_data[16])  # 下单算法
+        # print(">>> QAccountWidget.slot_update_group_box() index_comboBox =", index_comboBox)
         if index_comboBox != -1:
             self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
         self.lineEdit_zongshou.setText(self.__list_update_group_box_data[17])  # 总手
