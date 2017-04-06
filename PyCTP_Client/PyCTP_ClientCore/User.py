@@ -93,13 +93,6 @@ class User():
         self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
         # self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
 
-        # 创建策略
-        for i in self.__server_list_strategy_info:
-            self.create_strategy(i)
-        # 策略初始化完成，启动转发OnRtnOrder、OnRtnTrade的线程
-        self.__threading_OnRtnOrder.start()
-        self.__threading_OnRtnTrade.start()
-
         # 连接交易前置
         self.connect_trade_front()  # 连接交易前置
         self.login_trade_account()  # 登录期货账户，期货账户登录成功一刻开始OnRtnOrder、OnRtnTrade就开始返回历史数据
@@ -116,6 +109,13 @@ class User():
         else:
             print("User.__init__() User创建失败 user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
             return
+
+        # 创建策略
+        for i in self.__server_list_strategy_info:
+            self.create_strategy(i)
+        # 策略初始化完成，启动转发OnRtnOrder、OnRtnTrade的线程
+        self.__threading_OnRtnOrder.start()
+        self.__threading_OnRtnTrade.start()
 
         # user初始化完成
         self.set_init_finished(True)
@@ -936,18 +936,22 @@ class User():
 
     # 处理OnRtnOrder的线程
     def threading_run_OnRtnOrder(self):
+        print(">>> User.threading_run_OnRtnOrder() user_id =", self.__user_id)
         while True:
             order = self.__queue_OnRtnOrder.get()
+            print(">>> User.threading_run_OnRtnOrder() user_id =", self.__user_id, "order =", order)
             for strategy_id in self.__dict_strategy:
-                if order['StrategyId'] == self.__dict_strategy[strategy_id].get_strategy_id():
+                if order['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
                     self.__dict_strategy[strategy_id].OnRtnOrder(order)
 
     # 处理OnRtnTrade的线程
     def threading_run_OnRtnTrade(self):
+        print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id)
         while True:
-            trade = self.__queue_OnRtnOrder.get()
+            trade = self.__queue_OnRtnTrade.get()
+            print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
             for strategy_id in self.__dict_strategy:
-                if trade['StrategyId'] == self.__dict_strategy[strategy_id].get_strategy_id():
+                if trade['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
                     self.__dict_strategy[strategy_id].OnRtnTrade(trade)
 
     # 将order和trade记录保存到本地

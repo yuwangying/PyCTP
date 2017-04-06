@@ -616,7 +616,7 @@ class Strategy():
                 self.__current_margin += i['CurrMargin']
 
     # 从API获取必要的参数
-    def get_api_argument(self):
+    def get_td_api_arguments(self):
         # 通过API查询的数据，统一放到期货账户登录成功之后再调用
         self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
@@ -778,7 +778,7 @@ class Strategy():
                 'a_commission_count': self.__a_commission_count,  # A手续费
                 'b_commission_count': self.__b_commission_count,  # B手续费
                 'profit_position': self.__profit_position,  # 持仓盈亏
-                'current_margin': self.__current_margin,  # 当前保证金总额
+                'current_margin': 0,  # self.__current_margin,  # 当前保证金总额
                 # 报单统计的累计指标（order）
                 'a_order_value': self.__a_order_lots,  # A委托手数
                 'b_order_value': self.__b_order_lots,  # B委托手数
@@ -980,6 +980,7 @@ class Strategy():
         print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
         # 根据order统计A、B合约的：报单手数、撤单手数
         if isinstance(order, dict):
+            print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "order =", order)
             if order['OrderStatus'] in ['0', '5']:  # 仅统计'OrderStatus'为0和5的原始报单量
                 if order['InstrumentID'] == self.__a_instrument_id:  # A合约
                     self.__dict_statistics['a_order_count'] += order['VolumeTotalOriginal']  # A报单手数
@@ -1006,8 +1007,10 @@ class Strategy():
             self.__dict_statistics['commission_count'] = self.__dict_statistics['a_commission_count'] + self.__dict_statistics['b_commission_count']
 
         # order和trade都可能触发变化的指标：A成交概率、B成交概率
-        self.__dict_statistics['a_trade_rate'] = self.__dict_statistics['a_traded_count'] / self.__dict_statistics['a_order_count']
-        self.__dict_statistics['b_trade_rate'] = self.__dict_statistics['b_traded_count'] / self.__dict_statistics['b_order_count']
+        if self.__dict_statistics['a_order_count'] > 0:
+            self.__dict_statistics['a_trade_rate'] = self.__dict_statistics['a_traded_count'] / self.__dict_statistics['a_order_count']
+        if self.__dict_statistics['b_order_count'] > 0:
+            self.__dict_statistics['b_trade_rate'] = self.__dict_statistics['b_traded_count'] / self.__dict_statistics['b_order_count']
 
     # 获取策略交易统计指标dict
     def get_dict_statistics(self):
@@ -1598,12 +1601,12 @@ class Strategy():
         """成交回报"""
         if Utils.Strategy_print:
             print('Strategy.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade', Trade)
-        self.__queue_OnRtnTrade.put(Trade)  # 放入队列
+        # self.__queue_OnRtnTrade.put(Trade)  # 放入队列
 
         # 更新持仓变量
         self.update_position_for_OnRtnTrade(Trade)
         # 统计trade指标
-        self.statistics(order=Trade)
+        self.statistics(trade=Trade)
         # 更新持仓列表
         self.update_list_position_detail_for_trade(Trade)
 

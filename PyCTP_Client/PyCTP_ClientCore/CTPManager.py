@@ -217,7 +217,7 @@ class CTPManager(QtCore.QObject):
 
         """继续完成strategy对象初始化工作"""
         for obj_strategy in self.__list_strategy:
-            obj_strategy.get_api_argument()  # 将期货账户api查询参数赋值给strategy对象
+            obj_strategy.get_td_api_arguments()  # 将期货账户api查询参数赋值给strategy对象
             obj_strategy.load_xml()  # strategy装载xml
             obj_strategy.start_run_count()  # 开始核心统计运算线程
             # 遍历strategy初始化完成之前的order和trade回调记录，完成strategy初始化工作，遍历queue_strategy_order\queue_strategy_trade
