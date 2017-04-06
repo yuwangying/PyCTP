@@ -40,6 +40,8 @@ class User():
         self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据
         self.__threading_OnRtnOrder = threading.Thread(target=self.threading_run_OnRtnOrder)
         self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
+        self.__threading_OnRtnOrder.setDaemon(True)
+        self.__threading_OnRtnTrade.setDaemon(True)
         self.__dict_strategy = dict()  # 存放策略对象的dict,{strategy_id: obj_strategy}
         self.__dict_strategy_finished = dict()  # 存放策略对象初始化完成标志{strategy_id: False}
         self.__dict_instrument_statistics = dict()  # 合约统计dict，{'rb1705': {'open_count': 0, 'action_count': 0}}
@@ -94,6 +96,9 @@ class User():
         # 创建策略
         for i in self.__server_list_strategy_info:
             self.create_strategy(i)
+        # 策略初始化完成，启动转发OnRtnOrder、OnRtnTrade的线程
+        self.__threading_OnRtnOrder.start()
+        self.__threading_OnRtnTrade.start()
 
         # 连接交易前置
         self.connect_trade_front()  # 连接交易前置
@@ -902,7 +907,8 @@ class User():
         if len(Order['OrderRef']) == 12 and Order['OrderRef'][:1] == '1':
             # Order新增字段
             Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
-            Order['StrategyID'] = Order['OrderRef'][-2:]  # 报单引用末两位是策略编号
+            strategy_id = Order['OrderRef'][-2:]
+            Order['StrategyID'] = strategy_id  # 报单引用末两位是策略编号
             Order['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的时间
             # Order['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
 
@@ -925,23 +931,24 @@ class User():
             self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
             # 缓存，待提取，提取发送给特定strategy对象
-            self.__queue_OnRtnOrder.put(Order)  # 缓存OnRtnTrade回调数据
+            self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据
+            # self.__dict_strategy[strategy_id].OnRtnOrder(Order)
 
     # 处理OnRtnOrder的线程
     def threading_run_OnRtnOrder(self):
         while True:
             order = self.__queue_OnRtnOrder.get()
-            for obj_strategy in self.__list_strategy:
-                if order['StrategyId'] == obj_strategy.get_strategy_id():
-                    obj_strategy.OnRtnOrder(order)
+            for strategy_id in self.__dict_strategy:
+                if order['StrategyId'] == self.__dict_strategy[strategy_id].get_strategy_id():
+                    self.__dict_strategy[strategy_id].OnRtnOrder(order)
 
     # 处理OnRtnTrade的线程
     def threading_run_OnRtnTrade(self):
         while True:
             trade = self.__queue_OnRtnOrder.get()
-            for obj_strategy in self.__list_strategy:
-                if trade['StrategyId'] == obj_strategy.get_strategy_id():
-                    obj_strategy.OnRtnOrder(trade)
+            for strategy_id in self.__dict_strategy:
+                if trade['StrategyId'] == self.__dict_strategy[strategy_id].get_strategy_id():
+                    self.__dict_strategy[strategy_id].OnRtnTrade(trade)
 
     # 将order和trade记录保存到本地
     def save_df_order_trade(self):

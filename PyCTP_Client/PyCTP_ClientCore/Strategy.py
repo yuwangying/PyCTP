@@ -52,12 +52,18 @@ class Strategy():
         # super(Strategy, self).__init__(parent)  # 初始化父类
         print('Strategy.__init__() 创建策略，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
         self.__user = obj_user  # user实例
-        self.__dict_arguments = dict_args  # 转存形参到类的私有变量
         self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取交易日
-        self.init_variable()  # 声明变量
-
+        # self.__dict_arguments = dict_args  # 转存形参到类的私有变量
         self.set_arguments(dict_args)  # 设置策略参数，形参由server端获取到
-        self.init_strategy_data()  # 初始化策略数据：持仓明细order和trade、策略统计
+
+        self.init_variable()  # 声明变量
+        self.init_strategy_data()  # 初始化策略数据：持仓明细order和trade
+        self.init_position()  # 初始化策略持仓
+        self.init_statistics()  # 初始化统计指标
+
+        # 设置策略统计
+        self.set_statistics(self.get_statistics())
+
         # self.set_init_finished(True)  # 策略初始化完成
 
         # self.init_list_position_detail_for_order()  # 初始化策略持仓明细order
@@ -274,32 +280,12 @@ class Strategy():
         self.__position_b_sell = 0
         self.__position_b_sell_today = 0
         self.__position_b_sell_yesterday = 0
-        self.__position = 0
-
-        strategy_id = "01"
-        a_order_count = 0
-        b_order_count = 0
-        a_traded_count = 0
-        b_traded_count = 0
-        total_traded_count = 0  # 新添加
-        a_traded_amount = 0
-        b_traded_amount = 0
-        total_traded_amount = 0  # 新添加
-        a_commission_count = 0.0
-        b_commission_count = 0.0
-        commission = 0.0  # 新添加
-        a_trade_rate = 0.0
-        b_trade_rate = 0.0
-        a_profit_close = 0
-        b_profit_close = 0
-        profit_close = 0
-        profit = 0.0
-        profit_position = 0.0  # 新添加
-        a_action_count = 0
-        b_action_count = 0
+        self.__position = 0  # 总持仓量
         # 策略统计类变量
         self.__a_order_count = 0  # A委托次数
         self.__b_order_count = 0  # B委托次数
+        self.__a_order_lots = 0  # A委托手数
+        self.__b_order_lots = 0  # B委托手数
         self.__a_traded_count = 0  # A成交量
         self.__b_traded_count = 0  # B成交量
         self.__total_traded_count = 0  # 所有成交量
@@ -405,11 +391,7 @@ class Strategy():
                     self.__list_position_detail_for_trade.append(i)
             if len(self.__list_position_detail_for_trade) > 0:
                 print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_trade)", len(self.__list_position_detail_for_trade))
-
-            # 设置策略统计
-            self.set_statistics(self.get_statistics())
             
-        self.init_position()  # 初始化策略持仓
 
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):
@@ -798,8 +780,8 @@ class Strategy():
                 'profit_position': self.__profit_position,  # 持仓盈亏
                 'current_margin': self.__current_margin,  # 当前保证金总额
                 # 报单统计的累计指标（order）
-                'a_order_value': self.__a_order_value,  # A委托手数
-                'b_order_value': self.__b_order_value,  # B委托手数
+                'a_order_value': self.__a_order_lots,  # A委托手数
+                'b_order_value': self.__b_order_lots,  # B委托手数
                 'a_order_count': self.__a_order_count,  # A委托次数
                 'b_order_count': self.__b_order_count,  # B委托次数
                 'a_action_count': self.__a_action_count,  # A撤单次数
@@ -995,6 +977,7 @@ class Strategy():
 
     # order、trade统计
     def statistics(self, order=None, trade=None):
+        print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
         # 根据order统计A、B合约的：报单手数、撤单手数
         if isinstance(order, dict):
             if order['OrderStatus'] in ['0', '5']:  # 仅统计'OrderStatus'为0和5的原始报单量
@@ -1590,14 +1573,16 @@ class Strategy():
 
     def OnRtnOrder(self, Order):
         """报单回报"""
+        print(">>> Strategy.OnRtnOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Order =", Order)
         if Utils.Strategy_print:
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
-        self.__queue_OnRtnOrder.put(Order)  # 放入队列
+        # self.__queue_OnRtnOrder.put(Order)  # 放入队列
 
         # 统计order指标
         self.statistics(order=Order)
+
         # 更新界面
-        self.signal_update_strategy.emit(self)
+        # self.signal_update_strategy.emit(self)
 
         # order_new = self.add_VolumeTradedBatch(Order)  # 添加字段，本次成交量'VolumeTradedBatch'
         # self.update_list_order_process(order_new)  # 更新挂单列表
