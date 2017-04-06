@@ -1575,7 +1575,7 @@ class Strategy():
                      'RspInfo': RspInfo,
                      'RequestID': RequestID,
                      'IsLast': IsLast}
-        self.trade_task(dict_args)  # 转到交易任务处理
+        # self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRspOrderAction(self, InputOrderAction, RspInfo, RequestID, IsLast):
         """报单操作请求响应:撤单操作响应"""
@@ -1586,7 +1586,7 @@ class Strategy():
                      'RspInfo': RspInfo,
                      'RequestID': RequestID,
                      'IsLast': IsLast}
-        self.trade_task(dict_args)  # 转到交易任务处理
+        # self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnOrder(self, Order):
         """报单回报"""
@@ -1637,7 +1637,7 @@ class Strategy():
         if Utils.Strategy_print:
             print('Strategy.OnErrRtnOrderAction()', 'OrderRef:', OrderAction['OrderRef'], 'OrderAction:', OrderAction, 'RspInfo:', RspInfo)
         dict_args = {'flag': 'OnErrRtnOrderAction', 'OrderAction': OrderAction, 'RspInfo': RspInfo}
-        self.trade_task(dict_args)  # 转到交易任务处理
+        # self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""
@@ -1646,7 +1646,7 @@ class Strategy():
         dict_args = {'flag': 'OnErrRtnOrderInsert',
                      'InputOrder': InputOrder,
                      'RspInfo': RspInfo}
-        self.trade_task(dict_args)  # 转到交易任务处理
+        # self.trade_task(dict_args)  # 转到交易任务处理
 
     # 选择下单算法
     def select_order_algorithm(self, flag):
@@ -1756,7 +1756,7 @@ class Strategy():
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
                                           'CombHedgeFlag': b'1',  # 组合投机套保标志:1投机、2套利、3保值
                                           }
-            self.trade_task(self.__a_order_insert_args)  # 执行下单任务
+            # self.trade_task(self.__a_order_insert_args)  # 执行下单任务
             self.__trade_tasking = True  # 交易任务执行中
         # 价差买平
         elif self.__spread_short <= self.__buy_close\
@@ -1811,7 +1811,7 @@ class Strategy():
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
                                           'CombHedgeFlag': b'1',  # 组合投机套保标志:1投机、2套利、3保值
                                           }
-            self.trade_task(self.__a_order_insert_args)  # 执行下单任务
+            # self.trade_task(self.__a_order_insert_args)  # 执行下单任务
             self.__trade_tasking = True  # 交易任务执行中
         # 价差卖开
         elif self.__spread_long >= self.__sell_open \
@@ -1858,7 +1858,7 @@ class Strategy():
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
                                           'CombHedgeFlag': b'1',  # 组合投机套保标志:1投机、2套利、3保值
                                           }
-            self.trade_task(self.__a_order_insert_args)  # 执行下单任务
+            # self.trade_task(self.__a_order_insert_args)  # 执行下单任务
             self.__trade_tasking = True  # 交易任务执行中
 
         # 价差买开
@@ -1906,7 +1906,7 @@ class Strategy():
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
                                           'CombHedgeFlag': b'1',  # 组合投机套保标志:1投机、2套利、3保值
                                           }
-            self.trade_task(self.__a_order_insert_args)  # 执行下单任务
+            # self.trade_task(self.__a_order_insert_args)  # 执行下单任务
             self.__trade_tasking = True  # 交易任务执行中
 
     # 下单算法2：A合约以最新成交价发单，B合约以对手价发单

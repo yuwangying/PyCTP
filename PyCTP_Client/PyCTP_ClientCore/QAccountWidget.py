@@ -1471,9 +1471,9 @@ class QAccountWidget(QWidget, Ui_Form):
         self.doubleSpinBox_kongtoukai.setSingleStep(1)  # 设置step
         self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[37])  # 空头平
         self.doubleSpinBox_kongtouping.setSingleStep(1)  # 设置step
-        self.doubleSpinBox_duotoukai.setValue(self.__list_update_group_box_data[38])  # 多头开
+        self.doubleSpinBox_duotoukai.setValue(self.__list_update_group_box_data[39])  # 多头开
         self.doubleSpinBox_duotoukai.setSingleStep(1)  # 设置step
-        self.doubleSpinBox_duotouping.setValue(self.__list_update_group_box_data[39])  # 多头平
+        self.doubleSpinBox_duotouping.setValue(self.__list_update_group_box_data[38])  # 多头平
         self.doubleSpinBox_duotouping.setSingleStep(1)  # 设置step
         # 空头开-开关
         if self.__list_update_group_box_data[40] == 0:
