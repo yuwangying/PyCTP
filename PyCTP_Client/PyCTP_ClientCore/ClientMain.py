@@ -662,6 +662,8 @@ if __name__ == '__main__':
     socket_manager.signal_update_strategy_on_off.connect(q_ctp.widget_QAccountWidget.StrategyDataModel.slot_update_strategy_on_off)
     # 绑定信号槽：SocketManager收到下单算法信息 -> 界面groupBox初始化下单算法选项
     socket_manager.signal_init_groupBox_order_algorithm.connect(q_ctp.widget_QAccountWidget.slot_init_groupBox_order_algorithm)
+    # 绑定信号槽：SocketManager收到交易员登录成功信息 -> 初始化界面“开始策略”按钮
+    socket_manager.signal_init_ui_on_off.connect(q_ctp.widget_QAccountWidget.slot_init_ui_on_off)
 
     sys.exit(app.exec_())
 

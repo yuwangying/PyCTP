@@ -49,7 +49,7 @@ class SocketManager(QtCore.QThread):
     signal_update_panel_show_account = QtCore.pyqtSignal(list)  # 定义信号：SocketManger收到进程通信user进程发来的资金账户信息 -> 向界面发送数据，并更新界面
     signal_activate_query_strategy_pushbutton = QtCore.pyqtSignal()  # 定义信号：SocketManager收到查询策略回报消息 -> 向界面发送信号，激活查询策略按钮
     signal_tab_changed = QtCore.pyqtSignal()  # 定义信号：SocketMananger收到查询策略
-    slot_init_ui_on_off = QtCore.pyqtSignal(int)  # 定义信号：SocketManager收到交易员登录成功信息 -> 设置界面开关按钮
+    signal_init_ui_on_off = QtCore.pyqtSignal(int)  # 定义信号：SocketManager收到交易员登录成功信息 -> 初始化界面“开始策略”按钮
     signal_update_strategy_on_off = QtCore.pyqtSignal(dict)  # 定义信号：SocketManager收到修改策略开关回报 -> 界面talbeView更新特定的index
     signal_init_groupBox_order_algorithm = QtCore.pyqtSignal(list)  # 定义信号LSocketManger下单算法信息 -> 界面groupBox初始化下单算法选项
 
@@ -367,7 +367,7 @@ class SocketManager(QtCore.QThread):
                     self.set_trader_name(buff['TraderName'])
                     self.set_trader_id(buff['TraderID'])
                     self.set_trader_on_off(buff['OnOff'])
-                    self.slot_init_ui_on_off.emit(buff['OnOff'])  # 主动触发一次tab_changed，目的更新界面
+                    self.signal_init_ui_on_off.emit(buff['OnOff'])  # 初始化界面“开始策略”按钮
                     # self.__client_main.set_trader_name(buff['TraderName'])
                     # self.__client_main.set_trader_id(buff['TraderID'])
                     # self.__ctp_manager.set_trader_name(buff['TraderName'])
@@ -521,7 +521,7 @@ class SocketManager(QtCore.QThread):
                     user_id = buff['UserID']
                     self.__dict_Queue_main[user_id].put(buff)
                     # self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 更新一次全部数据
-                    self.signal_update_strategy_on_off.emit(buff)  # 发送信号，更新tableView中特定的index
+                    self.signal_init_ui_on_off.emit(buff)  # 发送信号，更新tableView中特定的index
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
             # elif buff['MsgType'] == 14:  # 修改策略只平开关

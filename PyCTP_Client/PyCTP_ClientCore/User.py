@@ -78,7 +78,6 @@ class User():
         # self.__df_qry_trade = DataFrame()  # 保存该期货账户的所有QryTrade返回的记录
         # self.__df_log = DataFrame()  # 测试时用来保存user全局日志
 
-        # 连接交易前置
         # 创建行情，获取交易日
         self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
         self.__market_manager = MarketManager(self.__server_dict_market_info)
@@ -86,10 +85,17 @@ class User():
         self.__dict_create_user_status['get_result_market_login'] = self.__market_manager.get_result_market_login()
         for i in self.__dict_create_user_status:
             if self.__dict_create_user_status[i] != 0:
-                print("User.__init__() 创建行情失败，user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
+                print("User.__init__() 创建行情失败，user_id =", self.__user_id, ", self.__dict_create_user_status =",
+                      self.__dict_create_user_status)
         self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()  # 获取行情接口的交易日
         self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
-        self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
+        # self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
+
+        # 创建策略
+        for i in self.__server_list_strategy_info:
+            self.create_strategy(i)
+
+        # 连接交易前置
         self.connect_trade_front()  # 连接交易前置
         self.login_trade_account()  # 登录期货账户，期货账户登录成功一刻开始OnRtnOrder、OnRtnTrade就开始返回历史数据
         self.qry_trading_account()  # 查询资金账户
@@ -105,10 +111,6 @@ class User():
         else:
             print("User.__init__() User创建失败 user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
             return
-
-        # 创建策略
-        for i in self.__server_list_strategy_info:
-            self.create_strategy(i)
 
         # user初始化完成
         self.set_init_finished(True)
@@ -831,9 +833,13 @@ class User():
             if i.get_strategy_id() == strategy_id:
                 self.__list_strategy.remove(i)
 
-    # 获取list_strategy
+    # 获取strategy对象的list
     def get_list_strategy(self):
         return self.__list_strategy
+
+    # 获取strategy对象dict
+    def get_dict_strategy(self):
+        return self.__dict_strategy
 
     # 获取合约撤单次数的字典
     def get_dict_action(self):

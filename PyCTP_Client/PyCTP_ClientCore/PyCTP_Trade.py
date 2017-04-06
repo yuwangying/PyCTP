@@ -679,11 +679,14 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
+        if RspInfo is not None:
+            RspInfo = Utils.code_transform(RspInfo)
         if OrderAction is not None:
             OrderAction = Utils.code_transform(OrderAction)
-            for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-                if OrderAction['OrderRef'][-2:] == i.get_strategy_id():
-                    i.OnErrRtnOrderAction(OrderAction, RspInfo)
+            dict_strategy = self.__user.get_dict_strategy()
+            for strategy_id in dict_strategy:  # 转到strategy回调函数
+                if OrderAction['OrderRef'][-2:] == dict_strategy[strategy_id].get_strategy_id():
+                    dict_strategy[strategy_id].OnErrRtnOrderAction(OrderAction, RspInfo)
         if RspInfo is not None:
             RspInfo = Utils.code_transform(RspInfo)
         if Utils.PyCTP_Trade_API_print:
