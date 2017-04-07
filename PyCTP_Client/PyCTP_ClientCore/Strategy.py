@@ -55,6 +55,7 @@ class Strategy():
         self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取交易日
         # self.__dict_arguments = dict_args  # 转存形参到类的私有变量
         self.set_arguments(dict_args)  # 设置策略参数，形参由server端获取到
+        self.get_td_api_arguments()  # 从TdApi获取必要的参数
 
         self.init_variable()  # 声明变量
         self.init_strategy_data()  # 初始化策略数据：持仓明细order和trade
@@ -304,6 +305,7 @@ class Strategy():
         self.__profit = 0  # 净盈亏
         self.__a_action_count = 0  # A撤单次数
         self.__b_action_count = 0  # B撤单次数
+        self.__current_margin = 0  # 占用保证金
 
     def get_list_strategy_view(self):
         # ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
@@ -620,12 +622,16 @@ class Strategy():
         # 通过API查询的数据，统一放到期货账户登录成功之后再调用
         self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
+        print(">>> Strategy.get_td_api_arguments() self.__a_price_tick =", self.__a_price_tick)
         self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
         self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
+        print(">>> Strategy.get_td_api_arguments() self.__b_instrument_multiple =", self.__b_instrument_multiple)
         self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
         self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
+        print(">>> Strategy.get_td_api_arguments() self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
         self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
         self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
+        print(">>> Strategy.get_td_api_arguments() self.__exchange_id_a =", self.__exchange_id_a)
         self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id,
                                                               self.__exchange_id_a)  # A合约手续费的dict
         self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id,
@@ -1156,25 +1162,25 @@ class Strategy():
 
     # 获取指定合约最小跳'PriceTick'
     def get_price_tick(self, instrument_id):
-        for i in self.__user.get_CTPManager().get_instrument_info():
+        for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['PriceTick']
 
     # 获取指定合约乘数
     def get_instrument_multiple(self, instrument_id):
-        for i in self.__user.get_CTPManager().get_instrument_info():
+        for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['VolumeMultiple']
 
     # 获取指定合约保证金率
     def get_instrument_margin_ratio(self, instrument_id):
-        for i in self.__user.get_CTPManager().get_instrument_info():
+        for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['LongMarginRatio']
 
     # 获取指定合约所属的交易搜代码
     def get_exchange_id(self, instrument_id):
-        for i in self.__user.get_CTPManager().get_instrument_info():
+        for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
                 return i['ExchangeID']
     

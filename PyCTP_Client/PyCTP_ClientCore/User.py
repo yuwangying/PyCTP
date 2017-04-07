@@ -42,6 +42,7 @@ class User():
         self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
         self.__threading_OnRtnOrder.setDaemon(True)
         self.__threading_OnRtnTrade.setDaemon(True)
+        self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
         self.__dict_strategy = dict()  # 存放策略对象的dict,{strategy_id: obj_strategy}
         self.__dict_strategy_finished = dict()  # 存放策略对象初始化完成标志{strategy_id: False}
         self.__dict_instrument_statistics = dict()  # 合约统计dict，{'rb1705': {'open_count': 0, 'action_count': 0}}
@@ -109,6 +110,13 @@ class User():
         else:
             print("User.__init__() User创建失败 user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
             return
+
+        # 从TdApi获取必要的参数
+        # for obj_strategy in self.__list_strategy:
+        #     obj_strategy.get_td_api_arguments()  # 将期货账户api查询参数赋值给strategy对象
+        #     obj_strategy.load_xml()  # strategy装载xml
+        #     obj_strategy.start_run_count()  # 开始核心统计运算线程
+            # 遍历strategy初始化完成之前的order和trade回调记录，完成strategy初始化工作，遍历queue_strategy_order\queue_strategy_trade
 
         # 创建策略
         for i in self.__server_list_strategy_info:
