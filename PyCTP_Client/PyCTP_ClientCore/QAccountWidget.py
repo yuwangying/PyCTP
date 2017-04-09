@@ -187,6 +187,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
+        # print(">>> QAccountWidget.slot_update_ui() called", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         list_update_table_view_data = self.get_list_update_table_view_data()
         self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
 
@@ -233,6 +234,9 @@ class QAccountWidget(QWidget, Ui_Form):
                 self.pushButton_start_strategy.setText('停止策略')
             else:
                 self.pushButton_start_strategy.setText('开始策略')
+        # if self.tableView_Trade_Args.StrategyDataModel is not None:
+        # if self.tableView_Trade_Args.model() is not None:
+        #     self.tableView_Trade_Args.StrategyDataModel.set_update_once(True)  # 更新一次tableView内全部index
         print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name, "int_tab_index =", int_tab_index)
         # print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)

@@ -825,6 +825,7 @@ class User():
                     self.__dict_strategy[strategy_id].set_a_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
                 elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
                     self.__dict_strategy[strategy_id].set_b_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
+            print(">>> User.instrument_action_count() instrument_id =", instrument_id, "self.__dict_instrument_statistics[instrument_id] =", self.__dict_instrument_statistics[instrument_id])
 
     # 统计合约开仓手数，被OnRtnTrade调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
     def instrument_open_count(self, Trade):
@@ -832,7 +833,7 @@ class User():
         if instrument_id in self.__dict_instrument_statistics:  # 已经存在的合约，开仓手数叠加
             self.__dict_instrument_statistics[instrument_id]['open_count'] += Trade['Volume']
         else:  # 不存在的合约，初始化开仓手数和撤单次数
-            self.__dict_instrument_statistics[instrument_id] = {'action_count': Trade['Volume'], 'open_count': 0}
+            self.__dict_instrument_statistics[instrument_id] = {'action_count': 0, 'open_count': Trade['Volume']}
         # 撤单次数赋值到策略对象的合约撤单次数
         for strategy_id in self.__dict_strategy:
             if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
@@ -904,7 +905,7 @@ class User():
     def OnRtnOrder(self, Order):
         t = datetime.now()  #取接收到回调数据的本地系统时间
         # self.statistics(order=Order)  # 统计期货账户的合约撤单次数
-        self.statistics_for_order(Order)  # 期货账户统计，基于trade
+        # self.statistics_for_order(Order)  # 期货账户统计，基于trade
 
         # 所有trade回调保存到DataFrame格式变量
         # series_order = Series(Order)

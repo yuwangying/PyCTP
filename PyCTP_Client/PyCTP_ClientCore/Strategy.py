@@ -49,21 +49,15 @@ class Strategy():
 
     # class Strategy功能:接收行情，接收Json数据，触发交易信号，将交易任务交给OrderAlgorithm
     def __init__(self, dict_args, obj_user):
-        # super(Strategy, self).__init__(parent)  # 初始化父类
         print('Strategy.__init__() 创建策略，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
         self.__user = obj_user  # user实例
-        self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取交易日
-        # self.__dict_arguments = dict_args  # 转存形参到类的私有变量
+        self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取TdApi的交易日
         self.set_arguments(dict_args)  # 设置策略参数，形参由server端获取到
-        self.get_td_api_arguments()  # 从TdApi获取必要的参数
-
+        self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
         self.init_variable()  # 声明变量
-        self.init_strategy_data()  # 初始化策略数据：持仓明细order和trade
+        self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
         self.init_position()  # 初始化策略持仓
         self.init_statistics()  # 初始化统计指标
-
-        # 设置策略统计
-        self.set_statistics(self.get_statistics())
 
         # self.set_init_finished(True)  # 策略初始化完成
 
@@ -307,6 +301,32 @@ class Strategy():
         self.__b_action_count = 0  # B撤单次数
         self.__current_margin = 0  # 占用保证金
 
+        self.__dict_statistics = {
+            # 成交统计的类计指标（trade）
+            'a_profit_close': self.__a_profit_close,  # A平仓盈亏
+            'b_profit_close': self.__b_profit_close,  # B平仓盈亏
+            'profit_close': self.__profit_close,  # 平仓盈亏
+            'commission': self.__commission,  # 手续费
+            'profit': self.__profit,  # 净盈亏
+            'a_traded_count': self.__a_traded_count,  # A成交量
+            'b_traded_count': self.__b_traded_count,  # B成交量
+            'a_traded_amount': self.__a_traded_amount,  # A成交金额
+            'b_traded_amount': self.__b_traded_amount,  # B成交金额
+            'a_commission_count': self.__a_commission_count,  # A手续费
+            'b_commission_count': self.__b_commission_count,  # B手续费
+            'profit_position': self.__profit_position,  # 持仓盈亏
+            'current_margin': 0,  # self.__current_margin,  # 当前保证金总额
+            # 报单统计的累计指标（order）
+            'a_order_lots': self.__a_order_lots,  # A委托手数
+            'b_order_lots': self.__b_order_lots,  # B委托手数
+            'a_order_count': self.__a_order_count,  # A委托次数
+            'b_order_count': self.__b_order_count,  # B委托次数
+            'a_action_count': self.__a_action_count,  # A撤单次数
+            'b_action_count': self.__b_action_count,  # B撤单次数
+            'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
+            'b_trade_rate': self.__b_trade_rate  # B成交概率(成交手数/报单手数)
+        }
+
     def get_list_strategy_view(self):
         # ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
         checkBox = QtGui.QCheckBox()
@@ -335,7 +355,7 @@ class Strategy():
         return self.__list_strategy_view
 
     # 装载持仓明细数据order和trade
-    def init_strategy_data(self):
+    def init_position_detail(self):
         # RESUM模式启动，xml数据可用，装载xml数据
         if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
             # print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME")
@@ -351,27 +371,6 @@ class Strategy():
                 if i['strategy_id'] == self.__strategy_id:
                     self.__list_position_detail_for_trade.append(i)
 
-            # 策略统计数据
-            self.__dict_statistics = dict()
-            for i in self.__user.get_xml_list_strategy_statistics():
-                if i['strategy_id'] == self.__strategy_id:
-                    self.__dict_statistics = i
-                    self.set_statistics(self.__dict_statistics)  # 设置策略统计
-                    break
-            # print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__dict_statistics =", self.__dict_statistics)
-
-            # 进程间通信：策略统计
-            dict_statistics = dict()
-            for key in self.__dict_statistics:
-                dict_statistics[key] = str(self.__dict_statistics[key])
-            dict_msg = {
-                'DataFlag': 'strategy_statistics',
-                'UserId': self.__user_id,
-                # 'DataMain': self.__dict_statistics  # 最新策略统计
-                'DataMain': dict_statistics  # 最新策略统计
-            }
-            # print("Strategy.init_strategy_data() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
-            self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
         # RESTART模式启动，xml数据不可用，装载server数据
         elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:  # RESTART模式启动，xml数据不可用
             # print("Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART")
@@ -622,20 +621,14 @@ class Strategy():
         # 通过API查询的数据，统一放到期货账户登录成功之后再调用
         self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
-        print(">>> Strategy.get_td_api_arguments() self.__a_price_tick =", self.__a_price_tick)
         self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
         self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
-        print(">>> Strategy.get_td_api_arguments() self.__b_instrument_multiple =", self.__b_instrument_multiple)
         self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
         self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
-        print(">>> Strategy.get_td_api_arguments() self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
         self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
         self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
-        print(">>> Strategy.get_td_api_arguments() self.__exchange_id_a =", self.__exchange_id_a)
-        self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id,
-                                                              self.__exchange_id_a)  # A合约手续费的dict
-        self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id,
-                                                              self.__exchange_id_b)  # B合约手续费的dict
+        self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
+        self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
 
     # 装载xml
     def load_xml(self):
@@ -767,7 +760,27 @@ class Strategy():
     def init_statistics(self):
         # RESUME模式,xml数据可用,装载xml数据
         if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
-            pass
+            # 策略统计数据
+            self.__dict_statistics = dict()
+            for i in self.__user.get_xml_list_strategy_statistics():
+                if i['strategy_id'] == self.__strategy_id:
+                    self.__dict_statistics = i
+                    self.set_statistics(self.__dict_statistics)  # 设置策略统计
+                    break
+            # print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__dict_statistics =", self.__dict_statistics)
+
+            # 进程间通信：策略统计
+            dict_statistics = dict()
+            for key in self.__dict_statistics:
+                dict_statistics[key] = str(self.__dict_statistics[key])
+            dict_msg = {
+                'DataFlag': 'strategy_statistics',
+                'UserId': self.__user_id,
+                # 'DataMain': self.__dict_statistics  # 最新策略统计
+                'DataMain': dict_statistics  # 最新策略统计
+            }
+            # print("Strategy.init_strategy_data() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
+            self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
         # RESTART模式,xml数据不可用,使用初始值
         elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:
             self.__dict_statistics = {
@@ -786,8 +799,8 @@ class Strategy():
                 'profit_position': self.__profit_position,  # 持仓盈亏
                 'current_margin': 0,  # self.__current_margin,  # 当前保证金总额
                 # 报单统计的累计指标（order）
-                'a_order_value': self.__a_order_lots,  # A委托手数
-                'b_order_value': self.__b_order_lots,  # B委托手数
+                'a_order_lots': self.__a_order_lots,  # A委托手数
+                'b_order_lots': self.__b_order_lots,  # B委托手数
                 'a_order_count': self.__a_order_count,  # A委托次数
                 'b_order_count': self.__b_order_count,  # B委托次数
                 'a_action_count': self.__a_action_count,  # A撤单次数
@@ -796,7 +809,10 @@ class Strategy():
                 'b_trade_rate': self.__b_trade_rate  # B成交概率(成交手数/报单手数)
             }
 
-        # # 遍历trade
+        self.set_statistics(self.get_statistics())  # 设置统计指标，主动触发进程间通信
+
+
+            # # 遍历trade
         # for i in self.__list_QryTrade:
         #     # A合约的trade
         #     if i['InstrumentID'] == self.__a_instrument_id:
@@ -989,11 +1005,11 @@ class Strategy():
             print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "order =", order)
             if order['OrderStatus'] in ['0', '5']:  # 仅统计'OrderStatus'为0和5的原始报单量
                 if order['InstrumentID'] == self.__a_instrument_id:  # A合约
-                    self.__dict_statistics['a_order_count'] += order['VolumeTotalOriginal']  # A报单手数
+                    self.__dict_statistics['a_order_lots'] += order['VolumeTotalOriginal']  # A报单手数
                     # if order['OrderStatus'] == '5':  # 撤单，在user的OnRtnOrder中统计
                     #     self.__dict_statistics['a_action_count'] += 1  # A撤单次数
                 elif order['InstrumentID'] == self.__b_instrument_id:  # B合约
-                    self.__dict_statistics['b_order_count'] += order['VolumeTotalOriginal']  # B报单手数
+                    self.__dict_statistics['b_order_lots'] += order['VolumeTotalOriginal']  # B报单手数
                     # if order['OrderStatus'] == '5':  # 撤单，在user的OnRtnOrder中统计
                     #     self.__dict_statistics['b_action_count'] += 1  # B撤单次数
 
@@ -1190,6 +1206,7 @@ class Strategy():
     #     self.__b_action_count = self.__user.get_dict_action()[self.__b_instrument_id]
 
     def set_a_action_count(self, int_count):
+        print(">>> Strategy.set_a_action_count() self.__a_action_count =", self.__a_action_count)
         self.__a_action_count = int_count
         # self.signal_update_strategy_position.emit(self)  # 更新界面
 
