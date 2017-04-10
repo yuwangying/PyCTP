@@ -56,7 +56,8 @@ class Strategy():
         self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
         self.init_variable()  # 声明变量
         self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
-        self.init_position()  # 初始化策略持仓
+        self.update_position_for_position_detail()  # 更新策略持仓变量
+        # self.init_position()  # 初始化策略持仓
         self.init_statistics()  # 初始化统计指标
 
         # self.set_init_finished(True)  # 策略初始化完成
@@ -315,7 +316,7 @@ class Strategy():
             'a_commission_count': self.__a_commission_count,  # A手续费
             'b_commission_count': self.__b_commission_count,  # B手续费
             'profit_position': self.__profit_position,  # 持仓盈亏
-            'current_margin': 0,  # self.__current_margin,  # 当前保证金总额
+            'current_margin': self.__current_margin,  # 当前保证金总额
             # 报单统计的累计指标（order）
             'a_order_lots': self.__a_order_lots,  # A委托手数
             'b_order_lots': self.__b_order_lots,  # B委托手数
@@ -375,11 +376,17 @@ class Strategy():
         elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:  # RESTART模式启动，xml数据不可用
             # print("Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART")
             # 装载server数据
+
+            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id,
+                  "len(self.__user.get_server_list_position_detail_for_order_yesterday()) =", len(self.__user.get_server_list_position_detail_for_order_yesterday()))
+            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id,
+                  "len(self.__user.get_server_list_position_detail_for_trade_yesterday()) =", len(self.__user.get_server_list_position_detail_for_trade_yesterday()))
+
             # 昨日持仓明细order
             self.__list_position_detail_for_order = list()
             for i in self.__user.get_server_list_position_detail_for_order_yesterday():
                 # print(">>> Strategy.init_strategy_data() i =", i)
-                if i['strategyid'] == self.__strategy_id:
+                if i['StrategyID'] == self.__strategy_id:
                     self.__list_position_detail_for_order.append(i)
             if len(self.__list_position_detail_for_order) > 0:
                 print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_order) =", len(self.__list_position_detail_for_order))
@@ -388,7 +395,7 @@ class Strategy():
             self.__list_position_detail_for_trade = list()
             for i in self.__user.get_server_list_position_detail_for_trade_yesterday():
                 # print(">>> Strategy.init_strategy_data() 持仓明细i =", i)
-                if i['strategyid'] == self.__strategy_id:
+                if i['StrategyID'] == self.__strategy_id:
                     self.__list_position_detail_for_trade.append(i)
             if len(self.__list_position_detail_for_trade) > 0:
                 print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_trade)", len(self.__list_position_detail_for_trade))
@@ -582,11 +589,17 @@ class Strategy():
         elif trade_new['OffsetFlag'] == '4':
             shift = 0
             for i in range(len(self.__list_position_detail_for_trade)):  # i为trade结构体，类型为dict
-                # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
+                # # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
+                # try:
+                #     print(">>>Strategy.update_list_position_detail_for_trade() TradingDay", self.__list_position_detail_for_trade[i-shift]['TradingDay'], trade_new['TradingDay'])
+                # except:
+                #     print(">>>Strategy.update_list_position_detail_for_trade() self.__list_position_detail_for_trade[i-shift] =", self.__list_position_detail_for_trade[i-shift])
+                #     print(">>>Strategy.update_list_position_detail_for_trade() trade_new =", trade_new)
+
                 if self.__list_position_detail_for_trade[i-shift]['TradingDay'] != trade_new['TradingDay'] \
                         and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
-                    if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
+                    if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['volume']:
                         self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
@@ -605,13 +618,12 @@ class Strategy():
 
         # 更新程序持仓变量
         # self.update_position_for_OnRtnTrade()
-        # 更新占用保证金
-        self.update_current_margin()
         # 更新界面
         # self.signal_update_strategy.emit(self)
 
     # 更新占用保证金
     def update_current_margin(self):
+        self.__current_margin = 0
         for i in self.__list_position_detail_for_trade:
             if 'CurrMargin' in i:
                 self.__current_margin += i['CurrMargin']
@@ -743,18 +755,18 @@ class Strategy():
             self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday  # B总卖
             self.__position = self.__position_a_buy + self.__position_a_sell  # 总持仓
 
-        strategy_position = self.get_position()
-        data_main = {}
-        for key in strategy_position:
-            data_main[key] = str(strategy_position[key])
-        data_main['strategy_id'] = self.__strategy_id  # data_main中加入键strategy_id
-        dict_msg = {
-            'DataFlag': 'strategy_position',
-            'UserId': self.__user_id,
-            'DataMain': data_main  # 最新策略持仓
-        }
-        # print(">>> Strategy.init_position() user_id =", self.__user_id, 'data_flag = strategy_position', 'data_msg =', dict_msg)
-        self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
+        # strategy_position = self.get_position()
+        # data_main = {}
+        # for key in strategy_position:
+        #     data_main[key] = str(strategy_position[key])
+        # data_main['strategy_id'] = self.__strategy_id  # data_main中加入键strategy_id
+        # dict_msg = {
+        #     'DataFlag': 'strategy_position',
+        #     'UserId': self.__user_id,
+        #     'DataMain': data_main  # 最新策略持仓
+        # }
+        # # print(">>> Strategy.init_position() user_id =", self.__user_id, 'data_flag = strategy_position', 'data_msg =', dict_msg)
+        # self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
 
     # 统计指标
     def init_statistics(self):
@@ -810,7 +822,6 @@ class Strategy():
             }
 
         self.set_statistics(self.get_statistics())  # 设置统计指标，主动触发进程间通信
-
 
             # # 遍历trade
         # for i in self.__list_QryTrade:
@@ -926,23 +937,81 @@ class Strategy():
                     self.__position_b_buy_yesterday -= trade['Volume']  # 更新持仓
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
+        self.__position = self.__position_b_sell + self.__position_b_buy
 
-        data_main = self.get_position()
-        data_main['strategy_id'] = self.__strategy_id  # dict结构体中加入strategy_id
-        dict_msg = {
-            'DataFlag': 'strategy_position',
-            'UserId': self.__user_id,
-            'DataMain': data_main  # 最新策略持仓
-        }
-        print(">>> Strategy.init_position() user_id =", self.__user_id, 'data_flag = strategy_position',
-              'data_msg =', dict_msg)
-        self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
+        # data_main = self.get_position()
+        # data_main['strategy_id'] = self.__strategy_id  # dict结构体中加入strategy_id
+        # dict_msg = {
+        #     'DataFlag': 'strategy_position',
+        #     'UserId': self.__user_id,
+        #     'DataMain': data_main  # 最新策略持仓
+        # }
+        # print(">>> Strategy.init_position() user_id =", self.__user_id, 'data_flag = strategy_position',
+        #       'data_msg =', dict_msg)
+        # self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
 
-        print("Strategy.update_position() userid =", self.__user_id, "strategy_id =", self.__strategy_id, "更新持仓:")
+        print("Strategy.update_position_for_OnRtnTrade() userid =", self.__user_id, "strategy_id =", self.__strategy_id, "更新持仓:")
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
         print("     B卖(", self.__position_b_sell, ",", self.__position_b_sell_yesterday, ")")
+
+    # 更新持仓变量
+    def update_position_for_position_detail(self):
+        self.__position_a_buy = 0
+        self.__position_a_buy_today = 0
+        self.__position_a_buy_yesterday = 0
+        self.__position_a_sell = 0
+        self.__position_a_sell_today = 0
+        self.__position_a_sell_yesterday = 0
+        self.__position_b_buy = 0
+        self.__position_b_buy_today = 0
+        self.__position_b_buy_yesterday = 0
+        self.__position_b_sell = 0
+        self.__position_b_sell_today = 0
+        self.__position_b_sell_yesterday = 0
+        for trade in self.__list_position_detail_for_trade:
+            # 今仓
+            if trade['TradingDay'] == self.__MdApi_TradingDay:
+                # A合约
+                if trade['InstrumentID'] == self.__a_instrument_id:
+                    # 买
+                    if trade['Direction'] == '0':
+                        self.__position_a_buy_today +=trade['Volume']
+                    # 卖
+                    else:
+                        self.__position_a_sell_today += trade['Volume']
+                # B合约
+                else:
+                    # 买
+                    if trade['Direction'] == '0':
+                        self.__position_b_buy_today += trade['Volume']
+                    # 卖
+                    else:
+                        self.__position_b_sell_today += trade['Volume']
+            # 昨仓
+            else:
+                # A合约
+                if trade['InstrumentID'] == self.__a_instrument_id:
+                    # 买
+                    if trade['Direction'] == '0':
+                        self.__position_a_buy_yesterday += trade['Volume']
+                    # 卖
+                    else:
+                        self.__position_a_sell_yesterday += trade['Volume']
+                # B合约
+                else:
+                    # 买
+                    if trade['Direction'] == '0':
+                        self.__position_b_buy_yesterday += trade['Volume']
+                    # 卖
+                    else:
+                        self.__position_b_sell_yesterday += trade['Volume']
+        self.__position_a_buy = self.__position_a_buy_today + self.__position_a_buy_yesterday
+        self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
+        self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
+        self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
+        self.__position = self.__position_b_buy + self.__position_b_sell
 
     # 报单统计（order）
     def statistics_for_order(self, Order):
@@ -957,14 +1026,14 @@ class Strategy():
         if len(Order['OrderSysID']) == 12 and Order['VolumeTraded'] == 0:
             # A合约的Order
             if Order['InstrumentID'] == self.__a_instrument_id:
-                self.__a_order_value += Order['VolumeTotalOriginal']  # A委托手数
+                self.__a_order_lots += Order['VolumeTotalOriginal']  # A委托手数
                 self.__a_order_count += 1  # A委托次数
-                self.__a_trade_rate = self.__a_traded_count / self.__a_order_value  # A成交率
+                self.__a_trade_rate = self.__a_traded_count / self.__a_order_lots  # A成交率
             # B合约的Order
             elif Order['InstrumentID'] == self.__b_instrument_id:
-                self.__b_order_value += Order['VolumeTotalOriginal']  # B委托手数
+                self.__b_order_lots += Order['VolumeTotalOriginal']  # B委托手数
                 self.__b_order_count += 1  # B委托次数
-                self.__b_trade_rate = self.__b_traded_count / self.__b_order_value  # B成交率
+                self.__b_trade_rate = self.__b_traded_count / self.__b_order_lots  # B成交率
             self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
             self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
 
@@ -981,15 +1050,15 @@ class Strategy():
             self.__a_traded_count += Trade['Volume']  # 成交量
             self.__a_traded_amount += Trade['Price'] * Trade['Volume'] * self.__a_instrument_multiple  # 成交金额
             self.__a_commission_count += self.count_commission(Trade)  # A手续费
-            if self.__a_order_value > 0:
-                self.__a_trade_rate = self.__a_traded_count / self.__a_order_value  # A成交率
+            if self.__a_order_lots > 0:
+                self.__a_trade_rate = self.__a_traded_count / self.__a_order_lots  # A成交率
         # B合约的Trade
         elif Trade['InstrumentID'] == self.__b_instrument_id:
             self.__b_traded_count += Trade['Volume']  # 成交量
             self.__b_traded_amount += Trade['Price'] * Trade['Volume'] * self.__b_instrument_multiple  # 成交金额
             self.__b_commission_count += self.count_commission(Trade)  # B手续费
-            if self.__b_order_value > 0:
-                self.__b_trade_rate = self.__b_traded_count / self.__b_order_value  # A成交率
+            if self.__b_order_lots > 0:
+                self.__b_trade_rate = self.__b_traded_count / self.__b_order_lots  # A成交率
         self.__dict_statistics['volume'] = self.__a_traded_count + self.__b_traded_count  # 成交量
         self.__dict_statistics['amount'] = self.__a_traded_amount + self.__b_traded_amount  # 成交金额
         self.__commission = self.__a_commission_count + self.__b_commission_count  # 手续费
@@ -999,10 +1068,10 @@ class Strategy():
 
     # order、trade统计
     def statistics(self, order=None, trade=None):
-        print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
+        # print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
         # 根据order统计A、B合约的：报单手数、撤单手数
         if isinstance(order, dict):
-            print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "order =", order)
+            # print(">>> Strategy.statistics() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "order =", order)
             if order['OrderStatus'] in ['0', '5']:  # 仅统计'OrderStatus'为0和5的原始报单量
                 if order['InstrumentID'] == self.__a_instrument_id:  # A合约
                     self.__dict_statistics['a_order_lots'] += order['VolumeTotalOriginal']  # A报单手数
@@ -1334,15 +1403,15 @@ class Strategy():
         self.__a_action_count = dict_args['a_action_count']
         self.__b_action_count = dict_args['b_action_count']
 
-        data_main = self.get_statistics()
-        data_main['strategy_id'] = self.__strategy_id  # dict结构体中加入strategy_id
-        dict_msg = {
-            'DataFlag': 'strategy_statistics',
-            'UserId': self.__user_id,
-            'DataMain': data_main  # 最新策略统计
-        }
-        # print(">>> Strategy.set_statistics() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
-        self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
+        # data_main = self.get_statistics()
+        # data_main['strategy_id'] = self.__strategy_id  # dict结构体中加入strategy_id
+        # dict_msg = {
+        #     'DataFlag': 'strategy_statistics',
+        #     'UserId': self.__user_id,
+        #     'DataMain': data_main  # 最新策略统计
+        # }
+        # # print(">>> Strategy.set_statistics() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
+        # self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
 
     def get_statistics(self):
         dict_statistics = {
@@ -1605,7 +1674,10 @@ class Strategy():
         # self.__queue_OnRtnOrder.put(Order)  # 放入队列
 
         # 统计order指标
-        self.statistics(order=Order)
+        # self.statistics(order=Order)
+
+        # 更新统计指标
+        self.statistics_for_order(Order)
 
         # 更新界面
         # self.signal_update_strategy.emit(self)
@@ -1626,12 +1698,17 @@ class Strategy():
             print('Strategy.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade', Trade)
         # self.__queue_OnRtnTrade.put(Trade)  # 放入队列
 
-        # 更新持仓变量
-        self.update_position_for_OnRtnTrade(Trade)
-        # 统计trade指标
-        self.statistics(trade=Trade)
         # 更新持仓列表
         self.update_list_position_detail_for_trade(Trade)
+        # 更新持仓变量
+        self.update_position_for_OnRtnTrade(Trade)
+        # 更新持仓变量，遍历持仓明细trade
+        # self.update_position_for_position_detail()
+        # 更新占用保证金
+        self.update_current_margin()
+        # 更新统计指标
+        # self.statistics(trade=Trade)
+        self.statistics_for_trade(Trade)
 
         # 更新界面
         # self.signal_update_strategy.emit(self)

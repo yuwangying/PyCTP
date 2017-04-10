@@ -31,6 +31,9 @@
       </property>
       <item>
        <widget class="QTableWidget" name="tableWidget_all_orders">
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(255, 255, 245);</string>
+        </property>
         <property name="editTriggers">
          <set>QAbstractItemView::NoEditTriggers</set>
         </property>
@@ -212,6 +215,9 @@
        <widget class="QGroupBox" name="groupBox_order_insert">
         <property name="autoFillBackground">
          <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(255, 255, 245);</string>
         </property>
         <property name="title">
          <string>下单板</string>

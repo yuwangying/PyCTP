@@ -699,7 +699,7 @@ class User():
             list_strategy_data.append(strategy_arguments['user_id'])  # 1:
             list_strategy_data.append(strategy_arguments['strategy_id'])  # 2:
             list_strategy_data.append(','.join([a_instrument_id, b_instrument_id]))  # 3:
-            list_strategy_data.append(strategy_position['position'])  # 4:
+            list_strategy_data.append(str(strategy_position['position']))  # 4:
             list_strategy_data.append(str(strategy_position['position_b_sell']))  # 5:买持仓=B总卖
             list_strategy_data.append(str(strategy_position['position_b_buy']))  # 6:卖持仓=B总买
             list_strategy_data.append(strategy_statistics['profit_position'])  # 7:

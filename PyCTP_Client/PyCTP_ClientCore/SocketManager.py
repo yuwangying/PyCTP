@@ -970,7 +970,7 @@ class SocketManager(QtCore.QThread):
                 # 获取server的数据：list_position_detail_for_order
                 list_position_detail_for_order = list()
                 for i_position_detail_for_order in self.__list_position_detail_for_order:
-                    if i_position_detail_for_order['userid'] == user_id:
+                    if i_position_detail_for_order['UserID'] == user_id:
                         list_position_detail_for_order.append(i_position_detail_for_order)
                 self.__dict_user_process_data[user_id]['server'][
                     'list_position_detail_for_order'] = list_position_detail_for_order
@@ -978,7 +978,7 @@ class SocketManager(QtCore.QThread):
                 # 获取server的数据：list_position_detail_for_trade
                 list_position_detail_for_trade = list()
                 for i_position_detail_for_trade in self.__list_position_detail_for_trade:
-                    if i_position_detail_for_trade['userid'] == user_id:
+                    if i_position_detail_for_trade['UserID'] == user_id:
                         list_position_detail_for_trade.append(i_position_detail_for_trade)
                 self.__dict_user_process_data[user_id]['server'][
                     'list_position_detail_for_trade'] = list_position_detail_for_trade

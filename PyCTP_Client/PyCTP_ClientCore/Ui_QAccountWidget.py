@@ -26,17 +26,64 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
         Form.resize(1425, 493)
+        Form.setStyleSheet(_fromUtf8("QTabWidget::pane { /* The tab widget frame */\n"
+"      border-top: 2px solid #C2C7CB;\n"
+"}\n"
+"\n"
+"  QTabWidget::tab-bar {\n"
+"      left: 5px; /* move to the right by 5px */\n"
+"  }\n"
+"\n"
+"  /* Style the tab using the tab sub-control. Note that\n"
+"      it reads QTabBar _not_ QTabWidget */\n"
+"  QTabBar::tab {\n"
+"        \n"
+"    font: 11pt \"微软雅黑\";\n"
+"      background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+"                                  stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,\n"
+"                                  stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);\n"
+"      border: 2px solid #C4C4C3;\n"
+"      border-bottom-color: #C2C7CB; /* same as the pane color */\n"
+"      border-top-left-radius: 4px;\n"
+"      border-top-right-radius: 4px;\n"
+"      min-width: 80px;\n"
+"      padding: 2px;\n"
+"  }\n"
+"\n"
+"  QTabBar::tab:selected, QTabBar::tab:hover {\n"
+"      background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+"                                  stop: 0 #fafafa, stop: 0.4 #f4f4f4,\n"
+"                                  stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);\n"
+"  }\n"
+"\n"
+"  QTabBar::tab:selected {\n"
+"      border-color: #9B9B9B;\n"
+"      border-bottom-color: #C2C7CB; /* same as pane color */\n"
+"  }\n"
+"\n"
+"  QTabBar::tab:!selected {\n"
+"      margin-top: 2px; /* make non-selected tabs look smaller */\n"
+"  }"))
         self.verticalLayout = QtGui.QVBoxLayout(Form)
-        self.verticalLayout.setMargin(2)
+        self.verticalLayout.setContentsMargins(2, 0, 2, 0)
         self.verticalLayout.setSpacing(2)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.widget_tabbar = QtGui.QWidget(Form)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.widget_tabbar.sizePolicy().hasHeightForWidth())
+        self.widget_tabbar.setSizePolicy(sizePolicy)
+        self.widget_tabbar.setStyleSheet(_fromUtf8("background-color: rgb(162, 162, 162);"))
         self.widget_tabbar.setObjectName(_fromUtf8("widget_tabbar"))
         self.verticalLayout.addWidget(self.widget_tabbar)
         self.panel_show_account = QtGui.QWidget(Form)
+        self.panel_show_account.setStyleSheet(_fromUtf8("background-color: rgb(109, 109, 109);\n"
+"color: rgb(250, 250, 250);\n"
+"font: 100 10pt \"微软雅黑\";"))
         self.panel_show_account.setObjectName(_fromUtf8("panel_show_account"))
         self.horizontalLayout_panel_show_account = QtGui.QHBoxLayout(self.panel_show_account)
-        self.horizontalLayout_panel_show_account.setMargin(1)
+        self.horizontalLayout_panel_show_account.setContentsMargins(1, 0, 1, 1)
         self.horizontalLayout_panel_show_account.setSpacing(1)
         self.horizontalLayout_panel_show_account.setObjectName(_fromUtf8("horizontalLayout_panel_show_account"))
         self.widget_dongtaiquanyi = QtGui.QWidget(self.panel_show_account)
@@ -45,13 +92,16 @@ class Ui_Form(object):
         self.gridLayout_5 = QtGui.QGridLayout(self.widget_dongtaiquanyi)
         self.gridLayout_5.setObjectName(_fromUtf8("gridLayout_5"))
         self.label_value_dongtaiquanyi = QtGui.QLabel(self.widget_dongtaiquanyi)
+        self.label_value_dongtaiquanyi.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_dongtaiquanyi.setObjectName(_fromUtf8("label_value_dongtaiquanyi"))
         self.gridLayout_5.addWidget(self.label_value_dongtaiquanyi, 1, 0, 1, 1)
         self.label_dongtaiquanyi = QtGui.QLabel(self.widget_dongtaiquanyi)
+        self.label_dongtaiquanyi.setAlignment(QtCore.Qt.AlignCenter)
         self.label_dongtaiquanyi.setObjectName(_fromUtf8("label_dongtaiquanyi"))
         self.gridLayout_5.addWidget(self.label_dongtaiquanyi, 0, 0, 1, 1)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_dongtaiquanyi)
         self.line_13 = QtGui.QFrame(self.panel_show_account)
+        self.line_13.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_13.setFrameShape(QtGui.QFrame.VLine)
         self.line_13.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_13.setObjectName(_fromUtf8("line_13"))
@@ -62,13 +112,16 @@ class Ui_Form(object):
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.widget_jingtaiquanyi)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.label_jingtaiquanyi = QtGui.QLabel(self.widget_jingtaiquanyi)
+        self.label_jingtaiquanyi.setAlignment(QtCore.Qt.AlignCenter)
         self.label_jingtaiquanyi.setObjectName(_fromUtf8("label_jingtaiquanyi"))
         self.verticalLayout_3.addWidget(self.label_jingtaiquanyi)
         self.label_value_jingtaiquanyi = QtGui.QLabel(self.widget_jingtaiquanyi)
+        self.label_value_jingtaiquanyi.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_jingtaiquanyi.setObjectName(_fromUtf8("label_value_jingtaiquanyi"))
         self.verticalLayout_3.addWidget(self.label_value_jingtaiquanyi)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_jingtaiquanyi)
         self.line_14 = QtGui.QFrame(self.panel_show_account)
+        self.line_14.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_14.setFrameShape(QtGui.QFrame.VLine)
         self.line_14.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_14.setObjectName(_fromUtf8("line_14"))
@@ -79,13 +132,16 @@ class Ui_Form(object):
         self.verticalLayout_8 = QtGui.QVBoxLayout(self.widget_chicangyingkui)
         self.verticalLayout_8.setObjectName(_fromUtf8("verticalLayout_8"))
         self.label_chicangyingkui = QtGui.QLabel(self.widget_chicangyingkui)
+        self.label_chicangyingkui.setAlignment(QtCore.Qt.AlignCenter)
         self.label_chicangyingkui.setObjectName(_fromUtf8("label_chicangyingkui"))
         self.verticalLayout_8.addWidget(self.label_chicangyingkui)
         self.label_value_chicangyingkui = QtGui.QLabel(self.widget_chicangyingkui)
+        self.label_value_chicangyingkui.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_chicangyingkui.setObjectName(_fromUtf8("label_value_chicangyingkui"))
         self.verticalLayout_8.addWidget(self.label_value_chicangyingkui)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_chicangyingkui)
         self.line_15 = QtGui.QFrame(self.panel_show_account)
+        self.line_15.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_15.setFrameShape(QtGui.QFrame.VLine)
         self.line_15.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_15.setObjectName(_fromUtf8("line_15"))
@@ -96,13 +152,16 @@ class Ui_Form(object):
         self.verticalLayout_9 = QtGui.QVBoxLayout(self.widget_pingcangyingkui)
         self.verticalLayout_9.setObjectName(_fromUtf8("verticalLayout_9"))
         self.label_pingcangyingkui = QtGui.QLabel(self.widget_pingcangyingkui)
+        self.label_pingcangyingkui.setAlignment(QtCore.Qt.AlignCenter)
         self.label_pingcangyingkui.setObjectName(_fromUtf8("label_pingcangyingkui"))
         self.verticalLayout_9.addWidget(self.label_pingcangyingkui)
         self.label_value_pingcangyingkui = QtGui.QLabel(self.widget_pingcangyingkui)
+        self.label_value_pingcangyingkui.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_pingcangyingkui.setObjectName(_fromUtf8("label_value_pingcangyingkui"))
         self.verticalLayout_9.addWidget(self.label_value_pingcangyingkui)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_pingcangyingkui)
         self.line_16 = QtGui.QFrame(self.panel_show_account)
+        self.line_16.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_16.setFrameShape(QtGui.QFrame.VLine)
         self.line_16.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_16.setObjectName(_fromUtf8("line_16"))
@@ -113,13 +172,16 @@ class Ui_Form(object):
         self.verticalLayout_10 = QtGui.QVBoxLayout(self.widget_shouxufei)
         self.verticalLayout_10.setObjectName(_fromUtf8("verticalLayout_10"))
         self.label_shouxufei = QtGui.QLabel(self.widget_shouxufei)
+        self.label_shouxufei.setAlignment(QtCore.Qt.AlignCenter)
         self.label_shouxufei.setObjectName(_fromUtf8("label_shouxufei"))
         self.verticalLayout_10.addWidget(self.label_shouxufei)
         self.label_value_shouxufei = QtGui.QLabel(self.widget_shouxufei)
+        self.label_value_shouxufei.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_shouxufei.setObjectName(_fromUtf8("label_value_shouxufei"))
         self.verticalLayout_10.addWidget(self.label_value_shouxufei)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_shouxufei)
         self.line_17 = QtGui.QFrame(self.panel_show_account)
+        self.line_17.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_17.setFrameShape(QtGui.QFrame.VLine)
         self.line_17.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_17.setObjectName(_fromUtf8("line_17"))
@@ -130,13 +192,16 @@ class Ui_Form(object):
         self.verticalLayout_11 = QtGui.QVBoxLayout(self.widget_keyongzijin)
         self.verticalLayout_11.setObjectName(_fromUtf8("verticalLayout_11"))
         self.label_keyongzijin = QtGui.QLabel(self.widget_keyongzijin)
+        self.label_keyongzijin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_keyongzijin.setObjectName(_fromUtf8("label_keyongzijin"))
         self.verticalLayout_11.addWidget(self.label_keyongzijin)
         self.label_value_keyongzijin = QtGui.QLabel(self.widget_keyongzijin)
+        self.label_value_keyongzijin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_keyongzijin.setObjectName(_fromUtf8("label_value_keyongzijin"))
         self.verticalLayout_11.addWidget(self.label_value_keyongzijin)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_keyongzijin)
         self.line_18 = QtGui.QFrame(self.panel_show_account)
+        self.line_18.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_18.setFrameShape(QtGui.QFrame.VLine)
         self.line_18.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_18.setObjectName(_fromUtf8("line_18"))
@@ -147,13 +212,16 @@ class Ui_Form(object):
         self.verticalLayout_12 = QtGui.QVBoxLayout(self.widget_zhanyongbaozhengjin)
         self.verticalLayout_12.setObjectName(_fromUtf8("verticalLayout_12"))
         self.label_zhanyongbaozhengjin = QtGui.QLabel(self.widget_zhanyongbaozhengjin)
+        self.label_zhanyongbaozhengjin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_zhanyongbaozhengjin.setObjectName(_fromUtf8("label_zhanyongbaozhengjin"))
         self.verticalLayout_12.addWidget(self.label_zhanyongbaozhengjin)
         self.label_value_zhanyongbaozhengjin = QtGui.QLabel(self.widget_zhanyongbaozhengjin)
+        self.label_value_zhanyongbaozhengjin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_zhanyongbaozhengjin.setObjectName(_fromUtf8("label_value_zhanyongbaozhengjin"))
         self.verticalLayout_12.addWidget(self.label_value_zhanyongbaozhengjin)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_zhanyongbaozhengjin)
         self.line_19 = QtGui.QFrame(self.panel_show_account)
+        self.line_19.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_19.setFrameShape(QtGui.QFrame.VLine)
         self.line_19.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_19.setObjectName(_fromUtf8("line_19"))
@@ -164,13 +232,16 @@ class Ui_Form(object):
         self.verticalLayout_5 = QtGui.QVBoxLayout(self.widget_fengxiandu)
         self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
         self.label_fengxiandu = QtGui.QLabel(self.widget_fengxiandu)
+        self.label_fengxiandu.setAlignment(QtCore.Qt.AlignCenter)
         self.label_fengxiandu.setObjectName(_fromUtf8("label_fengxiandu"))
         self.verticalLayout_5.addWidget(self.label_fengxiandu)
         self.label_value_fengxiandu = QtGui.QLabel(self.widget_fengxiandu)
+        self.label_value_fengxiandu.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_fengxiandu.setObjectName(_fromUtf8("label_value_fengxiandu"))
         self.verticalLayout_5.addWidget(self.label_value_fengxiandu)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_fengxiandu)
         self.line_10 = QtGui.QFrame(self.panel_show_account)
+        self.line_10.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_10.setFrameShape(QtGui.QFrame.VLine)
         self.line_10.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_10.setObjectName(_fromUtf8("line_10"))
@@ -181,13 +252,16 @@ class Ui_Form(object):
         self.verticalLayout_6 = QtGui.QVBoxLayout(self.widget_jinrirujin)
         self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
         self.label_jinrirujin = QtGui.QLabel(self.widget_jinrirujin)
+        self.label_jinrirujin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_jinrirujin.setObjectName(_fromUtf8("label_jinrirujin"))
         self.verticalLayout_6.addWidget(self.label_jinrirujin)
         self.label_value_jinrirujin = QtGui.QLabel(self.widget_jinrirujin)
+        self.label_value_jinrirujin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_jinrirujin.setObjectName(_fromUtf8("label_value_jinrirujin"))
         self.verticalLayout_6.addWidget(self.label_value_jinrirujin)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_jinrirujin)
         self.line_11 = QtGui.QFrame(self.panel_show_account)
+        self.line_11.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_11.setFrameShape(QtGui.QFrame.VLine)
         self.line_11.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_11.setObjectName(_fromUtf8("line_11"))
@@ -198,36 +272,65 @@ class Ui_Form(object):
         self.verticalLayout_7 = QtGui.QVBoxLayout(self.widget_jinrichujin)
         self.verticalLayout_7.setObjectName(_fromUtf8("verticalLayout_7"))
         self.label_jinrichujin = QtGui.QLabel(self.widget_jinrichujin)
+        self.label_jinrichujin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_jinrichujin.setObjectName(_fromUtf8("label_jinrichujin"))
         self.verticalLayout_7.addWidget(self.label_jinrichujin)
         self.label_value_jinrichujin = QtGui.QLabel(self.widget_jinrichujin)
+        self.label_value_jinrichujin.setAlignment(QtCore.Qt.AlignCenter)
         self.label_value_jinrichujin.setObjectName(_fromUtf8("label_value_jinrichujin"))
         self.verticalLayout_7.addWidget(self.label_value_jinrichujin)
         self.horizontalLayout_panel_show_account.addWidget(self.widget_jinrichujin)
         self.line_12 = QtGui.QFrame(self.panel_show_account)
+        self.line_12.setStyleSheet(_fromUtf8("background-color: rgb(150, 150, 150);"))
         self.line_12.setFrameShape(QtGui.QFrame.VLine)
         self.line_12.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_12.setObjectName(_fromUtf8("line_12"))
         self.horizontalLayout_panel_show_account.addWidget(self.line_12)
         self.pushButton_query_account = QtGui.QPushButton(self.panel_show_account)
         self.pushButton_query_account.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.pushButton_query_account.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_query_account.setObjectName(_fromUtf8("pushButton_query_account"))
         self.horizontalLayout_panel_show_account.addWidget(self.pushButton_query_account)
         self.pushButton_start_strategy = QtGui.QPushButton(self.panel_show_account)
+        self.pushButton_start_strategy.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_start_strategy.setObjectName(_fromUtf8("pushButton_start_strategy"))
         self.horizontalLayout_panel_show_account.addWidget(self.pushButton_start_strategy)
         self.verticalLayout.addWidget(self.panel_show_account)
         self.container_trade = QtGui.QWidget(Form)
         self.container_trade.setObjectName(_fromUtf8("container_trade"))
         self.horizontalLayout = QtGui.QHBoxLayout(self.container_trade)
-        self.horizontalLayout.setMargin(1)
+        self.horizontalLayout.setContentsMargins(1, 0, 1, 1)
         self.horizontalLayout.setSpacing(1)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.tableView_Trade_Args = QtGui.QTableView(self.container_trade)
+        self.tableView_Trade_Args.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);"))
         self.tableView_Trade_Args.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView_Trade_Args.setObjectName(_fromUtf8("tableView_Trade_Args"))
         self.horizontalLayout.addWidget(self.tableView_Trade_Args)
         self.groupBox_trade_args = QtGui.QGroupBox(self.container_trade)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_trade_args.sizePolicy().hasHeightForWidth())
+        self.groupBox_trade_args.setSizePolicy(sizePolicy)
+        self.groupBox_trade_args.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);\n"
+""))
         self.groupBox_trade_args.setFlat(False)
         self.groupBox_trade_args.setCheckable(False)
         self.groupBox_trade_args.setObjectName(_fromUtf8("groupBox_trade_args"))
@@ -457,9 +560,31 @@ class Ui_Form(object):
         self.lineEdit_Bzuosell.setObjectName(_fromUtf8("lineEdit_Bzuosell"))
         self.pushButton_liandongjia = QtGui.QPushButton(self.groupBox_trade_args)
         self.pushButton_liandongjia.setGeometry(QtCore.QRect(126, 330, 50, 18))
+        self.pushButton_liandongjia.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    font: 100 10pt \"微软雅黑\";\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    border: 1px solid #6D6D6D;\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_liandongjia.setObjectName(_fromUtf8("pushButton_liandongjia"))
         self.pushButton_liandongjian = QtGui.QPushButton(self.groupBox_trade_args)
         self.pushButton_liandongjian.setGeometry(QtCore.QRect(126, 350, 50, 18))
+        self.pushButton_liandongjian.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    font: 100 10pt \"微软雅黑\";\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    border: 1px solid #6D6D6D;\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_liandongjian.setObjectName(_fromUtf8("pushButton_liandongjian"))
         self.label_zhisun = QtGui.QLabel(self.groupBox_trade_args)
         self.label_zhisun.setGeometry(QtCore.QRect(12, 90, 60, 16))
@@ -477,7 +602,17 @@ class Ui_Form(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_set_strategy.sizePolicy().hasHeightForWidth())
         self.pushButton_set_strategy.setSizePolicy(sizePolicy)
-        self.pushButton_set_strategy.setStyleSheet(_fromUtf8("font: 75 10pt \"Agency FB\";"))
+        self.pushButton_set_strategy.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    font: 100 10pt \"微软雅黑\";\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    border: 1px solid #6D6D6D;\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_set_strategy.setObjectName(_fromUtf8("pushButton_set_strategy"))
         self.pushButton_query_strategy = QtGui.QPushButton(self.groupBox_trade_args)
         self.pushButton_query_strategy.setEnabled(True)
@@ -487,7 +622,17 @@ class Ui_Form(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_query_strategy.sizePolicy().hasHeightForWidth())
         self.pushButton_query_strategy.setSizePolicy(sizePolicy)
-        self.pushButton_query_strategy.setStyleSheet(_fromUtf8("font: 75 10pt \"Agency FB\";"))
+        self.pushButton_query_strategy.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    font: 100 10pt \"微软雅黑\";\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    border: 1px solid #6D6D6D;\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_query_strategy.setCheckable(False)
         self.pushButton_query_strategy.setObjectName(_fromUtf8("pushButton_query_strategy"))
         self.comboBox_xiadansuanfa = QtGui.QComboBox(self.groupBox_trade_args)
@@ -517,7 +662,17 @@ class Ui_Form(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_set_position.sizePolicy().hasHeightForWidth())
         self.pushButton_set_position.setSizePolicy(sizePolicy)
-        self.pushButton_set_position.setStyleSheet(_fromUtf8("font: 75 10pt \"Agency FB\";"))
+        self.pushButton_set_position.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    font: 100 10pt \"微软雅黑\";\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    border: 1px solid #6D6D6D;\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_set_position.setObjectName(_fromUtf8("pushButton_set_position"))
         self.lineEdit_qihuozhanghao = QtGui.QLineEdit(self.groupBox_trade_args)
         self.lineEdit_qihuozhanghao.setEnabled(False)
@@ -619,12 +774,12 @@ class Ui_Form(object):
         self.label_Abaodanpianyi.setText(_translate("Form", "A报单偏移", None))
 
 
-# if __name__ == "__main__":
-#     import sys
-#     app = QtGui.QApplication(sys.argv)
-#     Form = QtGui.QWidget()
-#     ui = Ui_Form()
-#     ui.setupUi(Form)
-#     Form.show()
-#     sys.exit(app.exec_())
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    Form = QtGui.QWidget()
+    ui = Ui_Form()
+    ui.setupUi(Form)
+    Form.show()
+    sys.exit(app.exec_())
 

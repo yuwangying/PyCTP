@@ -31,7 +31,7 @@ class StrategyDataModel(QAbstractTableModel):
         self.__header = header
         self.__row = 0
         self.__column = 0
-        self.__is_set_data = False  # 是否给数据模型设置值，初始值为False
+        # self.__is_set_data = False  # 是否给数据模型设置值，初始值为False
         self.__update_once = True  # 是否更新一遍全部数据，初始值为False
         self.__set_resizeColumnsToContents_flags = False  # 设置过列宽标志位为False
         # self.timer = QtCore.QTimer()
@@ -66,8 +66,8 @@ class StrategyDataModel(QAbstractTableModel):
         # print(">>> StrategyDataModel.slot_set_data_list() called")
         len_data_list = len(data_list)  # 最新数据的长度
         # 更新tableView整个区域：已经设置过数据、数据长度相同、未切换tab页
-        if self.__update_once and self.__is_set_data and self.__row == len_data_list and self.__QAccountWidget.get_current_tab_name() == self.__last_tab_name:
-            # print(">>> StrategyDataModel.slot_set_data_list() if")
+        if self.__update_once:  # and self.__row == len_data_list and self.__QAccountWidget.get_current_tab_name() == self.__last_tab_name:
+            print(">>> StrategyDataModel.slot_set_data_list() if")
             # not self.__update_once and
             t1 = self.index(0, 1)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
@@ -77,10 +77,23 @@ class StrategyDataModel(QAbstractTableModel):
                 self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
                 self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
                 print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
+
+            if self.__row != 0:
+                # self.__is_set_data = False
+                for i in self.__data_list:
+                    checkbox = QtGui.QCheckBox()
+                    if i[0] == 1:
+                        checkbox.setText("开")
+                        checkbox.setCheckState(QtCore.Qt.Checked)
+                    else:
+                        checkbox.setText("关")
+                        checkbox.setCheckState(QtCore.Qt.Unchecked)
+                    i[0] = checkbox
+
             self.__update_once = False  # 更新一次界面请求的值设置为False
         # 更新tableView部分区域：一般定时刷新任务时只刷新部分
         else:
-            # print(">>> StrategyDataModel.slot_set_data_list() else")
+            print(">>> StrategyDataModel.slot_set_data_list() else")
             self.__data_list = copy.deepcopy(data_list)
             self.__row = len(self.__data_list)
             if self.__row != 0:
@@ -99,9 +112,9 @@ class StrategyDataModel(QAbstractTableModel):
             if self.__row != 0:
                 self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
             self.layoutChanged.emit()
-            # t1 = self.index(0, 4)  # 左上角
-            # t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
-            # self.dataChanged.emit(t1, t2)
+            t1 = self.index(0, 4)  # 左上角
+            t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
+            self.dataChanged.emit(t1, t2)
             # self.__update_once = False  # 更新一次界面请求的值设置为False
             # print(">>>slot_set_data_list() self.__update_once = False")
 
@@ -212,12 +225,14 @@ class StrategyDataModel(QAbstractTableModel):
             font.setBold(True)  # 加粗
             return font
         # TextAlignmentRole排列字体对其样式：居中、左对齐……
-        elif role == QtCore.Qt.TextAlignmentRole and index.column() == 1:
+        elif role == QtCore.Qt.TextAlignmentRole and index.column() in [1, 2, 3, 15, 16]:
             return QtCore.Qt.AlignCenter
-        elif role == QtCore.Qt.TextAlignmentRole and index.column() == 2:
-            return QtCore.Qt.AlignCenter
-        elif role == QtCore.Qt.BackgroundRole and index.column() == 1:
-            return QtGui.QColor(0, 255, 0)
+        elif role == QtCore.Qt.TextAlignmentRole and index.column() in [4,5,6,7,8,9,10,11,12,13,14]:
+            return QtCore.Qt.AlignRight
+        elif role == QtCore.Qt.BackgroundRole and index.column() == 5:
+            return QtGui.QColor(255, 221, 221)
+        elif role == QtCore.Qt.BackgroundRole and index.column() == 6:
+            return QtGui.QColor(221, 255, 221)
         elif role == QtCore.Qt.CheckStateRole:
             if column == 0:
                 if value == "关":
