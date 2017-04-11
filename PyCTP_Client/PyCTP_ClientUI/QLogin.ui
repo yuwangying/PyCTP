@@ -42,7 +42,9 @@ background-color: rgb(255, 255, 245);
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">border:none;</string>
+    <string notr="true">border:none;
+background:transparent;
+</string>
    </property>
    <property name="title">
     <string/>
@@ -258,6 +260,10 @@ p, li { white-space: pre-wrap; }
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
+  <zorder>label_login_image</zorder>
+  <zorder>label_software_name</zorder>
+  <zorder>label_version</zorder>
+  <zorder>groupBox_login_form</zorder>
  </widget>
  <tabstops>
   <tabstop>lineEdit_trader_id</tabstop>

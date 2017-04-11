@@ -41,7 +41,9 @@ class Ui_LoginForm(object):
 ""))
         self.groupBox_login_form = QtGui.QGroupBox(LoginForm)
         self.groupBox_login_form.setGeometry(QtCore.QRect(482, 280, 379, 253))
-        self.groupBox_login_form.setStyleSheet(_fromUtf8("border:none;"))
+        self.groupBox_login_form.setStyleSheet(_fromUtf8("border:none;\n"
+"background:transparent;\n"
+""))
         self.groupBox_login_form.setTitle(_fromUtf8(""))
         self.groupBox_login_form.setObjectName(_fromUtf8("groupBox_login_form"))
         self.pushButton_login = QtGui.QPushButton(self.groupBox_login_form)
@@ -126,6 +128,10 @@ class Ui_LoginForm(object):
         self.label_version.setGeometry(QtCore.QRect(14, 557, 105, 27))
         self.label_version.setAlignment(QtCore.Qt.AlignCenter)
         self.label_version.setObjectName(_fromUtf8("label_version"))
+        self.label_login_image.raise_()
+        self.label_software_name.raise_()
+        self.label_version.raise_()
+        self.groupBox_login_form.raise_()
 
         self.retranslateUi(LoginForm)
         QtCore.QMetaObject.connectSlotsByName(LoginForm)
