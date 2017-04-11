@@ -187,12 +187,23 @@ class SocketManager(QtCore.QThread):
         return self.__list_strategy_info
 
     def set_list_position_detail_for_order(self, list_input):
+        for i in list_input:
+            i['Direction'] = chr(i['Direction'])
+            i['CombOffsetFlag'] = chr(i['CombOffsetFlag'])
+            i['CombHedgeFlag'] = chr(i['CombHedgeFlag'])
+            i['OrderStatus'] = chr(i['OrderStatus'])
+            print(">>> SocketManager.set_list_position_detail_for_order() i =", i)
         self.__list_position_detail_for_order = list_input
 
     def get_list_position_detail_for_order(self):
         return self.__list_position_detail_for_order
 
     def set_list_position_detail_for_trade(self, list_input):
+        for i in list_input:
+            i['Direction'] = chr(i['Direction'])
+            i['OffsetFlag'] = chr(i['OffsetFlag'])
+            i['HedgeFlag'] = chr(i['HedgeFlag'])
+            print(">>> SocketManager.set_list_position_detail_for_trade() i =", i)
         self.__list_position_detail_for_trade = list_input
 
     def get_list_position_detail_for_trade(self):
@@ -521,7 +532,8 @@ class SocketManager(QtCore.QThread):
                     user_id = buff['UserID']
                     self.__dict_Queue_main[user_id].put(buff)
                     # self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 更新一次全部数据
-                    self.signal_init_ui_on_off.emit(buff)  # 发送信号，更新tableView中特定的index
+                    # self.signal_init_ui_on_off.emit(buff)  # 发送信号，更新tableView中特定的index
+                    self.signal_update_strategy_on_off.emit(buff)  # 更新策略开关
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
             # elif buff['MsgType'] == 14:  # 修改策略只平开关
@@ -751,13 +763,13 @@ class SocketManager(QtCore.QThread):
                 #             # print(">>> SocketManager.handle_Queue_get() list_update_group_box =", list_update_group_box)
             elif data_flag == 'panel_show_account_data':  # 更新账户资金情况
                 self.__dict_panel_show_account_data[user_id] = data_main  # 主进程接收并更新user进程发来的界面更新数据-panel_show_account
-                # current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
-                # if current_tab_name == '所有账户':
-                #     pass
-                # else:
-                #     # 收到与tabName相同的期货账户更新界面
-                #     if user_id == current_tab_name:
-                #         self.signal_update_panel_show_account.emit(data_main)
+                current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
+                if current_tab_name == '所有账户':
+                    pass
+                else:
+                    # 收到与tabName相同的期货账户更新界面
+                    if user_id == current_tab_name:
+                        self.signal_update_panel_show_account.emit(data_main)
             elif data_flag == 'QryInstrument':
                 if len(self.__list_instrument_info) > 0:
                     pass

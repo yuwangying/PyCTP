@@ -40,45 +40,29 @@ class StrategyDataModel(QAbstractTableModel):
         # self.timer.start(60000)
         # self.rowCheckStateMap = {}
 
-    """
-    # 更新tableView内全部元素
-    def slot_set_data_list(self, data_list):
-        # print(">>> StrategyDataModel.slot_set_data_list() data_list =", len(data_list), data_list)
-        # print(">>> StrategyDataModel.slot_set_data_list() called")
-        # self.__data_list = copy.deepcopy(data_list)
-        self.__data_list = data_list
-        self.__row = len(self.__data_list)
-        # if self.__row != 0:
-            # self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
-            # self.emit(SIGNAL("layoutAboutToBeChanged()"))
-            # self.layoutAboutToBeChanged.emit()
-            # if order == Qt.DescendingOrder:
-            #     self.__data_list.reverse()
-            # self.emit(SIGNAL("layoutChanged()"))
-            # self.layoutChanged.emit()
-        self.layoutAboutToBeChanged.emit()
-        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0), self.columnCount(0)))
-        self.layoutChanged.emit()
-    """
-
     # 更新tableView
     def slot_set_data_list(self, data_list):
         # print(">>> StrategyDataModel.slot_set_data_list() called")
-        len_data_list = len(data_list)  # 最新数据的长度
+        self.__row = len(data_list)  # 最新数据的长度
+        if self.__row == 0:
+            return
+
         # 更新tableView整个区域：已经设置过数据、数据长度相同、未切换tab页
         if self.__update_once:  # and self.__row == len_data_list and self.__QAccountWidget.get_current_tab_name() == self.__last_tab_name:
-            print(">>> StrategyDataModel.slot_set_data_list() if")
+            self.__data_list = copy.deepcopy(data_list)
+            print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域")
             # not self.__update_once and
             t1 = self.index(0, 1)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
             self.dataChanged.emit(t1, t2)
-            if not self.__set_resizeColumnsToContents_flags:
+            if True:  # not self.__set_resizeColumnsToContents_flags:
                 self.__QAccountWidget.tableView_Trade_Args.resizeColumnsToContents()  # tableView列宽自动适应
                 self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
                 self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
                 print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
 
             if self.__row != 0:
+                print(">>> StrategyDataModel.slot_set_data_list() self.__row != 0")
                 # self.__is_set_data = False
                 for i in self.__data_list:
                     checkbox = QtGui.QCheckBox()
@@ -93,21 +77,8 @@ class StrategyDataModel(QAbstractTableModel):
             self.__update_once = False  # 更新一次界面请求的值设置为False
         # 更新tableView部分区域：一般定时刷新任务时只刷新部分
         else:
-            print(">>> StrategyDataModel.slot_set_data_list() else")
-            self.__data_list = copy.deepcopy(data_list)
+            # print(">>> StrategyDataModel.slot_set_data_list() 更新tableView部分区域")
             self.__row = len(self.__data_list)
-            if self.__row != 0:
-                self.__is_set_data = True
-                for i in self.__data_list:
-                    checkbox = QtGui.QCheckBox()
-                    if i[0] == 1:
-                        checkbox.setText("开")
-                        checkbox.setCheckState(QtCore.Qt.Checked)
-                    else:
-                        checkbox.setText("关")
-                        checkbox.setCheckState(QtCore.Qt.Unchecked)
-                    i[0] = checkbox
-
             self.layoutAboutToBeChanged.emit()
             if self.__row != 0:
                 self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
@@ -135,7 +106,7 @@ class StrategyDataModel(QAbstractTableModel):
                         self.__data_list[row][0].setCheckState(QtCore.Qt.Checked)
                     else:
                         self.__data_list[row][0].setText('关')
-                        self.__data_list[row][0].setCheckState(QtCore.Qt.UnChecked)
+                        self.__data_list[row][0].setCheckState(QtCore.Qt.Unchecked)
                     index = self.index(row, 0)
                     self.dataChanged.emit(index, index)
                     break

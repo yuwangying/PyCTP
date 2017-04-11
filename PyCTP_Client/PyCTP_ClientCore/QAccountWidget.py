@@ -227,6 +227,8 @@ class QAccountWidget(QWidget, Ui_Form):
     def slot_tab_changed(self, int_tab_index):
         self.__current_tab_index = int_tab_index  # 保存当前tab的index
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
+        print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
+        self.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
         # 更新期货账户开关或所有账户开关按钮
         if self.__total_process_finished:  # 所有进程初始化完成标志位，初始值为False
             on_off = self.__socket_manager.get_dict_user_on_off()[self.__current_tab_name]
@@ -244,15 +246,15 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
         # 主动触发鼠标单击事件
         if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
+            print("QAccountWidget.slot_tab_changed() if len(dict_tab_clicked_info) > 0:")
             row = dict_tab_clicked_info['row']
             column = dict_tab_clicked_info['column']
             self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
             self.__clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
 
             list_update_table_view_data = self.get_list_update_table_view_data()
+            self.StrategyDataModel.set_update_once(True)
             self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
-
-            print(">>> QAccountWidget.slot_tab_changed() len(dict_tab_clicked_info) > 0, row =", row, "column =", column)
 
             list_update_group_box_data = self.get_list_update_group_box_data()
             if len(list_update_group_box_data) > 0:
@@ -345,6 +347,9 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def get_clicked_strategy_id(self):
         return self.__clicked_strategy_id
+
+    def get_group_box_price_tick(self):
+        return self.__group_box_price_tick
 
     def set_total_process_finished(self, bool_input):
         self.__total_process_finished = bool_input
@@ -1357,6 +1362,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新groupBox：更新全部item
     def update_groupBox(self):
+        print(">>> QAccountWidget.update_groupBox()")
         # 鼠标未点击任何策略之前，不更新groupBox
         if len(self.__dict_clicked_info[self.__current_tab_name]) == 0:
             return
@@ -1450,6 +1456,7 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新groupBox：全部元素
     def slot_update_group_box(self):
         print(">>> QAccountWidget.slot_update_group_box() ", "self.__list_update_group_box_data =", self.__list_update_group_box_data)
+        self.__group_box_price_tick = self.__list_update_group_box_data[35]  # groupBox中的最小跳
         self.lineEdit_qihuozhanghao.setText(self.__list_update_group_box_data[1])  # 期货账号
         self.lineEdit_celuebianhao.setText(self.__list_update_group_box_data[2])  # 策略编号
         index_comboBox = self.comboBox_jiaoyimoxing.findText(self.__list_update_group_box_data[15])  # 交易模型
@@ -1472,13 +1479,13 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Achedan.setText(self.__list_update_group_box_data[27])  # A撤单
         self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[28])  # B撤单
         self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[36])  # 空头开
-        self.doubleSpinBox_kongtoukai.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_kongtoukai.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
         self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[37])  # 空头平
-        self.doubleSpinBox_kongtouping.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_kongtouping.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
         self.doubleSpinBox_duotoukai.setValue(self.__list_update_group_box_data[39])  # 多头开
-        self.doubleSpinBox_duotoukai.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_duotoukai.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
         self.doubleSpinBox_duotouping.setValue(self.__list_update_group_box_data[38])  # 多头平
-        self.doubleSpinBox_duotouping.setSingleStep(1)  # 设置step
+        self.doubleSpinBox_duotouping.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
         # 空头开-开关
         if self.__list_update_group_box_data[40] == 0:
             self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
@@ -2184,14 +2191,18 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-        price_tick = self.__client_main.get_clicked_strategy().get_a_price_tick()  # 最小跳
-        value = self.doubleSpinBox_duotoukai.value() + price_tick  # 计算更新值
+        # price_tick = self.__client_main.get_clicked_strategy().get_a_price_tick()  # 最小跳
+        # print(">>> on_pushButton_liandongjia_clicked() self.lineEdit_qihuozhanghao.text() =", self.lineEdit_qihuozhanghao.text())
+        if self.lineEdit_qihuozhanghao.text() == '':
+            print(">>> on_pushButton_liandongjia_clicked() if self.lineEdit_qihuozhanghao.text() == ''")
+            return
+        value = self.doubleSpinBox_duotoukai.value() + self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_duotoukai.setValue(value)
-        value = self.doubleSpinBox_duotouping.value() + price_tick  # 计算更新值
+        value = self.doubleSpinBox_duotouping.value() + self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_duotouping.setValue(value)
-        value = self.doubleSpinBox_kongtoukai.value() + price_tick  # 计算更新值
+        value = self.doubleSpinBox_kongtoukai.value() + self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_kongtoukai.setValue(value)
-        value = self.doubleSpinBox_kongtouping.value() + price_tick  # 计算更新值
+        value = self.doubleSpinBox_kongtouping.value() + self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_kongtouping.setValue(value)
 
     # 联动减
@@ -2202,14 +2213,17 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-        price_tick = self.__client_main.get_clicked_strategy().get_a_price_tick()  # 最小跳
-        value = self.doubleSpinBox_duotoukai.value() - price_tick  # 计算更新值
+        # price_tick = self.__client_main.get_clicked_strategy().get_a_price_tick()  # 最小跳
+        if self.lineEdit_qihuozhanghao.text() == '':
+            print(">>> on_pushButton_liandongjia_clicked() if self.lineEdit_qihuozhanghao.text() == ''")
+            return
+        value = self.doubleSpinBox_duotoukai.value() - self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_duotoukai.setValue(value)
-        value = self.doubleSpinBox_duotouping.value() - price_tick  # 计算更新值
+        value = self.doubleSpinBox_duotouping.value() - self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_duotouping.setValue(value)
-        value = self.doubleSpinBox_kongtoukai.value() - price_tick  # 计算更新值
+        value = self.doubleSpinBox_kongtoukai.value() - self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_kongtoukai.setValue(value)
-        value = self.doubleSpinBox_kongtouping.value() - price_tick  # 计算更新值
+        value = self.doubleSpinBox_kongtouping.value() - self.__group_box_price_tick  # 计算更新值
         self.doubleSpinBox_kongtouping.setValue(value)
 
     # 修改策略参数，参数排错

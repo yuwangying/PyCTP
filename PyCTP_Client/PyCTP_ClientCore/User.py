@@ -695,6 +695,7 @@ class User():
             strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
             a_instrument_id = strategy_arguments['a_instrument_id']
             b_instrument_id = strategy_arguments['b_instrument_id']
+            min_move = self.__dict_strategy[strategy_id].get_price_tick(a_instrument_id)
             list_strategy_data.append(strategy_arguments['on_off'])  # 0:策略开关
             list_strategy_data.append(strategy_arguments['user_id'])  # 1:
             list_strategy_data.append(strategy_arguments['strategy_id'])  # 2:
@@ -739,7 +740,7 @@ class User():
             list_strategy_data.append(str(strategy_position['position_a_buy_yesterday']))  # 32:A昨买
             list_strategy_data.append(str(strategy_position['position_b_sell_yesterday']))  # 33:B昨卖
             list_strategy_data.append(str(strategy_position['position_b_buy_yesterday']))  # 34:B昨买
-            list_strategy_data.append(1)  # 待续,2017年3月23日22:47:24,strategy_arguments['price_tick']  # 35:最小跳价
+            list_strategy_data.append(min_move)  # 35:待续,2017年3月23日22:47:24,strategy_arguments['price_tick']  # 35:最小跳价
             list_strategy_data.append(strategy_arguments['sell_open'])  # 36:卖开
             list_strategy_data.append(strategy_arguments['buy_close'])  # 37:买平
             list_strategy_data.append(strategy_arguments['sell_close'])  # 38:卖平
@@ -760,19 +761,28 @@ class User():
         used_margin = 0  # 所有策略占用保证金求和
         for strategy_id in self.__dict_strategy:
             strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
-            profit_position += strategy_statistics['profit_position']
-            profit_close += strategy_statistics['profit_close']
-            commission += strategy_statistics['commission']
-        list_panel_show_account_data.append('0')  # 动态权益
-        list_panel_show_account_data.append(str(self.__QryTradingAccount['PreBalance']))  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
-        list_panel_show_account_data.append(str(profit_position))  # 持仓盈亏
-        list_panel_show_account_data.append(str(profit_close))  # 平仓盈亏
-        list_panel_show_account_data.append(str(commission))  # 手续费
-        list_panel_show_account_data.append(str(0))  # 可用资金
-        list_panel_show_account_data.append(str(0))  # 占用保证金
-        list_panel_show_account_data.append(str(0))  # 风险度
-        list_panel_show_account_data.append(str(self.__QryTradingAccount['Deposit']))  # 今日入金
-        list_panel_show_account_data.append(str(self.__QryTradingAccount['Withdraw']))  # 今日出金
+            profit_position += strategy_statistics['profit_position']  # 持仓盈亏
+            profit_close += strategy_statistics['profit_close']  # 平仓盈亏
+            commission += strategy_statistics['commission']  # 手续费
+            used_margin += strategy_statistics['current_margin']  # 保证金
+        # 动态权益 = 静态权益 + 入金 - 出金 + 持仓盈亏 + 平仓盈亏 - 手续费
+        variable_equity = self.__QryTradingAccount['PreBalance'] \
+                          + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] \
+                          + profit_position + profit_close - commission
+        # 可用资金 = 动态权益 - 占用保证金
+        available_equity = variable_equity - used_margin
+        # 风险度 = 占用保证金 / 动态权益
+        risk = str(int((used_margin / variable_equity) * 100)) + '%'
+        list_panel_show_account_data.append(str(int(variable_equity)))  # 动态权益
+        list_panel_show_account_data.append(str(int(self.__QryTradingAccount['PreBalance'])))  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
+        list_panel_show_account_data.append(str(int(profit_position)))  # 持仓盈亏
+        list_panel_show_account_data.append(str(int(profit_close)))  # 平仓盈亏
+        list_panel_show_account_data.append(str(int(commission)))  # 手续费
+        list_panel_show_account_data.append(str(int(available_equity)))  # 可用资金
+        list_panel_show_account_data.append(str(int(used_margin)))  # 占用保证金
+        list_panel_show_account_data.append(risk)  # 风险度
+        list_panel_show_account_data.append(str(int(self.__QryTradingAccount['Deposit'])))  # 今日入金
+        list_panel_show_account_data.append(str(int(self.__QryTradingAccount['Withdraw'])))  # 今日出金
         return list_panel_show_account_data
 
     # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程

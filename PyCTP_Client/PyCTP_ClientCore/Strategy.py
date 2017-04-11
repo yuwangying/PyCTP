@@ -20,7 +20,6 @@ import pandas as pd
 from PyQt4 import QtCore
 import queue
 import threading
-import PyCTP
 
 
 class Strategy():
@@ -359,7 +358,6 @@ class Strategy():
     def init_position_detail(self):
         # RESUM模式启动，xml数据可用，装载xml数据
         if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
-            # print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME")
             # 持仓明细order
             self.__list_position_detail_for_order = list()  # 初始化本策略持仓明细order
             for i in self.__user.get_xml_list_position_detail_for_order():
@@ -374,32 +372,16 @@ class Strategy():
 
         # RESTART模式启动，xml数据不可用，装载server数据
         elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:  # RESTART模式启动，xml数据不可用
-            # print("Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART")
-            # 装载server数据
-
-            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id,
-                  "len(self.__user.get_server_list_position_detail_for_order_yesterday()) =", len(self.__user.get_server_list_position_detail_for_order_yesterday()))
-            print(">>> Strategy.init_strategy_data() user_id =", self.__user_id,
-                  "len(self.__user.get_server_list_position_detail_for_trade_yesterday()) =", len(self.__user.get_server_list_position_detail_for_trade_yesterday()))
-
             # 昨日持仓明细order
             self.__list_position_detail_for_order = list()
             for i in self.__user.get_server_list_position_detail_for_order_yesterday():
-                # print(">>> Strategy.init_strategy_data() i =", i)
                 if i['StrategyID'] == self.__strategy_id:
                     self.__list_position_detail_for_order.append(i)
-            if len(self.__list_position_detail_for_order) > 0:
-                print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_order) =", len(self.__list_position_detail_for_order))
-
             # 昨日持仓明细trade
             self.__list_position_detail_for_trade = list()
             for i in self.__user.get_server_list_position_detail_for_trade_yesterday():
-                # print(">>> Strategy.init_strategy_data() 持仓明细i =", i)
                 if i['StrategyID'] == self.__strategy_id:
                     self.__list_position_detail_for_trade.append(i)
-            if len(self.__list_position_detail_for_trade) > 0:
-                print(">>> Strategy.init_strategy_data() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_trade)", len(self.__list_position_detail_for_trade))
-            
 
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):
@@ -1052,6 +1034,7 @@ class Strategy():
             self.__a_commission_count += self.count_commission(Trade)  # A手续费
             if self.__a_order_lots > 0:
                 self.__a_trade_rate = self.__a_traded_count / self.__a_order_lots  # A成交率
+            # A合约平仓盈亏
         # B合约的Trade
         elif Trade['InstrumentID'] == self.__b_instrument_id:
             self.__b_traded_count += Trade['Volume']  # 成交量
@@ -1059,6 +1042,7 @@ class Strategy():
             self.__b_commission_count += self.count_commission(Trade)  # B手续费
             if self.__b_order_lots > 0:
                 self.__b_trade_rate = self.__b_traded_count / self.__b_order_lots  # A成交率
+            # B合约平仓盈亏
         self.__dict_statistics['volume'] = self.__a_traded_count + self.__b_traded_count  # 成交量
         self.__dict_statistics['amount'] = self.__a_traded_amount + self.__b_traded_amount  # 成交金额
         self.__commission = self.__a_commission_count + self.__b_commission_count  # 手续费
@@ -1192,11 +1176,12 @@ class Strategy():
                 profit_close = (trade_close['Price'] - trade_open['Price']) * self.__a_instrument_multiple * volume_traded
             self.__b_profit_close += profit_close
             self.__dict_statistics['b_profit_close'] += profit_close  # A平仓盈亏
-
+        self.__profit_close = self.__a_profit_close + self.__b_profit_close
+        self.__profit = self.__profit_close - self.__commission
         # A、B平仓盈亏累计
-        self.__dict_statistics['profit_close'] = self.__dict_statistics['a_profit_close'] + self.__dict_statistics['b_profit_close']
+        self.__dict_statistics['profit_close'] = self.__profit_close
         # A、B净盈亏
-        self.__dict_statistics['profit'] = self.__dict_statistics['profit_close'] - self.__dict_statistics['commission']
+        self.__dict_statistics['profit'] = self.__profit
 
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
@@ -1436,7 +1421,8 @@ class Strategy():
             'profit_position': self.__profit_position,  # 持仓盈亏
             'profit': self.__profit,  # 净盈亏
             'a_action_count': self.__a_action_count,  # A撤单次数
-            'b_action_count': self.__b_action_count  # B撤单次数
+            'b_action_count': self.__b_action_count,  # B撤单次数
+            'current_margin': self.__current_margin  # 占用保证金
         }
         return dict_statistics
 
