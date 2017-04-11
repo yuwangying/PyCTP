@@ -197,6 +197,7 @@ class StrategyDataModel(QAbstractTableModel):
             return None
         column = index.column()
         row = index.row()
+        # 获取当前index的值
         if column == 0:
             value = self.__data_list[row][column].text()
         else:
@@ -211,27 +212,33 @@ class StrategyDataModel(QAbstractTableModel):
                     value = '开'
             return value
         # ForegroundRole字体颜色
-        elif role == QtCore.Qt.ForegroundRole and index.column() == 1:
-            return QtGui.QColor(255, 0, 0)
-        elif role == QtCore.Qt.ForegroundRole and index.column() == 2:
-            return QtGui.QColor(0, 255, 0)
+        # elif role == QtCore.Qt.ForegroundRole and index.column() == 1:
+        #     return QtGui.QColor(255, 0, 0)
+        # elif role == QtCore.Qt.ForegroundRole and index.column() == 2:
+        #     return QtGui.QColor(0, 255, 0)
         # FontRole 字体样式，加粗、斜体、字体等等
-        elif role == QtCore.Qt.FontRole and index.column() == 1:
-            font = QtGui.QFont()
-            font.setBold(True)
-            return font
-        elif role == QtCore.Qt.FontRole and index.column() == 2:
-            font = QtGui.QFont()
-            font.setBold(True)  # 加粗
-            return font
+        # elif role == QtCore.Qt.FontRole and index.column() == 1:
+        #     font = QtGui.QFont()
+        #     font.setBold(True)
+        #     return font
+        # elif role == QtCore.Qt.FontRole and index.column() == 2:
+        #     font = QtGui.QFont()
+        #     font.setBold(True)  # 加粗
+        #     return font
         # TextAlignmentRole排列字体对其样式：居中、左对齐……
-        elif role == QtCore.Qt.TextAlignmentRole and index.column() in [1, 2, 3, 15, 16]:
-            return QtCore.Qt.AlignCenter
-        elif role == QtCore.Qt.TextAlignmentRole and index.column() in [4,5,6,7,8,9,10,11,12,13,14]:
-            return QtCore.Qt.AlignRight
-        elif role == QtCore.Qt.BackgroundRole and index.column() == 5:
+        elif role == QtCore.Qt.TextAlignmentRole and column == 0:
+            return QtCore.Qt.AlignVCenter
+        elif role == QtCore.Qt.TextAlignmentRole and column in [1, 2, 3, 15, 16]:
+            return QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter
+        elif role == QtCore.Qt.TextAlignmentRole and column in [4,5,6,7,8,9,10,11,12,13,14]:
+            return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter  #
+        elif role == QtCore.Qt.BackgroundRole and column == 4:  # 撇退高亮背景提示
+            # A总卖==B总买 and A总买==B总卖
+            if self.__data_list[row][29] != self.__data_list[row][6] or self.__data_list[row][31] != self.__data_list[row][5]:
+                return QtGui.QColor(243, 209, 110)
+        elif role == QtCore.Qt.BackgroundRole and column == 5:
             return QtGui.QColor(255, 221, 221)
-        elif role == QtCore.Qt.BackgroundRole and index.column() == 6:
+        elif role == QtCore.Qt.BackgroundRole and column == 6:
             return QtGui.QColor(221, 255, 221)
         elif role == QtCore.Qt.CheckStateRole:
             if column == 0:
@@ -241,8 +248,6 @@ class StrategyDataModel(QAbstractTableModel):
                 else:
                     return self.__data_list[row][column].checkState()
                     # return QtCore.Qt.Checked
-
-
 
     # 设置单个单元格数据
     def setData(self, index, value, role):

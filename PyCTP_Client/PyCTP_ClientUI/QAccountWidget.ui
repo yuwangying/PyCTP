@@ -557,6 +557,9 @@ QPushButton::pressed{
       </property>
       <item>
        <widget class="QTableView" name="tableView_Trade_Args">
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
         <property name="styleSheet">
          <string notr="true">background-color: rgb(255, 255, 245);</string>
         </property>

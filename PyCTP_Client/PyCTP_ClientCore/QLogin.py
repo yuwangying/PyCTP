@@ -76,6 +76,11 @@ class QLoginForm(QWidget, Ui_LoginForm):
     def get_ClientMain(self):
         return self.__client_main
 
+    def closeEvent(self, QCloseEvent):
+        print(">>> QLogin.closeEvent() ")
+        # self.widget_QAccountWidget.get_SocketManager().set_recive_msg_flag(False)
+        QtCore.QCoreApplication.instance().quit()
+
     # 自定义槽
     @pyqtSlot(str)
     def slot_SendMsg(self, msg):

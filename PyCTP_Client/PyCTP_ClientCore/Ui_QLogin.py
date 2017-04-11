@@ -37,6 +37,7 @@ class Ui_LoginForm(object):
         LoginForm.setWindowIcon(icon)
         LoginForm.setStyleSheet(_fromUtf8("font: 100 10pt \"微软雅黑\";\n"
 "background-color: rgb(188, 247, 255);\n"
+"background-color: rgb(255, 255, 245);\n"
 ""))
         self.groupBox_login_form = QtGui.QGroupBox(LoginForm)
         self.groupBox_login_form.setGeometry(QtCore.QRect(482, 280, 379, 253))
@@ -114,7 +115,7 @@ class Ui_LoginForm(object):
         self.label_login_error.setObjectName(_fromUtf8("label_login_error"))
         self.label_login_image = QtGui.QLabel(LoginForm)
         self.label_login_image.setGeometry(QtCore.QRect(0, 0, 957, 599))
-        self.label_login_image.setStyleSheet(_fromUtf8("background: url(:/login_bee.png) no-repeat;\n"
+        self.label_login_image.setStyleSheet(_fromUtf8("background: url(:/image/login_bee.png) no-repeat;\n"
 ""))
         self.label_login_image.setText(_fromUtf8(""))
         self.label_login_image.setObjectName(_fromUtf8("label_login_image"))

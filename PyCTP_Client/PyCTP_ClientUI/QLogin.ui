@@ -29,6 +29,7 @@
   <property name="styleSheet">
    <string notr="true">font: 100 10pt &quot;微软雅黑&quot;;
 background-color: rgb(188, 247, 255);
+background-color: rgb(255, 255, 245);
 </string>
   </property>
   <widget class="QGroupBox" name="groupBox_login_form">
@@ -217,7 +218,7 @@ background-color: rgb(188, 247, 255);
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">background: url(:/login_bee.png) no-repeat;
+    <string notr="true">background: url(:/image/login_bee.png) no-repeat;
 </string>
    </property>
    <property name="text">

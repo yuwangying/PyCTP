@@ -319,6 +319,7 @@ class Ui_Form(object):
         self.horizontalLayout.setSpacing(1)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.tableView_Trade_Args = QtGui.QTableView(self.container_trade)
+        self.tableView_Trade_Args.setFocusPolicy(QtCore.Qt.NoFocus)
         self.tableView_Trade_Args.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);"))
         self.tableView_Trade_Args.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView_Trade_Args.setObjectName(_fromUtf8("tableView_Trade_Args"))
