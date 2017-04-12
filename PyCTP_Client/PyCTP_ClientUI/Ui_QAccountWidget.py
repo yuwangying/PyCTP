@@ -313,6 +313,20 @@ class Ui_Form(object):
         self.horizontalLayout_panel_show_account.addWidget(self.pushButton_start_strategy)
         self.verticalLayout.addWidget(self.panel_show_account)
         self.container_trade = QtGui.QWidget(Form)
+        self.container_trade.setStyleSheet(_fromUtf8("QMenu {\n"
+"      background-color: #ABABAB; /* sets background of the menu */\n"
+"      border: 1px solid black;\n"
+"  }\n"
+"\n"
+"  QMenu::item {\n"
+"      /* sets background of menu item. set this to something non-transparent\n"
+"          if you want menu color and menu item color to be different */\n"
+"      background-color: transparent;\n"
+"  }\n"
+"\n"
+"  QMenu::item:selected { /* when user selects item using mouse or keyboard */\n"
+"      background-color:rgb(109, 109, 109);\n"
+"  }"))
         self.container_trade.setObjectName(_fromUtf8("container_trade"))
         self.horizontalLayout = QtGui.QHBoxLayout(self.container_trade)
         self.horizontalLayout.setContentsMargins(1, 0, 1, 1)

@@ -92,6 +92,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__current_tab_name = ''
         self.__clicked_user_id = ''  # 初始化鼠标点击的策略的user_id
         self.__clicked_strategy_id = ''  # 初始化鼠标点击的策略的strategy_id
+        self.__clicked_strategy_on_off = '关'  # 初始化鼠标点击策略的开关显示值
         self.__list_update_widget_data = list()  # 界面tableView正在显示和更新的数据，有SocketManager通过信号槽发送来
         self.slot_addTabBar("所有账户")
 
@@ -253,7 +254,7 @@ class QAccountWidget(QWidget, Ui_Form):
             self.__clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
 
             list_update_table_view_data = self.get_list_update_table_view_data()
-            self.StrategyDataModel.set_update_once(True)
+            # self.StrategyDataModel.set_update_once(True)
             self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
 
             list_update_group_box_data = self.get_list_update_group_box_data()
@@ -347,6 +348,12 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def get_clicked_strategy_id(self):
         return self.__clicked_strategy_id
+
+    def set_clicked_strategy_on_off(self, bool_input):
+        self.__clicked_strategy_on_off = bool_input
+
+    def get_clicked_strategy_on_off(self):
+        return self.__clicked_strategy_on_off
 
     def get_group_box_price_tick(self):
         return self.__group_box_price_tick
@@ -2305,6 +2312,13 @@ class QAccountWidget(QWidget, Ui_Form):
     @pyqtSlot()
     def on_pushButton_set_position_clicked(self):
         # print(">>> QAccountWidget.on_pushButton_set_position_clicked() widget_name=", self.__widget_name, "self.pushButton_set_position.text()=", self.pushButton_set_position.text())
+
+        # 策略开关为“开”时不能修改策略，弹窗提示，并return
+        print(">>> QAccountWidget.on_pushButton_set_position_clicked() self.get_clicked_strategy_on_off() =", self.get_clicked_strategy_on_off())
+        if self.get_clicked_strategy_on_off() == 1:
+            QMessageBox().showMessage("错误", "策略运行时不允许修改持仓！")
+            return
+
         # 参数排错
         if len(self.lineEdit_qihuozhanghao.text()) == 0 or len(self.lineEdit_celuebianhao.text()) == 0:
             print(">>> QAccountWidget.on_pushButton_set_position_clicked() 期货账号或策略编号为空")
@@ -2425,7 +2439,17 @@ class QAccountWidget(QWidget, Ui_Form):
         column = index.column()
         self.__clicked_user_id = self.tableView_Trade_Args.model().index(row, 1).data()
         self.__clicked_strategy_id = self.tableView_Trade_Args.model().index(row, 2).data()
-        self.__dict_clicked_info[self.__current_tab_name] = {'user_id': self.__clicked_user_id, 'strategy_id': self.__clicked_strategy_id, 'row': row, 'column': column}
+        str_on_off = self.tableView_Trade_Args.model().index(row, 0).data()
+        if str_on_off == '开':
+            self.__clicked_strategy_on_off = 1
+        else:
+            self.__clicked_strategy_on_off = 0
+        print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__clicked_strategy_on_off =", self.__clicked_strategy_on_off)
+        self.__dict_clicked_info[self.__current_tab_name] = {'user_id': self.__clicked_user_id,
+                                                             'strategy_id': self.__clicked_strategy_id,
+                                                             'row': row,
+                                                             'column': column,
+                                                             'strategy_on_off': self.__clicked_strategy_on_off}
 
         print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__dict_clicked_info =", self.__dict_clicked_info)
         self.__socket_manager.set_clicked_info(row, column, self.__clicked_user_id, self.__clicked_strategy_id)

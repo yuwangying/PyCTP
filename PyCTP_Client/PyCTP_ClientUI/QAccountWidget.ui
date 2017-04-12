@@ -539,6 +539,22 @@ QPushButton::pressed{
    </item>
    <item>
     <widget class="QWidget" name="container_trade" native="true">
+     <property name="styleSheet">
+      <string notr="true">QMenu {
+      background-color: #ABABAB; /* sets background of the menu */
+      border: 1px solid black;
+  }
+
+  QMenu::item {
+      /* sets background of menu item. set this to something non-transparent
+          if you want menu color and menu item color to be different */
+      background-color: transparent;
+  }
+
+  QMenu::item:selected { /* when user selects item using mouse or keyboard */
+      background-color:rgb(109, 109, 109);
+  }</string>
+     </property>
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="80,33">
       <property name="spacing">
        <number>1</number>

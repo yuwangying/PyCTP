@@ -488,6 +488,7 @@ class SocketManager(QtCore.QThread):
                     # 进程间通信：main->user
                     user_id = buff['Info'][0]['user_id']  # 策略参数dict
                     # self.signal_insert_strategy.emit(buff['Info'][0])  # 界面中新插入一行策略
+                    self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
                     self.signal_QNewStrategy_hide.emit()  # 隐藏新建策略窗口
                     self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -522,6 +523,7 @@ class SocketManager(QtCore.QThread):
                     # self.__ctp_manager.delete_strategy(dict_args)
                     # {'MsgSendFlag': 1, 'MsgResult': 0, 'MsgErrorReason': '', 'MsgRef': 15, 'UserID': '058176', 'StrategyID': '20', 'MsgType': 7, 'MsgSrc': 0, 'TraderID': '1601'}
                     user_id = buff['UserID']
+                    self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
                     self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=7 删除策略失败")
@@ -533,6 +535,7 @@ class SocketManager(QtCore.QThread):
                     self.__dict_Queue_main[user_id].put(buff)
                     # self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 更新一次全部数据
                     # self.signal_init_ui_on_off.emit(buff)  # 发送信号，更新tableView中特定的index
+                    self.__QAccountWidget.set_clicked_strategy_on_off(buff['OnOff'])
                     self.signal_update_strategy_on_off.emit(buff)  # 更新策略开关
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
