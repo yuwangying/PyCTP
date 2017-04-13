@@ -61,16 +61,16 @@ class StrategyDataModel(QAbstractTableModel):
                 self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
                 print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
 
-            # 第一列更新为checkBox
-            for i in self.__data_list:
-                checkbox = QtGui.QCheckBox()
-                if i[0] == 1:
-                    checkbox.setText("开")
-                    checkbox.setCheckState(QtCore.Qt.Checked)
-                else:
-                    checkbox.setText("关")
-                    checkbox.setCheckState(QtCore.Qt.Unchecked)
-                i[0] = checkbox
+            # # 第一列更新为checkBox
+            # for i in self.__data_list:
+            #     checkbox = QtGui.QCheckBox()
+            #     if i[0] == 1:
+            #         checkbox.setText("开")
+            #         checkbox.setCheckState(QtCore.Qt.Checked)
+            #     else:
+            #         checkbox.setText("关")
+            #         checkbox.setCheckState(QtCore.Qt.Unchecked)
+            #     i[0] = checkbox
 
             self.dataChanged.emit(t1, t2)
             self.__update_once = False  # 更新一次界面请求的值设置为False

@@ -14,7 +14,7 @@ from QMessageBox import QMessageBox
 from QAccountWidget import QAccountWidget
 from MarketManager import MarketManagerForUi
 import time
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
 from User import User
 
@@ -727,6 +727,15 @@ class SocketManager(QtCore.QThread):
             # print("SocketManager.handle_Queue_get() 进程通信user->main，user_id =", user_id, 'data_flag =', data_flag, " data_main =", data_main)
 
             if data_flag == 'table_widget_data':  # 更新策略列表信息
+                for i in data_main:
+                    check_box = QtGui.QCheckBox()
+                    if i[0] == 1:
+                        check_box.setText('开')
+                        check_box.setCheckState(QtCore.Qt.Checked)
+                    else:
+                        check_box.setText('关')
+                        check_box.setCheckState(QtCore.Qt.Unchecked)
+                    i[0] = check_box
                 self.__dict_table_view_data[user_id] = data_main  # 主进程接收并更新user进程发来的界面更新数据-tableView
                 # current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
                 # # 更新tableView

@@ -277,19 +277,19 @@ class Strategy():
         self.__position_b_sell_yesterday = 0
         self.__position = 0  # 总持仓量
         # 策略统计类变量
-        self.__a_order_count = 0  # A委托次数
-        self.__b_order_count = 0  # B委托次数
+        self.__a_order_times = 0  # A委托次数
+        self.__b_order_times = 0  # B委托次数
         self.__a_order_lots = 0  # A委托手数
         self.__b_order_lots = 0  # B委托手数
-        self.__a_traded_count = 0  # A成交量
-        self.__b_traded_count = 0  # B成交量
-        self.__total_traded_count = 0  # 所有成交量
+        self.__a_traded_lots = 0  # A成交手数
+        self.__b_traded_lots = 0  # B成交手数
+        self.__total_traded_lots = 0  # A、B成交手数合计
         self.__a_traded_amount = 0  # A成交金额
         self.__b_traded_amount = 0  # B成交金额
-        self.__total_traded_amount = 0  # 总成交量
-        self.__a_commission_count = 0  # A手续费
-        self.__b_commission_count = 0  # B手续费
-        self.__commission = 0  # 总手续费
+        self.__total_traded_amount = 0  # A、B成交金额
+        self.__a_commission = 0  # A手续费
+        self.__b_commission = 0  # B手续费
+        self.__total_commission = 0  # 总手续费
         self.__a_trade_rate = 0  # A成交概率(成交手数/报单手数)
         self.__b_trade_rate = 0  # B成交概率(成交手数/报单手数)
         self.__a_profit_close = 0  # A平仓盈亏
@@ -297,8 +297,10 @@ class Strategy():
         self.__profit_close = 0  # 平仓盈亏
         self.__profit_position = 0  # 持仓盈亏
         self.__profit = 0  # 净盈亏
-        self.__a_action_count = 0  # A撤单次数
-        self.__b_action_count = 0  # B撤单次数
+        self.__a_action_count = 0  # 期货账户内A的撤单次数
+        self.__b_action_count = 0  # 期货账户内的B撤单次数
+        self.__a_action_count_strategy = 0  # 本策略的A撤单次数
+        self.__b_action_count_strategy = 0  # 本策略的B撤单次数
         self.__current_margin = 0  # 占用保证金
 
         self.__dict_statistics = {
@@ -306,21 +308,22 @@ class Strategy():
             'a_profit_close': self.__a_profit_close,  # A平仓盈亏
             'b_profit_close': self.__b_profit_close,  # B平仓盈亏
             'profit_close': self.__profit_close,  # 平仓盈亏
-            'commission': self.__commission,  # 手续费
+            'commission': self.__total_commission,  # 手续费
             'profit': self.__profit,  # 净盈亏
-            'a_traded_count': self.__a_traded_count,  # A成交量
-            'b_traded_count': self.__b_traded_count,  # B成交量
+            'a_traded_count': self.__a_traded_lots,  # A成交量
+            'b_traded_count': self.__b_traded_lots,  # B成交量
             'a_traded_amount': self.__a_traded_amount,  # A成交金额
             'b_traded_amount': self.__b_traded_amount,  # B成交金额
-            'a_commission_count': self.__a_commission_count,  # A手续费
-            'b_commission_count': self.__b_commission_count,  # B手续费
+            'total_traded_amount': self.__total_traded_amount,  # A、B成交金额之和
+            'a_commission_count': self.__a_commission,  # A手续费
+            'b_commission_count': self.__b_commission,  # B手续费
             'profit_position': self.__profit_position,  # 持仓盈亏
             'current_margin': self.__current_margin,  # 当前保证金总额
             # 报单统计的累计指标（order）
             'a_order_lots': self.__a_order_lots,  # A委托手数
             'b_order_lots': self.__b_order_lots,  # B委托手数
-            'a_order_count': self.__a_order_count,  # A委托次数
-            'b_order_count': self.__b_order_count,  # B委托次数
+            'a_order_count': self.__a_order_times,  # A委托次数
+            'b_order_count': self.__b_order_times,  # B委托次数
             'a_action_count': self.__a_action_count,  # A撤单次数
             'b_action_count': self.__b_action_count,  # B撤单次数
             'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
@@ -343,10 +346,10 @@ class Strategy():
                                      self.__position_a_sell,
                                      self.__profit_position,
                                      self.__profit_close,
-                                     self.__commission,
+                                     self.__total_commission,
                                      self.__profit,
-                                     (self.__a_traded_count + self.__b_traded_count),
-                                     (self.__a_traded_amount + self.__b_traded_amount),
+                                     (self.__a_traded_lots + self.__b_traded_lots),
+                                     self.__total_traded_amount,
                                      self.__a_trade_rate,
                                      self.__b_trade_rate,
                                      self.__trade_model,
@@ -653,7 +656,7 @@ class Strategy():
 
     # 获取策略手续费
     def get_commission(self):
-        return self.__commission
+        return self.__total_commission
 
     # 获取策略持仓盈亏
     def get_profit_position(self):
@@ -782,21 +785,21 @@ class Strategy():
                 'a_profit_close': self.__a_profit_close,  # A平仓盈亏
                 'b_profit_close': self.__b_profit_close,  # B平仓盈亏
                 'profit_close': self.__profit_close,  # 平仓盈亏
-                'commission': self.__commission,  # 手续费
+                'commission': self.__total_commission,  # 手续费
                 'profit': self.__profit,  # 净盈亏
-                'a_traded_count': self.__a_traded_count,  # A成交量
-                'b_traded_count': self.__b_traded_count,  # B成交量
+                'a_traded_count': self.__a_traded_lots,  # A成交量
+                'b_traded_count': self.__b_traded_lots,  # B成交量
                 'a_traded_amount': self.__a_traded_amount,  # A成交金额
                 'b_traded_amount': self.__b_traded_amount,  # B成交金额
-                'a_commission_count': self.__a_commission_count,  # A手续费
-                'b_commission_count': self.__b_commission_count,  # B手续费
+                'a_commission_count': self.__a_commission,  # A手续费
+                'b_commission_count': self.__b_commission,  # B手续费
                 'profit_position': self.__profit_position,  # 持仓盈亏
                 'current_margin': 0,  # self.__current_margin,  # 当前保证金总额
                 # 报单统计的累计指标（order）
                 'a_order_lots': self.__a_order_lots,  # A委托手数
                 'b_order_lots': self.__b_order_lots,  # B委托手数
-                'a_order_count': self.__a_order_count,  # A委托次数
-                'b_order_count': self.__b_order_count,  # B委托次数
+                'a_order_count': self.__a_order_times,  # A委托次数
+                'b_order_count': self.__b_order_times,  # B委托次数
                 'a_action_count': self.__a_action_count,  # A撤单次数
                 'b_action_count': self.__b_action_count,  # B撤单次数
                 'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
@@ -809,21 +812,21 @@ class Strategy():
         # for i in self.__list_QryTrade:
         #     # A合约的trade
         #     if i['InstrumentID'] == self.__a_instrument_id:
-        #         self.__a_traded_count += i['Volume']  # 成交量
+        #         self.__a_traded_lots += i['Volume']  # 成交量
         #         self.__a_traded_amount += i['Price'] * i['Volume'] * self.__a_instrument_multiple  # 成交金额
-        #         self.__a_commission_count += self.count_commission(i)  # 手续费
+        #         self.__a_commission += self.count_commission(i)  # 手续费
         #
         #     elif i['InstrumentID'] == self.__b_instrument_id:
-        #         self.__b_traded_count += i['Volume']  # 成交量
-        #         self.__b_commission_count += self.count_commission(i)  # 手续费
+        #         self.__b_traded_lots += i['Volume']  # 成交量
+        #         self.__b_commission += self.count_commission(i)  # 手续费
         #         self.__a_traded_amount += i['Price'] * i['Volume'] * self.__a_instrument_multiple  # 成交金额
         #
-        # self.__commission = self.__a_commission_count + self.__b_commission_count
-        # self.__profit = self.__profit_close - self.__commission
+        # self.__total_commission = self.__a_commission + self.__b_commission
+        # self.__profit = self.__profit_close - self.__total_commission
         # self.__dict_statistics['profit_close'] = self.__profit_close  # 平仓盈亏
-        # self.__dict_statistics['commission'] = self.__commission  # 手续费
+        # self.__dict_statistics['commission'] = self.__total_commission  # 手续费
         # self.__dict_statistics['profit'] = self.__profit  # 净盈亏
-        # self.__dict_statistics['volume'] = self.__a_traded_count + self.__b_traded_count  # 成交量
+        # self.__dict_statistics['volume'] = self.__a_traded_lots + self.__b_traded_lots  # 成交量
         # self.__dict_statistics['amount'] = self.__a_traded_amount + self.__b_traded_amount  # 成交金额
         # self.__dict_statistics['A_traded_rate'] = 0  # A成交率
         # self.__dict_statistics['B_traded_rate'] = 0  # B成交率
@@ -1001,23 +1004,32 @@ class Strategy():
         统计指标
         self.__a_order_value = 0  # A委托手数
         self.__b_order_value = 0  # B委托手数
-        self.__a_order_count = 0  # A委托次数
-        self.__b_order_count = 0  # B委托次数
+        self.__a_order_times = 0  # A委托次数
+        self.__b_order_times = 0  # B委托次数
         """
+        # Order结构体重键名VolumeTotal：未成交数量，VolumeTotalOriginal：报单量，VolumeTraded：成交数量
         # 筛选出交易所的报单回调做统计（OrderSysID长度为12，VolumeTraded值为0）
-        if len(Order['OrderSysID']) == 12 and Order['VolumeTraded'] == 0:
-            # A合约的Order
-            if Order['InstrumentID'] == self.__a_instrument_id:
-                self.__a_order_lots += Order['VolumeTotalOriginal']  # A委托手数
-                self.__a_order_count += 1  # A委托次数
-                self.__a_trade_rate = self.__a_traded_count / self.__a_order_lots  # A成交率
-            # B合约的Order
-            elif Order['InstrumentID'] == self.__b_instrument_id:
-                self.__b_order_lots += Order['VolumeTotalOriginal']  # B委托手数
-                self.__b_order_count += 1  # B委托次数
-                self.__b_trade_rate = self.__b_traded_count / self.__b_order_lots  # B成交率
-            self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
-            self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
+        if len(Order['OrderSysID']) == 12:
+            if Order['OrderStatus'] in ['0', '5']:  # '0': 全部成交，'5': 撤单
+                # A合约的Order
+                if Order['InstrumentID'] == self.__a_instrument_id:
+                    self.__a_order_lots += Order['VolumeTotalOriginal']  # A委托手数
+                    self.__a_order_times += 1  # A委托次数
+                    self.__a_trade_rate = self.__a_traded_lots / self.__a_order_lots  # A成交率
+                # B合约的Order
+                elif Order['InstrumentID'] == self.__b_instrument_id:
+                    self.__b_order_lots += Order['VolumeTotalOriginal']  # B委托手数
+                    self.__b_order_times += 1  # B委托次数
+                    self.__b_trade_rate = self.__b_traded_lots / self.__b_order_lots  # B成交率
+                print(">>> Strategy.statistics_for_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/', self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/', self.__b_order_lots, '/', self.__b_order_times)
+                self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
+                self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
+            # 撤单数量统计
+            if Order['OrderStatus'] == '5':
+                if Order['InstrumentID'] == self.__a_instrument_id:
+                    self.__a_action_count_strategy += 1
+                else:
+                    self.__b_action_count_strategy += 1
 
     # 成交统计（trade）
     def statistics_for_trade(self, Trade):
@@ -1029,24 +1041,26 @@ class Strategy():
         """
         # A合约的Trade
         if Trade['InstrumentID'] == self.__a_instrument_id:
-            self.__a_traded_count += Trade['Volume']  # 成交量
+            self.__a_traded_lots += Trade['Volume']  # 成交量
             self.__a_traded_amount += Trade['Price'] * Trade['Volume'] * self.__a_instrument_multiple  # 成交金额
-            self.__a_commission_count += self.count_commission(Trade)  # A手续费
+            self.__a_commission += self.count_commission(Trade)  # A手续费
             if self.__a_order_lots > 0:
-                self.__a_trade_rate = self.__a_traded_count / self.__a_order_lots  # A成交率
+                self.__a_trade_rate = self.__a_traded_lots / self.__a_order_lots  # A成交率
             # A合约平仓盈亏
         # B合约的Trade
         elif Trade['InstrumentID'] == self.__b_instrument_id:
-            self.__b_traded_count += Trade['Volume']  # 成交量
+            self.__b_traded_lots += Trade['Volume']  # 成交量
             self.__b_traded_amount += Trade['Price'] * Trade['Volume'] * self.__b_instrument_multiple  # 成交金额
-            self.__b_commission_count += self.count_commission(Trade)  # B手续费
+            self.__b_commission += self.count_commission(Trade)  # B手续费
             if self.__b_order_lots > 0:
-                self.__b_trade_rate = self.__b_traded_count / self.__b_order_lots  # A成交率
+                self.__b_trade_rate = self.__b_traded_lots / self.__b_order_lots  # A成交率
             # B合约平仓盈亏
-        self.__dict_statistics['volume'] = self.__a_traded_count + self.__b_traded_count  # 成交量
-        self.__dict_statistics['amount'] = self.__a_traded_amount + self.__b_traded_amount  # 成交金额
-        self.__commission = self.__a_commission_count + self.__b_commission_count  # 手续费
-        self.__dict_statistics['commission'] = self.__a_commission_count + self.__b_commission_count  # 手续费
+        self.__total_traded_lots = self.__a_traded_lots + self.__b_traded_lots
+        self.__total_traded_amount = self.__a_traded_amount + self.__b_traded_amount  # A、B成交金额合计
+        self.__total_commission = self.__a_commission + self.__b_commission  # 手续费
+        self.__dict_statistics['volume'] = self.__total_traded_lots  # 成交量
+        self.__dict_statistics['amount'] = self.__total_traded_amount  # 成交金额
+        self.__dict_statistics['commission'] = self.__total_commission  # 手续费
         self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
         self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
 
@@ -1177,7 +1191,7 @@ class Strategy():
             self.__b_profit_close += profit_close
             self.__dict_statistics['b_profit_close'] += profit_close  # A平仓盈亏
         self.__profit_close = self.__a_profit_close + self.__b_profit_close
-        self.__profit = self.__profit_close - self.__commission
+        self.__profit = self.__profit_close - self.__total_commission
         # A、B平仓盈亏累计
         self.__dict_statistics['profit_close'] = self.__profit_close
         # A、B净盈亏
@@ -1260,13 +1274,21 @@ class Strategy():
     #     self.__b_action_count = self.__user.get_dict_action()[self.__b_instrument_id]
 
     def set_a_action_count(self, int_count):
-        print(">>> Strategy.set_a_action_count() self.__a_action_count =", self.__a_action_count)
+        print(">>> Strategy.set_a_action_count() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", self.__a_instrument_id, "self.__a_action_count =", self.__a_action_count)
         self.__a_action_count = int_count
         # self.signal_update_strategy_position.emit(self)  # 更新界面
 
     def set_b_action_count(self, int_count):
+        print(">>> Strategy.set_b_action_count() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
+              "instrument_id =", self.__b_instrument_id, "self.__b_action_count =", self.__b_action_count)
         self.__b_action_count = int_count
         # self.signal_update_strategy_position.emit(self)  # 更新界面
+
+    def get_a_action_count_strategy(self):
+        return self.__a_action_count_strategy
+
+    def get_b_action_count_strategy(self):
+        return self.__b_action_count_strategy
 
     def get_a_action_count(self):
         return self.__a_action_count
@@ -1367,17 +1389,17 @@ class Strategy():
 
     # 设置统计指标的值，包含dict内键值和对应的strategy对象的属性值赋值
     def set_statistics(self, dict_args):
-        self.__a_order_count = dict_args['a_order_count']
-        self.__b_order_count = dict_args['b_order_count']
-        self.__a_traded_count = dict_args['a_traded_count']
-        self.__b_traded_count = dict_args['b_traded_count']
-        self.__total_traded_count = dict_args['total_traded_count']
+        self.__a_order_times = dict_args['a_order_count']
+        self.__b_order_times = dict_args['b_order_count']
+        self.__a_traded_lots = dict_args['a_traded_count']
+        self.__b_traded_lots = dict_args['b_traded_count']
+        self.__total_traded_lots = dict_args['total_traded_count']
         self.__a_traded_amount = dict_args['a_traded_amount']
         self.__b_traded_amount = dict_args['b_traded_amount']
         self.__total_traded_amount = dict_args['total_traded_amount']
-        self.__a_commission_count = dict_args['a_commission_count']
-        self.__b_commission_count = dict_args['b_commission_count']
-        self.__commission = dict_args['commission']
+        self.__a_commission = dict_args['a_commission_count']
+        self.__b_commission = dict_args['b_commission_count']
+        self.__total_commission = dict_args['commission']
         self.__a_trade_rate = dict_args['a_trade_rate']
         self.__b_trade_rate = dict_args['b_trade_rate']
         self.__a_profit_close = dict_args['a_profit_close']
@@ -1402,17 +1424,17 @@ class Strategy():
         dict_statistics = {
             'user_id': self.__user_id,
             'strategy_id': self.__strategy_id,
-            'a_order_count': self.__a_order_count,  # A委托次数
-            'b_order_count': self.__b_order_count,  # B委托次数
-            'a_traded_count': self.__a_traded_count,  # A成交量
-            'b_traded_count': self.__b_traded_count,  # B成交量
-            'total_traded_count': self.__total_traded_count,  # 所有成交量
+            'a_order_count': self.__a_order_times,  # A委托次数
+            'b_order_count': self.__b_order_times,  # B委托次数
+            'a_traded_count': self.__a_traded_lots,  # A成交量
+            'b_traded_count': self.__b_traded_lots,  # B成交量
+            'total_traded_count': self.__a_traded_lots + self.__b_traded_lots,  # 所有成交量
             'a_traded_amount': self.__a_traded_amount,  # A成交金额
             'b_traded_amount': self.__b_traded_amount,  # B成交金额
             'total_traded_amount': self.__total_traded_amount,  # 总成交量
-            'a_commission_count': self.__a_commission_count,  # A手续费
-            'b_commission_count': self.__b_commission_count,  # B手续费
-            'commission': self.__commission,  # 总手续费
+            'a_commission_count': self.__a_commission,  # A手续费
+            'b_commission_count': self.__b_commission,  # B手续费
+            'commission': self.__total_commission,  # 总手续费
             'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
             'b_trade_rate': self.__b_trade_rate,  # B成交概率(成交手数/报单手数)
             'a_profit_close': self.__a_profit_close,  # A平仓盈亏
@@ -1422,6 +1444,8 @@ class Strategy():
             'profit': self.__profit,  # 净盈亏
             'a_action_count': self.__a_action_count,  # A撤单次数
             'b_action_count': self.__b_action_count,  # B撤单次数
+            'a_action_count_strategy': self.__a_action_count_strategy,  # A撤单次数
+            'b_action_count_strategy': self.__b_action_count_strategy,  # B撤单次数
             'current_margin': self.__current_margin  # 占用保证金
         }
         return dict_statistics
