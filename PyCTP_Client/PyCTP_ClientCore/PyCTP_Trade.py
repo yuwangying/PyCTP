@@ -636,10 +636,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRtnOrder(self, Order):
         """报单回报"""
-        t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
-        Order['time'] = t
+        # t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
+        # Order['time'] = t
         Order = Utils.code_transform(Order)
-        if True:  # Utils.PyCTP_Trade_API_print:
+        if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade_API.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Time:', t, 'Order:', Order)
         self.__user.OnRtnOrder(Order)  # 转回调给User类的OnRtnOrder
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
@@ -654,10 +654,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
+        # t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
+        # Trade['time'] = t
         Trade = Utils.code_transform(Trade)
-        t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
-        Trade['time'] = t
-        if True:  # Utils.PyCTP_Trade_API_print:
+        if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Time:', t, 'Trade:', Trade)
         self.__user.OnRtnTrade(Trade)  # 转到user回调函数
         # for i in self.__user.get_list_strategy():  # 转到strategy回调函数

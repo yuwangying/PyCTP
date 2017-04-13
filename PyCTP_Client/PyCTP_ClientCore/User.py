@@ -960,7 +960,7 @@ class User():
         print(">>> User.threading_run_OnRtnOrder() user_id =", self.__user_id)
         while True:
             order = self.__queue_OnRtnOrder.get()
-            print(">>> User.threading_run_OnRtnOrder() user_id =", self.__user_id, "order =", order)
+            # print(">>> User.threading_run_OnRtnOrder() user_id =", self.__user_id, "order =", order)
             for strategy_id in self.__dict_strategy:
                 if order['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
                     self.__dict_strategy[strategy_id].OnRtnOrder(order)
@@ -970,7 +970,7 @@ class User():
         print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id)
         while True:
             trade = self.__queue_OnRtnTrade.get()
-            print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
+            # print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
             for strategy_id in self.__dict_strategy:
                 if trade['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
                     self.__dict_strategy[strategy_id].OnRtnTrade(trade)

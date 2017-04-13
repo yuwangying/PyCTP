@@ -58,6 +58,7 @@ class Strategy():
         self.update_position_for_position_detail()  # 更新策略持仓变量
         # self.init_position()  # 初始化策略持仓
         self.init_statistics()  # 初始化统计指标
+        print('Strategy.__init__() 策略准备完成，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
 
         # self.set_init_finished(True)  # 策略初始化完成
 
@@ -549,7 +550,9 @@ class Strategy():
         # trade_new中"OffsetFlag"值="3"为平今
         elif trade_new['OffsetFlag'] == '3':
             shift = 0
-            for i in range(len(self.__list_position_detail_for_trade)):  # i为order结构体，类型为dict
+            killed = False
+            len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
+            for i in range(len_list_position_detail_for_trade):  # i为order结构体，类型为dict
                 # 持仓明细中trade与trade_new比较：交易日相同、合约代码相同、投保标志相同
                 if self.__list_position_detail_for_trade[i-shift]['TradingDay'] == trade_new['TradingDay'] \
                         and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag']:
@@ -557,12 +560,14 @@ class Strategy():
                     if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
-                        shift += 1  # 游标修正值
+                        # shift += 1  # 游标修正值
+                        killed = True
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] < self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade_new['Volume']
+                        killed = True
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] > self.__list_position_detail_for_trade[i-shift]['Volume']:
@@ -570,6 +575,7 @@ class Strategy():
                         trade_new['Volume'] -= self.__list_position_detail_for_trade[i-shift]['Volume']
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
+
         # trade_new中"OffsetFlag"值="4"为平昨
         elif trade_new['OffsetFlag'] == '4':
             shift = 0
@@ -605,6 +611,7 @@ class Strategy():
         # self.update_position_for_OnRtnTrade()
         # 更新界面
         # self.signal_update_strategy.emit(self)
+        print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,"len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade))
 
     # 更新占用保证金
     def update_current_margin(self):
@@ -1046,7 +1053,6 @@ class Strategy():
             self.__a_commission += self.count_commission(Trade)  # A手续费
             if self.__a_order_lots > 0:
                 self.__a_trade_rate = self.__a_traded_lots / self.__a_order_lots  # A成交率
-            # A合约平仓盈亏
         # B合约的Trade
         elif Trade['InstrumentID'] == self.__b_instrument_id:
             self.__b_traded_lots += Trade['Volume']  # 成交量
@@ -1054,7 +1060,6 @@ class Strategy():
             self.__b_commission += self.count_commission(Trade)  # B手续费
             if self.__b_order_lots > 0:
                 self.__b_trade_rate = self.__b_traded_lots / self.__b_order_lots  # A成交率
-            # B合约平仓盈亏
         self.__total_traded_lots = self.__a_traded_lots + self.__b_traded_lots
         self.__total_traded_amount = self.__a_traded_amount + self.__b_traded_amount  # A、B成交金额合计
         self.__total_commission = self.__a_commission + self.__b_commission  # 手续费
@@ -1063,6 +1068,10 @@ class Strategy():
         self.__dict_statistics['commission'] = self.__total_commission  # 手续费
         self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
         self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
+        print(">>> Strategy.statistics_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
+              "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/',
+              self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/',
+              self.__b_order_lots, '/', self.__b_order_times)
 
     # order、trade统计
     def statistics(self, order=None, trade=None):
@@ -1176,6 +1185,7 @@ class Strategy():
         '4'：平昨
         """
         volume_traded = min(trade_close['Volume'], trade_open['Volume'])  # 成交量以较小值一个为准
+        profit_close = 0  # 平仓盈亏临时变量
         if trade_close['InstrumentID'] == self.__a_instrument_id:  # A合约
             if trade_close['Direction'] == '0':  # 买平仓
                 profit_close = (trade_open['Price'] - trade_close['Price']) * self.__a_instrument_multiple * volume_traded
@@ -1183,13 +1193,15 @@ class Strategy():
                 profit_close = (trade_close['Price'] - trade_open['Price']) * self.__a_instrument_multiple * volume_traded
             self.__a_profit_close += profit_close
             self.__dict_statistics['a_profit_close'] += profit_close  # A平仓盈亏
+            print(">>> Strategy.count_profit() 合约代码和合约乘数", self.__a_instrument_id, self.__a_instrument_multiple)
         elif trade_close['InstrumentID'] == self.__b_instrument_id:  # B合约
             if trade_close['Direction'] == '0':  # 买平仓
-                profit_close = (trade_open['Price'] - trade_close['Price']) * self.__a_instrument_multiple * volume_traded
+                profit_close = (trade_open['Price'] - trade_close['Price']) * self.__b_instrument_multiple * volume_traded
             elif trade_close['Direction'] == '1':  # 卖平仓
-                profit_close = (trade_close['Price'] - trade_open['Price']) * self.__a_instrument_multiple * volume_traded
+                profit_close = (trade_close['Price'] - trade_open['Price']) * self.__b_instrument_multiple * volume_traded
             self.__b_profit_close += profit_close
             self.__dict_statistics['b_profit_close'] += profit_close  # A平仓盈亏
+            print(">>> Strategy.count_profit() 合约代码和合约乘数", self.__b_instrument_id, self.__b_instrument_multiple)
         self.__profit_close = self.__a_profit_close + self.__b_profit_close
         self.__profit = self.__profit_close - self.__total_commission
         # A、B平仓盈亏累计
@@ -1678,7 +1690,7 @@ class Strategy():
 
     def OnRtnOrder(self, Order):
         """报单回报"""
-        print(">>> Strategy.OnRtnOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Order =", Order)
+        # print(">>> Strategy.OnRtnOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Order =", Order)
         if Utils.Strategy_print:
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
         # self.__queue_OnRtnOrder.put(Order)  # 放入队列
