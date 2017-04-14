@@ -8,6 +8,7 @@ Created on Wed Jul 20 08:46:13 2016
 import os
 import time
 import threading
+from operator import itemgetter
 from datetime import datetime
 import copy
 import PyCTP
@@ -758,6 +759,7 @@ class User():
             list_strategy_data.append(strategy_arguments['sell_close_on_off'])  # 42:卖平-开关
             list_strategy_data.append(strategy_arguments['buy_open_on_off'])  # 43:买开-开关
             list_table_widget_data.append(list_strategy_data)
+        list_table_widget_data = sorted(list_table_widget_data, key=itemgetter(2))
         return list_table_widget_data
 
     # 获取界面panel_show_account_data(账户资金条)更新所需的数据,一个user的数据是一个list

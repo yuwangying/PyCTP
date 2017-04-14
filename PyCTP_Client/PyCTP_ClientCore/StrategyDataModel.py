@@ -83,10 +83,9 @@ class StrategyDataModel(QAbstractTableModel):
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
 
             self.layoutAboutToBeChanged.emit()  # 布局准备信号
-            if self.__row != 0:
-                self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
+            # if self.__row != 0:
+            #     self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
             self.layoutChanged.emit()  # 布局执行信号
-
             self.dataChanged.emit(t1, t2)  # 更新指定区域
             # self.__update_once = False  # 更新一次界面请求的值设置为False
             # print(">>>slot_set_data_list() self.__update_once = False")

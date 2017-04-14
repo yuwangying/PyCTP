@@ -593,6 +593,7 @@ class Strategy():
         # trade_new中"OffsetFlag"值="4"为平昨
         elif trade_new['OffsetFlag'] == '4':
             shift = 0
+            print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, " len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade))
             len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
             for i in range(len_list_position_detail_for_trade):  # i为trade结构体，类型为dict
                 # # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
@@ -1045,7 +1046,7 @@ class Strategy():
                     self.__b_order_lots += Order['VolumeTotalOriginal']  # B委托手数
                     self.__b_order_times += 1  # B委托次数
                     self.__b_trade_rate = self.__b_traded_lots / self.__b_order_lots  # B成交率
-                print(">>> Strategy.statistics_for_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/', self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/', self.__b_order_lots, '/', self.__b_order_times)
+                # print(">>> Strategy.statistics_for_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/', self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/', self.__b_order_lots, '/', self.__b_order_times)
                 self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
                 self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
             # 撤单数量统计
