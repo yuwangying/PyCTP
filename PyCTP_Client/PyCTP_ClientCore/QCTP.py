@@ -50,8 +50,11 @@ class QCTP(QMainWindow, Ui_MainWindow):
 
         # 托盘
         self.hideAction = QtGui.QAction("&隐藏", self, triggered=self.hide)
+        self.hideAction.setIcon(QtGui.QIcon("image/trayicon_hide.ico"))
         self.showAction = QtGui.QAction("&显示", self, triggered=self.showNormal)
+        self.showAction.setIcon(QtGui.QIcon("image/trayicon_show.ico"))
         self.quitAction = QtGui.QAction("&退出", self, triggered=self.quitWindow)
+        self.quitAction.setIcon(QtGui.QIcon("image/trayicon_exit.ico"))
         # self.quitAction = QtGui.QAction("&退出", self, triggered=QtGui.qApp.quit)
         self.trayIconMenu = QtGui.QMenu(self)
         self.trayIconMenu.addAction(self.hideAction)

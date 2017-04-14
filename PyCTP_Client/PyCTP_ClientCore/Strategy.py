@@ -9,6 +9,7 @@ Created on Wed Jul 20 08:46:13 2016
 import copy
 import json
 from PyQt4 import QtGui
+import datetime
 from PyCTP_Trade import PyCTP_Trader_API
 from PyCTP_Market import PyCTP_Market_API
 from OrderAlgorithm import OrderAlgorithm
@@ -59,6 +60,10 @@ class Strategy():
         # self.init_position()  # 初始化策略持仓
         self.init_statistics()  # 初始化统计指标
         print('Strategy.__init__() 策略准备完成，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
+
+        # 临时变量，检查策略接收到的OnRtnOrder\OnRtnTrade记录是否正确
+        self.__df_OnRtnOrder = DataFrame()
+        self.__df_OnRtnTrade = DataFrame()
 
         # self.set_init_finished(True)  # 策略初始化完成
 
@@ -493,42 +498,52 @@ class Strategy():
             self.__list_position_detail_for_order.append(order_new)
         # order_new中"CombOffsetFlag"值="3"为平今
         elif order_new['CombOffsetFlag'] == '3':
-            for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
+            shift = 0  # 游标修正值
+            len_list_position_detail_for_order = len(self.__list_position_detail_for_order)
+            # for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
+            for i in range(len_list_position_detail_for_order):  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同
-                if i['TradingDay'] == order_new['TradingDay'] \
-                        and i['InstrumentID'] == order_new['InstrumentID'] \
-                        and i['CombHedgeFlag'] == order_new['CombHedgeFlag']:
+                if self.__list_position_detail_for_order[i-shift]['TradeDate'] == order_new['TradeDate'] \
+                        and self.__list_position_detail_for_order[i-shift]['InstrumentID'] == order_new['InstrumentID'] \
+                        and self.__list_position_detail_for_order[i-shift]['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
+                        and self.__list_position_detail_for_order[i-shift]['Direction'] != order_new['Direction']:
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
-                    if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
-                        self.__list_position_detail_for_order.remove(i)
+                    if order_new['VolumeTradedBatch'] == self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']:
+                        self.__list_position_detail_for_order.remove(self.__list_position_detail_for_order[i-shift])
                         break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
-                    elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
-                        i['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
+                    elif order_new['VolumeTradedBatch'] < self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']:
+                        self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
                         break
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
-                    elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
-                        order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail_for_order.remove(i)
+                    elif order_new['VolumeTradedBatch'] > self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']:
+                        order_new['VolumeTradedBatch'] -= self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']
+                        self.__list_position_detail_for_order.remove(self.__list_position_detail_for_order[i-shift])
+                        shift += 1  # 游标修正值
         # order_new中"CombOffsetFlag"值="4"为平昨
         elif order_new['CombOffsetFlag'] == '4':
-            for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
+            shift = 0
+            len_list_position_detail_for_order = len(self.__list_position_detail_for_order)
+            # for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
+            for i in range(len_list_position_detail_for_order):  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日不相同、合约代码相同、投保标志相同
-                if i['TradingDay'] != order_new['TradingDay'] \
-                        and i['InstrumentID'] == order_new['InstrumentID'] \
-                        and i['CombHedgeFlag'] == order_new['CombHedgeFlag']:
+                if self.__list_position_detail_for_order[i-shift]['TradeDate'] != order_new['TradeDate'] \
+                        and self.__list_position_detail_for_order[i-shift]['InstrumentID'] == order_new['InstrumentID'] \
+                        and self.__list_position_detail_for_order[i-shift]['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
+                        and self.__list_position_detail_for_order[i-shift]['Direction'] != order_new['Direction']:
                     # order_new的VolumeTradedBatch等于持仓列表首个满足条件的order的VolumeTradedBatch
-                    if order_new['VolumeTradedBatch'] == i['VolumeTradedBatch']:
-                        self.__list_position_detail_for_order.remove(i)
+                    if order_new['VolumeTradedBatch'] == self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']:
+                        self.__list_position_detail_for_order.remove(self.__list_position_detail_for_order[i-shift])
                         break
                     # order_new的VolumeTradedBatch小于持仓列表首个满足条件的order的VolumeTradedBatch
-                    elif order_new['VolumeTradedBatch'] < i['VolumeTradedBatch']:
-                        i['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
+                    elif order_new['VolumeTradedBatch'] < self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']:
+                        self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch'] -= order_new['VolumeTradedBatch']
                         break
                     # order_new的VolumeTradedBatch大于持仓列表首个满足条件的order的VolumeTradedBatch
-                    elif order_new['VolumeTradedBatch'] > i['VolumeTradedBatch']:
-                        order_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
-                        self.__list_position_detail_for_order.remove(i)
+                    elif order_new['VolumeTradedBatch'] > self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']:
+                        order_new['VolumeTradedBatch'] -= self.__list_position_detail_for_order[i-shift]['VolumeTradedBatch']
+                        self.__list_position_detail_for_order.remove(self.__list_position_detail_for_order[i-shift])
+                        shift += 1  # 游标修正值
 
     def update_list_position_detail_for_trade(self, trade):
         # order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
@@ -550,24 +565,23 @@ class Strategy():
         # trade_new中"OffsetFlag"值="3"为平今
         elif trade_new['OffsetFlag'] == '3':
             shift = 0
-            killed = False
             len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
             for i in range(len_list_position_detail_for_trade):  # i为order结构体，类型为dict
                 # 持仓明细中trade与trade_new比较：交易日相同、合约代码相同、投保标志相同
-                if self.__list_position_detail_for_trade[i-shift]['TradingDay'] == trade_new['TradingDay'] \
-                        and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag']:
+                if self.__list_position_detail_for_trade[i-shift]['TradeDate'] == trade_new['TradeDate'] \
+                        and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] \
+                        and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag'] \
+                        and self.__list_position_detail_for_trade[i-shift]['Direction'] != trade_new['Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
                     if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         # shift += 1  # 游标修正值
-                        killed = True
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] < self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade_new['Volume']
-                        killed = True
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] > self.__list_position_detail_for_trade[i-shift]['Volume']:
@@ -579,7 +593,8 @@ class Strategy():
         # trade_new中"OffsetFlag"值="4"为平昨
         elif trade_new['OffsetFlag'] == '4':
             shift = 0
-            for i in range(len(self.__list_position_detail_for_trade)):  # i为trade结构体，类型为dict
+            len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
+            for i in range(len_list_position_detail_for_trade):  # i为trade结构体，类型为dict
                 # # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
                 # try:
                 #     print(">>>Strategy.update_list_position_detail_for_trade() TradingDay", self.__list_position_detail_for_trade[i-shift]['TradingDay'], trade_new['TradingDay'])
@@ -587,8 +602,10 @@ class Strategy():
                 #     print(">>>Strategy.update_list_position_detail_for_trade() self.__list_position_detail_for_trade[i-shift] =", self.__list_position_detail_for_trade[i-shift])
                 #     print(">>>Strategy.update_list_position_detail_for_trade() trade_new =", trade_new)
 
-                if self.__list_position_detail_for_trade[i-shift]['TradingDay'] != trade_new['TradingDay'] \
-                        and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag']:
+                if self.__list_position_detail_for_trade[i-shift]['TradeDate'] != trade_new['TradeDate'] \
+                        and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] \
+                        and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag'] \
+                        and self.__list_position_detail_for_trade[i-shift]['Direction'] != trade_new['Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
                     if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['volume']:
                         self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
@@ -1193,7 +1210,6 @@ class Strategy():
                 profit_close = (trade_close['Price'] - trade_open['Price']) * self.__a_instrument_multiple * volume_traded
             self.__a_profit_close += profit_close
             self.__dict_statistics['a_profit_close'] += profit_close  # A平仓盈亏
-            print(">>> Strategy.count_profit() 合约代码和合约乘数", self.__a_instrument_id, self.__a_instrument_multiple)
         elif trade_close['InstrumentID'] == self.__b_instrument_id:  # B合约
             if trade_close['Direction'] == '0':  # 买平仓
                 profit_close = (trade_open['Price'] - trade_close['Price']) * self.__b_instrument_multiple * volume_traded
@@ -1201,13 +1217,16 @@ class Strategy():
                 profit_close = (trade_close['Price'] - trade_open['Price']) * self.__b_instrument_multiple * volume_traded
             self.__b_profit_close += profit_close
             self.__dict_statistics['b_profit_close'] += profit_close  # A平仓盈亏
-            print(">>> Strategy.count_profit() 合约代码和合约乘数", self.__b_instrument_id, self.__b_instrument_multiple)
         self.__profit_close = self.__a_profit_close + self.__b_profit_close
         self.__profit = self.__profit_close - self.__total_commission
         # A、B平仓盈亏累计
         self.__dict_statistics['profit_close'] = self.__profit_close
         # A、B净盈亏
         self.__dict_statistics['profit'] = self.__profit
+
+        # self.__b_instrument_multiple,正确
+        # 输出A、B各自平仓盈亏检查,错误
+        print(">>> Strategy.count_profit() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__a_profit_close =", self.__a_profit_close, "self.__b_profit_close =", self.__b_profit_close)
 
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
@@ -1695,6 +1714,9 @@ class Strategy():
             print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
         # self.__queue_OnRtnOrder.put(Order)  # 放入队列
 
+        series_order = Series(Order)
+        self.__df_OnRtnOrder = DataFrame.append(self.__df_OnRtnOrder, other=series_order, ignore_index=True)
+
         # 统计order指标
         # self.statistics(order=Order)
 
@@ -1719,6 +1741,10 @@ class Strategy():
         if Utils.Strategy_print:
             print('Strategy.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade', Trade)
         # self.__queue_OnRtnTrade.put(Trade)  # 放入队列
+        # 检查，当前策略的Trade记录
+        # 所有trade回调保存到DataFrame格式变量
+        series_order = Series(Trade)
+        self.__df_OnRtnTrade = DataFrame.append(self.__df_OnRtnTrade, other=series_order, ignore_index=True)
 
         # 更新持仓列表
         self.update_list_position_detail_for_trade(Trade)
@@ -2362,6 +2388,15 @@ class Strategy():
 
         else:
             self.__trade_tasking = True
+
+    # 将order和trade记录保存到本地
+    def save_df_order_trade(self):
+        order_file_path = "data/order_" + self.__user_id + "_" + self.__strategy_id + '.csv'
+        trade_file_path = "data/trade_" + self.__user_id + "_" + self.__strategy_id + '.csv'
+        print(">>> PyCTP_Trade.save_df_order_trade() order_file_path =", order_file_path)
+        print(">>> PyCTP_Trade.save_df_order_trade() trade_file_path =", trade_file_path)
+        self.__df_OnRtnOrder.to_csv(order_file_path)
+        self.__df_OnRtnTrade.to_csv(trade_file_path)
 
 
 if __name__ == '__main__':

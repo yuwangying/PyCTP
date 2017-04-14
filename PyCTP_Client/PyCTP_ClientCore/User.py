@@ -484,6 +484,12 @@ class User():
             dict_args = dict_data['Info'][0]
             self.__dict_strategy[strategy_id].set_position(dict_args)
         # 查询策略
+        # 界面点击“查询”按钮触发的特殊进程间通信
+        elif dict_data['MsgType'] == 91:
+            print(">>> User.handle_Queue_get() user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信")
+            # 91:保存OnRtnOrder、OnRtnTrade
+            for strategy_id in self.__dict_strategy:
+                self.__dict_strategy[strategy_id].save_df_order_trade()
 
     # 创建策略实例
     def create_strategy(self, dict_args):

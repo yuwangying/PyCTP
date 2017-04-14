@@ -130,11 +130,13 @@ class QAccountWidget(QWidget, Ui_Form):
 
         # 添加策略菜单
         self.action_add = QtGui.QAction("添加策略", self)
+        self.action_add.setIcon(QtGui.QIcon("image/add_strategy.ico"))
         self.action_add.triggered.connect(self.slot_action_add_strategy)
         self.popMenu.addAction(self.action_add)
 
         # 删除策略菜单
         self.action_del = QtGui.QAction("删除策略", self)
+        self.action_del.setIcon(QtGui.QIcon("image/delete_strategy.ico"))
         self.action_del.triggered.connect(self.slot_action_del_strategy)
         self.popMenu.addAction(self.action_del)
 
@@ -2404,9 +2406,11 @@ class QAccountWidget(QWidget, Ui_Form):
         self.signal_send_msg.emit(json_query_strategy)
 
         # 测试用：触发保存df_order和df_trade保存到本地
-        # if self.is_single_user_widget():
-        #     print(">>> QAccountWidget.on_pushButton_query_strategy_clicked() 保存df_order和df_trade到本地, widget_name=", self.__widget_name, "user_id =", self.__user.get_user_id().decode())
-        #     self.__user.save_df_order_trade()
+        # 进程间通信，触发特殊指令：保存策略的OnRtnOrder和OnRtnTrade到本地
+        dict_Queue_main = self.__socket_manager.get_dict_Queue_main()
+        for user_id in dict_Queue_main:
+            buff = {"MsgType": 91}
+            dict_Queue_main[user_id].put(buff)
 
     # 激活“查询”按钮
     def slot_activate_query_strategy_pushbutton(self):

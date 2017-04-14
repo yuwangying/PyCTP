@@ -62,11 +62,11 @@ class SocketManager(QtCore.QThread):
         self.__event = threading.Event()  # 初始化协程threading.Event()
         self.__msg_ref = 0  # 发送消息引用
         self.__RecvN = True  # RecvN方法运行状态，True正常，False异常
-        self.__queue_send_msg = queue.Queue(maxsize=100)  # 创建队列，存储将要发送的消息
-        self.__thread_send_msg = threading.Thread(target=self.run_send_msg)  # 创建发送消息线程
+        self.__queue_send_msg = queue.Queue(maxsize=100)  # 创建队列，存储将要发送的socket消息
+        self.__thread_send_msg = threading.Thread(target=self.run_send_msg)  # 创建发送socket消息线程
         self.__thread_send_msg.setDaemon(True)  # 设置主线程退出该线程也退出
-        self.__thread_send_msg.start()
-        self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
+        self.__thread_send_msg.start()  # 开始线程：发送socket消息线程
+        # self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
         self.__list_instrument_info = list()  # 所有合约信息
         self.__list_update_widget_data = list()  # 向ui发送更新界面信号的数据结构
         self.__dict_table_view_data = dict()  # 保存所有期货账户更新tableView的数据
@@ -116,6 +116,9 @@ class SocketManager(QtCore.QThread):
 
     def get_QOrderWidget(self):
         return self.__QOrderWidget
+
+    def get_dict_Queue_main(self):
+        return self.__dict_Queue_main
 
     def get_sockfd(self):
         return self.__sockfd
