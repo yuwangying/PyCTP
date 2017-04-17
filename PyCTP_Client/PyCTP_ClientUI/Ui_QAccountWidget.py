@@ -46,7 +46,7 @@ class Ui_Form(object):
 "      border-bottom-color: #C2C7CB; /* same as the pane color */\n"
 "      border-top-left-radius: 4px;\n"
 "      border-top-right-radius: 4px;\n"
-"      min-width: 80px;\n"
+"      min-width: 100px;\n"
 "      padding: 2px;\n"
 "  }\n"
 "\n"
@@ -65,19 +65,25 @@ class Ui_Form(object):
 "      margin-top: 2px; /* make non-selected tabs look smaller */\n"
 "  }"))
         self.verticalLayout = QtGui.QVBoxLayout(Form)
-        self.verticalLayout.setContentsMargins(2, 0, 2, 0)
-        self.verticalLayout.setSpacing(2)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.widget_tabbar = QtGui.QWidget(Form)
+        self.splitter_qaccount = QtGui.QSplitter(Form)
+        self.splitter_qaccount.setOrientation(QtCore.Qt.Vertical)
+        self.splitter_qaccount.setHandleWidth(1)
+        self.splitter_qaccount.setChildrenCollapsible(False)
+        self.splitter_qaccount.setObjectName(_fromUtf8("splitter_qaccount"))
+        self.widget_tabbar = QtGui.QWidget(self.splitter_qaccount)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.widget_tabbar.sizePolicy().hasHeightForWidth())
         self.widget_tabbar.setSizePolicy(sizePolicy)
+        self.widget_tabbar.setMinimumSize(QtCore.QSize(0, 30))
+        self.widget_tabbar.setMaximumSize(QtCore.QSize(16777215, 30))
         self.widget_tabbar.setStyleSheet(_fromUtf8("background-color: rgb(162, 162, 162);"))
         self.widget_tabbar.setObjectName(_fromUtf8("widget_tabbar"))
-        self.verticalLayout.addWidget(self.widget_tabbar)
-        self.panel_show_account = QtGui.QWidget(Form)
+        self.panel_show_account = QtGui.QWidget(self.splitter_qaccount)
+        self.panel_show_account.setMinimumSize(QtCore.QSize(0, 70))
+        self.panel_show_account.setMaximumSize(QtCore.QSize(16777215, 70))
         self.panel_show_account.setStyleSheet(_fromUtf8("background-color: rgb(109, 109, 109);\n"
 "color: rgb(250, 250, 250);\n"
 "font: 100 10pt \"微软雅黑\";"))
@@ -311,8 +317,7 @@ class Ui_Form(object):
 "}"))
         self.pushButton_start_strategy.setObjectName(_fromUtf8("pushButton_start_strategy"))
         self.horizontalLayout_panel_show_account.addWidget(self.pushButton_start_strategy)
-        self.verticalLayout.addWidget(self.panel_show_account)
-        self.splitter = QtGui.QSplitter(Form)
+        self.splitter = QtGui.QSplitter(self.splitter_qaccount)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -321,7 +326,7 @@ class Ui_Form(object):
         self.splitter.setMinimumSize(QtCore.QSize(0, 0))
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setOpaqueResize(True)
-        self.splitter.setHandleWidth(5)
+        self.splitter.setHandleWidth(1)
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setObjectName(_fromUtf8("splitter"))
         self.tableView_Trade_Args = QtGui.QTableView(self.splitter)
@@ -330,6 +335,7 @@ class Ui_Form(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableView_Trade_Args.sizePolicy().hasHeightForWidth())
         self.tableView_Trade_Args.setSizePolicy(sizePolicy)
+        self.tableView_Trade_Args.setMinimumSize(QtCore.QSize(0, 380))
         self.tableView_Trade_Args.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.tableView_Trade_Args.setFocusPolicy(QtCore.Qt.NoFocus)
         self.tableView_Trade_Args.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);"))
@@ -714,10 +720,7 @@ class Ui_Form(object):
         self.spinBox_Abaodanpianyi.setMinimum(-999999999)
         self.spinBox_Abaodanpianyi.setMaximum(999999999)
         self.spinBox_Abaodanpianyi.setObjectName(_fromUtf8("spinBox_Abaodanpianyi"))
-        self.verticalLayout.addWidget(self.splitter)
-        self.verticalLayout.setStretch(0, 2)
-        self.verticalLayout.setStretch(1, 3)
-        self.verticalLayout.setStretch(2, 24)
+        self.verticalLayout.addWidget(self.splitter_qaccount)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)

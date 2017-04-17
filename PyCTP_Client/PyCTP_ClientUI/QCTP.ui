@@ -51,6 +51,9 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
+      <property name="handleWidth">
+       <number>2</number>
+      </property>
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>

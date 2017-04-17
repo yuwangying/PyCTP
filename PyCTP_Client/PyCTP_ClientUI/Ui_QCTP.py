@@ -53,6 +53,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.splitter_mainwindow.sizePolicy().hasHeightForWidth())
         self.splitter_mainwindow.setSizePolicy(sizePolicy)
         self.splitter_mainwindow.setOrientation(QtCore.Qt.Vertical)
+        self.splitter_mainwindow.setHandleWidth(2)
         self.splitter_mainwindow.setChildrenCollapsible(False)
         self.splitter_mainwindow.setObjectName(_fromUtf8("splitter_mainwindow"))
         self.widget_QAccountWidget = QAccountWidget(self.splitter_mainwindow)
