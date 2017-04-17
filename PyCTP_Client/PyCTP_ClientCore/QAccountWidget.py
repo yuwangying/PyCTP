@@ -211,13 +211,17 @@ class QAccountWidget(QWidget, Ui_Form):
     def slot_update_ui(self):
         list_update_table_view_data = self.get_list_update_table_view_data()
         # print(">>> QAccountWidget.slot_update_ui()", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "len(list_update_table_view_data) =", len(list_update_table_view_data))
-        self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
-
+        # 更新界面tableView
+        self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)
+        # 更新界面groupBox
         list_update_group_box_data = self.get_list_update_group_box_data()
         if len(list_update_group_box_data) > 0:
             self.slot_update_group_box_statistics()
         else:
             self.clear_group_box()
+        # 更新界面panel_show_account
+        # list_update_panel_show_account = self.get_list_update_
+        # self.slot_update_panel_show_account(list_update_panel_show_account)
 
     def slot_addTabBar(self, user_id):
         self.__dict_clicked_info[user_id] = {}
@@ -2002,6 +2006,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新界面：“账户资金”框，panel_show_account
     def slot_update_panel_show_account(self, list_data):
+        # print(">>> QAccountWidget.slot_update_panel_show_account() self.__current_tab_name =", self.__current_tab_name, "list_data =", list_data)
         self.label_value_dongtaiquanyi.setText(list_data[0])  # 动态权益
         self.label_value_jingtaiquanyi.setText(list_data[1])  # 静态权益
         self.label_value_chicangyingkui.setText(list_data[2])  # 持仓盈亏
