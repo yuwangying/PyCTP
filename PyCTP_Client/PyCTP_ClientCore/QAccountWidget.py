@@ -190,8 +190,8 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
-        # print(">>> QAccountWidget.slot_update_ui() called", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         list_update_table_view_data = self.get_list_update_table_view_data()
+        # print(">>> QAccountWidget.slot_update_ui()", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "len(list_update_table_view_data) =", len(list_update_table_view_data))
         self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)  # 更新界面tableView
 
         list_update_group_box_data = self.get_list_update_group_box_data()
@@ -2062,6 +2062,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 or list_update_group_box_data[29] != '0' \
                 or list_update_group_box_data[31] != '0':
             print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除有持仓的策略", list_update_group_box_data[5], list_update_group_box_data[6], list_update_group_box_data[29], list_update_group_box_data[31], type(list_update_group_box_data[31]))
+            QMessageBox().showMessage("错误", "不允许删除有持仓的策略！")
             return
 
         print(">>> QAccountWidget.slot_action_del_strategy() self.get_list_update_group_box_data() =", self.get_list_update_group_box_data())
