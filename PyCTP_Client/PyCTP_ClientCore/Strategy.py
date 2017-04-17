@@ -608,7 +608,7 @@ class Strategy():
                         and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag'] \
                         and self.__list_position_detail_for_trade[i-shift]['Direction'] != trade_new['Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
-                    if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['volume']:
+                    if trade_new['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade_new, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
@@ -1353,7 +1353,7 @@ class Strategy():
 
     def get_spread_long(self):
         return self.__spread_long
-
+ 
     def get_a_price_tick(self):
         return self.__a_price_tick
 
