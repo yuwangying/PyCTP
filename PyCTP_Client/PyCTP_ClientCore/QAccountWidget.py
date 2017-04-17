@@ -78,6 +78,8 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         super(QAccountWidget, self).__init__(parent)
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
+        self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
+        self.__set_socket_manager = False  # 设置了socket_manager为本类属性
 
         self.setupUi(self)  # 调用父类中配置界面的方法
         self.tableView_Trade_Args.setSortingEnabled(True)
@@ -97,7 +99,6 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__list_update_widget_data = list()  # 界面tableView正在显示和更新的数据，有SocketManager通过信号槽发送来
         self.slot_addTabBar("所有账户")
 
-        self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
         self.__spread_long = 0  # 界面价差初始值
         self.__spread_long_last = 0
         self.__spread_short = 0
@@ -252,7 +253,8 @@ class QAccountWidget(QWidget, Ui_Form):
         if self.get_total_process_finished():  # 所有子进程初始化完成
             self.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
         # 更新期货账户开关或所有账户开关按钮
-        if self.__total_process_finished:  # 所有进程初始化完成标志位，初始值为False
+        # if self.__total_process_finished:  # 所有进程初始化完成标志位，初始值为False
+        if self.__set_socket_manager:  # 所有进程初始化完成标志位，初始值为False
             on_off = self.__socket_manager.get_dict_user_on_off()[self.__current_tab_name]
             if on_off == 1:
                 self.pushButton_start_strategy.setText('停止策略')
@@ -333,6 +335,7 @@ class QAccountWidget(QWidget, Ui_Form):
         return self.__client_main
 
     def set_SocketManager(self, obj_SocketManager):
+        self.__set_socket_manager = True
         self.__socket_manager = obj_SocketManager
 
     def get_SocketManager(self):
