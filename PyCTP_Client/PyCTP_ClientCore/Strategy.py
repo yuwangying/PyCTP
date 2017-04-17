@@ -503,7 +503,7 @@ class Strategy():
             # for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
             for i in range(len_list_position_detail_for_order):  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同
-                if self.__list_position_detail_for_order[i-shift]['TradeDate'] == order_new['TradeDate'] \
+                if self.__list_position_detail_for_order[i-shift]['InsertDate'] == order_new['InsertDate'] \
                         and self.__list_position_detail_for_order[i-shift]['InstrumentID'] == order_new['InstrumentID'] \
                         and self.__list_position_detail_for_order[i-shift]['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
                         and self.__list_position_detail_for_order[i-shift]['Direction'] != order_new['Direction']:
@@ -527,7 +527,7 @@ class Strategy():
             # for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
             for i in range(len_list_position_detail_for_order):  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日不相同、合约代码相同、投保标志相同
-                if self.__list_position_detail_for_order[i-shift]['TradeDate'] != order_new['TradeDate'] \
+                if self.__list_position_detail_for_order[i-shift]['InsertDate'] != order_new['InsertDate'] \
                         and self.__list_position_detail_for_order[i-shift]['InstrumentID'] == order_new['InstrumentID'] \
                         and self.__list_position_detail_for_order[i-shift]['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
                         and self.__list_position_detail_for_order[i-shift]['Direction'] != order_new['Direction']:
