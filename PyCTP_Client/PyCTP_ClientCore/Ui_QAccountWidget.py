@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(1425, 493)
+        Form.resize(1409, 493)
         Form.setStyleSheet(_fromUtf8("QTabWidget::pane { /* The tab widget frame */\n"
 "      border-top: 2px solid #C2C7CB;\n"
 "}\n"
@@ -312,38 +312,36 @@ class Ui_Form(object):
         self.pushButton_start_strategy.setObjectName(_fromUtf8("pushButton_start_strategy"))
         self.horizontalLayout_panel_show_account.addWidget(self.pushButton_start_strategy)
         self.verticalLayout.addWidget(self.panel_show_account)
-        self.container_trade = QtGui.QWidget(Form)
-        self.container_trade.setStyleSheet(_fromUtf8("QMenu {\n"
-"      background-color: #ABABAB; /* sets background of the menu */\n"
-"      border: 1px solid black;\n"
-"  }\n"
-"\n"
-"  QMenu::item {\n"
-"      /* sets background of menu item. set this to something non-transparent\n"
-"          if you want menu color and menu item color to be different */\n"
-"      background-color: transparent;\n"
-"  }\n"
-"\n"
-"  QMenu::item:selected { /* when user selects item using mouse or keyboard */\n"
-"      background-color:rgb(109, 109, 109);\n"
-"  }"))
-        self.container_trade.setObjectName(_fromUtf8("container_trade"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.container_trade)
-        self.horizontalLayout.setContentsMargins(1, 0, 1, 1)
-        self.horizontalLayout.setSpacing(1)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.tableView_Trade_Args = QtGui.QTableView(self.container_trade)
+        self.splitter = QtGui.QSplitter(Form)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.splitter.sizePolicy().hasHeightForWidth())
+        self.splitter.setSizePolicy(sizePolicy)
+        self.splitter.setMinimumSize(QtCore.QSize(0, 0))
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setOpaqueResize(True)
+        self.splitter.setHandleWidth(5)
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.setObjectName(_fromUtf8("splitter"))
+        self.tableView_Trade_Args = QtGui.QTableView(self.splitter)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(32)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tableView_Trade_Args.sizePolicy().hasHeightForWidth())
+        self.tableView_Trade_Args.setSizePolicy(sizePolicy)
+        self.tableView_Trade_Args.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.tableView_Trade_Args.setFocusPolicy(QtCore.Qt.NoFocus)
         self.tableView_Trade_Args.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);"))
         self.tableView_Trade_Args.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView_Trade_Args.setObjectName(_fromUtf8("tableView_Trade_Args"))
-        self.horizontalLayout.addWidget(self.tableView_Trade_Args)
-        self.groupBox_trade_args = QtGui.QGroupBox(self.container_trade)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
+        self.groupBox_trade_args = QtGui.QGroupBox(self.splitter)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(6)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_trade_args.sizePolicy().hasHeightForWidth())
         self.groupBox_trade_args.setSizePolicy(sizePolicy)
+        self.groupBox_trade_args.setMinimumSize(QtCore.QSize(416, 0))
         self.groupBox_trade_args.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);\n"
 ""))
         self.groupBox_trade_args.setFlat(False)
@@ -716,12 +714,9 @@ class Ui_Form(object):
         self.spinBox_Abaodanpianyi.setMinimum(-999999999)
         self.spinBox_Abaodanpianyi.setMaximum(999999999)
         self.spinBox_Abaodanpianyi.setObjectName(_fromUtf8("spinBox_Abaodanpianyi"))
-        self.horizontalLayout.addWidget(self.groupBox_trade_args)
-        self.horizontalLayout.setStretch(0, 80)
-        self.horizontalLayout.setStretch(1, 33)
-        self.verticalLayout.addWidget(self.container_trade)
+        self.verticalLayout.addWidget(self.splitter)
         self.verticalLayout.setStretch(0, 2)
-        self.verticalLayout.setStretch(1, 4)
+        self.verticalLayout.setStretch(1, 3)
         self.verticalLayout.setStretch(2, 24)
 
         self.retranslateUi(Form)
