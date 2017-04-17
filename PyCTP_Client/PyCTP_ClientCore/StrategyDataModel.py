@@ -84,7 +84,7 @@ class StrategyDataModel(QAbstractTableModel):
 
             self.layoutAboutToBeChanged.emit()  # 布局准备信号
             # if self.__row != 0:
-            #     self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))
+            #     self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))  # 排序
             self.layoutChanged.emit()  # 布局执行信号
             self.dataChanged.emit(t1, t2)  # 更新指定区域
             # self.__update_once = False  # 更新一次界面请求的值设置为False

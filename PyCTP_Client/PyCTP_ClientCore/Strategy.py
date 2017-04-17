@@ -168,7 +168,7 @@ class Strategy():
     # 设置参数
     def set_arguments(self, dict_args):
         self.__dict_arguments = copy.deepcopy(dict_args)  # 将形参转存为私有变量
-        print(">>> Strategy.set_arguments() dict_args =", dict_args)
+        # print(">>> Strategy.set_arguments() dict_args =", dict_args)
         self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
         self.__strategy_id = dict_args['strategy_id']
@@ -1353,7 +1353,7 @@ class Strategy():
 
     def get_spread_long(self):
         return self.__spread_long
- 
+
     def get_a_price_tick(self):
         return self.__a_price_tick
 

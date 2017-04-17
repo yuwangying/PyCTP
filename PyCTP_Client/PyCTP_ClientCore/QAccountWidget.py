@@ -231,7 +231,8 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__current_tab_index = int_tab_index  # 保存当前tab的index
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
         print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
-        self.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
+        if self.get_total_process_finished():  # 所有子进程初始化完成
+            self.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
         # 更新期货账户开关或所有账户开关按钮
         if self.__total_process_finished:  # 所有进程初始化完成标志位，初始值为False
             on_off = self.__socket_manager.get_dict_user_on_off()[self.__current_tab_name]
@@ -362,6 +363,9 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def set_total_process_finished(self, bool_input):
         self.__total_process_finished = bool_input
+
+    def get_total_process_finished(self):
+        return self.__total_process_finished
 
     # 设置窗口名称
     def set_widget_name(self, str_name):

@@ -195,7 +195,7 @@ class SocketManager(QtCore.QThread):
             i['CombOffsetFlag'] = chr(i['CombOffsetFlag'])
             i['CombHedgeFlag'] = chr(i['CombHedgeFlag'])
             i['OrderStatus'] = chr(i['OrderStatus'])
-            print(">>> SocketManager.set_list_position_detail_for_order() i =", i)
+            # print(">>> SocketManager.set_list_position_detail_for_order() i =", i)
         self.__list_position_detail_for_order = list_input
 
     def get_list_position_detail_for_order(self):
@@ -206,7 +206,7 @@ class SocketManager(QtCore.QThread):
             i['Direction'] = chr(i['Direction'])
             i['OffsetFlag'] = chr(i['OffsetFlag'])
             i['HedgeFlag'] = chr(i['HedgeFlag'])
-            print(">>> SocketManager.set_list_position_detail_for_trade() i =", i)
+            # print(">>> SocketManager.set_list_position_detail_for_trade() i =", i)
         self.__list_position_detail_for_trade = list_input
 
     def get_list_position_detail_for_trade(self):
@@ -833,6 +833,7 @@ class SocketManager(QtCore.QThread):
                 if len(self.__dict_user_process_finished) == len(self.__list_process):
                     self.__total_process_finished = True
                     self.__QAccountWidget.set_total_process_finished(True)
+                    print(">>> SocketManager.handle_Queue_get() 所有user子进程初始化完成，子进程数 =", len(self.__list_process))
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):
