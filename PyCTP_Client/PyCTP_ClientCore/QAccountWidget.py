@@ -10,6 +10,7 @@ from PyQt4.QtCore import QPoint, QModelIndex
 from PyQt4.QtGui import QTabBar
 from Ui_QAccountWidget import Ui_Form
 import json
+import queue
 from Strategy import Strategy
 from QMessageBox import QMessageBox
 from QNewStrategy import QNewStrategy
@@ -102,6 +103,8 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__spread_short = 0
         self.__spread_short_last = 0
 
+        self.__Queue_sub_instrument = queue.Queue(maxsize=100)  # 需要订阅行情的合约代码Queue
+
         # 设置tableWidget列的宽度
         # self.tableWidget_Trade_Args.setColumnWidth(0, 50)  # 开关
         # self.tableWidget_Trade_Args.setColumnWidth(1, 90)  # 期货账号
@@ -160,6 +163,10 @@ class QAccountWidget(QWidget, Ui_Form):
         # self.__timer_thread.daemon = True
         # self.__timer_thread.start()
 
+        self.__thread_market_manager = threading.Thread(target=self.subscription_market)
+        self.__thread_market_manager.daemon = True
+        self.__thread_market_manager.start()
+
     # 固定数据测试
     # def thread_update_tableView(self):
     #     self.StrategyDataModel.slot_set_data_list([])
@@ -187,6 +194,17 @@ class QAccountWidget(QWidget, Ui_Form):
 
             self.signal_update_ui.emit()  # 定时刷新UI信号
             time.sleep(1)
+
+    # 订阅行情
+    def subscription_market(self):
+        while True:
+            print(">>> QAccountWidget.subscription_market() self.__Queue_sub_instrument.qsize() =", self.__Queue_sub_instrument.qsize())
+            list_instrument_id = self.__Queue_sub_instrument.get()
+            if list_instrument_id == self.__clicked_list_instrument_id:
+                print(">>> QAccountWidget.subscription_market() 订阅行情：", list_instrument_id)
+                self.__socket_manager.get_market_manager().group_box_sub_market(list_instrument_id)
+            else:
+                print(">>> QAccountWidget.subscription_market() 跳过订阅行情：", list_instrument_id)
 
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
@@ -1468,7 +1486,7 @@ class QAccountWidget(QWidget, Ui_Form):
     """
     # 更新groupBox：全部元素
     def slot_update_group_box(self):
-        print(">>> QAccountWidget.slot_update_group_box() ", "self.__list_update_group_box_data =", self.__list_update_group_box_data)
+        # print(">>> QAccountWidget.slot_update_group_box() ", "self.__list_update_group_box_data =", self.__list_update_group_box_data)
         self.__group_box_price_tick = self.__list_update_group_box_data[35]  # groupBox中的最小跳
         self.lineEdit_qihuozhanghao.setText(self.__list_update_group_box_data[1])  # 期货账号
         self.lineEdit_celuebianhao.setText(self.__list_update_group_box_data[2])  # 策略编号
@@ -2453,20 +2471,22 @@ class QAccountWidget(QWidget, Ui_Form):
             self.__clicked_strategy_on_off = 1
         else:
             self.__clicked_strategy_on_off = 0
-        print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__clicked_strategy_on_off =", self.__clicked_strategy_on_off)
+        # print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__clicked_strategy_on_off =", self.__clicked_strategy_on_off)
         self.__dict_clicked_info[self.__current_tab_name] = {'user_id': self.__clicked_user_id,
                                                              'strategy_id': self.__clicked_strategy_id,
                                                              'row': row,
                                                              'column': column,
                                                              'strategy_on_off': self.__clicked_strategy_on_off}
 
-        print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__dict_clicked_info =", self.__dict_clicked_info)
+        # print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__dict_clicked_info =", self.__dict_clicked_info)
         self.__socket_manager.set_clicked_info(row, column, self.__clicked_user_id, self.__clicked_strategy_id)
         self.get_list_update_group_box_data()  # 获取最新groupBox的更新数据
         a_instrument_id = self.__list_update_group_box_data[3][:6]
         b_instrument_id = self.__list_update_group_box_data[3][7:]
         list_instrument_id = [a_instrument_id, b_instrument_id]
-        self.__socket_manager.get_market_manager().group_box_sub_market(list_instrument_id)
+        # self.__socket_manager.get_market_manager().group_box_sub_market(list_instrument_id)
+        self.__clicked_list_instrument_id = list_instrument_id
+        self.__Queue_sub_instrument.put(list_instrument_id)
         self.slot_update_group_box()
 
     @pyqtSlot(QModelIndex)
