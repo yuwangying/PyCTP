@@ -91,6 +91,7 @@ class StrategyDataModel(QAbstractTableModel):
 
         self.__last_tab_name = self.__QAccountWidget.get_current_tab_name()  # 保存最后一次tabName
 
+    # 针对特定的单个strategy更新界面开关，socket_manager收到修改策略开关回报时调用
     def slot_update_strategy_on_off(self, dict_args):
         current_tab_name = self.__QAccountWidget.get_current_tab_name()
         user_id = dict_args['UserID']
@@ -100,7 +101,7 @@ class StrategyDataModel(QAbstractTableModel):
             for i in range(len(self.__data_list)):
                 if self.__data_list[i][1] == user_id and self.__data_list[i][2] == strategy_id:
                     row = i
-                    print(">>> StrategyDataModel.slot_update_strategy_on_off() 需要更新的行数, row=", row)
+                    print(">>> StrategyDataModel.slot_update_strategy_on_off() user_id =", user_id, "strategy_id =", strategy_id)
                     if on_off == 1:
                         self.__data_list[row][0].setText('开')
                         self.__data_list[row][0].setCheckState(QtCore.Qt.Checked)
@@ -213,12 +214,13 @@ class StrategyDataModel(QAbstractTableModel):
             return QtGui.QColor(221, 255, 221)
         elif role == QtCore.Qt.CheckStateRole:
             if column == 0:
-                if value == "关":
-                    return self.__data_list[row][column].checkState()
-                    # return QtCore.Qt.Unchecked
-                else:
-                    return self.__data_list[row][column].checkState()
-                    # return QtCore.Qt.Checked
+                # if value == "关":
+                #     return self.__data_list[row][column].checkState()
+                #     # return QtCore.Qt.Unchecked
+                # else:
+                #     return self.__data_list[row][column].checkState()
+                #     # return QtCore.Qt.Checked
+                return self.__data_list[row][column].checkState()
 
     # 设置单个单元格数据
     def setData(self, index, value, role):

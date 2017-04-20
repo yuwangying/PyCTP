@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(1409, 493)
+        Form.resize(1409, 504)
         Form.setStyleSheet(_fromUtf8("QTabWidget::pane { /* The tab widget frame */\n"
 "      border-top: 2px solid #C2C7CB;\n"
 "}\n"
@@ -63,8 +63,50 @@ class Ui_Form(object):
 "\n"
 "  QTabBar::tab:!selected {\n"
 "      margin-top: 2px; /* make non-selected tabs look smaller */\n"
-"  }"))
+"  }\n"
+"\n"
+"\n"
+"/*鼠标右击菜单样式*/\n"
+"QMenu {\n"
+"      background-color: #ABABAB; /* sets background of the menu */\n"
+"      border: 1px solid black;\n"
+"  }\n"
+"\n"
+"  QMenu::item {\n"
+"      /* sets background of menu item. set this to something non-transparent\n"
+"          if you want menu color and menu item color to be different */\n"
+"      background-color: transparent;\n"
+"  }\n"
+"\n"
+"  QMenu::item:selected { /* when user selects item using mouse or keyboard */\n"
+"      background-color: #654321;\n"
+"  }\n"
+"\n"
+"/*右下角托盘样式*/\n"
+"  QMenuBar {\n"
+"      background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                        stop:0 lightgray, stop:1 darkgray);\n"
+"  }\n"
+"\n"
+"  QMenuBar::item {\n"
+"      spacing: 3px; /* spacing between menu bar items */\n"
+"      padding: 1px 4px;\n"
+"      background: transparent;\n"
+"      border-radius: 4px;\n"
+"  }\n"
+"\n"
+"  QMenuBar::item:selected { /* when selected using mouse or keyboard */\n"
+"      background: #a8a8a8;\n"
+"  }\n"
+"\n"
+"  QMenuBar::item:pressed {\n"
+"      background: #888888;\n"
+"  }\n"
+"\n"
+""))
         self.verticalLayout = QtGui.QVBoxLayout(Form)
+        self.verticalLayout.setMargin(2)
+        self.verticalLayout.setSpacing(2)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.splitter_qaccount = QtGui.QSplitter(Form)
         self.splitter_qaccount.setOrientation(QtCore.Qt.Vertical)

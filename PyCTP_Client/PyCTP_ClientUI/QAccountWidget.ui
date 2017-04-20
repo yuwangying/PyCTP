@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1409</width>
-    <height>493</height>
+    <height>504</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,9 +51,55 @@
 
   QTabBar::tab:!selected {
       margin-top: 2px; /* make non-selected tabs look smaller */
-  }</string>
+  }
+
+
+/*鼠标右击菜单样式*/
+QMenu {
+      background-color: #ABABAB; /* sets background of the menu */
+      border: 1px solid black;
+  }
+
+  QMenu::item {
+      /* sets background of menu item. set this to something non-transparent
+          if you want menu color and menu item color to be different */
+      background-color: transparent;
+  }
+
+  QMenu::item:selected { /* when user selects item using mouse or keyboard */
+      background-color: #654321;
+  }
+
+/*右下角托盘样式*/
+  QMenuBar {
+      background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                        stop:0 lightgray, stop:1 darkgray);
+  }
+
+  QMenuBar::item {
+      spacing: 3px; /* spacing between menu bar items */
+      padding: 1px 4px;
+      background: transparent;
+      border-radius: 4px;
+  }
+
+  QMenuBar::item:selected { /* when selected using mouse or keyboard */
+      background: #a8a8a8;
+  }
+
+  QMenuBar::item:pressed {
+      background: #888888;
+  }
+
+</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="margin">
+    <number>2</number>
+   </property>
    <item>
     <widget class="QSplitter" name="splitter_qaccount">
      <property name="orientation">
