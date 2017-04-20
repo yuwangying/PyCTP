@@ -446,7 +446,7 @@ class QAccountWidget(QWidget, Ui_Form):
             self.__list_update_table_view_data = self.__socket_manager.get_dict_table_view_data()[self.__current_tab_name]
         return self.__list_update_table_view_data
 
-   # 获取更新groupBox的数据
+    # 获取更新groupBox的数据
     def get_list_update_group_box_data(self):
         self.__list_update_group_box_data = list()
         # 组织刷新groupBox数据，当期货账户不存在策略时，list长度为0
@@ -2352,10 +2352,63 @@ class QAccountWidget(QWidget, Ui_Form):
             QMessageBox().showMessage("错误", "策略运行时不允许修改持仓！")
             return
 
-        # 参数排错
+        # 参数排错：期货账号、策略编号不能为空
         if len(self.lineEdit_qihuozhanghao.text()) == 0 or len(self.lineEdit_celuebianhao.text()) == 0:
             print(">>> QAccountWidget.on_pushButton_set_position_clicked() 期货账号或策略编号为空")
             return
+        # 参数排错：用户想要设置的持仓必须小于策略运行中的持仓
+        # user_id = self.lineEdit_qihuozhanghao.text()  # user_id
+        # strategy_id = self.lineEdit_celuebianhao.text()  # strategy_id
+        position_a_buy = int(self.lineEdit_Azongbuy.text())  # A总买
+        position_a_buy_today = int(self.lineEdit_Azongbuy.text()) - int(self.lineEdit_Azuobuy.text())  # A今买
+        position_a_buy_yesterday = int(self.lineEdit_Azuobuy.text())  # A昨买
+        position_a_sell = int(self.lineEdit_Azongsell.text())  # A总卖
+        position_a_sell_today =  int(self.lineEdit_Azongsell.text()) - int(self.lineEdit_Azuosell.text())  # A今卖
+        position_a_sell_yesterday = int(self.lineEdit_Azuosell.text())  # A昨卖
+        position_b_buy = int(self.lineEdit_Bzongbuy.text())  # B总买
+        position_b_buy_today = int(self.lineEdit_Bzongbuy.text()) - int(self.lineEdit_Bzuobuy.text())  # B今买
+        position_b_buy_yesterday = int(self.lineEdit_Bzuobuy.text())  # B昨买
+        position_b_sell = int(self.lineEdit_Bzongsell.text())  # B总卖
+        position_b_sell_today = int(self.lineEdit_Bzongsell.text()) - int(self.lineEdit_Bzuosell.text())  # B今卖
+        position_b_sell_yesterday = int(self.lineEdit_Bzuosell.text())  # B昨卖
+        list_update_group_box_data = self.get_list_update_group_box_data()  # 获取显示到groupBox中的内核数据
+        if position_a_buy > int(list_update_group_box_data[31]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_a_buy_yesterday > int(list_update_group_box_data[32]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_a_buy_today > int(list_update_group_box_data[31]) - int(list_update_group_box_data[32]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_a_sell > int(list_update_group_box_data[29]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_a_sell_yesterday > int(list_update_group_box_data[30]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_a_sell_today > int(list_update_group_box_data[29]) - int(list_update_group_box_data[30]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_b_buy > int(list_update_group_box_data[6]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_b_buy_yesterday > int(list_update_group_box_data[34]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_b_buy_today > int(list_update_group_box_data[6]) - int(list_update_group_box_data[34]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_b_sell > int(list_update_group_box_data[5]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_b_sell_yesterday > int(list_update_group_box_data[33]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+        if position_b_sell_today > int(list_update_group_box_data[5]) - int(list_update_group_box_data[33]):
+            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            return
+
         if self.pushButton_set_position.text() == "设置持仓":
             self.pushButton_set_position.setText("发送持仓")  # 修改按钮显示的字符
             # 解禁仓位显示lineEdit，允许编辑

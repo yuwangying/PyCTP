@@ -212,6 +212,29 @@ class SocketManager(QtCore.QThread):
     def get_list_position_detail_for_trade(self):
         return self.__list_position_detail_for_trade
 
+    def set_list_position_detail_for_order_today(self, list_input):
+        for i in list_input:
+            i['Direction'] = chr(i['Direction'])
+            i['CombOffsetFlag'] = chr(i['CombOffsetFlag'])
+            i['CombHedgeFlag'] = chr(i['CombHedgeFlag'])
+            i['OrderStatus'] = chr(i['OrderStatus'])
+            # print(">>> SocketManager.set_list_position_detail_for_order() i =", i)
+        self.__list_position_detail_for_order_today = list_input
+
+    def get_list_position_detail_for_order_today(self):
+        return self.__list_position_detail_for_order_today
+
+    def set_list_position_detail_for_trade_today(self, list_input):
+        for i in list_input:
+            i['Direction'] = chr(i['Direction'])
+            i['OffsetFlag'] = chr(i['OffsetFlag'])
+            i['HedgeFlag'] = chr(i['HedgeFlag'])
+            # print(">>> SocketManager.set_list_position_detail_for_trade() i =", i)
+        self.__list_position_detail_for_trade_today = list_input
+
+    def get_list_position_detail_for_trade_today(self):
+        return self.__list_position_detail_for_trade_today
+
     def get_dict_user_process_data(self):
         return self.__dict_user_process_data
 
@@ -448,20 +471,32 @@ class SocketManager(QtCore.QThread):
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
                 # 收到查询策略回报消息，激活“查询”按钮
                 self.signal_activate_query_strategy_pushbutton.emit()
-            elif buff['MsgType'] == 15:  # 收到：查询持仓明细order，MsgType=15
-                print("SocketManager.receive_msg() MsgType=15，查询持仓明细order", buff)
+            elif buff['MsgType'] == 15:  # 收到：查询昨持仓明细order，MsgType=15
+                print("SocketManager.receive_msg() MsgType=15，查询昨持仓明细order", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_position_detail_for_order(buff['Info'])
-                    # self.qry_position_detial_for_trade()  # 发送：查询持仓明细trade，MsgType=17
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
-            elif buff['MsgType'] == 17:  # 收到：查询持仓明细，MsgType=17
-                print("SocketManager.receive_msg() MsgType=17，查询持仓明细trade", buff)
+            elif buff['MsgType'] == 17:  # 收到：查询昨持仓明细，MsgType=17
+                print("SocketManager.receive_msg() MsgType=17，查询昨持仓明细trade", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_position_detail_for_trade(buff['Info'])
-                    # self.signal_ctp_manager_init.emit()  # 与服务端初始化通信结束，调用CTPManager的初始化方法
-                    # self.create_user_process()  # 创建user进程
+                    # self.initialize()  # 初始化，创建user进程
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
+                    self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
+            elif buff['MsgType'] == 20:  # 收到：查询今持仓明细order，MsgType=20
+                print("SocketManager.receive_msg() MsgType=21，查询今持仓明细order", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    self.set_list_position_detail_for_order_today(buff['Info'])
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
+                    self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
+            elif buff['MsgType'] == 21:  # 收到：查询今持仓明细，MsgType=21
+                print("SocketManager.receive_msg() MsgType=21，查询今持仓明细trade", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    self.set_list_position_detail_for_trade_today(buff['Info'])
                     self.initialize()  # 初始化，创建user进程
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
@@ -966,7 +1001,7 @@ class SocketManager(QtCore.QThread):
 
                 # 获取xml中的持仓明细trade数据，数量不定
                 list_position_detail_for_trade = list()
-                for i_xml in self.__xml_manager.get_list_position_detail_for_order():
+                for i_xml in self.__xml_manager.get_list_position_detail_for_trade():
                     if i_xml['user_id'] == user_id:
                         list_position_detail_for_trade.append(i_xml)
                 self.__dict_user_process_data[user_id]['xml'][
@@ -1011,6 +1046,22 @@ class SocketManager(QtCore.QThread):
                         list_position_detail_for_trade.append(i_position_detail_for_trade)
                 self.__dict_user_process_data[user_id]['server'][
                     'list_position_detail_for_trade'] = list_position_detail_for_trade
+
+                # 获取server的数据：list_position_detail_for_order_today
+                list_position_detail_for_order_today = list()
+                for i_position_detail_for_order_today in self.__list_position_detail_for_order_today:
+                    if i_position_detail_for_order_today['UserID'] == user_id:
+                        list_position_detail_for_order_today.append(i_position_detail_for_order_today)
+                self.__dict_user_process_data[user_id]['server'][
+                    'list_position_detail_for_order_today'] = list_position_detail_for_order_today
+
+                # 获取server的数据：list_position_detail_for_trade
+                list_position_detail_for_trade_today = list()
+                for i_position_detail_for_trade_today in self.__list_position_detail_for_trade_today:
+                    if i_position_detail_for_trade_today['UserID'] == user_id:
+                        list_position_detail_for_trade_today.append(i_position_detail_for_trade_today)
+                self.__dict_user_process_data[user_id]['server'][
+                    'list_position_detail_for_trade_today'] = list_position_detail_for_trade_today
 
             # 初始化程序运行中的数据结构
             if True:

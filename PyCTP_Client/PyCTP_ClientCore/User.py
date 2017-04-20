@@ -397,6 +397,16 @@ class User():
             'list_position_detail_for_trade']
         print("User.__init__() self.__server_list_position_detail_for_trade_yesterday =",
               self.__server_list_position_detail_for_trade_yesterday)
+        # 从服务端获取到的list_position_detail_for_order_today
+        self.__server_list_position_detail_for_order_today = dict_arguments['server'][
+            'list_position_detail_for_order_today']
+        print("User.__init__() self.__server_list_position_detail_for_order_today =",
+              self.__server_list_position_detail_for_order_today)
+        # 从服务端获取到的list_position_detail_for_trade_today
+        self.__server_list_position_detail_for_trade_today = dict_arguments['server'][
+            'list_position_detail_for_trade_today']
+        print("User.__init__() self.__server_list_position_detail_for_trade_today =",
+              self.__server_list_position_detail_for_trade_today)
 
         self.__trader_id = self.__server_dict_user_info['traderid']
         self.__user_id = self.__server_dict_user_info['userid']
@@ -530,6 +540,14 @@ class User():
     # 获取从server中获取的数据
     def get_server_list_position_detail_for_trade_yesterday(self):
         return self.__server_list_position_detail_for_trade_yesterday
+
+    # 获取从server中获取的数据
+    def get_server_list_position_detail_for_order_today(self):
+        return self.__server_list_position_detail_for_order_today
+
+    # 获取从server中获取的数据
+    def get_server_list_position_detail_for_trade_today(self):
+        return self.__server_list_position_detail_for_trade_today
 
     # 获取从xml中读取的数据
     def get_dict_user_write_xml_status(self):
