@@ -244,7 +244,8 @@ class SocketManager(QtCore.QThread):
     def set_list_instrument_id(self, list_instrument_info):
         self.__list_instrument_id = list()
         for i in list_instrument_info:
-            self.__list_instrument_id.append(i['InstrumentID'])
+            if len(i['InstrumentID']) <= 6:
+                self.__list_instrument_id.append(i['InstrumentID'])
 
     def get_list_instrument_id(self):
         return self.__list_instrument_id

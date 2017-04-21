@@ -177,7 +177,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item row="1" column="0">
            <widget class="QLabel" name="label_value_dongtaiquanyi">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -226,7 +226,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_jingtaiquanyi">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -265,7 +265,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_chicangyingkui">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -304,7 +304,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_pingcangyingkui">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -343,7 +343,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_shouxufei">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -382,7 +382,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_keyongzijin">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -421,7 +421,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_zhanyongbaozhengjin">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -460,7 +460,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_fengxiandu">
             <property name="text">
-             <string>0.0</string>
+             <string>0%</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -499,7 +499,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_jinrirujin">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -538,7 +538,7 @@ font: 100 10pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="label_value_jinrichujin">
             <property name="text">
-             <string>0.0</string>
+             <string>0</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>

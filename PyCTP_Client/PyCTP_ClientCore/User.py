@@ -494,7 +494,7 @@ class User():
             strategy_id = dict_data['Info'][0]['strategy_id']
             dict_args = dict_data['Info'][0]
             self.__dict_strategy[strategy_id].set_list_position_detail(dict_args)  # 设置持仓明细
-            self.__dict_strategy[strategy_id].set_position(dict_args)  # 设置持仓变量
+            # self.__dict_strategy[strategy_id].set_position(dict_args)  # 设置持仓变量
         # 查询策略
         # 界面点击“查询”按钮触发的特殊进程间通信
         elif dict_data['MsgType'] == 91:
@@ -730,13 +730,13 @@ class User():
             list_strategy_data.append(str(strategy_position['position_b_sell']))  # 5:买持仓=B总卖，正确
             list_strategy_data.append(str(strategy_position['position_b_buy']))  # 6:卖持仓=B总买，正确
             list_strategy_data.append(strategy_statistics['profit_position'])  # 7:持仓盈亏
-            list_strategy_data.append(strategy_statistics['profit_close'])  # 8:平仓盈亏，错误
-            list_strategy_data.append(strategy_statistics['commission'])  # 9:手续费，错误
-            list_strategy_data.append(strategy_statistics['profit'])  # 10:净盈亏，错误
+            list_strategy_data.append(strategy_statistics['profit_close'])  # 8:平仓盈亏
+            list_strategy_data.append(int(strategy_statistics['commission']))  # 9:手续费
+            list_strategy_data.append(round(strategy_statistics['profit'], 2))  # 10:净盈亏
             list_strategy_data.append(strategy_statistics['total_traded_count'])  # 11:成交量=A成交手数+B成交手数，正确
             list_strategy_data.append(strategy_statistics['total_traded_amount'])  # 12:成交金额=A成交金额+B成交金额，正确
-            list_strategy_data.append(strategy_statistics['a_trade_rate'])  # 13:A成交率=A成交手数/A委托手数，错误
-            list_strategy_data.append(strategy_statistics['b_trade_rate'])  # 14:B成交率=B成交手数/B委托手数，错误
+            list_strategy_data.append(round(strategy_statistics['a_trade_rate'], 2))  # 13:A成交率=A成交手数/A委托手数，错误
+            list_strategy_data.append(round(strategy_statistics['b_trade_rate'], 2))  # 14:B成交率=B成交手数/B委托手数，错误
             list_strategy_data.append(strategy_arguments['trade_model'])  # 15:交易模型
             list_strategy_data.append(strategy_arguments['order_algorithm'])  # 16:下单算法
             # list_strategy_data的后半部分放oupBox更新所需数据

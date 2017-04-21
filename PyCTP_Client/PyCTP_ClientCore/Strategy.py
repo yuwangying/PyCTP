@@ -1153,8 +1153,7 @@ class Strategy():
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_buy + self.__position_b_sell
-        print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id,
-              "更新持仓:")
+        print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
@@ -1670,7 +1669,7 @@ class Strategy():
                                                     CombHedgeFlag=CombHedgeFlag,
                                                     Volume=volume,
                                                     TradingDay=TradingDay)
-        self.update_position_for_position_detail()
+        self.update_position_for_position_detail()  # 遍历持仓明细列表，更新持仓量
 
     # 模拟Order、Trade结构体，作为更新持仓明细
     def set_list_position_detail_accessory(self, InstrumentID, Direction, CombOffsetFlag, CombHedgeFlag, Volume, TradingDay):
