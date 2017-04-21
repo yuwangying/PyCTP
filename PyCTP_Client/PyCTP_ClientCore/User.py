@@ -87,10 +87,13 @@ class User():
         self.__market_manager = MarketManager(self.__server_dict_market_info)
         self.__dict_create_user_status['result_market_connect'] = self.__market_manager.get_result_market_connect()
         self.__dict_create_user_status['get_result_market_login'] = self.__market_manager.get_result_market_login()
+        self.__create_market_failed = False  # 创建行情失败标志位
         for i in self.__dict_create_user_status:
             if self.__dict_create_user_status[i] != 0:
-                print("User.__init__() 创建行情失败，user_id =", self.__user_id, ", self.__dict_create_user_status =",
-                      self.__dict_create_user_status)
+                print("User.__init__() user_id =", self.__user_id, "创建行情失败, self.__dict_create_user_status =", self.__dict_create_user_status)
+                self.__create_market_failed = True
+        if not self.__create_market_failed:
+            print("User.__init__() user_id =", self.__user_id, "创建行情成功, self.__dict_create_user_status =", self.__dict_create_user_status)
         self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()  # 获取行情接口的交易日
         self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
         # self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
@@ -510,6 +513,9 @@ class User():
         self.__dict_strategy[strategy_id] = obj_strategy  # 保存strategy对象的dict，由user对象维护
         self.__dict_strategy_finished[strategy_id] = False  # 初始化“策略完成初始化”为False
         self.__market_manager.set_dict_strategy(self.__dict_strategy)  # 将策略对象dict设置为market_manager属性
+        # print(">>>>>>>>>> dict_args['list_instrument_id'] =", dict_args['list_instrument_id'])
+        list_instrument_id = [dict_args['a_instrument_id'], dict_args['b_instrument_id']]
+        self.__market_manager.sub_market(list_instrument_id, dict_args['user_id'], dict_args['strategy_id'])
 
     # 删除策略
     def delete_strategy(self, strategy_id):

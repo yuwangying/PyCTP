@@ -81,8 +81,8 @@ class Strategy():
         # self.__list_position_detail_for_trade = list()  # 策略持仓明细列表，用trade维护
         # self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
         # self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
-        # self.__instrument_a_tick = None  # A合约tick（第一腿）
-        # self.__instrument_b_tick = None  # B合约tick（第二腿）
+        # self.__a_tick = None  # A合约tick（第一腿）
+        # self.__b_tick = None  # B合约tick（第二腿）
         # self.__spread_long = None  # 市场多头价差：A合约买一价 - B合约买一价
         # self.__spread_long_volume = None  # 市场多头价差盘口挂单量min(A合约买一量 - B合约买一量)
         # self.__spread_short = None  # 市场空头价差：A合约卖一价 - B合约卖一价
@@ -275,6 +275,9 @@ class Strategy():
         # 标志位
         self.__filter_OnRtnOrder = False  # 策略当前交易日有设置过持仓，设置持仓时间过滤
         self.__filter_OnRtnTrade = False  # 策略当前交易日有设置过持仓，设置持仓时间过滤
+        self.__a_tick = None  # A合约tick（第一腿）
+        self.__b_tick = None  # B合约tick（第二腿）
+
         # 持仓变量
         self.__position_a_buy = 0  # 策略持仓初始值为0
         self.__position_a_buy_today = 0
@@ -1724,6 +1727,29 @@ class Strategy():
         # # print(">>> Strategy.set_statistics() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
         # self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
 
+    # 计算持仓盈亏
+    def count_profit_position(self):
+        self.__profit_position = 0
+        if self.__a_tick is not None and self.__b_tick is not None:
+            for trade in self.__list_position_detail_for_trade:
+                # A买持仓
+                if trade['InstrumentID'] == self.__a_instrument_id and trade['Direction'] == '0':
+                    trade['ProfitPosition'] = (self.__a_tick['LastPrice'] - trade['Price']) * self.__a_instrument_multiple * trade['Volume']
+                # A卖持仓
+                elif trade['InstrumentID'] == self.__a_instrument_id and trade['Direction'] == '1':
+                    trade['ProfitPosition'] = (trade['Price'] - self.__a_tick['LastPrice']) * self.__a_instrument_multiple * trade['Volume']
+                # B买持仓
+                elif trade['InstrumentID'] == self.__b_instrument_id and trade['Direction'] == '0':
+                    trade['ProfitPosition'] = (self.__b_tick['LastPrice'] - trade['Price']) * self.__b_instrument_multiple * trade['Volume']
+                # B卖持仓
+                elif trade['InstrumentID'] == self.__b_instrument_id and trade['Direction'] == '1':
+                    trade['ProfitPosition'] = (trade['Price'] - self.__b_tick['LastPrice']) * self.__b_instrument_multiple * trade['Volume']
+                self.__profit_position += trade['ProfitPosition']
+        # else:
+        #     print(">>> Strategy.count_profit_position() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "tick为空")
+        # print(">>> Strategy.count_profit_position() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__profit_position =", self.__profit_position)
+        return self.__profit_position
+
     def get_statistics(self):
         dict_statistics = {
             'user_id': self.__user_id,
@@ -1744,7 +1770,7 @@ class Strategy():
             'a_profit_close': self.__a_profit_close,  # A平仓盈亏
             'b_profit_close': self.__b_profit_close,  # B平仓盈亏
             'profit_close': self.__profit_close,  # 平仓盈亏
-            'profit_position': self.__profit_position,  # 持仓盈亏
+            'profit_position': self.count_profit_position(),  # 持仓盈亏
             'profit': self.__profit,  # 净盈亏
             'a_action_count': self.__a_action_count,  # A撤单次数
             'b_action_count': self.__b_action_count,  # B撤单次数
@@ -1837,7 +1863,6 @@ class Strategy():
 
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
-        pass
         # self.signal_handle_tick.emit(tick)  # 触发信号
         """ 行情推送
         # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
@@ -1868,22 +1893,22 @@ class Strategy():
 
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__list_instrument_id[1]:
-            self.__instrument_b_tick = copy.deepcopy(tick)
-            self.update_profit_position(self.__instrument_b_tick)  # 更新持仓盈亏
-            # print(self.__user_id + self.__strategy_id, "B合约：", self.__instrument_b_tick)
+            self.__b_tick = copy.deepcopy(tick)
+            self.update_profit_position(self.__b_tick)  # 更新持仓盈亏
+            # print(self.__user_id + self.__strategy_id, "B合约：", self.__b_tick)
         # 过滤出A合约的tick
         elif tick['InstrumentID'] == self.__list_instrument_id[0]:
-            self.__instrument_a_tick = copy.deepcopy(tick)
-            self.update_profit_position(self.__instrument_b_tick)  # 更新持仓盈亏
-            # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
+            self.__a_tick = copy.deepcopy(tick)
+            self.update_profit_position(self.__b_tick)  # 更新持仓盈亏
+            # print(self.__user_id + self.__strategy_id, "A合约：", self.__a_tick)
 
         # 计算市场盘口价差、量
-        if self.__instrument_a_tick is None or self.__instrument_b_tick is None:
+        if self.__a_tick is None or self.__b_tick is None:
             return
-        self.__spread_long = self.__instrument_a_tick['BidPrice1'] - self.__instrument_b_tick['AskPrice1']
-        self.__spread_long_volume = min(self.__instrument_a_tick['BidVolume1'], self.__instrument_b_tick['AskVolume1'])
-        self.__spread_short = self.__instrument_a_tick['AskPrice1'] - self.__instrument_b_tick['BidPrice1']
-        self.__spread_short_volume = min(self.__instrument_a_tick['AskVolume1'], self.__instrument_b_tick['BidVolume1'])
+        self.__spread_long = self.__a_tick['BidPrice1'] - self.__b_tick['AskPrice1']
+        self.__spread_long_volume = min(self.__a_tick['BidVolume1'], self.__b_tick['AskVolume1'])
+        self.__spread_short = self.__a_tick['AskPrice1'] - self.__b_tick['BidPrice1']
+        self.__spread_short_volume = min(self.__a_tick['AskVolume1'], self.__b_tick['BidVolume1'])
 
         # 没有下单任务执行中，进入选择下单算法
         if not self.__trade_tasking:
@@ -1896,48 +1921,41 @@ class Strategy():
         # 刷新界面价差
         self.spread_to_ui()
         """
+        if tick is None:
+            return
+
+        self.slot_handle_tick(tick)  # 转到行情处理
 
     @QtCore.pyqtSlot(dict)
     def slot_handle_tick(self, tick):
         """ 行情推送 """
-        # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
-        if tick is None:
-            return
-        if isinstance(tick['BidPrice1'], float) is False:
-            return
-        if isinstance(tick['AskPrice1'], float) is False:
-            return
-        if isinstance(tick['BidVolume1'], int) is False:
-            return
-        if isinstance(tick['AskVolume1'], int) is False:
-            return
+        # print(">>> Strategy.OnRtnDepthMarketData() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "tick=", tick)
 
-        # 策略初始化未完成，跳过
-        if self.__init_finished is False:
+            # 策略初始化未完成，跳过
+        # if self.__init_finished is False:
             # print("Strategy.OnRtnDepthMarketData() user_id=", self.__user_id, "strategy_id=", self.__strategy_id, "策略初始化未完成")
-            return
-        # CTPManager初始化未完成，跳过
-        if self.__user.get_CTPManager().get_init_finished() is False:
-            return
+            # return
+        # # CTPManager初始化未完成，跳过
+        # if self.__user.get_CTPManager().get_init_finished() is False:
+        #     return
 
         # 过滤出B合约的tick
-        if tick['InstrumentID'] == self.__list_instrument_id[1]:
-            self.__instrument_b_tick = copy.deepcopy(tick)
-            self.update_profit_position(self.__instrument_b_tick)  # 更新持仓盈亏
-            # print(self.__user_id + self.__strategy_id, "B合约：", self.__instrument_b_tick)
+        if tick['InstrumentID'] == self.__b_instrument_id:
+            self.__b_tick = copy.deepcopy(tick)
+            # self.update_profit_position(self.__b_tick)  # 更新持仓盈亏
+            # print(self.__user_id + self.__strategy_id, "B合约：", self.__b_tick)
         # 过滤出A合约的tick
-        elif tick['InstrumentID'] == self.__list_instrument_id[0]:
-            self.__instrument_a_tick = copy.deepcopy(tick)
-            self.update_profit_position(self.__instrument_b_tick)  # 更新持仓盈亏
-            # print(self.__user_id + self.__strategy_id, "A合约：", self.__instrument_a_tick)
+        elif tick['InstrumentID'] == self.__a_instrument_id:
+            self.__a_tick = copy.deepcopy(tick)
+            # self.update_profit_position(self.__b_tick)  # 更新持仓盈亏
+            # print(self.__user_id + self.__strategy_id, "A合约：", self.__a_tick)
 
         # 计算市场盘口价差、量
-        if self.__instrument_a_tick is None or self.__instrument_b_tick is None:
-            return
-        self.__spread_long = self.__instrument_a_tick['BidPrice1'] - self.__instrument_b_tick['AskPrice1']
-        self.__spread_long_volume = min(self.__instrument_a_tick['BidVolume1'], self.__instrument_b_tick['AskVolume1'])
-        self.__spread_short = self.__instrument_a_tick['AskPrice1'] - self.__instrument_b_tick['BidPrice1']
-        self.__spread_short_volume = min(self.__instrument_a_tick['AskVolume1'], self.__instrument_b_tick['BidVolume1'])
+        if self.__a_tick is not None and self.__b_tick is not None:
+            self.__spread_long = self.__a_tick['BidPrice1'] - self.__b_tick['AskPrice1']
+            self.__spread_long_volume = min(self.__a_tick['BidVolume1'], self.__b_tick['AskVolume1'])
+            self.__spread_short = self.__a_tick['AskPrice1'] - self.__b_tick['BidPrice1']
+            self.__spread_short_volume = min(self.__a_tick['AskVolume1'], self.__b_tick['BidVolume1'])
 
         # 没有下单任务执行中，进入选择下单算法
         # if not self.__trade_tasking:
@@ -1948,11 +1966,11 @@ class Strategy():
         #     self.trade_task(dict_args)
 
         # 窗口创建未完成
-        if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished() is False:
-            return
+        # if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished() is False:
+        #     return
         # 没有显示窗口
-        if self.__user.get_CTPManager().get_ClientMain().get_showEvent() is False:
-            return
+        # if self.__user.get_CTPManager().get_ClientMain().get_showEvent() is False:
+        #     return
 
         # 刷新界面行情
         # self.spread_to_ui()
@@ -2110,7 +2128,7 @@ class Strategy():
     # 下单算法1：A合约以对手价发单，B合约以对手价发单
     def order_algorithm_one(self):
         # 有任何一个合约是无效行情则跳过
-        if self.__instrument_a_tick is not None or self.__instrument_b_tick is not None:
+        if self.__a_tick is not None or self.__b_tick is not None:
             return
 
         # 策略开关为关则直接跳出，不执行开平仓逻辑判断，依次为：策略开关、单个期货账户开关（user）、总开关（trader）
@@ -2134,8 +2152,8 @@ class Strategy():
                       self.__list_instrument_id, self.__spread_long, "(", self.__spread_long_volume, ")",
                       self.__spread_short, "(", self.__spread_short_volume, ")")
             # 满足交易任务之前的一个tick
-            self.__instrument_a_tick_after_tasking = self.__instrument_a_tick
-            self.__instrument_b_tick_after_tasking = self.__instrument_b_tick
+            self.__instrument_a_tick_after_tasking = self.__a_tick
+            self.__instrument_b_tick_after_tasking = self.__b_tick
             # 优先平昨仓
             # 报单手数：盘口挂单量、每份发单手数、持仓量
             if self.__position_a_sell_yesterday > 0:
@@ -2157,7 +2175,7 @@ class Strategy():
             self.__a_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           'OrderRef': self.__order_ref_a,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[0].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_a_tick['BidPrice1'],  # 限价
+                                          'LimitPrice': self.__a_tick['BidPrice1'],  # 限价
                                           'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'0',  # 买卖，0买,1卖
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2167,7 +2185,7 @@ class Strategy():
             self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           # 'OrderRef': self.__order_ref_b,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_b_tick['AskPrice1'],  # 限价
+                                          'LimitPrice': self.__b_tick['AskPrice1'],  # 限价
                                           # 'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'1',  # 买卖，0买,1卖
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2189,8 +2207,8 @@ class Strategy():
             if Utils.Strategy_print:
                 print("Strategy.order_algorithm_one() 策略编号", self.__user_id + self.__strategy_id, self.__list_instrument_id, self.__spread_long, "(", self.__spread_long_volume, ")", self.__spread_short, "(", self.__spread_short_volume, ")")
             # 满足交易任务之前的一个tick
-            self.__instrument_a_tick_after_tasking = self.__instrument_a_tick
-            self.__instrument_b_tick_after_tasking = self.__instrument_b_tick
+            self.__instrument_a_tick_after_tasking = self.__a_tick
+            self.__instrument_b_tick_after_tasking = self.__b_tick
             # 优先平昨仓
             # 报单手数：盘口挂单量、每份发单手数、持仓量
             if self.__position_a_sell_yesterday > 0:
@@ -2212,7 +2230,7 @@ class Strategy():
             self.__a_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           'OrderRef': self.__order_ref_a,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[0].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_a_tick['AskPrice1'],  # 限价
+                                          'LimitPrice': self.__a_tick['AskPrice1'],  # 限价
                                           'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'0',  # 买卖，0买,1卖
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2222,7 +2240,7 @@ class Strategy():
             self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           # 'OrderRef': self.__order_ref_b,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_b_tick['BidPrice1'],  # 限价
+                                          'LimitPrice': self.__b_tick['BidPrice1'],  # 限价
                                           # 'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'1',  # 买卖，0买,1卖
                                           'CombOffsetFlag': CombOffsetFlag,  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2244,8 +2262,8 @@ class Strategy():
                 print(self.__user_id + self.__strategy_id, self.__list_instrument_id, self.__spread_long, "(",
                       self.__spread_long_volume, ")", self.__spread_short, "(", self.__spread_short_volume, ")")
             # 满足交易任务之前的一个tick
-            self.__instrument_a_tick_after_tasking = self.__instrument_a_tick
-            self.__instrument_b_tick_after_tasking = self.__instrument_b_tick
+            self.__instrument_a_tick_after_tasking = self.__a_tick
+            self.__instrument_b_tick_after_tasking = self.__b_tick
             # 报单手数：盘口挂单量、每份发单手数、剩余可开仓手数中取最小值
             order_volume = min(self.__spread_long_volume,  # 市场对手量
                                self.__lots_batch,  # 每份量
@@ -2259,7 +2277,7 @@ class Strategy():
             self.__a_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           'OrderRef': self.__order_ref_a,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[0].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_a_tick['BidPrice1'],  # 限价
+                                          'LimitPrice': self.__a_tick['BidPrice1'],  # 限价
                                           'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'1',  # 买卖，0买,1卖
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2269,7 +2287,7 @@ class Strategy():
             self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           # 'OrderRef': self.__order_ref_b,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_b_tick['AskPrice1'],  # 限价
+                                          'LimitPrice': self.__b_tick['AskPrice1'],  # 限价
                                           # 'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'0',  # 买卖，0买,1卖
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2292,8 +2310,8 @@ class Strategy():
                 print(self.__user_id + self.__strategy_id, self.__list_instrument_id, self.__spread_long, "(",
                       self.__spread_long_volume, ")", self.__spread_short, "(", self.__spread_short_volume, ")")
             # 满足交易任务之前的一个tick
-            self.__instrument_a_tick_after_tasking = self.__instrument_a_tick
-            self.__instrument_b_tick_after_tasking = self.__instrument_b_tick
+            self.__instrument_a_tick_after_tasking = self.__a_tick
+            self.__instrument_b_tick_after_tasking = self.__b_tick
             # 报单手数：盘口挂单量、每份发单手数、剩余可开仓手数中取最小值
             order_volume = min(self.__spread_long_volume,  # 市场对手量
                                self.__lots_batch,  # 每份量
@@ -2307,7 +2325,7 @@ class Strategy():
             self.__a_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           'OrderRef': self.__order_ref_a,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[0].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_a_tick['AskPrice1'],  # 限价
+                                          'LimitPrice': self.__a_tick['AskPrice1'],  # 限价
                                           'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'0',  # 买卖，0买,1卖
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2317,7 +2335,7 @@ class Strategy():
             self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                           # 'OrderRef': self.__order_ref_b,  # 报单引用
                                           'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码
-                                          'LimitPrice': self.__instrument_b_tick['BidPrice1'],  # 限价
+                                          'LimitPrice': self.__b_tick['BidPrice1'],  # 限价
                                           # 'VolumeTotalOriginal': order_volume,  # 数量
                                           'Direction': b'1',  # 买卖，0买,1卖
                                           'CombOffsetFlag': b'0',  # 组合开平标志，0开仓，上期所3平今、4平昨，其他交易所1平仓
@@ -2400,9 +2418,9 @@ class Strategy():
                 self.__order_ref_b = self.add_order_ref()  # B报单引用
                 self.__order_ref_last = self.__order_ref_b  # 实际最后使用的报单引用
                 if dict_args['Order']['Direction'] == '0':
-                    LimitPrice = self.__instrument_b_tick['AskPrice1']  # B报单价格，找市场最新对手价
+                    LimitPrice = self.__b_tick['AskPrice1']  # B报单价格，找市场最新对手价
                 elif dict_args['Order']['Direction'] == '1':
-                    LimitPrice = self.__instrument_b_tick['BidPrice1']
+                    LimitPrice = self.__b_tick['BidPrice1']
                 self.__b_order_insert_args = {'flag': 'OrderInsert',  # 标志位：报单
                                               'OrderRef': self.__order_ref_b,  # 报单引用
                                               'InstrumentID': self.__list_instrument_id[1].encode(),  # 合约代码

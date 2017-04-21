@@ -111,6 +111,12 @@ class MarketManager:
 
         if len(list_instrument_id_to_sub) > 0:
             time.sleep(1.0)
+            print(">>> MarketManager.sub_market() list_instrument_id_to_sub =", list_instrument_id_to_sub)
+            for i in range(len(list_instrument_id_to_sub)):
+                if isinstance(list_instrument_id_to_sub[i], str):
+                    list_instrument_id_to_sub[i] = list_instrument_id_to_sub[i].encode()
+            print(">>> MarketManager.sub_market() list_instrument_id_to_sub =", list_instrument_id_to_sub)
+
             print('MarketManager.sub_market() 请求订阅行情', Utils.code_transform(self.__market.SubMarketData(list_instrument_id_to_sub)))
             MarketManager.list_instrument_subscribed.extend(list_instrument_id_to_sub)
         print('MarketManager.sub_market() 已订阅行情详情', self.__list_instrument_subscribed_detail)
@@ -184,8 +190,11 @@ class MarketManager:
 
     # 行情回调
     def OnRtnDepthMarketData(self, tick):
-        for i in self.__dict_strategy:
-            self.__dict_strategy[i].OnRtnDepthMarketData(tick)
+        # print(">>> MarketManager.OnRtnDepthMarketData() tick =", tick)
+        instrument_id = tick['InstrumentID']
+        for strategy_id in self.__dict_strategy:
+            if instrument_id == self.__dict_strategy[strategy_id].get_a_instrument_id() or instrument_id == self.__dict_strategy[strategy_id].get_b_instrument_id():
+                self.__dict_strategy[strategy_id].OnRtnDepthMarketData(tick)
 
 
 class MarketManagerForUi(QObject):
