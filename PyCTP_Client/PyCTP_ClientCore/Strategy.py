@@ -172,6 +172,8 @@ class Strategy():
         self.__trader_id = dict_args['trader_id']
         self.__user_id = dict_args['user_id']
         self.__strategy_id = dict_args['strategy_id']
+        print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "dict_args =", dict_args)
+
         self.__trade_model = dict_args['trade_model']  # 交易模型
         self.__order_algorithm = dict_args['order_algorithm']  # 下单算法选择标志位
         self.__lots = dict_args['lots']  # 总手
@@ -530,7 +532,7 @@ class Strategy():
             # for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
             for i in range(len_list_position_detail_for_order):  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日相同、合约代码相同、投保标志相同
-                if self.__list_position_detail_for_order[i-shift]['InsertDate'] == order_new['InsertDate'] \
+                if self.__list_position_detail_for_order[i-shift]['TradingDay'] == order_new['TradingDay'] \
                         and self.__list_position_detail_for_order[i-shift]['InstrumentID'] == order_new['InstrumentID'] \
                         and self.__list_position_detail_for_order[i-shift]['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
                         and self.__list_position_detail_for_order[i-shift]['Direction'] != order_new['Direction']:
@@ -554,7 +556,7 @@ class Strategy():
             # for i in self.__list_position_detail_for_order:  # i为order结构体，类型为dict
             for i in range(len_list_position_detail_for_order):  # i为order结构体，类型为dict
                 # 持仓明细中order与order_new比较：交易日不相同、合约代码相同、投保标志相同
-                if self.__list_position_detail_for_order[i-shift]['InsertDate'] != order_new['InsertDate'] \
+                if self.__list_position_detail_for_order[i-shift]['TradingDay'] != order_new['TradingDay'] \
                         and self.__list_position_detail_for_order[i-shift]['InstrumentID'] == order_new['InstrumentID'] \
                         and self.__list_position_detail_for_order[i-shift]['CombHedgeFlag'] == order_new['CombHedgeFlag'] \
                         and self.__list_position_detail_for_order[i-shift]['Direction'] != order_new['Direction']:
@@ -595,7 +597,7 @@ class Strategy():
             len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
             for i in range(len_list_position_detail_for_trade):  # i为order结构体，类型为dict
                 # 持仓明细中trade与trade_new比较：交易日相同、合约代码相同、投保标志相同
-                if self.__list_position_detail_for_trade[i-shift]['TradeDate'] == trade_new['TradeDate'] \
+                if self.__list_position_detail_for_trade[i-shift]['TradingDay'] == trade_new['TradingDay'] \
                         and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] \
                         and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag'] \
                         and self.__list_position_detail_for_trade[i-shift]['Direction'] != trade_new['Direction']:
@@ -630,7 +632,7 @@ class Strategy():
                 #     print(">>>Strategy.update_list_position_detail_for_trade() self.__list_position_detail_for_trade[i-shift] =", self.__list_position_detail_for_trade[i-shift])
                 #     print(">>>Strategy.update_list_position_detail_for_trade() trade_new =", trade_new)
 
-                if self.__list_position_detail_for_trade[i-shift]['TradeDate'] != trade_new['TradeDate'] \
+                if self.__list_position_detail_for_trade[i-shift]['TradingDay'] != trade_new['TradingDay'] \
                         and self.__list_position_detail_for_trade[i-shift]['InstrumentID'] == trade_new['InstrumentID'] \
                         and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade_new['HedgeFlag'] \
                         and self.__list_position_detail_for_trade[i-shift]['Direction'] != trade_new['Direction']:
@@ -656,7 +658,109 @@ class Strategy():
         # self.update_position_for_OnRtnTrade()
         # 更新界面
         # self.signal_update_strategy.emit(self)
-        print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,"len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade))
+        # print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,"len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade))
+
+    # 设置持仓时更新持仓明细列表专用方法，较update_list_position_detail_for_trade()去掉了统计类代码
+    def update_list_position_detail_for_trade_set_position(self, trade):
+        print(">>> Strategy.update_list_position_detail_for_trade_set_position() trade =", trade)
+        # order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
+        # '0'：开仓
+        # '1'：平仓
+        # '3'：平今
+        # '4'：平昨
+        trade_new = copy.deepcopy(trade)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+        # self.statistics_for_trade(trade)  # 统计
+        # trade_new中"OffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓trade直接添加到持仓明细列表里
+        if trade_new['OffsetFlag'] == '0':
+            # A合约
+            if trade_new['InstrumentID'] == self.__a_instrument_id:
+                trade_new['CurrMargin'] = trade_new['Price'] * trade_new[
+                    'Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            # B合约
+            elif trade_new['InstrumentID'] == self.__b_instrument_id:
+                trade_new['CurrMargin'] = trade_new['Price'] * trade_new[
+                    'Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            self.__list_position_detail_for_trade.append(trade_new)  # 添加到持仓明细列表
+        # trade_new中"OffsetFlag"值="3"为平今
+        elif trade_new['OffsetFlag'] == '3':
+            shift = 0
+            len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
+            for i in range(len_list_position_detail_for_trade):  # i为order结构体，类型为dict
+                # 持仓明细中trade与trade_new比较：交易日相同、合约代码相同、投保标志相同
+                if self.__list_position_detail_for_trade[i - shift]['TradingDay'] == trade_new['TradingDay'] \
+                        and self.__list_position_detail_for_trade[i - shift]['InstrumentID'] == trade_new[
+                            'InstrumentID'] \
+                        and self.__list_position_detail_for_trade[i - shift]['HedgeFlag'] == trade_new[
+                            'HedgeFlag'] \
+                        and self.__list_position_detail_for_trade[i - shift]['Direction'] != trade_new[
+                            'Direction']:
+                    # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
+                    if trade_new['Volume'] == self.__list_position_detail_for_trade[i - shift]['Volume']:
+                        # self.count_profit(trade_new, self.__list_position_detail_for_trade[i - shift])
+                        self.__list_position_detail_for_trade.remove(
+                            self.__list_position_detail_for_trade[i - shift])
+                        # shift += 1  # 游标修正值
+                        break
+                    # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] < self.__list_position_detail_for_trade[i - shift]['Volume']:
+                        # self.count_profit(trade_new, self.__list_position_detail_for_trade[i - shift])
+                        self.__list_position_detail_for_trade[i - shift]['Volume'] -= trade_new['Volume']
+                        break
+                    # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] > self.__list_position_detail_for_trade[i - shift]['Volume']:
+                        # self.count_profit(trade_new, self.__list_position_detail_for_trade[i - shift])
+                        trade_new['Volume'] -= self.__list_position_detail_for_trade[i - shift]['Volume']
+                        self.__list_position_detail_for_trade.remove(
+                            self.__list_position_detail_for_trade[i - shift])
+                        shift += 1  # 游标修正值
+
+        # trade_new中"OffsetFlag"值="4"为平昨
+        elif trade_new['OffsetFlag'] == '4':
+            shift = 0
+            print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id,
+                  "strategy_id =", self.__strategy_id, " len(self.__list_position_detail_for_trade) =",
+                  len(self.__list_position_detail_for_trade))
+            len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
+            for i in range(len_list_position_detail_for_trade):  # i为trade结构体，类型为dict
+                # # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
+                # try:
+                #     print(">>>Strategy.update_list_position_detail_for_trade() TradingDay", self.__list_position_detail_for_trade[i-shift]['TradingDay'], trade_new['TradingDay'])
+                # except:
+                #     print(">>>Strategy.update_list_position_detail_for_trade() self.__list_position_detail_for_trade[i-shift] =", self.__list_position_detail_for_trade[i-shift])
+                #     print(">>>Strategy.update_list_position_detail_for_trade() trade_new =", trade_new)
+
+                if self.__list_position_detail_for_trade[i - shift]['TradingDay'] != trade_new['TradingDay'] \
+                        and self.__list_position_detail_for_trade[i - shift]['InstrumentID'] == trade_new[
+                            'InstrumentID'] \
+                        and self.__list_position_detail_for_trade[i - shift]['HedgeFlag'] == trade_new[
+                            'HedgeFlag'] \
+                        and self.__list_position_detail_for_trade[i - shift]['Direction'] != trade_new[
+                            'Direction']:
+                    # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
+                    if trade_new['Volume'] == self.__list_position_detail_for_trade[i - shift]['Volume']:
+                        # self.count_profit(trade_new, self.__list_position_detail_for_trade[i - shift])
+                        self.__list_position_detail_for_trade.remove(
+                            self.__list_position_detail_for_trade[i - shift])
+                        shift += 1  # 游标修正值
+                        break
+                    # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] < self.__list_position_detail_for_trade[i - shift]['Volume']:
+                        # self.count_profit(trade_new, self.__list_position_detail_for_trade[i - shift])
+                        self.__list_position_detail_for_trade[i - shift]['Volume'] -= trade_new['Volume']
+                        break
+                    # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
+                    elif trade_new['Volume'] > self.__list_position_detail_for_trade[i - shift]['Volume']:
+                        # self.count_profit(trade_new, self.__list_position_detail_for_trade[i - shift])
+                        trade_new['Volume'] -= self.__list_position_detail_for_trade[i - shift]['Volume']
+                        self.__list_position_detail_for_trade.remove(
+                            self.__list_position_detail_for_trade[i - shift])
+                        shift += 1  # 游标修正值
+
+                        # 更新程序持仓变量
+                        # self.update_position_for_OnRtnTrade()
+                        # 更新界面
+                        # self.signal_update_strategy.emit(self)
+                        # print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,"len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade))
 
     # 更新占用保证金
     def update_current_margin(self):
@@ -987,13 +1091,13 @@ class Strategy():
         #       'data_msg =', dict_msg)
         # self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
 
-        print("Strategy.update_position_for_OnRtnTrade() userid =", self.__user_id, "strategy_id =", self.__strategy_id, "更新持仓:")
+        print("Strategy.update_position_for_OnRtnTrade() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
         print("     B卖(", self.__position_b_sell, ",", self.__position_b_sell_yesterday, ")")
 
-    # 更新持仓变量
+    # 更新持仓变量，遍历持仓明细trade
     def update_position_for_position_detail(self):
         self.__position_a_buy = 0
         self.__position_a_buy_today = 0
@@ -1049,6 +1153,12 @@ class Strategy():
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_buy + self.__position_b_sell
+        print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id,
+              "更新持仓:")
+        print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
+        print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
+        print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
+        print("     B卖(", self.__position_b_sell, ",", self.__position_b_sell_yesterday, ")")
 
     # 报单统计（order）
     def statistics_for_order(self, Order):
@@ -1113,10 +1223,10 @@ class Strategy():
         self.__dict_statistics['commission'] = self.__total_commission  # 手续费
         self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
         self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
-        print(">>> Strategy.statistics_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
-              "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/',
-              self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/',
-              self.__b_order_lots, '/', self.__b_order_times)
+        # print(">>> Strategy.statistics_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
+        #       "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/',
+        #       self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/',
+        #       self.__b_order_lots, '/', self.__b_order_times)
 
     # order、trade统计
     def statistics(self, order=None, trade=None):
@@ -1254,7 +1364,7 @@ class Strategy():
 
         # self.__b_instrument_multiple,正确
         # 输出A、B各自平仓盈亏检查,错误
-        print(">>> Strategy.count_profit() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__a_profit_close =", self.__a_profit_close, "self.__b_profit_close =", self.__b_profit_close)
+        # print(">>> Strategy.count_profit() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__a_profit_close =", self.__a_profit_close, "self.__b_profit_close =", self.__b_profit_close)
 
     # 设置strategy初始化状态
     def set_init_finished(self, bool_input):
@@ -1445,6 +1555,142 @@ class Strategy():
             'position': self.__position
         }
         return dict_position
+
+    # 设置持仓明细，收到socket设置持仓量回报时调用
+    def set_list_position_detail(self, dict_args):
+        yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
+        volume = self.__position_a_buy_yesterday - dict_args['position_a_buy_yesterday']  # A昨买需要减去的量
+        if volume > 0:
+            Direction = '1'  # 卖
+            CombOffsetFlag = '4'  # 平昨
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__a_instrument_id  # 合约代码
+            TradingDay = yesterday
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+
+        volume = self.__position_a_buy_today - dict_args['position_a_buy_today']  # A今买需要减去的量
+        if volume > 0:
+            Direction = '1'  # 卖
+            CombOffsetFlag = '3'  # 平今
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__a_instrument_id  # 合约代码
+            TradingDay = self.__MdApi_TradingDay
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+
+        volume = self.__position_a_sell_yesterday - dict_args['position_a_sell_yesterday']  # A昨卖需要减去的量
+        if volume > 0:
+            Direction = '0'  # 买
+            CombOffsetFlag = '4'  # 平昨
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__a_instrument_id  # 合约代码
+            TradingDay = yesterday
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+
+        volume = self.__position_a_sell_today - dict_args['position_a_sell_today']  # A今卖需要减去的量
+        if volume > 0:
+            Direction = '0'  # 买
+            CombOffsetFlag = '3'  # 平今
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__a_instrument_id  # 合约代码
+            TradingDay = self.__MdApi_TradingDay
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+
+        volume = self.__position_b_buy_yesterday - dict_args['position_b_buy_yesterday']  # B昨买需要减去的量
+        if volume > 0:
+            Direction = '1'  # 卖
+            CombOffsetFlag = '4'  # 平昨
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__b_instrument_id  # 合约代码
+            TradingDay = yesterday
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+
+        volume = self.__position_b_buy_today - dict_args['position_b_buy_today']  # B今买需要减去的量
+        if volume > 0:
+            Direction = '1'  # 卖
+            CombOffsetFlag = '3'  # 平今
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__b_instrument_id  # 合约代码
+            TradingDay = self.__MdApi_TradingDay
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+
+        volume = self.__position_b_sell_yesterday - dict_args['position_b_sell_yesterday']  # B昨卖需要减去的量
+        if volume > 0:
+            Direction = '0'  # 买
+            CombOffsetFlag = '4'  # 平昨
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__b_instrument_id  # 合约代码
+            TradingDay = yesterday
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+
+        volume = self.__position_b_sell_today - dict_args['position_b_sell_today']  # B今卖需要减去的量
+        if volume > 0:
+            Direction = '0'  # 买
+            CombOffsetFlag = '3'  # 平今
+            CombHedgeFlag = '1'  # 投机
+            InstrumentID = self.__b_instrument_id  # 合约代码
+            TradingDay = self.__MdApi_TradingDay
+            self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
+                                                    Direction=Direction,
+                                                    CombOffsetFlag=CombOffsetFlag,
+                                                    CombHedgeFlag=CombHedgeFlag,
+                                                    Volume=volume,
+                                                    TradingDay=TradingDay)
+        self.update_position_for_position_detail()
+
+    # 模拟Order、Trade结构体，作为更新持仓明细
+    def set_list_position_detail_accessory(self, InstrumentID, Direction, CombOffsetFlag, CombHedgeFlag, Volume, TradingDay):
+        order = {
+            'InstrumentID': InstrumentID,
+            'Direction': Direction,
+            'CombOffsetFlag': CombOffsetFlag,
+            'CombHedgeFlag': CombHedgeFlag,
+            'VolumeTraded': Volume,
+            'VolumeTradedBatch': Volume,
+            'TradingDay': TradingDay}
+        trade = {
+            'InstrumentID': InstrumentID,
+            'Direction': Direction,
+            'OffsetFlag': CombOffsetFlag,
+            'HedgeFlag': CombHedgeFlag,
+            'Volume': Volume,
+            'TradingDay': TradingDay}
+        self.update_list_position_detail_for_order(order)
+        self.update_list_position_detail_for_trade_set_position(trade)
 
     # 设置统计指标的值，包含dict内键值和对应的strategy对象的属性值赋值
     def set_statistics(self, dict_args):
@@ -1783,7 +2029,7 @@ class Strategy():
             # print("Strategy.OnRtnTrade() Trade['TradeDate'] =", Trade['TradeDate'], "Trade['TradeTime'] =", Trade['TradeTime'])
             if Trade['TradeDate'] < self.__filter_date \
                     or (Trade['TradeDate'] == self.__filter_date and Trade['TradeTime'] < self.__filter_time):
-                # print("Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "时间过滤，跳过持仓量统计")
+                print("Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "时间过滤，跳过持仓量统计")
                 return
         # 更新持仓列表
         self.update_list_position_detail_for_trade(Trade)

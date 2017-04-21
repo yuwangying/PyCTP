@@ -329,7 +329,7 @@ class MarketManagerForUi(QObject):
     def group_box_sub_market(self, list_instrument_id):
         self.__a_instrument_id = list_instrument_id[0]
         self.__b_instrument_id = list_instrument_id[1]
-        print(">>> MarketManager.group_box_sub_market() self.__a_instrument_id =", self.__a_instrument_id, "self.__b_instrument_id =", self.__b_instrument_id)
+        # print(">>> MarketManager.group_box_sub_market() self.__a_instrument_id =", self.__a_instrument_id, "self.__b_instrument_id =", self.__b_instrument_id)
 
         # 整理将要订阅的合约代码list
         list_instrument_id_will_subscribe = []  # 将要订阅行情的合约列表

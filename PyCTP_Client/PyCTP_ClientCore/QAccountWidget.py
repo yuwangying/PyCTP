@@ -199,13 +199,13 @@ class QAccountWidget(QWidget, Ui_Form):
     # 订阅行情
     def subscription_market(self):
         while True:
-            print(">>> QAccountWidget.subscription_market() self.__Queue_sub_instrument.qsize() =", self.__Queue_sub_instrument.qsize())
+            # print(">>> QAccountWidget.subscription_market() self.__Queue_sub_instrument.qsize() =", self.__Queue_sub_instrument.qsize())
             list_instrument_id = self.__Queue_sub_instrument.get()
             if list_instrument_id == self.__clicked_list_instrument_id:
-                print(">>> QAccountWidget.subscription_market() 订阅行情：", list_instrument_id)
+                print("QAccountWidget.subscription_market() 订阅行情：", list_instrument_id)
                 self.__socket_manager.get_market_manager().group_box_sub_market(list_instrument_id)
             else:
-                print(">>> QAccountWidget.subscription_market() 跳过订阅行情：", list_instrument_id)
+                print("QAccountWidget.subscription_market() 跳过订阅行情：", list_instrument_id)
 
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):

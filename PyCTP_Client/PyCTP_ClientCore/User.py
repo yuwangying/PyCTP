@@ -493,7 +493,8 @@ class User():
         elif dict_data['MsgType'] == 12:
             strategy_id = dict_data['Info'][0]['strategy_id']
             dict_args = dict_data['Info'][0]
-            self.__dict_strategy[strategy_id].set_position(dict_args)
+            self.__dict_strategy[strategy_id].set_list_position_detail(dict_args)  # 设置持仓明细
+            self.__dict_strategy[strategy_id].set_position(dict_args)  # 设置持仓变量
         # 查询策略
         # 界面点击“查询”按钮触发的特殊进程间通信
         elif dict_data['MsgType'] == 91:
@@ -980,6 +981,23 @@ class User():
             # 缓存，待提取，提取发送给特定strategy对象
             self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据
             # self.__dict_strategy[strategy_id].OnRtnOrder(Order)
+
+    def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
+        """报单录入错误回报"""
+        # print('PyCTP_Trade.OnErrRtnOrderInsert()', 'OrderRef:', InputOrder['OrderRef'], 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
+        # if InputOrder is not None:
+        #     InputOrder = Utils.code_transform(InputOrder)
+        # if RspInfo is not None:
+        #     RspInfo = Utils.code_transform(RspInfo)
+        # if Utils.PyCTP_Trade_API_print:
+        #     print('PyCTP_Trade.OnErrRtnOrderInsert()', 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
+        # self.__user.OnErrRtnOrderInsert(InputOrder, RspInfo)  # 转到user回调函数
+        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+        #     if InputOrder['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnErrRtnOrderInsert(InputOrder, RspInfo)
+        strategy_id = InputOrder['OrderRef'][-2:]
+        if strategy_id in self.__dict_strategy:
+            self.__dict_strategy[strategy_id].OnErrRtnOrderInsert(InputOrder, RspInfo)
 
     # 处理OnRtnOrder的线程
     def threading_run_OnRtnOrder(self):

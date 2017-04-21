@@ -1113,7 +1113,7 @@ class SocketManager(QtCore.QThread):
             user_id = i['user_id']
             strategy_id = i['strategy_id']
             msg_process = {'MsgType': 3, 'UserID': user_id, 'StrategyID': strategy_id, 'Info': [i]}
-            self.__dict_Queue_main[user_id].put(msg_process)
+            self.__dict_Queue_main[user_id].put(msg_process)  # 一次发送一个策略参数
 
 
 if __name__ == '__main__':

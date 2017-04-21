@@ -71,6 +71,8 @@ class StrategyDataModel(QAbstractTableModel):
             #         checkbox.setText("关")
             #         checkbox.setCheckState(QtCore.Qt.Unchecked)
             #     i[0] = checkbox
+            self.layoutAboutToBeChanged.emit()  # 布局准备信号
+            self.layoutChanged.emit()  # 布局执行信号
             self.dataChanged.emit(t1, t2)
             self.__update_once = False  # 更新一次界面请求的值设置为False
         # 更新tableView部分区域：一般定时刷新任务时只刷新部分
@@ -81,10 +83,10 @@ class StrategyDataModel(QAbstractTableModel):
             t1 = self.index(0, 4)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
 
-            self.layoutAboutToBeChanged.emit()  # 布局准备信号
+            # self.layoutAboutToBeChanged.emit()  # 布局准备信号
             # if self.__row != 0:
             #     self.__data_list = sorted(self.__data_list, key=operator.itemgetter(2))  # 排序
-            self.layoutChanged.emit()  # 布局执行信号
+            # self.layoutChanged.emit()  # 布局执行信号
             self.dataChanged.emit(t1, t2)  # 更新指定区域
             # self.__update_once = False  # 更新一次界面请求的值设置为False
             # print(">>>slot_set_data_list() self.__update_once = False")

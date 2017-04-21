@@ -709,9 +709,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             RspInfo = Utils.code_transform(RspInfo)
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnErrRtnOrderInsert()', 'InputOrder:', InputOrder, 'RspInfo:', RspInfo)
-        for i in self.__user.get_list_strategy():  # 转到strategy回调函数
-            if InputOrder['OrderRef'][-2:] == i.get_strategy_id():
-                i.OnErrRtnOrderInsert(InputOrder, RspInfo)
+        self.__user.OnErrRtnOrderInsert(InputOrder, RspInfo)  # 转到user回调函数
+        # for i in self.__user.get_list_strategy():  # 转到strategy回调函数
+        #     if InputOrder['OrderRef'][-2:] == i.get_strategy_id():
+        #         i.OnErrRtnOrderInsert(InputOrder, RspInfo)
 
     def OnRtnTradingNotice(self, TradingNoticeInfo):
         """ 交易通知 """
