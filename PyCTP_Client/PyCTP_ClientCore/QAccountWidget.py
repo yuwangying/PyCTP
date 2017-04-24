@@ -12,7 +12,7 @@ from Ui_QAccountWidget import Ui_Form
 import json
 import queue
 from Strategy import Strategy
-from QMessageBox import QMessageBox
+from MessageBox import MessageBox
 from QNewStrategy import QNewStrategy
 from PyQt4.QtGui import QApplication, QCompleter, QLineEdit, QStringListModel
 from StrategyDataModel import StrategyDataModel
@@ -234,8 +234,30 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def slot_addTabBar(self, user_id):
         self.__dict_clicked_info[user_id] = {}
+        # self.tabBar.addTab(QtGui.QIcon("image/disactive.ico"), user_id)
         self.tabBar.addTab(user_id)
         print("QAccountWidget.slot_addTabBar() self.__dict_clicked_info =", self.__dict_clicked_info)
+
+    # 设置tab样式： 0运行，1非运行
+    def slot_setTabIcon(self, on_off):
+        int_tab_index = self.tabBar.currentIndex()
+        if on_off == 1:
+            self.pushButton_start_strategy.setText('停止策略')
+            self.tabBar.setTabIcon(int_tab_index, QtGui.QIcon("image/active.ico"))  # tab样式为开
+        else:
+            self.pushButton_start_strategy.setText('开始策略')
+            self.tabBar.setTabIcon(int_tab_index, QtGui.QIcon("image/disactive.ico"))  # tab样式为关
+
+    # 初始化所有tab的样式
+    def slot_init_setTabIcon(self):
+        print(">>> slot_init_setTabIcon()")
+        for user_id in self.__socket_manager.get_dict_tab_index():
+            tab_index = self.__socket_manager.get_dict_tab_index()[user_id]
+            on_off = self.__socket_manager.get_dict_user_on_off()[user_id]
+            if on_off == 1:
+                self.tabBar.setTabIcon(tab_index, QtGui.QIcon("image/active.ico"))
+            else:
+                self.tabBar.setTabIcon(tab_index, QtGui.QIcon("image/disactive.ico"))
 
     def showEvent(self, QShowEvent):
         pass
@@ -271,8 +293,11 @@ class QAccountWidget(QWidget, Ui_Form):
             on_off = self.__socket_manager.get_dict_user_on_off()[self.__current_tab_name]
             if on_off == 1:
                 self.pushButton_start_strategy.setText('停止策略')
+                self.tabBar.setTabIcon(int_tab_index, QtGui.QIcon("image/active.ico"))  # tab样式为开
             else:
                 self.pushButton_start_strategy.setText('开始策略')
+                self.tabBar.setTabIcon(int_tab_index, QtGui.QIcon("image/disactive.ico"))  # tab样式为关
+
         # if self.tableView_Trade_Args.StrategyDataModel is not None:
         # if self.tableView_Trade_Args.model() is not None:
         #     self.tableView_Trade_Args.StrategyDataModel.set_update_once(True)  # 更新一次tableView内全部index
@@ -774,7 +799,7 @@ class QAccountWidget(QWidget, Ui_Form):
                     # print(">>> QAccountWidget.remove_strategy() 删除策略，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
                     self.tableWidget_Trade_Args.removeRow(i_row)
                     if self.is_single_user_widget():
-                        QMessageBox().showMessage("通知",
+                        MessageBox().showMessage("通知",
                                                   "删除策略成功，期货账号" + obj_strategy.get_user_id() + "策略编号" + obj_strategy.get_strategy_id())
                     break
             # 如果tableWidget_Trade_Args中不存在策略，将groupBox中内容清空
@@ -2091,7 +2116,7 @@ class QAccountWidget(QWidget, Ui_Form):
         list_update_group_box_data = self.get_list_update_group_box_data()
         if list_update_group_box_data[0] == 1:
             print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除策略开关为开的策略")
-            QMessageBox().showMessage("错误", "不允许删除策略开关为开的策略！")
+            MessageBox().showMessage("错误", "不允许删除策略开关为开的策略！")
             return
         # B总卖、B总买、A总卖、A总买
         if list_update_group_box_data[5] != '0' \
@@ -2099,7 +2124,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 or list_update_group_box_data[29] != '0' \
                 or list_update_group_box_data[31] != '0':
             print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除有持仓的策略", list_update_group_box_data[5], list_update_group_box_data[6], list_update_group_box_data[29], list_update_group_box_data[31], type(list_update_group_box_data[31]))
-            QMessageBox().showMessage("错误", "不允许删除有持仓的策略！")
+            MessageBox().showMessage("错误", "不允许删除有持仓的策略！")
             return
 
         print(">>> QAccountWidget.slot_action_del_strategy() self.get_list_update_group_box_data() =", self.get_list_update_group_box_data())
@@ -2282,11 +2307,11 @@ class QAccountWidget(QWidget, Ui_Form):
         # QMessageBox().showMessage("错误", "总手、每份参数错误！")
         if len(self.lineEdit_qihuozhanghao.text()) <= 0 or len(self.lineEdit_celuebianhao.text()) <= 0:
             # self.signal_show_QMessageBox.emit(["错误", "参数错误"])
-            QMessageBox().showMessage("错误", "请选择策略！")
+            MessageBox().showMessage("错误", "请选择策略！")
             return
         if len(self.lineEdit_zongshou.text()) == 0 or len(self.lineEdit_meifen.text()) == 0:
             # self.signal_show_QMessageBox.emit(["错误", "参数错误"])
-            QMessageBox().showMessage("错误", "总手、每份参数错误！")
+            MessageBox().showMessage("错误", "总手、每份参数错误！")
             return
         if int(self.lineEdit_zongshou.text()) <= 0:  # 正确值：总手大于零的整数
             self.signal_show_QMessageBox.emit(["错误", "‘总手’必须为大于零的整数"])
@@ -2313,6 +2338,18 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         # raise NotImplementedError
         self.arguments_examine()  # 参数排错
+
+        # "sell_open": self.doubleSpinBox_kongtoukai.value(),  # 价差卖开触发参数
+        # "buy_close": self.doubleSpinBox_kongtouping.value(),  # 价差买平触发参数
+        # "sell_close": self.doubleSpinBox_duotouping.value(),  # 价差卖平触发参数
+        # "buy_open": self.doubleSpinBox_duotoukai.value(),  # 价差买开触发参数
+        if self.doubleSpinBox_kongtoukai.value() <= self.doubleSpinBox_kongtouping.value():
+            MessageBox().showMessage("错误", "卖开触发参数必须大于买平触发参数！")
+            return
+        if self.doubleSpinBox_duotouping.value() <= self.doubleSpinBox_duotoukai.value():
+            MessageBox().showMessage("错误", "买开触发参数必须小于卖平触发参数！")
+            return
+
         dict_args = {
             "MsgRef": self.__socket_manager.msg_ref_add(),
             "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
@@ -2360,7 +2397,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # 策略开关为“开”时不能修改策略，弹窗提示，并return
         print(">>> QAccountWidget.on_pushButton_set_position_clicked() self.get_clicked_strategy_on_off() =", self.get_clicked_strategy_on_off())
         if self.get_clicked_strategy_on_off() == 1:
-            QMessageBox().showMessage("错误", "策略运行时不允许修改持仓！")
+            MessageBox().showMessage("错误", "策略运行时不允许修改持仓！")
             return
 
         # 参数排错：期货账号、策略编号不能为空
@@ -2384,40 +2421,40 @@ class QAccountWidget(QWidget, Ui_Form):
         position_b_sell_yesterday = int(self.lineEdit_Bzuosell.text())  # B昨卖
         list_update_group_box_data = self.get_list_update_group_box_data()  # 获取显示到groupBox中的内核数据
         if position_a_buy > int(list_update_group_box_data[31]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_a_buy_yesterday > int(list_update_group_box_data[32]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_a_buy_today > int(list_update_group_box_data[31]) - int(list_update_group_box_data[32]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_a_sell > int(list_update_group_box_data[29]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_a_sell_yesterday > int(list_update_group_box_data[30]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_a_sell_today > int(list_update_group_box_data[29]) - int(list_update_group_box_data[30]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_b_buy > int(list_update_group_box_data[6]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_b_buy_yesterday > int(list_update_group_box_data[34]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_b_buy_today > int(list_update_group_box_data[6]) - int(list_update_group_box_data[34]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_b_sell > int(list_update_group_box_data[5]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_b_sell_yesterday > int(list_update_group_box_data[33]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
         if position_b_sell_today > int(list_update_group_box_data[5]) - int(list_update_group_box_data[33]):
-            QMessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
 
         if self.pushButton_set_position.text() == "设置持仓":
@@ -2489,14 +2526,15 @@ class QAccountWidget(QWidget, Ui_Form):
         self.pushButton_query_strategy.setEnabled(False)  # 点击按钮之后禁用，等收到消息后激活
         # 单账户窗口中查询单账户的所有策略，总账户窗口中查询所有期货账户策略
         # str_user_id = self.__widget_name if self.is_single_user_widget() else ''
-        str_user_id = ''
+        str_user_id = self.lineEdit_qihuozhanghao.text()
+        str_strategy_id = self.lineEdit_celuebianhao.text()
         dict_query_strategy = {'MsgRef': self.__socket_manager.msg_ref_add(),
                                'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
                                'MsgSrc': 0,  # 消息源，客户端0，服务端1
-                               'MsgType': 3,  # 查询策略
+                               'MsgType': 22,  # 查询策略，查询特定单个策略
                                'TraderID': self.__socket_manager.get_trader_id(),
                                'UserID': str_user_id,
-                               'StrategyID': ''}
+                               'StrategyID': str_strategy_id}
         json_query_strategy = json.dumps(dict_query_strategy)
         self.signal_send_msg.emit(json_query_strategy)
 

@@ -10,7 +10,7 @@ import json
 import queue
 import copy
 from QCTP import QCTP
-from QMessageBox import QMessageBox
+from MessageBox import MessageBox
 from QAccountWidget import QAccountWidget
 from MarketManager import MarketManagerForUi
 import time
@@ -52,6 +52,9 @@ class SocketManager(QtCore.QThread):
     signal_init_ui_on_off = QtCore.pyqtSignal(int)  # 定义信号：SocketManager收到交易员登录成功信息 -> 初始化界面“开始策略”按钮
     signal_update_strategy_on_off = QtCore.pyqtSignal(dict)  # 定义信号：SocketManager收到修改策略开关回报 -> 界面talbeView更新特定的index
     signal_init_groupBox_order_algorithm = QtCore.pyqtSignal(list)  # 定义信号LSocketManger下单算法信息 -> 界面groupBox初始化下单算法选项
+    signal_show_message = QtCore.pyqtSignal(list)  # 定义信号显示提示朝窗口 -> 消息弹窗
+    signal_setTabIcon = QtCore.pyqtSignal(int)  # Socket收到修改期货账户开关或交易员开关 -> 设置tabbar样式
+    signal_init_setTabIcon = QtCore.pyqtSignal()  # Socket收到查询期货账户信息 -> 界面初始化tab样式
 
     def __init__(self, ip_address, port, parent=None):
         # threading.Thread.__init__(self)
@@ -71,6 +74,7 @@ class SocketManager(QtCore.QThread):
         self.__list_update_widget_data = list()  # 向ui发送更新界面信号的数据结构
         self.__dict_table_view_data = dict()  # 保存所有期货账户更新tableView的数据
         self.__dict_panel_show_account_data = dict()  # 保存所有期货账户更新panel_show_account的数据
+        self.__dict_tab_index = dict()  #  键名：user_id,键值：tab的index
         self.__clicked_row = -1  # 鼠标点击tableView中的行数，初始值为-1
         self.__clicked_column = -1
         self.__clicked_user_id = ''  # 鼠标点击的策略信息中user_id，初始值为空字符串，界面被点击时修改值
@@ -79,6 +83,7 @@ class SocketManager(QtCore.QThread):
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
         self.__recive_msg_flag = True  # 接收socket消息线程运行标志
+        self.msg_box = MessageBox()  # 创建消息弹窗
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
@@ -125,6 +130,9 @@ class SocketManager(QtCore.QThread):
 
     def get_msg_ref(self):
         return self.__msg_ref
+
+    def get_dict_tab_index(self):
+        return self.__dict_tab_index
 
     def msg_ref_add(self):
         self.__msg_ref += 1
@@ -282,7 +290,7 @@ class SocketManager(QtCore.QThread):
                 self.__sockfd.connect((self.__ip_address, self.__port))
             except socket.error as e:
                 print("SocketManager.connect() socket error", e)
-                QMessageBox().showMessage("错误", "连接服务器失败！")
+                MessageBox().showMessage("错误", "连接服务器失败！")
                 sys.exit(1)
 
     # ------------------------------------------------------
@@ -299,7 +307,7 @@ class SocketManager(QtCore.QThread):
             except socket.error as e:
                 self.__RecvN = False
                 print("SocketManager.RecvN()", e, n, totalRecved)
-                QMessageBox().showMessage("错误", "与服务器断开连接！")
+                MessageBox().showMessage("错误", "与服务器断开连接！")
                 return None
             # print("onceContent", onceContent)
             totalContent += onceContent
@@ -532,7 +540,7 @@ class SocketManager(QtCore.QThread):
                     self.__dict_Queue_main[user_id].put(buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() ", buff['MsgErrorReason'])
-                    QMessageBox().showMessage("错误", buff['MsgErrorReason'])
+                    MessageBox().showMessage("错误", buff['MsgErrorReason'])
             elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
                 print("SocketManager.receive_msg() MsgType=5，修改策略参数", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
@@ -593,9 +601,10 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_on_off(buff['OnOff'])  # 设置内核中交易员开关
                     self.__dict_user_on_off['所有账户'] = buff['OnOff']
-                    print(">>> SocketManager.receive_msg() self.__dict_user_on_off =", self.__dict_user_on_off)
+                    # print(">>> SocketManager.receive_msg() self.__dict_user_on_off =", self.__dict_user_on_off)
                     for user_id in self.__dict_Queue_main:
                         self.__dict_Queue_main[user_id].put(buff)  # 将修改交易员开关回报发送给所有user进程
+                    self.signal_setTabIcon.emit(buff['OnOff'])
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=8 修改交易员开关失败")
             elif buff['MsgType'] == 9:  # 修改期货账户开关
@@ -603,14 +612,30 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     user_id = buff['UserID']
                     self.__dict_user_on_off[user_id] = buff['OnOff']
-                    print(">>> SocketManager.receive_msg() self.__dict_user_on_off =", self.__dict_user_on_off)
+                    # print(">>> SocketManager.receive_msg() self.__dict_user_on_off =", self.__dict_user_on_off)
                     self.__dict_Queue_main[user_id].put(buff)  # 将修改期货账户开关回报发送给user进程
                     # for i_user in self.__ctp_manager.get_list_user():
                     #     if i_user.get_user_id().decode() == buff['UserID']:
                     #         i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
                     #         break
+                    self.signal_setTabIcon.emit(buff['OnOff'])
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
+            elif buff['MsgType'] == 22:  # 查询策略，查询单个策略
+                print("SocketManager.receive_msg() MsgType=22，查询策略，查询单个策略", buff)
+                if buff['MsgResult'] == 0:  # 消息结果成功
+                    user_id = buff['UserID']
+                    strategy_id = buff['StrategyID']
+                    # self.__dict_Queue_main[user_id].put(buff)  # 将修改期货账户开关回报发送给user进程
+                    # for i_user in self.__ctp_manager.get_list_user():
+                    #     if i_user.get_user_id().decode() == buff['UserID']:
+                    #         i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
+                    #         break
+                    self.check_strategy_position(buff)  # 核对策略市场
+                elif buff['MsgResult'] == 1:  # 消息结果失败
+                    print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
+                # 收到查询策略回报消息，激活“查询”按钮
+                self.signal_activate_query_strategy_pushbutton.emit()
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
@@ -1081,8 +1106,12 @@ class SocketManager(QtCore.QThread):
         self.__dict_Queue_user = dict()  # user进程put，主进程get
         self.__dict_Thread = dict()  # 存放线程对象，键名为user_id
         self.__list_process = list()  # 存放user进程的list
+        index = 0
+        self.__dict_tab_index['所有账户'] = index
         for user_id in self.__dict_user_process_data:
+            index += 1
             self.signal_QAccountWidget_addTabBar.emit(user_id)  # 创建窗口的tabBar
+            self.__dict_tab_index[user_id] = index  # 键名：user_id,键值：tab的index
 
             self.__dict_user_process_data[user_id]['running']['strategy_arguments'] = dict()  # sockt发来
             self.__dict_user_process_data[user_id]['running']['strategy_statistics'] = dict()  # user进程发来，策略统计
@@ -1108,6 +1137,7 @@ class SocketManager(QtCore.QThread):
             qthread.setDaemon(True)  # 线程生命周期同主进程
             qthread.start()
             p.start()  # 开始user进程
+        self.signal_init_setTabIcon.emit()  # 初始化tabBar样式
 
     # 收到查询策略回报，MsgType=3，进程间通信，将策略参数发送给对应的user进程
     def process_communicate_query_strategy(self, list_data):
@@ -1116,6 +1146,58 @@ class SocketManager(QtCore.QThread):
             strategy_id = i['strategy_id']
             msg_process = {'MsgType': 3, 'UserID': user_id, 'StrategyID': strategy_id, 'Info': [i]}
             self.__dict_Queue_main[user_id].put(msg_process)  # 一次发送一个策略参数
+
+    # 核对策略持仓，服务端收到的最新策略持仓与进程间通信main进程中的策略持仓
+    def check_strategy_position(self, buff):
+        user_id = buff['UserID']
+        strategy_id = buff['StrategyID']
+        for i in self.get_dict_table_view_data()[user_id]:
+            # 从user下所有的策略参数中找到特定的策略
+            if strategy_id == i[2]:
+                list_strategy_args = i
+                print(">>> SocketManager.check_strategy_position() list_strategy_args =", list_strategy_args)
+                break
+        position_b_sell = int(list_strategy_args[5])
+        position_b_sell_yesterday = int(list_strategy_args[33])
+        position_b_buy = int(list_strategy_args[6])
+        position_b_buy_yesterday = int(list_strategy_args[7])
+        position_a_sell = int(list_strategy_args[29])
+        position_a_sell_yesterday = int(list_strategy_args[30])
+        position_a_buy = int(list_strategy_args[31])
+        position_a_buy_yesterday = int(list_strategy_args[32])
+        equality_flag = True
+        if position_b_sell != buff['Info'][0]['position_b_sell']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_b_sell != buff['Info'][0]['position_b_sell']", position_b_sell, buff['Info'][0]['position_b_sell'], type(position_b_sell), type(buff['Info'][0]['position_b_sell']))
+        if position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']", position_b_sell_yesterday, buff['Info'][0]['position_b_sell_yesterday'], type(position_b_sell_yesterday), type(buff['Info'][0]['position_b_sell_yesterday']))
+        if position_b_buy != buff['Info'][0]['position_b_buy']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_b_buy != buff['Info'][0]['position_b_buy']", position_b_buy, buff['Info'][0]['position_b_buy'], type(position_b_buy), type(buff['Info'][0]['position_b_buy']))
+        if position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_b_buy != buff['Info'][0]['position_b_buy']", position_b_buy, buff['Info'][0]['position_b_buy'], type(position_b_buy), type(buff['Info'][0]['position_b_buy']))
+        if position_a_sell != buff['Info'][0]['position_a_sell']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_a_sell != buff['Info'][0]['position_a_sell']", position_a_sell, buff['Info'][0]['position_a_sell'], type(position_a_sell), type(buff['Info'][0]['position_a_sell']))
+        if position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']", position_a_sell_yesterday, buff['Info'][0]['position_a_sell_yesterday'], type(position_a_sell_yesterday), type(buff['Info'][0]['position_a_sell_yesterday']))
+        if position_a_buy != buff['Info'][0]['position_a_buy']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_a_buy != buff['Info'][0]['position_a_buy']", position_a_buy, buff['Info'][0]['position_a_buy'], type(position_a_buy), type(buff['Info'][0]['position_a_buy']))
+        if position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']:
+            equality_flag = False
+            # print(">>>>>>>>>>>> position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']", position_a_buy_yesterday, buff['Info'][0]['position_a_buy_yesterday'], type(position_a_buy_yesterday), type(buff['Info'][0]['position_a_buy_yesterday']))
+        if equality_flag:
+            # QMessageBox().showMessage("消息", "服务端与客户端持仓一致！")
+            message_list = ['消息', '服务端与客户端持仓一致']
+            self.signal_show_message.emit(message_list)
+        else:
+            # QMessageBox().showMessage("消息", "服务端与客户端持仓不一致！")
+            message_list = ['消息', '注意：服务端与客户端持仓不一致']
+            self.signal_show_message.emit(message_list)
 
 
 if __name__ == '__main__':

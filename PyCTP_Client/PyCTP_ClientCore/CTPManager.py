@@ -24,7 +24,7 @@ from Strategy import Strategy
 from MarketManager import MarketManager
 from QAccountWidget import QAccountWidget
 from QNewStrategy import QNewStrategy
-from QMessageBox import QMessageBox
+from MessageBox import MessageBox
 from StrategyDataModel import StrategyDataModel
 from collections import namedtuple  # Socket所需package
 from StrategyDataModel import StrategyDataModel

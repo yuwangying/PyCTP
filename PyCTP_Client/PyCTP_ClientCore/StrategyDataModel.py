@@ -110,7 +110,6 @@ class StrategyDataModel(QAbstractTableModel):
             self.__QAccountWidget.tableView_Trade_Args.resizeColumnsToContents()  # tableView列宽自动适应
             self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
             self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
-            print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
         # # 第一列更新为checkBox
         # for i in self.__data_list:
         #     checkbox = QtGui.QCheckBox()

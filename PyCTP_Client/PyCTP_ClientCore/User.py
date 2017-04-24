@@ -502,9 +502,10 @@ class User():
         # 界面点击“查询”按钮触发的特殊进程间通信
         elif dict_data['MsgType'] == 91:
             print(">>> User.handle_Queue_get() user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信")
-            # 91:保存OnRtnOrder、OnRtnTrade
-            for strategy_id in self.__dict_strategy:
-                self.__dict_strategy[strategy_id].save_df_order_trade()
+            if False:
+                # 91:保存OnRtnOrder、OnRtnTrade
+                for strategy_id in self.__dict_strategy:
+                    self.__dict_strategy[strategy_id].save_df_order_trade()
 
     # 创建策略实例
     def create_strategy(self, dict_args):
@@ -870,7 +871,7 @@ class User():
                     self.__dict_strategy[strategy_id].set_a_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
                 elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
                     self.__dict_strategy[strategy_id].set_b_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
-            print(">>> User.instrument_action_count() instrument_id =", instrument_id, "self.__dict_instrument_statistics[instrument_id] =", self.__dict_instrument_statistics[instrument_id])
+            # print(">>> User.instrument_action_count() instrument_id =", instrument_id, "self.__dict_instrument_statistics[instrument_id] =", self.__dict_instrument_statistics[instrument_id])
 
     # 统计合约开仓手数，被OnRtnTrade调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
     def instrument_open_count(self, Trade):

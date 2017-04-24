@@ -12,7 +12,7 @@ import PyCTP
 import pandas as pd
 from pandas import Series, DataFrame
 import Utils
-from QMessageBox import QMessageBox
+from MessageBox import MessageBox
 
 
 class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):

@@ -81,6 +81,9 @@ class QCTP(QMainWindow, Ui_MainWindow):
     def iconActivated(self, reason):
         if reason in (QtGui.QSystemTrayIcon.Trigger, QtGui.QSystemTrayIcon.DoubleClick):
             self.show()
+            self.setWindowState(self.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
+            # this will activate the window
+            self.activateWindow()
 
     # 托盘菜单：退出
     @pyqtSlot()

@@ -18,7 +18,7 @@ from Trader import Trader
 from User import User
 from Strategy import Strategy
 from SocketManager import SocketManager
-from QMessageBox import QMessageBox
+from MessageBox import MessageBox
 from XML_Manager import XML_Manager
 from TimerThread import TimerThread
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
@@ -664,6 +664,9 @@ if __name__ == '__main__':
     socket_manager.signal_init_groupBox_order_algorithm.connect(q_ctp.widget_QAccountWidget.slot_init_groupBox_order_algorithm)
     # 绑定信号槽：SocketManager收到交易员登录成功信息 -> 初始化界面“开始策略”按钮
     socket_manager.signal_init_ui_on_off.connect(q_ctp.widget_QAccountWidget.slot_init_ui_on_off)
+    socket_manager.signal_show_message.connect(socket_manager.msg_box.showMessage_list)  # 绑定信号槽：触发弹窗 -> 显示弹窗
+    socket_manager.signal_setTabIcon.connect(q_ctp.widget_QAccountWidget.slot_setTabIcon)  # 绑定信号槽：Socket收到修改期货账户开关或交易员开关 -> 设置tabbar样式
+    socket_manager.signal_init_setTabIcon.connect(q_ctp.widget_QAccountWidget.slot_init_setTabIcon)  # 绑定信号槽：
 
     sys.exit(app.exec_())
 
