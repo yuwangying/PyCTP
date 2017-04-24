@@ -31,6 +31,9 @@ class Ui_NewStrategy(object):
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(NewStrategy.sizePolicy().hasHeightForWidth())
         NewStrategy.setSizePolicy(sizePolicy)
+        NewStrategy.setMinimumSize(QtCore.QSize(326, 294))
+        NewStrategy.setMaximumSize(QtCore.QSize(326, 294))
+        NewStrategy.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);"))
         self.label_user_id = QtGui.QLabel(NewStrategy)
         self.label_user_id.setGeometry(QtCore.QRect(40, 40, 117, 16))
         self.label_user_id.setObjectName(_fromUtf8("label_user_id"))
@@ -54,9 +57,31 @@ class Ui_NewStrategy(object):
         self.lineEdit_b_instrument.setObjectName(_fromUtf8("lineEdit_b_instrument"))
         self.pushButton_cancel = QtGui.QPushButton(NewStrategy)
         self.pushButton_cancel.setGeometry(QtCore.QRect(167, 240, 110, 28))
+        self.pushButton_cancel.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    font: 100 10pt \"微软雅黑\";\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    border: 1px solid #6D6D6D;\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_cancel.setObjectName(_fromUtf8("pushButton_cancel"))
         self.pushButton_ok = QtGui.QPushButton(NewStrategy)
         self.pushButton_ok.setGeometry(QtCore.QRect(40, 240, 110, 28))
+        self.pushButton_ok.setStyleSheet(_fromUtf8("QPushButton{\n"
+"    font: 100 10pt \"微软雅黑\";\n"
+"    background-color: rgb(255, 255, 255);\n"
+"    border: 1px solid #6D6D6D;\n"
+"    color: rgb(0, 0, 0);\n"
+"}\n"
+"\n"
+"QPushButton::pressed{\n"
+"    background-color: rgb(109, 109, 109);\n"
+"    color: rgb(255, 255, 255);\n"
+"}"))
         self.pushButton_ok.setObjectName(_fromUtf8("pushButton_ok"))
         self.label_error_msg = QtGui.QLabel(NewStrategy)
         self.label_error_msg.setGeometry(QtCore.QRect(42, 192, 237, 37))
@@ -77,7 +102,7 @@ class Ui_NewStrategy(object):
         NewStrategy.setTabOrder(self.pushButton_ok, self.pushButton_cancel)
 
     def retranslateUi(self, NewStrategy):
-        NewStrategy.setWindowTitle(_translate("NewStrategy", "NewStrategy", None))
+        NewStrategy.setWindowTitle(_translate("NewStrategy", "新建策略", None))
         self.label_user_id.setText(_translate("NewStrategy", "期货账号", None))
         self.label_strategy_id.setText(_translate("NewStrategy", "策略编号", None))
         self.label_a_instrument.setText(_translate("NewStrategy", "A合约代码", None))

@@ -776,6 +776,7 @@ class SocketManager(QtCore.QThread):
                         check_box.setCheckState(QtCore.Qt.Unchecked)
                     i[0] = check_box
                 self.__dict_table_view_data[user_id] = data_main  # 主进程接收并更新user进程发来的界面更新数据-tableView
+                # print(">>> SocketManager.handle_Queue_get() data_flag = table_widget_data, len(data_main) =", len(data_main))
                 # print(">>> SocketManager.handle_Queue_get() data_flag = table_widget_data, user_id =", user_id, "len(data_main) =", len(data_main))
                 # current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
                 # # 更新tableView

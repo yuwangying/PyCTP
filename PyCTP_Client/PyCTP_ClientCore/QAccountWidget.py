@@ -80,6 +80,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
         self.__set_socket_manager = False  # 设置了socket_manager为本类属性
+        self.__len_list_update_table_view_data = 0  # tableView数据长度
 
         self.setupUi(self)  # 调用父类中配置界面的方法
         self.tableView_Trade_Args.setSortingEnabled(True)
@@ -209,10 +210,18 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # Qt库函数定时器，定时刷新UI槽函数
     def slot_update_ui(self):
-        list_update_table_view_data = self.get_list_update_table_view_data()
-        # print(">>> QAccountWidget.slot_update_ui()", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "len(list_update_table_view_data) =", len(list_update_table_view_data))
         # 更新界面tableView
+        list_update_table_view_data = self.get_list_update_table_view_data()
         self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)
+        # 数据长度有变化时界面刷新全部区域
+        len_list_update_table_view_data = len(list_update_table_view_data)
+        if self.__len_list_update_table_view_data != len_list_update_table_view_data:
+            self.StrategyDataModel.set_update_once(True)  # 设置更新tableView全部区域的标志位True
+            # self.StrategyDataModel.update_table_view_total(list_update_table_view_data)
+            # print(">>> QAccountWidget.slot_update_ui()数据长度有变化时界面刷新全部区域,之前长度和之后长度", self.__len_list_update_table_view_data, len_list_update_table_view_data)
+        self.__len_list_update_table_view_data = len_list_update_table_view_data
+        # print(">>> QAccountWidget.slot_update_ui()", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "len(list_update_table_view_data) =", len_list_update_table_view_data)
+
         # 更新界面groupBox
         list_update_group_box_data = self.get_list_update_group_box_data()
         if len(list_update_group_box_data) > 0:
@@ -468,6 +477,8 @@ class QAccountWidget(QWidget, Ui_Form):
     def create_QNewStrategy(self):
         # print(">>> QAccountWidget.create_QNewStrategy()")
         self.__q_new_strategy = QNewStrategy()
+        # 设置图标
+        self.__q_new_strategy.setWindowIcon(QtGui.QIcon(':/image/bee.ico'))
         completer = QCompleter()
         model = QStringListModel()
         list_instrument_id = self.__socket_manager.get_list_instrument_id()

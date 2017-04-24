@@ -43,16 +43,19 @@ class StrategyDataModel(QAbstractTableModel):
     # 更新tableView
     def slot_set_data_list(self, data_list):
         # print(">>> StrategyDataModel.slot_set_data_list() called")
-        self.__data_list = data_list
-        self.__row = len(self.__data_list)  # 最新数据的长度
-        if self.__row == 0:
-            print(">>> StrategyDataModel.slot_set_data_list() if self.__row == 0: return")
-            return
+
+        self.__row = len(data_list)  # 最新数据的长度
+        # if self.__row == 0:
+            # print(">>> StrategyDataModel.slot_set_data_list() if self.__row == 0: return")
+            # return
+
+        if self.__row != len(self.__data_list):
+            self.__update_once = True
 
         # 更新tableView整个区域：已经设置过数据、数据长度相同、未切换tab页
         if self.__update_once:  # and self.__row == len_data_list and self.__QAccountWidget.get_current_tab_name() == self.__last_tab_name:
-            # self.__data_list = data_list
-            print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域")
+            self.__data_list = data_list
+            print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域, len(data_list) =", len(data_list))
             t1 = self.index(0, 1)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
 
@@ -79,7 +82,10 @@ class StrategyDataModel(QAbstractTableModel):
         else:
             # print(">>> StrategyDataModel.slot_set_data_list() 更新tableView部分区域")
             # self.__data_list = data_list
-            self.__row = len(self.__data_list)
+            for i in range(self.__row):  # range(len(data_list)):
+            # for i in range(len(self.__data_list)):
+                self.__data_list[i][1:] = data_list[i][1:]
+                # print(">>> StrategyDataModel.slot_set_data_list() len(self.__data_list) =", len(self.__data_list), "len(data_list) =", len(data_list))
             t1 = self.index(0, 4)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
 
@@ -92,6 +98,33 @@ class StrategyDataModel(QAbstractTableModel):
             # print(">>>slot_set_data_list() self.__update_once = False")
 
         self.__last_tab_name = self.__QAccountWidget.get_current_tab_name()  # 保存最后一次tabName
+
+    # 刷新tableView全部元素
+    def update_table_view_total(self, data_list):
+        self.__data_list = data_list
+        print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域, len(data_list) =", len(data_list))
+        t1 = self.index(0, 1)  # 左上角
+        t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
+
+        if True:  # not self.__set_resizeColumnsToContents_flags:
+            self.__QAccountWidget.tableView_Trade_Args.resizeColumnsToContents()  # tableView列宽自动适应
+            self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
+            self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
+            print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
+        # # 第一列更新为checkBox
+        # for i in self.__data_list:
+        #     checkbox = QtGui.QCheckBox()
+        #     if i[0] == 1:
+        #         checkbox.setText("开")
+        #         checkbox.setCheckState(QtCore.Qt.Checked)
+        #     else:
+        #         checkbox.setText("关")
+        #         checkbox.setCheckState(QtCore.Qt.Unchecked)
+        #     i[0] = checkbox
+        self.layoutAboutToBeChanged.emit()  # 布局准备信号
+        self.layoutChanged.emit()  # 布局执行信号
+        self.dataChanged.emit(t1, t2)
+        self.__update_once = False  # 更新一次界面请求的值设置为False
 
     # 针对特定的单个strategy更新界面开关，socket_manager收到修改策略开关回报时调用
     def slot_update_strategy_on_off(self, dict_args):
@@ -185,12 +218,12 @@ class StrategyDataModel(QAbstractTableModel):
                 else:
                     value = '开'
             return value
-        # ForegroundRole字体颜色
+        # # ForegroundRole字体颜色
         # elif role == QtCore.Qt.ForegroundRole and index.column() == 1:
         #     return QtGui.QColor(255, 0, 0)
         # elif role == QtCore.Qt.ForegroundRole and index.column() == 2:
         #     return QtGui.QColor(0, 255, 0)
-        # FontRole 字体样式，加粗、斜体、字体等等
+        # # FontRole 字体样式，加粗、斜体、字体等等
         # elif role == QtCore.Qt.FontRole and index.column() == 1:
         #     font = QtGui.QFont()
         #     font.setBold(True)
