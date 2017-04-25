@@ -2411,7 +2411,7 @@ class QAccountWidget(QWidget, Ui_Form):
         position_a_buy_today = int(self.lineEdit_Azongbuy.text()) - int(self.lineEdit_Azuobuy.text())  # A今买
         position_a_buy_yesterday = int(self.lineEdit_Azuobuy.text())  # A昨买
         position_a_sell = int(self.lineEdit_Azongsell.text())  # A总卖
-        position_a_sell_today =  int(self.lineEdit_Azongsell.text()) - int(self.lineEdit_Azuosell.text())  # A今卖
+        position_a_sell_today = int(self.lineEdit_Azongsell.text()) - int(self.lineEdit_Azuosell.text())  # A今卖
         position_a_sell_yesterday = int(self.lineEdit_Azuosell.text())  # A昨卖
         position_b_buy = int(self.lineEdit_Bzongbuy.text())  # B总买
         position_b_buy_today = int(self.lineEdit_Bzongbuy.text()) - int(self.lineEdit_Bzuobuy.text())  # B今买
@@ -2420,40 +2420,40 @@ class QAccountWidget(QWidget, Ui_Form):
         position_b_sell_today = int(self.lineEdit_Bzongsell.text()) - int(self.lineEdit_Bzuosell.text())  # B今卖
         position_b_sell_yesterday = int(self.lineEdit_Bzuosell.text())  # B昨卖
         list_update_group_box_data = self.get_list_update_group_box_data()  # 获取显示到groupBox中的内核数据
-        if position_a_buy > int(list_update_group_box_data[31]):
+        if position_a_buy > int(list_update_group_box_data[31]) and position_a_buy != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_a_buy_yesterday > int(list_update_group_box_data[32]):
+        if position_a_buy_yesterday > int(list_update_group_box_data[32]) and position_a_buy_yesterday != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_a_buy_today > int(list_update_group_box_data[31]) - int(list_update_group_box_data[32]):
+        if position_a_buy_today > int(list_update_group_box_data[31]) - int(list_update_group_box_data[32]) != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_a_sell > int(list_update_group_box_data[29]):
+        if position_a_sell > int(list_update_group_box_data[29]) and position_a_sell != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_a_sell_yesterday > int(list_update_group_box_data[30]):
+        if position_a_sell_yesterday > int(list_update_group_box_data[30]) and position_a_sell_yesterday != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_a_sell_today > int(list_update_group_box_data[29]) - int(list_update_group_box_data[30]):
+        if position_a_sell_today > int(list_update_group_box_data[29]) - int(list_update_group_box_data[30]) and position_a_sell_today != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_b_buy > int(list_update_group_box_data[6]):
+        if position_b_buy > int(list_update_group_box_data[6]) and position_b_buy != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_b_buy_yesterday > int(list_update_group_box_data[34]):
+        if position_b_buy_yesterday > int(list_update_group_box_data[34]) and position_b_buy_yesterday != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_b_buy_today > int(list_update_group_box_data[6]) - int(list_update_group_box_data[34]):
+        if position_b_buy_today > int(list_update_group_box_data[6]) - int(list_update_group_box_data[34]) and position_b_buy_today != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_b_sell > int(list_update_group_box_data[5]):
+        if position_b_sell > int(list_update_group_box_data[5]) and position_b_sell != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_b_sell_yesterday > int(list_update_group_box_data[33]):
+        if position_b_sell_yesterday > int(list_update_group_box_data[33]) and position_b_sell_yesterday != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
-        if position_b_sell_today > int(list_update_group_box_data[5]) - int(list_update_group_box_data[33]):
+        if position_b_sell_today > int(list_update_group_box_data[5]) - int(list_update_group_box_data[33]) and position_b_sell_today != 0:
             MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             return
 
