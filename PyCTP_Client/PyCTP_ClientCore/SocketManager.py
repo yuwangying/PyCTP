@@ -496,7 +496,7 @@ class SocketManager(QtCore.QThread):
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
             elif buff['MsgType'] == 20:  # 收到：查询今持仓明细order，MsgType=20
-                print("SocketManager.receive_msg() MsgType=21，查询今持仓明细order", buff)
+                print("SocketManager.receive_msg() MsgType=20，查询今持仓明细order", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_position_detail_for_order_today(buff['Info'])
                 elif buff['MsgResult'] == 1:  # 消息结果失败

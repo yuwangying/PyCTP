@@ -1407,7 +1407,8 @@ class Strategy():
 
     # 获取self.__list_instrument_id
     def get_list_instrument_id(self):
-        return self.__list_instrument_id
+        list_instrument_id = [self.__a_instrument_id, self.__b_instrument_id]
+        return list_instrument_id
 
     def get_a_instrument_id(self):
         return self.__a_instrument_id

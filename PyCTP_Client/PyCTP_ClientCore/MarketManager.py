@@ -111,11 +111,11 @@ class MarketManager:
 
         if len(list_instrument_id_to_sub) > 0:
             time.sleep(1.0)
-            print(">>> MarketManager.sub_market() list_instrument_id_to_sub =", list_instrument_id_to_sub)
+            # print(">>> MarketManager.sub_market() list_instrument_id_to_sub =", list_instrument_id_to_sub)
             for i in range(len(list_instrument_id_to_sub)):
                 if isinstance(list_instrument_id_to_sub[i], str):
                     list_instrument_id_to_sub[i] = list_instrument_id_to_sub[i].encode()
-            print(">>> MarketManager.sub_market() list_instrument_id_to_sub =", list_instrument_id_to_sub)
+            # print(">>> MarketManager.sub_market() list_instrument_id_to_sub =", list_instrument_id_to_sub)
 
             print('MarketManager.sub_market() 请求订阅行情', Utils.code_transform(self.__market.SubMarketData(list_instrument_id_to_sub)))
             MarketManager.list_instrument_subscribed.extend(list_instrument_id_to_sub)
@@ -130,8 +130,8 @@ class MarketManager:
             # 遍历已订阅的合约列表
             for instrument_id_subscribed in self.__list_instrument_subscribed_detail:  # instrument_id_subscribed是{b'cu1609': '80065801'}
                 # 找到已经订阅的合约，将对应的订阅者（user_id+strategy_id）删除
-                if not isinstance(instrument_id, bytes):
-                    instrument_id = instrument_id.encode()
+                # if not isinstance(instrument_id, bytes):
+                #     instrument_id = instrument_id.encode()
                 if instrument_id in instrument_id_subscribed:
                     if (user_id + strategy_id) in instrument_id_subscribed[instrument_id]:
                         pass
@@ -147,6 +147,9 @@ class MarketManager:
                     break
         if len(list_instrument_id_to_un_sub) > 0:
             time.sleep(1.0)
+            for i in range(len(list_instrument_id_to_un_sub)):
+                if isinstance(list_instrument_id_to_un_sub[i], str):
+                    list_instrument_id_to_un_sub[i] = list_instrument_id_to_un_sub[i].encode()
             print('MarketManager.un_sub_market() 请求退订行情', list_instrument_id_to_un_sub, Utils.code_transform(self.__market.UnSubMarketData(list_instrument_id_to_un_sub)))
             # MarketManager.list_instrument_subscribed.remove(list_instrument_id_to_un_sub)
             MarketManager.list_instrument_subscribed = list(set(MarketManager.list_instrument_subscribed) - set(list_instrument_id_to_un_sub))

@@ -520,9 +520,15 @@ class User():
 
     # 删除策略
     def delete_strategy(self, strategy_id):
+        # 退订行情
+        obj_strategy = self.__dict_strategy[strategy_id]
+        list_instrument_id = obj_strategy.get_list_instrument_id()
+        user_id = obj_strategy.get_user_id()
+        print(">>> User.delete_strategy() user_id =", self.__user_id, "strategy_id =", strategy_id, "调用了删除策略，退订行情方法")
+        self.__market_manager.un_sub_market(list_instrument_id, user_id, strategy_id)
         # 删除策略之前需判断：策略开关关闭、空仓
         self.__dict_strategy.pop(strategy_id)
-        self.__market_manager.set_dict_strategy(self.__dict_strategy)  # 将策略对象dict设置为market_manager属性
+        # self.__market_manager.set_dict_strategy(self.__dict_strategy)  # 将策略对象dict设置为market_manager属性
 
     # 设置策略初始化完成标志
     def set_strategy_init_finished(self, strategy_id, bool_finished):
