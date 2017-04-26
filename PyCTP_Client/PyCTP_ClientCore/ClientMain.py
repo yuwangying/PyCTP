@@ -20,6 +20,7 @@ from Strategy import Strategy
 from SocketManager import SocketManager
 from MessageBox import MessageBox
 from XML_Manager import XML_Manager
+from QAlertBox import QAlertBox
 from TimerThread import TimerThread
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
 
@@ -64,25 +65,25 @@ class ClientMain(QtCore.QObject):
     def set_CTPManager(self, obj_CTPManager):
         self.__ctp_manager = obj_CTPManager
 
-    # 设置当前显示在最前端窗口对象为本类属性
-    def set_showQAccountWidget(self, obj_QAccountWidget):
-        self.__showQAccountWidget = obj_QAccountWidget
-        # 绑定信号：当前最前端窗口对象(通过信槽绑定的标志来判断，不能重复绑定信号槽)
-        if self.__showQAccountWidget.get_signal_pushButton_set_position_setEnabled_connected() is False:
-            self.signal_pushButton_set_position_setEnabled.connect(self.__showQAccountWidget.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
-            self.__showQAccountWidget.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定状态设置为True
-            # print(">>> ClientMain.set_showQAccountWidget() 绑定信号槽，widget_name=", self.__showQAccountWidget.get_widget_name())
+    # # 设置当前显示在最前端窗口对象为本类属性
+    # def set_showQAccountWidget(self, obj_QAccountWidget):
+    #     self.__showQAccountWidget = obj_QAccountWidget
+    #     # 绑定信号：当前最前端窗口对象(通过信槽绑定的标志来判断，不能重复绑定信号槽)
+    #     if self.__showQAccountWidget.get_signal_pushButton_set_position_setEnabled_connected() is False:
+    #         self.signal_pushButton_set_position_setEnabled.connect(self.__showQAccountWidget.on_pushButton_set_position_active)  # , QtCore.Qt.UniqueConnection
+    #         self.__showQAccountWidget.set_signal_pushButton_set_position_setEnabled_connected(True)  # 信号槽绑定状态设置为True
+    #         # print(">>> ClientMain.set_showQAccountWidget() 绑定信号槽，widget_name=", self.__showQAccountWidget.get_widget_name())
 
     def get_showQAccountWidget(self):
         return self.__showQAccountWidget
 
-    def set_hideQAccountWidget(self, obj_QAccountWidget):
-        self.__hideQAccountWidget = obj_QAccountWidget
-        # 解绑信号：隐藏的窗口
-        if self.__hideQAccountWidget.get_signal_pushButton_set_position_setEnabled_connected():
-            self.signal_pushButton_set_position_setEnabled.disconnect(self.__hideQAccountWidget.on_pushButton_set_position_active)
-            self.__hideQAccountWidget.set_signal_pushButton_set_position_setEnabled_connected(False)  # 信号槽绑定状态设置为False
-            # print(">>> ClientMain.set_hideQAccountWidget() 解绑信号槽，widget_name=", self.__hideQAccountWidget.get_widget_name())
+    # def set_hideQAccountWidget(self, obj_QAccountWidget):
+    #     self.__hideQAccountWidget = obj_QAccountWidget
+    #     # 解绑信号：隐藏的窗口
+    #     if self.__hideQAccountWidget.get_signal_pushButton_set_position_setEnabled_connected():
+    #         self.signal_pushButton_set_position_setEnabled.disconnect(self.__hideQAccountWidget.on_pushButton_set_position_active)
+    #         self.__hideQAccountWidget.set_signal_pushButton_set_position_setEnabled_connected(False)  # 信号槽绑定状态设置为False
+    #         # print(">>> ClientMain.set_hideQAccountWidget() 解绑信号槽，widget_name=", self.__hideQAccountWidget.get_widget_name())
 
     def get_hideQAccountWidget(self):
         return self.__hideQAccountWidget
@@ -584,12 +585,14 @@ if __name__ == '__main__':
     socket_manager.start()
     q_login = QLogin.QLoginForm()  # 登录窗口
     q_ctp = QCTP()  # 客户端主窗口
+    q_alert_box = QAlertBox()  # 提示窗口
     q_login.show()
 
     q_login.set_SocketManager(socket_manager)
     socket_manager.set_XML_Manager(xml_manager)  # xml_manager设置为石头创可贴socket_manager的属性
     socket_manager.set_QLogin(q_login)
     socket_manager.set_QCTP(q_ctp)
+    socket_manager.set_QAlert(q_alert_box)
     q_ctp.widget_QAccountWidget.set_SocketManager(socket_manager)
     socket_manager.set_QAccountWidget(q_ctp.widget_QAccountWidget)
     q_ctp.set_QLogin(q_login)
@@ -666,7 +669,10 @@ if __name__ == '__main__':
     socket_manager.signal_init_ui_on_off.connect(q_ctp.widget_QAccountWidget.slot_init_ui_on_off)
     socket_manager.signal_show_message.connect(socket_manager.msg_box.showMessage_list)  # 绑定信号槽：触发弹窗 -> 显示弹窗
     socket_manager.signal_setTabIcon.connect(q_ctp.widget_QAccountWidget.slot_setTabIcon)  # 绑定信号槽：Socket收到修改期货账户开关或交易员开关 -> 设置tabbar样式
-    socket_manager.signal_init_setTabIcon.connect(q_ctp.widget_QAccountWidget.slot_init_setTabIcon)  # 绑定信号槽：
+    socket_manager.signal_init_setTabIcon.connect(q_ctp.widget_QAccountWidget.slot_init_setTabIcon)  # 绑定信号槽：初始化tab样式
+    q_ctp.widget_QAccountWidget.signal_show_alert.connect(q_alert_box.slot_show_alert)  # 绑定信号槽：显示弹窗
+    socket_manager.signal_show_alert.connect(q_alert_box.slot_show_alert)  # 绑定信号槽：显示弹窗
+    socket_manager.signal_on_pushButton_set_position_active.connect(q_ctp.widget_QAccountWidget.on_pushButton_set_position_active)  # 绑定信号槽：socket收到设置持仓消息 -> 激活界面设置持仓按钮
 
     sys.exit(app.exec_())
 

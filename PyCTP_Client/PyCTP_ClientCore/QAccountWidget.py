@@ -63,6 +63,7 @@ class QAccountWidget(QWidget, Ui_Form):
     signal_lineEdit_duotoujiacha_setStyleSheet = QtCore.pyqtSignal(str)  # 定义信号：lineEdit_duotoujiacha.setStyleSheet()
     signal_lineEdit_kongtoujiacha_setStyleSheet = QtCore.pyqtSignal(str)  # 定义信号：lineEdit_kongtoujiacha.setStyleSheet()
     signal_update_ui = QtCore.pyqtSignal()  # 定义信号：定时刷新UI
+    signal_show_alert = QtCore.pyqtSignal(dict)  # 定义信号：显示弹窗
 
     # QAccountWidget(ClientMain=self.__client_main,
     #                CTPManager=self,
@@ -80,6 +81,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__init_finished = False  # QAccountWidget界面初始化完成标志位，初始值为False
         self.__set_socket_manager = False  # 设置了socket_manager为本类属性
+        self.__allow_update_group_box_position = True  # 允许更新groupBox持仓变量标志位，初始值为true
         self.__len_list_update_table_view_data = 0  # tableView数据长度
 
         self.setupUi(self)  # 调用父类中配置界面的方法
@@ -284,6 +286,7 @@ class QAccountWidget(QWidget, Ui_Form):
     def slot_tab_changed(self, int_tab_index):
         self.__current_tab_index = int_tab_index  # 保存当前tab的index
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
+        self.on_pushButton_set_position_active()  # 激活设置持仓按钮，设置持仓参数框设置只读
         print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         if self.get_total_process_finished():  # 所有子进程初始化完成
             self.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
@@ -394,6 +397,12 @@ class QAccountWidget(QWidget, Ui_Form):
     # 形参为user对象或ctpmanager对象，ctpmanager代表所有期货账户对象的总和
     def set_user(self, obj_user):
         self.__user = obj_user
+
+    def set_allow_update_group_box_position(self, bool_input):
+        self.__allow_update_group_box_position = bool_input
+
+    def get_allow_update_group_box_position(self):
+        return self.__allow_update_group_box_position
 
     def get_user(self):
         return self.__user
@@ -799,8 +808,11 @@ class QAccountWidget(QWidget, Ui_Form):
                     # print(">>> QAccountWidget.remove_strategy() 删除策略，widget_name=", self.__widget_name, "user_id=", obj_strategy.get_user_id(), "strategy_id=", obj_strategy.get_strategy_id())
                     self.tableWidget_Trade_Args.removeRow(i_row)
                     if self.is_single_user_widget():
-                        MessageBox().showMessage("通知",
-                                                  "删除策略成功，期货账号" + obj_strategy.get_user_id() + "策略编号" + obj_strategy.get_strategy_id())
+                        # MessageBox().showMessage("通知", "删除策略成功，期货账号" + obj_strategy.get_user_id() + "策略编号" + obj_strategy.get_strategy_id())
+                        str_main = "删除策略成功，期货账号" + obj_strategy.get_user_id() + "策略编号" + obj_strategy.get_strategy_id()
+                        dict_args = {"title": "消息", "main": str_main}
+                        self.signal_show_alert.emit(dict_args)
+
                     break
             # 如果tableWidget_Trade_Args中不存在策略，将groupBox中内容清空
             if self.tableWidget_Trade_Args.rowCount() == 0:
@@ -1588,14 +1600,22 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Azuobuy.setText(self.__list_update_group_box_data[32])  # A昨买
         self.lineEdit_Bzongsell.setText(self.__list_update_group_box_data[5])  # B总卖
         self.lineEdit_Bzuosell.setText(self.__list_update_group_box_data[33])  # B昨卖
-        self.lineEdit_Azongsell.setEnabled(False)
-        self.lineEdit_Azuosell.setEnabled(False)
-        self.lineEdit_Bzongbuy.setEnabled(False)
-        self.lineEdit_Bzuobuy.setEnabled(False)
-        self.lineEdit_Azongbuy.setEnabled(False)
-        self.lineEdit_Azuobuy.setEnabled(False)
-        self.lineEdit_Bzongsell.setEnabled(False)
-        self.lineEdit_Bzuosell.setEnabled(False)
+        self.lineEdit_Azongsell.setReadOnly(True)  # 文本框只读
+        self.lineEdit_Azongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Azuosell.setReadOnly(True)
+        self.lineEdit_Azuosell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzongbuy.setReadOnly(True)
+        self.lineEdit_Bzongbuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzuobuy.setReadOnly(True)
+        self.lineEdit_Bzuobuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Azongbuy.setReadOnly(True)
+        self.lineEdit_Azongbuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Azuobuy.setReadOnly(True)
+        self.lineEdit_Azuobuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzongsell.setReadOnly(True)
+        self.lineEdit_Bzongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzuosell.setReadOnly(True)
+        self.lineEdit_Bzuosell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
         self.pushButton_set_position.setText("设置持仓")
 
     # 更新groupBox：仅更新统计类指标，不更新用户输入参数
@@ -1649,7 +1669,8 @@ class QAccountWidget(QWidget, Ui_Form):
         # elif self.__list_update_group_box_data[42] == 1:
         #     self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)
         # 当仓位输入框被激活为可编辑状态时，不更新持仓的item
-        if self.lineEdit_Azongsell.isEnabled() is False:
+        # if self.lineEdit_Azongsell.isEnabled() is False:
+        if self.lineEdit_Azongsell.isReadOnly():  # 策略持仓的lineEdit为只读模式时更新策略持仓变量
             self.lineEdit_Azongsell.setText(self.__list_update_group_box_data[29])  # A总卖
             self.lineEdit_Azuosell.setText(self.__list_update_group_box_data[30])  # A昨卖
             self.lineEdit_Bzongbuy.setText(self.__list_update_group_box_data[6])  # B总买
@@ -2116,7 +2137,9 @@ class QAccountWidget(QWidget, Ui_Form):
         list_update_group_box_data = self.get_list_update_group_box_data()
         if list_update_group_box_data[0] == 1:
             print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除策略开关为开的策略")
-            MessageBox().showMessage("错误", "不允许删除策略开关为开的策略！")
+            # MessageBox().showMessage("错误", "不允许删除策略开关为开的策略！")
+            dict_args = {"title": "消息", "main": "不允许删除策略开关为开的策略"}
+            self.signal_show_alert.emit(dict_args)
             return
         # B总卖、B总买、A总卖、A总买
         if list_update_group_box_data[5] != '0' \
@@ -2124,7 +2147,9 @@ class QAccountWidget(QWidget, Ui_Form):
                 or list_update_group_box_data[29] != '0' \
                 or list_update_group_box_data[31] != '0':
             print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除有持仓的策略", list_update_group_box_data[5], list_update_group_box_data[6], list_update_group_box_data[29], list_update_group_box_data[31], type(list_update_group_box_data[31]))
-            MessageBox().showMessage("错误", "不允许删除有持仓的策略！")
+            # MessageBox().showMessage("错误", "不允许删除有持仓的策略！")
+            dict_args = {"title": "消息", "main": "不允许删除有持仓的策略"}
+            self.signal_show_alert.emit(dict_args)
             return
 
         print(">>> QAccountWidget.slot_action_del_strategy() self.get_list_update_group_box_data() =", self.get_list_update_group_box_data())
@@ -2307,26 +2332,40 @@ class QAccountWidget(QWidget, Ui_Form):
         # QMessageBox().showMessage("错误", "总手、每份参数错误！")
         if len(self.lineEdit_qihuozhanghao.text()) <= 0 or len(self.lineEdit_celuebianhao.text()) <= 0:
             # self.signal_show_QMessageBox.emit(["错误", "参数错误"])
-            MessageBox().showMessage("错误", "请选择策略！")
+            # MessageBox().showMessage("错误", "请选择策略！")
+            dict_args = {"title": "消息", "main": "请选择策略！"}
+            self.signal_show_alert.emit(dict_args)
             return
         if len(self.lineEdit_zongshou.text()) == 0 or len(self.lineEdit_meifen.text()) == 0:
             # self.signal_show_QMessageBox.emit(["错误", "参数错误"])
-            MessageBox().showMessage("错误", "总手、每份参数错误！")
+            # MessageBox().showMessage("错误", "总手、每份参数错误！")
+            dict_args = {"title": "消息", "main": "总手、每份参数错误！"}
+            self.signal_show_alert.emit(dict_args)
             return
         if int(self.lineEdit_zongshou.text()) <= 0:  # 正确值：总手大于零的整数
-            self.signal_show_QMessageBox.emit(["错误", "‘总手’必须为大于零的整数"])
+            # self.signal_show_QMessageBox.emit(["错误", "‘总手’必须为大于零的整数"])
+            dict_args = {"title": "消息", "main": "‘总手’必须为大于零的整数！"}
+            self.signal_show_alert.emit(dict_args)
             return
         elif int(self.lineEdit_meifen.text()) <= 0:  # 正确值：每份大于零的整数
-            self.signal_show_QMessageBox.emit(["错误", "‘每份’必须为大于零的整数"])
+            # self.signal_show_QMessageBox.emit(["错误", "‘每份’必须为大于零的整数"])
+            dict_args = {"title": "消息", "main": "‘每份’必须为大于零的整数"}
+            self.signal_show_alert.emit(dict_args)
             return
         elif int(self.lineEdit_zongshou.text()) < int(self.lineEdit_meifen.text()):  # 正确值：每份小于总手
-            self.signal_show_QMessageBox.emit(["错误", "‘总手’必须大于‘每份’"])
+            # self.signal_show_QMessageBox.emit(["错误", "‘总手’必须大于‘每份’"])
+            dict_args = {"title": "消息", "main": "‘总手’必须大于‘每份’"}
+            self.signal_show_alert.emit(dict_args)
             return
         elif self.doubleSpinBox_kongtoukai.value() <= self.doubleSpinBox_kongtouping.value():  # 正确值：空头开 > 空头平
-            self.signal_show_QMessageBox.emit(["错误", "‘空头开’必须大于‘空头平’"])
+            # self.signal_show_QMessageBox.emit(["错误", "‘空头开’必须大于‘空头平’"])
+            dict_args = {"title": "消息", "main": "‘空头开’必须大于‘空头平’"}
+            self.signal_show_alert.emit(dict_args)
             return
         elif self.doubleSpinBox_duotoukai.value() >= self.doubleSpinBox_duotouping.value():  # 正确值：多头开 < 多头平
-            self.signal_show_QMessageBox.emit(["警告", "‘多头开’必须小于‘多头平’"])
+            # self.signal_show_QMessageBox.emit(["警告", "‘多头开’必须小于‘多头平’"])
+            dict_args = {"title": "消息", "main": "‘多头开’必须小于‘多头平’"}
+            self.signal_show_alert.emit(dict_args)
             return
     
     @pyqtSlot()
@@ -2343,11 +2382,19 @@ class QAccountWidget(QWidget, Ui_Form):
         # "buy_close": self.doubleSpinBox_kongtouping.value(),  # 价差买平触发参数
         # "sell_close": self.doubleSpinBox_duotouping.value(),  # 价差卖平触发参数
         # "buy_open": self.doubleSpinBox_duotoukai.value(),  # 价差买开触发参数
+        if len(self.lineEdit_celuebianhao.text()) == 0:
+            dict_args = {"title": "消息", "main": "请先选择策略！"}
+            self.signal_show_alert.emit(dict_args)
+            return
         if self.doubleSpinBox_kongtoukai.value() <= self.doubleSpinBox_kongtouping.value():
-            MessageBox().showMessage("错误", "卖开触发参数必须大于买平触发参数！")
+            # MessageBox().showMessage("错误", "卖开触发参数必须大于买平触发参数！")
+            dict_args = {"title": "消息", "main": "卖开触发参数必须大于买平触发参数！"}
+            self.signal_show_alert.emit(dict_args)
             return
         if self.doubleSpinBox_duotouping.value() <= self.doubleSpinBox_duotoukai.value():
-            MessageBox().showMessage("错误", "买开触发参数必须小于卖平触发参数！")
+            # MessageBox().showMessage("错误", "买开触发参数必须小于卖平触发参数！")
+            dict_args = {"title": "消息", "main": "买开触发参数必须小于卖平触发参数！"}
+            self.signal_show_alert.emit(dict_args)
             return
 
         dict_args = {
@@ -2397,7 +2444,9 @@ class QAccountWidget(QWidget, Ui_Form):
         # 策略开关为“开”时不能修改策略，弹窗提示，并return
         print(">>> QAccountWidget.on_pushButton_set_position_clicked() self.get_clicked_strategy_on_off() =", self.get_clicked_strategy_on_off())
         if self.get_clicked_strategy_on_off() == 1:
-            MessageBox().showMessage("错误", "策略运行时不允许修改持仓！")
+            # MessageBox().showMessage("错误", "策略运行时不允许修改持仓！")
+            dict_args = {"title": "消息", "main": "策略运行时不允许修改持仓"}
+            self.signal_show_alert.emit(dict_args)
             return
 
         # 参数排错：期货账号、策略编号不能为空
@@ -2421,64 +2470,105 @@ class QAccountWidget(QWidget, Ui_Form):
         position_b_sell_yesterday = int(self.lineEdit_Bzuosell.text())  # B昨卖
         list_update_group_box_data = self.get_list_update_group_box_data()  # 获取显示到groupBox中的内核数据
         if position_a_buy > int(list_update_group_box_data[31]) and position_a_buy != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_a_buy_yesterday > int(list_update_group_box_data[32]) and position_a_buy_yesterday != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_a_buy_today > int(list_update_group_box_data[31]) - int(list_update_group_box_data[32]) != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_a_sell > int(list_update_group_box_data[29]) and position_a_sell != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_a_sell_yesterday > int(list_update_group_box_data[30]) and position_a_sell_yesterday != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_a_sell_today > int(list_update_group_box_data[29]) - int(list_update_group_box_data[30]) and position_a_sell_today != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_b_buy > int(list_update_group_box_data[6]) and position_b_buy != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_b_buy_yesterday > int(list_update_group_box_data[34]) and position_b_buy_yesterday != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_b_buy_today > int(list_update_group_box_data[6]) - int(list_update_group_box_data[34]) and position_b_buy_today != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_b_sell > int(list_update_group_box_data[5]) and position_b_sell != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_b_sell_yesterday > int(list_update_group_box_data[33]) and position_b_sell_yesterday != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
         if position_b_sell_today > int(list_update_group_box_data[5]) - int(list_update_group_box_data[33]) and position_b_sell_today != 0:
-            MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
+            dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
+            self.signal_show_alert.emit(dict_args)
             return
 
         if self.pushButton_set_position.text() == "设置持仓":
             self.pushButton_set_position.setText("发送持仓")  # 修改按钮显示的字符
             # 解禁仓位显示lineEdit，允许编辑
-            self.lineEdit_Azongbuy.setEnabled(True)  # 文本框允许编辑
-            self.lineEdit_Azuobuy.setEnabled(True)
-            self.lineEdit_Azongsell.setEnabled(True)
-            self.lineEdit_Azuosell.setEnabled(True)
-            self.lineEdit_Bzongbuy.setEnabled(True)
-            self.lineEdit_Bzuobuy.setEnabled(True)
-            self.lineEdit_Bzongsell.setEnabled(True)
-            self.lineEdit_Bzuosell.setEnabled(True)
+            self.lineEdit_Azongbuy.setReadOnly(False)  # 文本框允许编辑
+            self.lineEdit_Azongbuy.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.lineEdit_Azuobuy.setReadOnly(False)
+            self.lineEdit_Azuobuy.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.lineEdit_Azongsell.setReadOnly(False)
+            self.lineEdit_Azongsell.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.lineEdit_Azuosell.setReadOnly(False)
+            self.lineEdit_Azuosell.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.lineEdit_Bzongbuy.setReadOnly(False)
+            self.lineEdit_Bzongbuy.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.lineEdit_Bzuobuy.setReadOnly(False)
+            self.lineEdit_Bzuobuy.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.lineEdit_Bzongsell.setReadOnly(False)
+            self.lineEdit_Bzongsell.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.lineEdit_Bzuosell.setReadOnly(False)
+            self.lineEdit_Bzuosell.setStyleSheet("QLineEdit { background: rgb(221, 255, 221);}")
+            self.set_allow_update_group_box_position(False)  # 允许刷新groupBox中的持仓变量LineEdit为False
         elif self.pushButton_set_position.text() == "发送持仓":
-            self.pushButton_set_position.setText("设置持仓")  # 修改按钮显示的字符
-            self.lineEdit_Azongbuy.setEnabled(False)  # 禁用文本框
-            self.lineEdit_Azuobuy.setEnabled(False)
-            self.lineEdit_Azongsell.setEnabled(False)
-            self.lineEdit_Azuosell.setEnabled(False)
-            self.lineEdit_Bzongbuy.setEnabled(False)
-            self.lineEdit_Bzuobuy.setEnabled(False)
-            self.lineEdit_Bzongsell.setEnabled(False)
-            self.lineEdit_Bzuosell.setEnabled(False)
-            # self.pushButton_set_position.setEnabled(False)  # 禁用按钮
+            # self.pushButton_set_position.setText("设置持仓")  # 修改按钮显示的字符
+            self.lineEdit_Azongsell.setReadOnly(True)  # 文本框只读
+            self.lineEdit_Azongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.lineEdit_Azuosell.setReadOnly(True)
+            self.lineEdit_Azuosell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.lineEdit_Bzongbuy.setReadOnly(True)
+            self.lineEdit_Bzongbuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.lineEdit_Bzuobuy.setReadOnly(True)
+            self.lineEdit_Bzuobuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.lineEdit_Azongbuy.setReadOnly(True)
+            self.lineEdit_Azongbuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.lineEdit_Azuobuy.setReadOnly(True)
+            self.lineEdit_Azuobuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.lineEdit_Bzongsell.setReadOnly(True)
+            self.lineEdit_Bzongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.lineEdit_Bzuosell.setReadOnly(True)
+            self.lineEdit_Bzuosell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+            self.pushButton_set_position.setEnabled(False)  # 禁用按钮
             dict_setPosition = {
                 "MsgRef": self.__socket_manager.msg_ref_add(),
                 "MsgSendFlag": 0,  # 发送标志，客户端发出0，服务端发出1
@@ -2511,7 +2601,24 @@ class QAccountWidget(QWidget, Ui_Form):
     # 激活设置持仓按钮，禁用仓位输入框
     @QtCore.pyqtSlot()
     def on_pushButton_set_position_active(self):
-        print(">>> QAccountWidget.on_pushButton_set_position_active() called, widget_name=", self.__widget_name)
+        print(">>> QAccountWidget.on_pushButton_set_position_active() called")
+        self.set_allow_update_group_box_position(False)  # 允许刷新groupBox中的持仓变量LineEdit为False
+        self.lineEdit_Azongsell.setReadOnly(True)  # 文本框只读
+        self.lineEdit_Azongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Azuosell.setReadOnly(True)
+        self.lineEdit_Azuosell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzongbuy.setReadOnly(True)
+        self.lineEdit_Bzongbuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzuobuy.setReadOnly(True)
+        self.lineEdit_Bzuobuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Azongbuy.setReadOnly(True)
+        self.lineEdit_Azongbuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Azuobuy.setReadOnly(True)
+        self.lineEdit_Azuobuy.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzongsell.setReadOnly(True)
+        self.lineEdit_Bzongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
+        self.lineEdit_Bzuosell.setReadOnly(True)
+        self.lineEdit_Bzuosell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
         self.pushButton_set_position.setText("设置持仓")
         self.pushButton_set_position.setEnabled(True)  # 激活按钮
 
@@ -2523,11 +2630,16 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         # raise NotImplementedError
         # 获取界面参数框里显示的期货账号的策略编号
-        self.pushButton_query_strategy.setEnabled(False)  # 点击按钮之后禁用，等收到消息后激活
         # 单账户窗口中查询单账户的所有策略，总账户窗口中查询所有期货账户策略
         # str_user_id = self.__widget_name if self.is_single_user_widget() else ''
         str_user_id = self.lineEdit_qihuozhanghao.text()
         str_strategy_id = self.lineEdit_celuebianhao.text()
+        if len(str_user_id) == 0 or len(str_strategy_id) == 0:
+            # MessageBox().showMessage("消息", "请先选中要查询的策略")
+            dict_args = {"title": "消息", "main": "请先选中要查询的策略"}
+            self.signal_show_alert.emit(dict_args)
+            return
+        self.pushButton_query_strategy.setEnabled(False)  # 点击按钮之后禁用，等收到消息后激活
         dict_query_strategy = {'MsgRef': self.__socket_manager.msg_ref_add(),
                                'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
                                'MsgSrc': 0,  # 消息源，客户端0，服务端1

@@ -689,7 +689,7 @@ QPushButton::pressed{
          </rect>
         </property>
         <property name="text">
-         <string>空头价差</string>
+         <string>卖价差</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_qihuozhanghao">
@@ -741,7 +741,7 @@ QPushButton::pressed{
          </rect>
         </property>
         <property name="text">
-         <string>多头价差</string>
+         <string>买价差</string>
         </property>
        </widget>
        <widget class="QCheckBox" name="checkBox_kongtoukai">
@@ -754,7 +754,7 @@ QPushButton::pressed{
          </rect>
         </property>
         <property name="text">
-         <string>空头开</string>
+         <string>卖开</string>
         </property>
        </widget>
        <widget class="QCheckBox" name="checkBox_duotouping">
@@ -767,7 +767,7 @@ QPushButton::pressed{
          </rect>
         </property>
         <property name="text">
-         <string>多头平</string>
+         <string>卖平</string>
         </property>
        </widget>
        <widget class="QCheckBox" name="checkBox_duotoukai">
@@ -780,7 +780,7 @@ QPushButton::pressed{
          </rect>
         </property>
         <property name="text">
-         <string>多头开</string>
+         <string>买开</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_zongshou">
@@ -799,7 +799,7 @@ QPushButton::pressed{
        <widget class="QComboBox" name="comboBox_jiaoyimoxing">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>80</x>
           <y>60</y>
           <width>120</width>
           <height>21</height>
@@ -816,13 +816,13 @@ QPushButton::pressed{
          </rect>
         </property>
         <property name="text">
-         <string>空头平</string>
+         <string>买平</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_celuebianhao">
         <property name="geometry">
          <rect>
-          <x>218</x>
+          <x>214</x>
           <y>30</y>
           <width>60</width>
           <height>16</height>
@@ -835,7 +835,7 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_xiadansuanfa">
         <property name="geometry">
          <rect>
-          <x>218</x>
+          <x>214</x>
           <y>60</y>
           <width>60</width>
           <height>16</height>
@@ -864,7 +864,7 @@ QPushButton::pressed{
        <widget class="QSpinBox" name="spinBox_rangjia">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>80</x>
           <y>120</y>
           <width>46</width>
           <height>21</height>
@@ -880,7 +880,7 @@ QPushButton::pressed{
        <widget class="QLineEdit" name="lineEdit_kongtoujiacha">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>68</x>
           <y>150</y>
           <width>120</width>
           <height>21</height>
@@ -896,7 +896,7 @@ QPushButton::pressed{
        <widget class="QLineEdit" name="lineEdit_duotoujiacha">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>68</x>
           <y>180</y>
           <width>120</width>
           <height>21</height>
@@ -909,7 +909,7 @@ QPushButton::pressed{
        <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtoukai">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>76</x>
           <y>210</y>
           <width>120</width>
           <height>21</height>
@@ -940,7 +940,7 @@ QPushButton::pressed{
        <widget class="QDoubleSpinBox" name="doubleSpinBox_kongtouping">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>76</x>
           <y>240</y>
           <width>120</width>
           <height>21</height>
@@ -959,7 +959,7 @@ QPushButton::pressed{
        <widget class="QDoubleSpinBox" name="doubleSpinBox_duotouping">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>76</x>
           <y>270</y>
           <width>120</width>
           <height>21</height>
@@ -978,7 +978,7 @@ QPushButton::pressed{
        <widget class="QDoubleSpinBox" name="doubleSpinBox_duotoukai">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>76</x>
           <y>300</y>
           <width>120</width>
           <height>21</height>
@@ -1055,7 +1055,7 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_Azongsell">
         <property name="geometry">
          <rect>
-          <x>220</x>
+          <x>216</x>
           <y>210</y>
           <width>38</width>
           <height>16</height>
@@ -1067,11 +1067,11 @@ QPushButton::pressed{
        </widget>
        <widget class="QLineEdit" name="lineEdit_Azongsell">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
-          <x>264</x>
+          <x>260</x>
           <y>210</y>
           <width>40</width>
           <height>21</height>
@@ -1090,11 +1090,14 @@ background-color: rgb(255, 255, 255);</string>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLabel" name="label_Bzongbuy">
         <property name="geometry">
          <rect>
-          <x>220</x>
+          <x>216</x>
           <y>240</y>
           <width>38</width>
           <height>16</height>
@@ -1106,11 +1109,11 @@ background-color: rgb(255, 255, 255);</string>
        </widget>
        <widget class="QLineEdit" name="lineEdit_Bzongbuy">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
-          <x>264</x>
+          <x>260</x>
           <y>240</y>
           <width>40</width>
           <height>21</height>
@@ -1123,11 +1126,14 @@ background-color: rgb(255, 255, 255);</string>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLabel" name="label_Azongbuy">
         <property name="geometry">
          <rect>
-          <x>220</x>
+          <x>216</x>
           <y>270</y>
           <width>38</width>
           <height>16</height>
@@ -1139,11 +1145,11 @@ background-color: rgb(255, 255, 255);</string>
        </widget>
        <widget class="QLineEdit" name="lineEdit_Azongbuy">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
-          <x>264</x>
+          <x>260</x>
           <y>270</y>
           <width>40</width>
           <height>21</height>
@@ -1156,11 +1162,14 @@ background-color: rgb(255, 255, 255);</string>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLabel" name="label_Bzongsell">
         <property name="geometry">
          <rect>
-          <x>220</x>
+          <x>216</x>
           <y>300</y>
           <width>38</width>
           <height>16</height>
@@ -1172,11 +1181,11 @@ background-color: rgb(255, 255, 255);</string>
        </widget>
        <widget class="QLineEdit" name="lineEdit_Bzongsell">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
-          <x>264</x>
+          <x>260</x>
           <y>300</y>
           <width>40</width>
           <height>21</height>
@@ -1189,11 +1198,14 @@ background-color: rgb(255, 255, 255);</string>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLabel" name="label_Achedanxianzhi">
         <property name="geometry">
          <rect>
-          <x>220</x>
+          <x>202</x>
           <y>150</y>
           <width>39</width>
           <height>16</height>
@@ -1206,21 +1218,21 @@ background-color: rgb(255, 255, 255);</string>
        <widget class="QLineEdit" name="lineEdit_Achedanxianzhi">
         <property name="geometry">
          <rect>
-          <x>264</x>
+          <x>244</x>
           <y>150</y>
           <width>40</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
-         <string/>
+         <string>4802</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_Achedan">
         <property name="geometry">
          <rect>
-          <x>220</x>
-          <y>180</y>
+          <x>294</x>
+          <y>150</y>
           <width>37</width>
           <height>16</height>
          </rect>
@@ -1232,9 +1244,9 @@ background-color: rgb(255, 255, 255);</string>
        <widget class="QLineEdit" name="lineEdit_Achedan">
         <property name="geometry">
          <rect>
-          <x>264</x>
-          <y>180</y>
-          <width>40</width>
+          <x>338</x>
+          <y>150</y>
+          <width>64</width>
           <height>21</height>
          </rect>
         </property>
@@ -1242,13 +1254,13 @@ background-color: rgb(255, 255, 255);</string>
          <string notr="true"/>
         </property>
         <property name="text">
-         <string/>
+         <string>349/450</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_Bchedan">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>294</x>
           <y>180</y>
           <width>37</width>
           <height>16</height>
@@ -1261,9 +1273,9 @@ background-color: rgb(255, 255, 255);</string>
        <widget class="QLineEdit" name="lineEdit_Bchedan">
         <property name="geometry">
          <rect>
-          <x>362</x>
+          <x>338</x>
           <y>180</y>
-          <width>40</width>
+          <width>64</width>
           <height>21</height>
          </rect>
         </property>
@@ -1274,7 +1286,7 @@ background-color: rgb(255, 255, 255);</string>
        <widget class="QLabel" name="label_Ajinsell">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>316</x>
           <y>210</y>
           <width>38</width>
           <height>16</height>
@@ -1286,7 +1298,7 @@ background-color: rgb(255, 255, 255);</string>
        </widget>
        <widget class="QLineEdit" name="lineEdit_Azuosell">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1309,11 +1321,14 @@ background-color: rgb(255, 255, 255);</string>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLabel" name="label_Bjinbuy">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>316</x>
           <y>240</y>
           <width>38</width>
           <height>16</height>
@@ -1325,7 +1340,7 @@ background-color: rgb(255, 255, 255);</string>
        </widget>
        <widget class="QLineEdit" name="lineEdit_Bzuobuy">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1348,11 +1363,14 @@ background-color: rgb(255, 255, 255);</string>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLabel" name="label_Ajinbuy">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>316</x>
           <y>270</y>
           <width>38</width>
           <height>16</height>
@@ -1364,7 +1382,7 @@ background-color: rgb(255, 255, 255);</string>
        </widget>
        <widget class="QLineEdit" name="lineEdit_Azuobuy">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1387,11 +1405,14 @@ background-color: rgb(255, 255, 255);</string>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLabel" name="label_Bjinsell">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>316</x>
           <y>300</y>
           <width>38</width>
           <height>16</height>
@@ -1403,7 +1424,7 @@ background-color: rgb(255, 255, 255);</string>
        </widget>
        <widget class="QLineEdit" name="lineEdit_Bzuosell">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1419,6 +1440,9 @@ background-color: rgb(255, 255, 255);</string>
         </property>
         <property name="text">
          <string/>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
        <widget class="QPushButton" name="pushButton_liandongjia">
@@ -1489,7 +1513,7 @@ QPushButton::pressed{
        <widget class="QSpinBox" name="spinBox_zhisun">
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>80</x>
           <y>90</y>
           <width>46</width>
           <height>21</height>
@@ -1578,7 +1602,7 @@ QPushButton::pressed{
        <widget class="QComboBox" name="comboBox_xiadansuanfa">
         <property name="geometry">
          <rect>
-          <x>280</x>
+          <x>276</x>
           <y>60</y>
           <width>40</width>
           <height>21</height>
@@ -1591,8 +1615,8 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_Bchedanxianzhi">
         <property name="geometry">
          <rect>
-          <x>320</x>
-          <y>150</y>
+          <x>202</x>
+          <y>180</y>
           <width>39</width>
           <height>16</height>
          </rect>
@@ -1604,8 +1628,8 @@ QPushButton::pressed{
        <widget class="QLineEdit" name="lineEdit_Bchedanxianzhi">
         <property name="geometry">
          <rect>
-          <x>362</x>
-          <y>150</y>
+          <x>244</x>
+          <y>180</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1677,37 +1701,46 @@ QPushButton::pressed{
        </widget>
        <widget class="QLineEdit" name="lineEdit_qihuozhanghao">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
-          <x>84</x>
+          <x>80</x>
           <y>30</y>
           <width>120</width>
           <height>21</height>
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true"/>
+         <string notr="true">color: rgb(0, 0, 0);</string>
         </property>
         <property name="text">
          <string/>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
        <widget class="QLineEdit" name="lineEdit_celuebianhao">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
-          <x>280</x>
+          <x>276</x>
           <y>30</y>
           <width>40</width>
           <height>21</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: rgb(0, 0, 0);</string>
+        </property>
         <property name="text">
          <string/>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
        <widget class="QLabel" name="label_Bbaodanpianyi">

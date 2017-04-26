@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project QCTP -->
-<!-- Saved: 2016-12-27, 17:04:21 -->
-<!-- Copyright (C) 2016 gmqh,  -->
+<!-- Saved: 2017-04-25, 15:06:03 -->
+<!-- Copyright (C) 2017 gmqh,  -->
 <Project version="5.1">
   <Language>en_US</Language>
   <Hash>38ebbb11afed2ebe39aeb9f1442bb55b89ae56af</Hash>
@@ -15,10 +15,12 @@ QCTP is friendly for traders.</Description>
   <Email></Email>
   <Sources>
     <Source>QAccountWidget.py</Source>
+    <Source>QAlertBox.py</Source>
     <Source>QCTP.py</Source>
     <Source>QMessageCenter.py</Source>
     <Source>QStrategySetting.py</Source>
     <Source>Ui_QAccountWidget.py</Source>
+    <Source>Ui_QAlertBox.py</Source>
     <Source>Ui_QCTP.py</Source>
     <Source>Ui_QLogin.py</Source>
     <Source>Ui_QMessageCenter.py</Source>
@@ -29,6 +31,7 @@ QCTP is friendly for traders.</Description>
   </Sources>
   <Forms>
     <Form>QAccountWidget.ui</Form>
+    <Form>QAlertBox.ui</Form>
     <Form>QCTP.ui</Form>
     <Form>QLogin.ui</Form>
     <Form>QMessageCenter.ui</Form>

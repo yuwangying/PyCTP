@@ -1561,6 +1561,7 @@ class Strategy():
 
     # 设置持仓明细，收到socket设置持仓量回报时调用
     def set_list_position_detail(self, dict_args):
+        print(">>> Strategy.set_list_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "dict_args =", dict_args)
         yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
         volume = self.__position_a_buy_yesterday - dict_args['position_a_buy_yesterday']  # A昨买需要减去的量
         if volume > 0:
