@@ -504,37 +504,20 @@ class SocketManager(QtCore.QThread):
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
             elif buff['MsgType'] == 20:  # 收到：查询今持仓明细order，MsgType=20
-                print("SocketManager.receive_msg() MsgType=20，查询今持仓明细order", buff)
+                print("SocketManager.receive_msg() MsgType=20，查询修改持仓时的策略持仓明细order", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_position_detail_for_order_today(buff['Info'])
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
             elif buff['MsgType'] == 21:  # 收到：查询今持仓明细，MsgType=21
-                print("SocketManager.receive_msg() MsgType=21，查询今持仓明细trade", buff)
+                print("SocketManager.receive_msg() MsgType=21，查询修改持仓时的策略持仓明细trade", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_position_detail_for_trade_today(buff['Info'])
                     self.initialize()  # 初始化，创建user进程
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
-            # 内核初始化完成
-            # elif self.__ctp_manager.get_init_UI_finished():
-                # if buff['MsgType'] == 3:  # 查询策略，MsgType=3
-                #     print("SocketManager.receive_msg() MsgType=3，查询策略", buff)  # 输出错误消息
-                #     if buff['MsgResult'] == 0:  # 消息结果成功
-                #         self.__listStrategyInfoOnce = buff['Info']  # 转存策略信息到本类的属性里(单次查询)
-                #         # 遍历查询到的消息结果列表
-                #         for i_Info in self.__listStrategyInfoOnce:
-                #             # 遍历策略对象列表，将服务器查询到的策略参数传递给策略，并调用set_arguments方法更新内核参数值
-                #             for i_strategy in self.__ctp_manager.get_list_strategy():
-                #                 if i_Info['user_id'] == i_strategy.get_user_id() and i_Info['strategy_id'] == i_strategy.get_strategy_id():
-                #                     i_strategy.set_arguments(i_Info)  # 将查询参数结果设置到策略内核，所有的策略
-                #                     break
-                #         self.signal_restore_groupBox.emit()  # 收到消息后将按钮查询策略按钮、恢复设置持仓
-                #     elif buff['MsgResult'] == 1:  # 消息结果失败
-                #         print("SocketManager.receive_msg() MsgType=3 查询策略失败")
-                # elif
             elif buff['MsgType'] == 6:  # 新建策略，MsgType=6
                 print("SocketManager.receive_msg() MsgType=6，新建策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
