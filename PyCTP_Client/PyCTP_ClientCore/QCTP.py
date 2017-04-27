@@ -149,6 +149,7 @@ class QCTP(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, QCloseEvent):
         print(">>> QCTP.closeEvent() ")
-        self.trayIcon.showMessage("小蜜蜂套利系统", "隐藏在右下角")
+        # self.trayIcon.showMessage("小蜜蜂套利系统", "隐藏在右下角")
+        self.trayIcon.showMessage("小蜜蜂套利系统", "隐藏在右下角", QtGui.QSystemTrayIcon.NoIcon, 2 * 1000)
         # self.widget_QAccountWidget.get_SocketManager().set_recive_msg_flag(False)
         # QtCore.QCoreApplication.instance().quit()

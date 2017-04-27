@@ -371,7 +371,7 @@ class SocketManager(QtCore.QThread):
                 try:
                     # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
                     # data = self.__sockfd.recv(30 * 1024 + 14)
-                    data = self.RecvN(self.__sockfd, 30 * 1024 + 14)
+                    data = self.RecvN(self.__sockfd, 60 * 1024 + 14)
                 except socket.error as e:
                     print(e)
 
@@ -569,10 +569,14 @@ class SocketManager(QtCore.QThread):
                     dict_args = buff['Info'][0]  # 策略参数dict
                     user_id = dict_args['user_id']
                     self.__dict_Queue_main[user_id].put(buff)
+                    dict_args = {"title": "消息", "main": "修改策略持仓成功"}
+                    self.signal_show_alert.emit(dict_args)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=12 修改策略持仓失败")
-                    message_list = ['消息', 'TS：修改策略持仓失败']
-                    self.signal_show_message.emit(message_list)
+                    # message_list = ['消息', 'TS：修改策略持仓失败']
+                    # self.signal_show_message.emit(message_list)
+                    dict_args = {"title": "消息", "main": "错误：修改策略持仓失败"}
+                    self.signal_show_alert.emit(dict_args)
                 self.signal_on_pushButton_set_position_active.emit()
             elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
                 print("SocketManager.receive_msg() MsgType=7，删除策略", buff)
@@ -1202,6 +1206,7 @@ class SocketManager(QtCore.QThread):
             equality_flag = False
             print(">>> SocketManager.check_strategy_position() position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']", position_a_buy_yesterday, buff['Info'][0]['position_a_buy_yesterday'], type(position_a_buy_yesterday), type(buff['Info'][0]['position_a_buy_yesterday']))
         if equality_flag:
+            pass
             # QMessageBox().showMessage("消息", "服务端与客户端持仓一致！")
             # message_list = ['消息', '服务端与客户端持仓一致']
             # self.signal_show_message.emit(message_list)
