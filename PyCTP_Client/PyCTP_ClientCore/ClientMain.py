@@ -581,8 +581,6 @@ if __name__ == '__main__':
     # ctp_manager = CTPManager()  # 创建内核管理类对象
     xml_manager = XML_Manager()  # 创建XML管理对象
     socket_manager = SocketManager("192.168.180.130", 8888)  # 创建SocketManager对象
-    socket_manager.connect()
-    socket_manager.start()
     q_login = QLogin.QLoginForm()  # 登录窗口
     q_ctp = QCTP()  # 客户端主窗口
     q_alert_box = QAlertBox()  # 提示窗口
@@ -596,6 +594,9 @@ if __name__ == '__main__':
     q_ctp.widget_QAccountWidget.set_SocketManager(socket_manager)
     socket_manager.set_QAccountWidget(q_ctp.widget_QAccountWidget)
     q_ctp.set_QLogin(q_login)
+
+    socket_manager.connect()  # 建立socket连接
+    socket_manager.start()
 
 
     """设置属性"""

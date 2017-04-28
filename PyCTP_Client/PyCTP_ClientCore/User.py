@@ -745,7 +745,7 @@ class User():
             list_strategy_data.append(strategy_statistics['profit_position'])  # 7:持仓盈亏
             list_strategy_data.append(strategy_statistics['profit_close'])  # 8:平仓盈亏
             list_strategy_data.append(int(strategy_statistics['commission']))  # 9:手续费
-            list_strategy_data.append(round(strategy_statistics['profit'], 2))  # 10:净盈亏
+            list_strategy_data.append(int(strategy_statistics['profit']))  # 10:净盈亏
             list_strategy_data.append(strategy_statistics['total_traded_count'])  # 11:成交量=A成交手数+B成交手数，正确
             list_strategy_data.append(strategy_statistics['total_traded_amount'])  # 12:成交金额=A成交金额+B成交金额，正确
             list_strategy_data.append(round(strategy_statistics['a_trade_rate'], 2))  # 13:A成交率=A成交手数/A委托手数，错误
