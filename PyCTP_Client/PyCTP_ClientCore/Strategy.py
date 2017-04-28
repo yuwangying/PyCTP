@@ -277,6 +277,10 @@ class Strategy():
         self.__filter_OnRtnTrade = False  # 策略当前交易日有设置过持仓，设置持仓时间过滤
         self.__a_tick = None  # A合约tick（第一腿）
         self.__b_tick = None  # B合约tick（第二腿）
+        self.__Margin_Occupied_CFFEX = 0
+        self.__Margin_Occupied_SHFE = 0
+        self.__Margin_Occupied_CZCE = 0
+        self.__Margin_Occupied_DCE = 0
 
         # 持仓变量
         self.__position_a_buy = 0  # 策略持仓初始值为0
@@ -625,7 +629,7 @@ class Strategy():
         # trade_new中"OffsetFlag"值="4"为平昨
         elif trade_new['OffsetFlag'] == '4':
             shift = 0
-            print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, " len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade))
+            # print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, " len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade))
             len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
             for i in range(len_list_position_detail_for_trade):  # i为trade结构体，类型为dict
                 # # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
@@ -758,10 +762,23 @@ class Strategy():
 
     # 更新占用保证金
     def update_current_margin(self):
-        self.__current_margin = 0
-        for i in self.__list_position_detail_for_trade:
-            if 'CurrMargin' in i:
-                self.__current_margin += i['CurrMargin']
+        # 上期所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
+        # 郑商所：同一合约买、卖持仓，仅收较大单边保证金，同一品种内区分不同月份合约
+        # 大商所：没有保证金免收政策
+        # 中金所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
+        # self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
+        self.__Margin_Occupied_SHFE = self.Margin_Occupied_SHFE()
+        # self.__Margin_Occupied_CZCE = self.Margin_Occupied_CZCE()
+        # self.__Margin_Occupied_DCE = self.Margin_Occupied_DCE()
+        self.__Margin_Occupied_total = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
+        # for i in self.__list_position_detail_for_trade:
+        #     if i['InstrumentID'] == self.__a_instrument_id:
+        #         instrument_multiple = self.__a_instrument_multiple
+        #         margin_rate = self.__rate
+        #     elif i['InstrumentID'] == self.__b_instrument_id:
+        #         instrument_multiple = self.__b_instrument_multiple
+        #     i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple
+        #     self.__current_margin += i['CurrMargin']
 
     # 从API获取必要的参数
     def get_td_api_arguments(self):
@@ -1262,6 +1279,31 @@ class Strategy():
     # 获取策略交易统计指标dict
     def get_dict_statistics(self):
         return self.__dict_statistics
+
+    # 统计持仓明细中属于上海期货交易所的持仓保证金
+    def Margin_Occupied_SHFE(self):
+        self.__Margin_Occupied_SHFE = 0
+
+        # 从持仓明细中过滤出上海期货交易所的持仓
+        list_position_detail_for_trade_SHFE = list()
+        for i in self.__list_position_detail_for_trade:
+            if i['ExchangeID'] == 'SHFE':
+                i['CommodityID'] = i['InstrumentID'][:2]
+                list_position_detail_for_trade_SHFE.append(i)
+        if len(list_position_detail_for_trade_SHFE) == 0:  # 无上期所持仓，返回初始值0
+            return self.__Margin_Occupied_SHFE
+
+        list_commodity_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_SHFE:
+            if i['CommodityID'] in list_commodity_id:
+                pass
+            else:
+                list_commodity_id.append(i['CommodityID'])
+        print(">>> Strategy.Margin_Occupied_SHFE() list_commodity_id =", list_commodity_id)
+        for commodity_id in list_commodity_id:
+            for i in list_position_detail_for_trade_SHFE:
+                pass
+        return self.__Margin_Occupied_SHFE
 
     # 计算手续费，形参为trade记录结构体，返回值为该笔trade记录的手续费金额
     def count_commission(self, trade):
