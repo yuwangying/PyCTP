@@ -745,28 +745,28 @@ class User():
             list_strategy_data.append(str(strategy_position['position']))  # 4:总持仓，核对正确
             list_strategy_data.append(str(strategy_position['position_b_sell']))  # 5:买持仓=B总卖，正确
             list_strategy_data.append(str(strategy_position['position_b_buy']))  # 6:卖持仓=B总买，正确
-            # list_strategy_data.append(str(strategy_position['current_margin']))  # 7:保证金
-            list_strategy_data.append(strategy_statistics['profit_position'])  # 7:持仓盈亏
-            list_strategy_data.append(strategy_statistics['profit_close'])  # 8:平仓盈亏
-            list_strategy_data.append(int(strategy_statistics['commission']))  # 9:手续费
-            list_strategy_data.append(int(strategy_statistics['profit']))  # 10:净盈亏
-            list_strategy_data.append(strategy_statistics['total_traded_count'])  # 11:成交量=A成交手数+B成交手数，正确
-            list_strategy_data.append(strategy_statistics['total_traded_amount'])  # 12:成交金额=A成交金额+B成交金额，正确
-            list_strategy_data.append(round(strategy_statistics['a_trade_rate'], 2))  # 13:A成交率=A成交手数/A委托手数，错误
-            list_strategy_data.append(round(strategy_statistics['b_trade_rate'], 2))  # 14:B成交率=B成交手数/B委托手数，错误
-            list_strategy_data.append(strategy_arguments['trade_model'])  # 15:交易模型
-            list_strategy_data.append(strategy_arguments['order_algorithm'])  # 16:下单算法
+            list_strategy_data.append(int(strategy_statistics['current_margin']))  # 7:保证金
+            list_strategy_data.append(strategy_statistics['profit_position'])  # 8:持仓盈亏
+            list_strategy_data.append(strategy_statistics['profit_close'])  # 9:平仓盈亏
+            list_strategy_data.append(int(strategy_statistics['commission']))  # 10:手续费
+            list_strategy_data.append(int(strategy_statistics['profit']))  # 11:净盈亏
+            list_strategy_data.append(strategy_statistics['total_traded_count'])  # 12:成交量=A成交手数+B成交手数，正确
+            list_strategy_data.append(strategy_statistics['total_traded_amount'])  # 13:成交金额=A成交金额+B成交金额，正确
+            list_strategy_data.append(round(strategy_statistics['a_trade_rate'], 2))  # 14:A成交率=A成交手数/A委托手数，错误
+            list_strategy_data.append(round(strategy_statistics['b_trade_rate'], 2))  # 15:B成交率=B成交手数/B委托手数，错误
+            list_strategy_data.append(strategy_arguments['trade_model'])  # 16:交易模型
+            list_strategy_data.append(strategy_arguments['order_algorithm'])  # 17:下单算法
             # list_strategy_data的后半部分放oupBox更新所需数据
-            list_strategy_data.append(str(strategy_arguments['lots']))  # 17: 总手
-            list_strategy_data.append(str(strategy_arguments['lots_batch']))  # 18: 每份
-            list_strategy_data.append(strategy_arguments['stop_loss'])  # 19: 价差止损
-            list_strategy_data.append(strategy_arguments['spread_shift'])  # 20: 超价触发
-            list_strategy_data.append(strategy_arguments['a_wait_price_tick'])  # 21: A撤单等待
-            list_strategy_data.append(strategy_arguments['a_limit_price_shift'])  # 22: A报单偏移
-            list_strategy_data.append(strategy_arguments['b_wait_price_tick'])  # 23:B报单等待
-            list_strategy_data.append(strategy_arguments['b_limit_price_shift'])  # 24:B报单偏移
-            list_strategy_data.append(str(strategy_arguments['a_order_action_limit']))  # 25:A撤单限制
-            list_strategy_data.append(str(strategy_arguments['b_order_action_limit']))  # 26:B撤单限制
+            list_strategy_data.append(str(strategy_arguments['lots']))  # 18: 总手
+            list_strategy_data.append(str(strategy_arguments['lots_batch']))  # 19: 每份
+            list_strategy_data.append(strategy_arguments['stop_loss'])  # 20: 价差止损
+            list_strategy_data.append(strategy_arguments['spread_shift'])  # 21: 超价触发
+            list_strategy_data.append(strategy_arguments['a_wait_price_tick'])  # 22: A撤单等待
+            list_strategy_data.append(strategy_arguments['a_limit_price_shift'])  # 23: A报单偏移
+            list_strategy_data.append(strategy_arguments['b_wait_price_tick'])  # 24:B报单等待
+            list_strategy_data.append(strategy_arguments['b_limit_price_shift'])  # 25:B报单偏移
+            list_strategy_data.append(str(strategy_arguments['a_order_action_limit']))  # 26:A撤单限制
+            list_strategy_data.append(str(strategy_arguments['b_order_action_limit']))  # 27:B撤单限制
             if a_instrument_id in self.__dict_instrument_statistics:
                 a_action_count = self.__dict_instrument_statistics[a_instrument_id]['action_count']
             else:
@@ -777,23 +777,23 @@ class User():
                 b_action_count = 0
             str_a_action = '/'.join([str(strategy_statistics['a_action_count_strategy']), str(a_action_count)])
             str_b_action = '/'.join([str(strategy_statistics['b_action_count_strategy']), str(b_action_count)])
-            list_strategy_data.append(str_a_action)  # 27:A撤单次数, 内容：“本策略A合约撤单次数/期货账户A合约撤单次数”
-            list_strategy_data.append(str_b_action)  # 28:B撤单次数, 内容：“本策略B合约撤单次数/期货账户B合约撤单次数”
-            list_strategy_data.append(str(strategy_position['position_a_sell']))  # 29:A总卖
-            list_strategy_data.append(str(strategy_position['position_a_sell_yesterday']))  # 30:A昨卖
-            list_strategy_data.append(str(strategy_position['position_a_buy']))  # 31:A总买
-            list_strategy_data.append(str(strategy_position['position_a_buy_yesterday']))  # 32:A昨买
-            list_strategy_data.append(str(strategy_position['position_b_sell_yesterday']))  # 33:B昨卖
-            list_strategy_data.append(str(strategy_position['position_b_buy_yesterday']))  # 34:B昨买
-            list_strategy_data.append(min_move)  # 35:最小跳价
-            list_strategy_data.append(strategy_arguments['sell_open'])  # 36:卖开
-            list_strategy_data.append(strategy_arguments['buy_close'])  # 37:买平
-            list_strategy_data.append(strategy_arguments['sell_close'])  # 38:卖平
-            list_strategy_data.append(strategy_arguments['buy_open'])  # 39:买开
-            list_strategy_data.append(strategy_arguments['sell_open_on_off'])  # 40:卖开-开关
-            list_strategy_data.append(strategy_arguments['buy_close_on_off'])  # 41:买平-开关
-            list_strategy_data.append(strategy_arguments['sell_close_on_off'])  # 42:卖平-开关
-            list_strategy_data.append(strategy_arguments['buy_open_on_off'])  # 43:买开-开关
+            list_strategy_data.append(str_a_action)  # 28:A撤单次数, 内容：“本策略A合约撤单次数/期货账户A合约撤单次数”
+            list_strategy_data.append(str_b_action)  # 29:B撤单次数, 内容：“本策略B合约撤单次数/期货账户B合约撤单次数”
+            list_strategy_data.append(str(strategy_position['position_a_sell']))  # 30:A总卖
+            list_strategy_data.append(str(strategy_position['position_a_sell_yesterday']))  # 31:A昨卖
+            list_strategy_data.append(str(strategy_position['position_a_buy']))  # 32:A总买
+            list_strategy_data.append(str(strategy_position['position_a_buy_yesterday']))  # 33:A昨买
+            list_strategy_data.append(str(strategy_position['position_b_sell_yesterday']))  # 34:B昨卖
+            list_strategy_data.append(str(strategy_position['position_b_buy_yesterday']))  # 35:B昨买
+            list_strategy_data.append(min_move)  # 36:最小跳价
+            list_strategy_data.append(strategy_arguments['sell_open'])  # 37:卖开
+            list_strategy_data.append(strategy_arguments['buy_close'])  # 38:买平
+            list_strategy_data.append(strategy_arguments['sell_close'])  # 39:卖平
+            list_strategy_data.append(strategy_arguments['buy_open'])  # 40:买开
+            list_strategy_data.append(strategy_arguments['sell_open_on_off'])  # 41:卖开-开关
+            list_strategy_data.append(strategy_arguments['buy_close_on_off'])  # 42:买平-开关
+            list_strategy_data.append(strategy_arguments['sell_close_on_off'])  # 43:卖平-开关
+            list_strategy_data.append(strategy_arguments['buy_open_on_off'])  # 44:买开-开关
             list_table_widget_data.append(list_strategy_data)
         list_table_widget_data = sorted(list_table_widget_data, key=itemgetter(2))
         return list_table_widget_data

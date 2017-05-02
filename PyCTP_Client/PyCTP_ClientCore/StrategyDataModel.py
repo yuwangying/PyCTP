@@ -27,7 +27,7 @@ class StrategyDataModel(QAbstractTableModel):
     def __init__(self, parent=None, data_list=[], header=None, *args):
         QAbstractTableModel.__init__(self, parent, *args)
         self.__data_list = data_list
-        header = ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
+        header = ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '保证金', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
         self.__header = header
         self.__row = 0
         self.__column = 0
@@ -234,13 +234,13 @@ class StrategyDataModel(QAbstractTableModel):
         # TextAlignmentRole排列字体对其样式：居中、左对齐……
         elif role == QtCore.Qt.TextAlignmentRole and column == 0:
             return QtCore.Qt.AlignVCenter
-        elif role == QtCore.Qt.TextAlignmentRole and column in [1, 2, 3, 15, 16]:
+        elif role == QtCore.Qt.TextAlignmentRole and column in [1, 2, 3, 16, 16]:
             return QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter
-        elif role == QtCore.Qt.TextAlignmentRole and column in [4,5,6,7,8,9,10,11,12,13,14]:
+        elif role == QtCore.Qt.TextAlignmentRole and column in [4,5,6,7,8,9,10,11,12,13,14,15]:
             return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter  #
         elif role == QtCore.Qt.BackgroundRole and column == 4:  # 撇退高亮背景提示
             # A总卖==B总买 and A总买==B总卖
-            if self.__data_list[row][29] != self.__data_list[row][6] or self.__data_list[row][31] != self.__data_list[row][5]:
+            if self.__data_list[row][30] != self.__data_list[row][6] or self.__data_list[row][32] != self.__data_list[row][5]:
                 return QtGui.QColor(243, 209, 110)
         elif role == QtCore.Qt.BackgroundRole and column == 5:
             return QtGui.QColor(255, 221, 221)

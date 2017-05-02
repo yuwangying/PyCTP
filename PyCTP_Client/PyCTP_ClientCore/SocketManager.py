@@ -1160,13 +1160,13 @@ class SocketManager(QtCore.QThread):
                 print(">>> SocketManager.check_strategy_position() list_strategy_args =", list_strategy_args)
                 break
         position_b_sell = int(list_strategy_args[5])
-        position_b_sell_yesterday = int(list_strategy_args[33])
+        position_b_sell_yesterday = int(list_strategy_args[34])
         position_b_buy = int(list_strategy_args[6])
-        position_b_buy_yesterday = int(list_strategy_args[34])
-        position_a_sell = int(list_strategy_args[29])
-        position_a_sell_yesterday = int(list_strategy_args[30])
-        position_a_buy = int(list_strategy_args[31])
-        position_a_buy_yesterday = int(list_strategy_args[32])
+        position_b_buy_yesterday = int(list_strategy_args[35])
+        position_a_sell = int(list_strategy_args[30])
+        position_a_sell_yesterday = int(list_strategy_args[31])
+        position_a_buy = int(list_strategy_args[32])
+        position_a_buy_yesterday = int(list_strategy_args[33])
         equality_flag = True
         if position_b_sell != buff['Info'][0]['position_b_sell']:
             equality_flag = False

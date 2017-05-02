@@ -1542,64 +1542,64 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新groupBox：全部元素
     def slot_update_group_box(self):
         # print(">>> QAccountWidget.slot_update_group_box() ", "self.__list_update_group_box_data =", self.__list_update_group_box_data)
-        self.__group_box_price_tick = self.__list_update_group_box_data[35]  # groupBox中的最小跳
+        self.__group_box_price_tick = self.__list_update_group_box_data[36]  # groupBox中的最小跳
         self.lineEdit_qihuozhanghao.setText(self.__list_update_group_box_data[1])  # 期货账号
         self.lineEdit_celuebianhao.setText(self.__list_update_group_box_data[2])  # 策略编号
-        index_comboBox = self.comboBox_jiaoyimoxing.findText(self.__list_update_group_box_data[15])  # 交易模型
+        index_comboBox = self.comboBox_jiaoyimoxing.findText(self.__list_update_group_box_data[16])  # 交易模型
         if index_comboBox != -1:
             self.comboBox_jiaoyimoxing.setCurrentIndex(index_comboBox)
-        index_comboBox = self.comboBox_xiadansuanfa.findText(self.__list_update_group_box_data[16])  # 下单算法
+        index_comboBox = self.comboBox_xiadansuanfa.findText(self.__list_update_group_box_data[17])  # 下单算法
         # print(">>> QAccountWidget.slot_update_group_box() index_comboBox =", index_comboBox)
         if index_comboBox != -1:
             self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
-        self.lineEdit_zongshou.setText(self.__list_update_group_box_data[17])  # 总手
-        self.lineEdit_meifen.setText(self.__list_update_group_box_data[18])  # 每份
-        self.spinBox_zhisun.setValue(self.__list_update_group_box_data[19])  # 止损
-        self.spinBox_rangjia.setValue(self.__list_update_group_box_data[20])  # 超价触发
-        self.spinBox_Abaodanpianyi.setValue(self.__list_update_group_box_data[22])  # A报价偏移
-        self.spinBox_Bbaodanpianyi.setValue(self.__list_update_group_box_data[24])  # B报价偏移
-        self.spinBox_Adengdai.setValue(self.__list_update_group_box_data[21])  # A撤单等待
-        self.spinBox_Bdengdai.setValue(self.__list_update_group_box_data[23])  # B撤单等待
-        self.lineEdit_Achedanxianzhi.setText(self.__list_update_group_box_data[25])  # A撤单限制
-        self.lineEdit_Bchedanxianzhi.setText(self.__list_update_group_box_data[26])  # B撤单限制
-        self.lineEdit_Achedan.setText(self.__list_update_group_box_data[27])  # A撤单
-        self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[28])  # B撤单
-        self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[36])  # 空头开
-        self.doubleSpinBox_kongtoukai.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
-        self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[37])  # 空头平
-        self.doubleSpinBox_kongtouping.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
-        self.doubleSpinBox_duotoukai.setValue(self.__list_update_group_box_data[39])  # 多头开
-        self.doubleSpinBox_duotoukai.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
-        self.doubleSpinBox_duotouping.setValue(self.__list_update_group_box_data[38])  # 多头平
-        self.doubleSpinBox_duotouping.setSingleStep(self.__list_update_group_box_data[35])  # 设置step
+        self.lineEdit_zongshou.setText(self.__list_update_group_box_data[18])  # 总手
+        self.lineEdit_meifen.setText(self.__list_update_group_box_data[19])  # 每份
+        self.spinBox_zhisun.setValue(self.__list_update_group_box_data[20])  # 止损
+        self.spinBox_rangjia.setValue(self.__list_update_group_box_data[21])  # 超价触发
+        self.spinBox_Abaodanpianyi.setValue(self.__list_update_group_box_data[23])  # A报价偏移
+        self.spinBox_Bbaodanpianyi.setValue(self.__list_update_group_box_data[25])  # B报价偏移
+        self.spinBox_Adengdai.setValue(self.__list_update_group_box_data[22])  # A撤单等待
+        self.spinBox_Bdengdai.setValue(self.__list_update_group_box_data[24])  # B撤单等待
+        self.lineEdit_Achedanxianzhi.setText(self.__list_update_group_box_data[26])  # A撤单限制
+        self.lineEdit_Bchedanxianzhi.setText(self.__list_update_group_box_data[27])  # B撤单限制
+        self.lineEdit_Achedan.setText(self.__list_update_group_box_data[28])  # A撤单
+        self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[29])  # B撤单
+        self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[37])  # 空头开
+        self.doubleSpinBox_kongtoukai.setSingleStep(self.__list_update_group_box_data[36])  # 设置step
+        self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[38])  # 空头平
+        self.doubleSpinBox_kongtouping.setSingleStep(self.__list_update_group_box_data[36])  # 设置step
+        self.doubleSpinBox_duotoukai.setValue(self.__list_update_group_box_data[40])  # 多头开
+        self.doubleSpinBox_duotoukai.setSingleStep(self.__list_update_group_box_data[36])  # 设置step
+        self.doubleSpinBox_duotouping.setValue(self.__list_update_group_box_data[39])  # 多头平
+        self.doubleSpinBox_duotouping.setSingleStep(self.__list_update_group_box_data[36])  # 设置step
         # 空头开-开关
-        if self.__list_update_group_box_data[40] == 0:
+        if self.__list_update_group_box_data[41] == 0:
             self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Unchecked)
-        elif self.__list_update_group_box_data[40] == 1:
+        elif self.__list_update_group_box_data[41] == 1:
             self.checkBox_kongtoukai.setCheckState(QtCore.Qt.Checked)
         # 空头平-开关
-        if self.__list_update_group_box_data[41] == 0:
+        if self.__list_update_group_box_data[42] == 0:
             self.checkBox_kongtouping.setCheckState(QtCore.Qt.Unchecked)
-        elif self.__list_update_group_box_data[41] == 1:
+        elif self.__list_update_group_box_data[42] == 1:
             self.checkBox_kongtouping.setCheckState(QtCore.Qt.Checked)
         # 多头开-开关
-        if self.__list_update_group_box_data[43] == 0:
+        if self.__list_update_group_box_data[44] == 0:
             self.checkBox_duotoukai.setCheckState(QtCore.Qt.Unchecked)
-        elif self.__list_update_group_box_data[43] == 1:
+        elif self.__list_update_group_box_data[44] == 1:
             self.checkBox_duotoukai.setCheckState(QtCore.Qt.Checked)
         # 多头平-开关
-        if self.__list_update_group_box_data[42] == 0:
+        if self.__list_update_group_box_data[43] == 0:
             self.checkBox_duotouping.setCheckState(QtCore.Qt.Unchecked)
-        elif self.__list_update_group_box_data[42] == 1:
+        elif self.__list_update_group_box_data[43] == 1:
             self.checkBox_duotouping.setCheckState(QtCore.Qt.Checked)
-        self.lineEdit_Azongsell.setText(self.__list_update_group_box_data[29])  # A总卖
-        self.lineEdit_Azuosell.setText(self.__list_update_group_box_data[30])  # A昨卖
+        self.lineEdit_Azongsell.setText(self.__list_update_group_box_data[30])  # A总卖
+        self.lineEdit_Azuosell.setText(self.__list_update_group_box_data[31])  # A昨卖
         self.lineEdit_Bzongbuy.setText(self.__list_update_group_box_data[6])  # B总买
-        self.lineEdit_Bzuobuy.setText(self.__list_update_group_box_data[34])  # B昨买
-        self.lineEdit_Azongbuy.setText(self.__list_update_group_box_data[31])  # A总买
-        self.lineEdit_Azuobuy.setText(self.__list_update_group_box_data[32])  # A昨买
+        self.lineEdit_Bzuobuy.setText(self.__list_update_group_box_data[35])  # B昨买
+        self.lineEdit_Azongbuy.setText(self.__list_update_group_box_data[32])  # A总买
+        self.lineEdit_Azuobuy.setText(self.__list_update_group_box_data[33])  # A昨买
         self.lineEdit_Bzongsell.setText(self.__list_update_group_box_data[5])  # B总卖
-        self.lineEdit_Bzuosell.setText(self.__list_update_group_box_data[33])  # B昨卖
+        self.lineEdit_Bzuosell.setText(self.__list_update_group_box_data[34])  # B昨卖
         self.lineEdit_Azongsell.setReadOnly(True)  # 文本框只读
         self.lineEdit_Azongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
         self.lineEdit_Azuosell.setReadOnly(True)
@@ -1638,8 +1638,8 @@ class QAccountWidget(QWidget, Ui_Form):
         # self.spinBox_Bdengdai.setValue(self.__list_update_group_box_data[23])  # B撤单等待
         # self.lineEdit_Achedanxianzhi.setText(self.__list_update_group_box_data[25])  # A撤单限制
         # self.lineEdit_Bchedanxianzhi.setText(self.__list_update_group_box_data[26])  # B撤单限制
-        self.lineEdit_Achedan.setText(self.__list_update_group_box_data[27])  # A撤单
-        self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[28])  # B撤单
+        self.lineEdit_Achedan.setText(self.__list_update_group_box_data[28])  # A撤单
+        self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[29])  # B撤单
         # self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[36])  # 空头开
         # self.doubleSpinBox_kongtoukai.setSingleStep(1)  # 设置step
         # self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[37])  # 空头平
@@ -1671,14 +1671,14 @@ class QAccountWidget(QWidget, Ui_Form):
         # 当仓位输入框被激活为可编辑状态时，不更新持仓的item
         # if self.lineEdit_Azongsell.isEnabled() is False:
         if self.lineEdit_Azongsell.isReadOnly():  # 策略持仓的lineEdit为只读模式时更新策略持仓变量
-            self.lineEdit_Azongsell.setText(self.__list_update_group_box_data[29])  # A总卖
-            self.lineEdit_Azuosell.setText(self.__list_update_group_box_data[30])  # A昨卖
+            self.lineEdit_Azongsell.setText(self.__list_update_group_box_data[30])  # A总卖
+            self.lineEdit_Azuosell.setText(self.__list_update_group_box_data[31])  # A昨卖
             self.lineEdit_Bzongbuy.setText(self.__list_update_group_box_data[6])  # B总买
-            self.lineEdit_Bzuobuy.setText(self.__list_update_group_box_data[34])  # B昨买
-            self.lineEdit_Azongbuy.setText(self.__list_update_group_box_data[31])  # A总买
-            self.lineEdit_Azuobuy.setText(self.__list_update_group_box_data[32])  # A昨买
+            self.lineEdit_Bzuobuy.setText(self.__list_update_group_box_data[35])  # B昨买
+            self.lineEdit_Azongbuy.setText(self.__list_update_group_box_data[32])  # A总买
+            self.lineEdit_Azuobuy.setText(self.__list_update_group_box_data[33])  # A昨买
             self.lineEdit_Bzongsell.setText(self.__list_update_group_box_data[5])  # B总卖
-            self.lineEdit_Bzuosell.setText(self.__list_update_group_box_data[33])  # B昨卖
+            self.lineEdit_Bzuosell.setText(self.__list_update_group_box_data[34])  # B昨卖
 
     # 清空groupBox界面
     def clear_group_box(self):
@@ -2469,32 +2469,32 @@ class QAccountWidget(QWidget, Ui_Form):
         position_b_sell_today = int(self.lineEdit_Bzongsell.text()) - int(self.lineEdit_Bzuosell.text())  # B今卖
         position_b_sell_yesterday = int(self.lineEdit_Bzuosell.text())  # B昨卖
         list_update_group_box_data = self.get_list_update_group_box_data()  # 获取显示到groupBox中的内核数据
-        if position_a_buy > int(list_update_group_box_data[31]) and position_a_buy != 0:
+        if position_a_buy > int(list_update_group_box_data[32]) and position_a_buy != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_a_buy_yesterday > int(list_update_group_box_data[32]) and position_a_buy_yesterday != 0:
+        if position_a_buy_yesterday > int(list_update_group_box_data[33]) and position_a_buy_yesterday != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_a_buy_today > int(list_update_group_box_data[31]) - int(list_update_group_box_data[32]) != 0:
+        if position_a_buy_today > int(list_update_group_box_data[32]) - int(list_update_group_box_data[32]) != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_a_sell > int(list_update_group_box_data[29]) and position_a_sell != 0:
+        if position_a_sell > int(list_update_group_box_data[30]) and position_a_sell != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_a_sell_yesterday > int(list_update_group_box_data[30]) and position_a_sell_yesterday != 0:
+        if position_a_sell_yesterday > int(list_update_group_box_data[31]) and position_a_sell_yesterday != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_a_sell_today > int(list_update_group_box_data[29]) - int(list_update_group_box_data[30]) and position_a_sell_today != 0:
+        if position_a_sell_today > int(list_update_group_box_data[30]) - int(list_update_group_box_data[31]) and position_a_sell_today != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
@@ -2504,12 +2504,12 @@ class QAccountWidget(QWidget, Ui_Form):
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_b_buy_yesterday > int(list_update_group_box_data[34]) and position_b_buy_yesterday != 0:
+        if position_b_buy_yesterday > int(list_update_group_box_data[35]) and position_b_buy_yesterday != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_b_buy_today > int(list_update_group_box_data[6]) - int(list_update_group_box_data[34]) and position_b_buy_today != 0:
+        if position_b_buy_today > int(list_update_group_box_data[6]) - int(list_update_group_box_data[35]) and position_b_buy_today != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
@@ -2519,12 +2519,12 @@ class QAccountWidget(QWidget, Ui_Form):
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_b_sell_yesterday > int(list_update_group_box_data[33]) and position_b_sell_yesterday != 0:
+        if position_b_sell_yesterday > int(list_update_group_box_data[34]) and position_b_sell_yesterday != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
             return
-        if position_b_sell_today > int(list_update_group_box_data[5]) - int(list_update_group_box_data[33]) and position_b_sell_today != 0:
+        if position_b_sell_today > int(list_update_group_box_data[5]) - int(list_update_group_box_data[34]) and position_b_sell_today != 0:
             # MessageBox().showMessage("错误", "修改持仓不得大于策略持仓量")
             dict_args = {"title": "消息", "main": "修改持仓不得大于策略持仓量"}
             self.signal_show_alert.emit(dict_args)
