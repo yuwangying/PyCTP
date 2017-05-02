@@ -501,11 +501,14 @@ class User():
         # 查询策略
         # 界面点击“查询”按钮触发的特殊进程间通信
         elif dict_data['MsgType'] == 91:
-            print(">>> User.handle_Queue_get() user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信")
-            if False:
-                # 91:保存OnRtnOrder、OnRtnTrade
-                for strategy_id in self.__dict_strategy:
-                    self.__dict_strategy[strategy_id].save_df_order_trade()
+            print(">>> User.handle_Queue_get() user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信", dict_data)
+            # 91:保存OnRtnOrder、OnRtnTrade
+            # for strategy_id in self.__dict_strategy:
+                # self.__dict_strategy[strategy_id].save_df_order_trade()
+                # pass
+            user_id = dict_data['UserID']
+            strategy_id = dict_data['StrategyID']
+            self.__dict_strategy[strategy_id].action_for_UI_query()
 
     # 创建策略实例
     def create_strategy(self, dict_args):
@@ -742,6 +745,7 @@ class User():
             list_strategy_data.append(str(strategy_position['position']))  # 4:总持仓，核对正确
             list_strategy_data.append(str(strategy_position['position_b_sell']))  # 5:买持仓=B总卖，正确
             list_strategy_data.append(str(strategy_position['position_b_buy']))  # 6:卖持仓=B总买，正确
+            # list_strategy_data.append(str(strategy_position['current_margin']))  # 7:保证金
             list_strategy_data.append(strategy_statistics['profit_position'])  # 7:持仓盈亏
             list_strategy_data.append(strategy_statistics['profit_close'])  # 8:平仓盈亏
             list_strategy_data.append(int(strategy_statistics['commission']))  # 9:手续费
@@ -802,6 +806,7 @@ class User():
         commission = 0  # 所有策略手续费求和
         used_margin = 0  # 所有策略占用保证金求和
         for strategy_id in self.__dict_strategy:
+            # print(">>> User.get_panel_show_account_data() user_id =", self.__user_id, "strategy_id =", strategy_id, "调用get_statistics()")
             strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
             profit_position += strategy_statistics['profit_position']  # 持仓盈亏
             profit_close += strategy_statistics['profit_close']  # 平仓盈亏

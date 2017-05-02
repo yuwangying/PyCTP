@@ -2652,10 +2652,14 @@ class QAccountWidget(QWidget, Ui_Form):
 
         # 测试用：触发保存df_order和df_trade保存到本地
         # 进程间通信，触发特殊指令：保存策略的OnRtnOrder和OnRtnTrade到本地
+        # dict_Queue_main = self.__socket_manager.get_dict_Queue_main()
+        # for user_id in dict_Queue_main:
+        #     buff = {"MsgType": 91, "PrintListPoisitionDetail": 1, 'UserID': }
+        #     dict_Queue_main[user_id].put(buff)
+        # 给特定user子进程发送消息
+        buff = {"UserID": str_user_id, "StrategyID": str_strategy_id, "MsgType": 91, "PrintListPoisitionDetail": 1}
         dict_Queue_main = self.__socket_manager.get_dict_Queue_main()
-        for user_id in dict_Queue_main:
-            buff = {"MsgType": 91}
-            dict_Queue_main[user_id].put(buff)
+        dict_Queue_main[str_user_id].put(buff)
 
     # 激活“查询”按钮
     def slot_activate_query_strategy_pushbutton(self):
