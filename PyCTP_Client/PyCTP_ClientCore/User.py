@@ -1036,6 +1036,7 @@ class User():
             for strategy_id in self.__dict_strategy:
                 if trade['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
                     self.__dict_strategy[strategy_id].OnRtnTrade(trade)
+            self.update_list_position_detail_for_trade()  # 更新user的持仓明细
 
     # 将order和trade记录保存到本地
     def save_df_order_trade(self):
@@ -1287,6 +1288,11 @@ class User():
                         trade_new['VolumeTradedBatch'] -= i['VolumeTradedBatch']
                         self.__server_list_position_detail_for_trade_yesterday.remove(i)
     """
+
+    # 更新user的持仓明细
+    def update_list_position_detail_for_trade(self):
+        # 时间过滤：过滤掉查询投资者持仓明细时间之前的记录
+        pass
 
     # 更新账户资金信息，并刷新界面
     def update_panel_show_account(self):

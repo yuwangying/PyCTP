@@ -409,9 +409,9 @@ class MarketManagerForUi(QObject):
         if self.__a_tick is None or self.__b_tick is None:
             return
 
-        self.__spread_long = self.__a_tick['BidPrice1'] - self.__b_tick['AskPrice1']
+        self.__spread_long = round((self.__a_tick['BidPrice1'] - self.__b_tick['AskPrice1']), 2)
         # self.__spread_long_volume = min(self.__a_tick['BidVolume1'], self.__b_tick['AskVolume1'])
-        self.__spread_short = self.__a_tick['AskPrice1'] - self.__b_tick['BidPrice1']
+        self.__spread_short = round((self.__a_tick['AskPrice1'] - self.__b_tick['BidPrice1']), 2)
         # self.__spread_short_volume = min(self.__a_tick['AskVolume1'], self.__b_tick['BidVolume1'])
         # print("MarketManagerForUi.OnRtnDepthMarketData() ", self.__a_instrument_id, "-", self.__b_instrument_id,"多头价差:", self.__spread_long, "空头价差:", self.__spread_short)
         # 行情发生变化，发送信号给界面，刷新界面
