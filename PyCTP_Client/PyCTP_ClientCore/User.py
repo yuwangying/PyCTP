@@ -322,7 +322,8 @@ class User():
                         'ExchangeID': i['ExchangeID'],
                         'TradeDate': i['OpenDate'],
                         'Volume': i['Volume'],
-                        'CurrMargin': current_margin
+                        'CurrMargin': current_margin,
+                        'LastSettlementPrice': i['LastSettlementPrice']
                     }
                     self.__qry_investor_position_detail.append(j)
             print("User.__init__() user_id=", self.__user_id, 'self.__qry_investor_position_detail，长度', len(self.__qry_investor_position_detail), self.__qry_investor_position_detail)
@@ -1278,14 +1279,14 @@ class User():
                             'Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
                     if trade_new['Volume'] == self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         self.__qry_investor_position_detail.remove(
                             self.__qry_investor_position_detail[i - shift])
                         # shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] < self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         # 平仓单数量小于持仓单数量，需从持仓记录中减去对应的被平仓的持仓保证金
                         minus_margin = self.__qry_investor_position_detail[i - shift]['Price'] * trade_new['Volume'] * instrument_multiple * instrument_margin_ratio
                         self.__qry_investor_position_detail[i - shift]['CurrMargin'] -= minus_margin
@@ -1293,7 +1294,7 @@ class User():
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] > self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         trade_new['Volume'] -= self.__qry_investor_position_detail[i - shift]['Volume']
                         self.__qry_investor_position_detail.remove(self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
@@ -1320,14 +1321,14 @@ class User():
                             'Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
                     if trade_new['Volume'] == self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         self.__qry_investor_position_detail.remove(
                             self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] < self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         # 平仓单数量小于持仓单数量，需从持仓记录中减去对应的被平仓的持仓保证金
                         minus_margin = self.__qry_investor_position_detail[i - shift]['Price'] * trade_new['Volume'] * instrument_multiple * instrument_margin_ratio
                         self.__qry_investor_position_detail[i - shift]['CurrMargin'] -= minus_margin
@@ -1335,14 +1336,14 @@ class User():
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
                     elif trade_new['Volume'] > self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         trade_new['Volume'] -= self.__qry_investor_position_detail[i - shift]['Volume']
                         self.__qry_investor_position_detail.remove(
                             self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
 
     # 计算平仓盈亏，形参分别为开仓和平仓的trade
-    def count_profit(self, trade_close, trade_open, instrument_multiple):
+    def count_profit_close(self, trade_close, trade_open, instrument_multiple):
         """
         order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
         '0'：开仓
@@ -1352,10 +1353,18 @@ class User():
         """
         volume_traded = min(trade_close['Volume'], trade_open['Volume'])  # 成交量以较小值一个为准
         profit_close = 0  # 平仓盈亏临时变量
-        if trade_close['Direction'] == '0':  # 买平仓
-            profit_close = (trade_open['Price'] - trade_close['Price']) * instrument_multiple * volume_traded
-        elif trade_close['Direction'] == '1':  # 卖平仓
-            profit_close = (trade_close['Price'] - trade_open['Price']) * instrument_multiple * volume_traded
+        # 平今：开仓价作为开仓价
+        if trade_close['OffsetFlag'] == '3':
+            if trade_close['Direction'] == '0':  # 买平仓
+                profit_close = (trade_open['Price'] - trade_close['Price']) * instrument_multiple * volume_traded
+            elif trade_close['Direction'] == '1':  # 卖平仓
+                profit_close = (trade_close['Price'] - trade_open['Price']) * instrument_multiple * volume_traded
+        # 平昨：昨结算价作为开仓价
+        elif trade_close['OffsetFlag'] == '4':
+            if trade_close['Direction'] == '0':  # 买平仓
+                profit_close = (trade_open['LastSettlementPrice'] - trade_close['Price']) * instrument_multiple * volume_traded
+            elif trade_close['Direction'] == '1':  # 卖平仓
+                profit_close = (trade_close['Price'] - trade_open['LastSettlementPrice']) * instrument_multiple * volume_traded
         self.__profit_close += profit_close
 
     # 计算持仓盈亏

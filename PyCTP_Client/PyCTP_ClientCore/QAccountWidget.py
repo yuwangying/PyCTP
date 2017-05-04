@@ -215,9 +215,8 @@ class QAccountWidget(QWidget, Ui_Form):
         # 更新界面tableView
         list_update_table_view_data = self.get_list_update_table_view_data()
         self.StrategyDataModel.slot_set_data_list(list_update_table_view_data)
-        # 数据长度有变化时界面刷新全部区域
         len_list_update_table_view_data = len(list_update_table_view_data)
-        if self.__len_list_update_table_view_data != len_list_update_table_view_data:
+        if self.__len_list_update_table_view_data != len_list_update_table_view_data:  # 数据长度有变化时界面刷新全部区域
             self.StrategyDataModel.set_update_once(True)  # 设置更新tableView全部区域的标志位True
             # self.StrategyDataModel.update_table_view_total(list_update_table_view_data)
             # print(">>> QAccountWidget.slot_update_ui()数据长度有变化时界面刷新全部区域,之前长度和之后长度", self.__len_list_update_table_view_data, len_list_update_table_view_data)
@@ -230,9 +229,11 @@ class QAccountWidget(QWidget, Ui_Form):
             self.slot_update_group_box_statistics()
         else:
             self.clear_group_box()
+
         # 更新界面panel_show_account
-        # list_update_panel_show_account = self.get_list_update_
-        # self.slot_update_panel_show_account(list_update_panel_show_account)
+        list_update_panel_show_account = self.__socket_manager.get_list_panel_show_account()
+        if len(list_update_panel_show_account) > 0:
+            self.slot_update_panel_show_account(list_update_panel_show_account)
 
     def slot_addTabBar(self, user_id):
         self.__dict_clicked_info[user_id] = {}

@@ -86,6 +86,7 @@ class SocketManager(QtCore.QThread):
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
         self.__recive_msg_flag = True  # 接收socket消息线程运行标志
         self.msg_box = MessageBox()  # 创建消息弹窗
+        self.__list_panel_show_account = list()  # 更新界面资金条数据结构
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj
@@ -277,6 +278,9 @@ class SocketManager(QtCore.QThread):
 
     def get_dict_panel_show_account_data(self):
         return self.__dict_panel_show_account_data
+
+    def get_list_panel_show_account(self):
+        return self.__list_panel_show_account
 
     def get_dict_user_on_off(self):
         return self.__dict_user_on_off
@@ -846,10 +850,12 @@ class SocketManager(QtCore.QThread):
                 current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
                 if current_tab_name == '所有账户':
                     pass
+                    # 待续，组合“所有账户”的资金条数据结构，2017年5月4日23:19:30
                 else:
                     # 收到与tabName相同的期货账户更新界面
                     if user_id == current_tab_name:
-                        self.signal_update_panel_show_account.emit(data_main)
+                        self.__list_panel_show_account = data_main
+                        # self.signal_update_panel_show_account.emit(data_main)
             elif data_flag == 'QryInstrument':
                 if len(self.__list_instrument_info) > 0:
                     pass
