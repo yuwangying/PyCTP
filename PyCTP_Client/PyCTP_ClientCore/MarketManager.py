@@ -90,6 +90,9 @@ class MarketManager:
     def set_dict_strategy(self, dict_strategy):
         self.__dict_strategy = dict_strategy
 
+    def set_User(self, obj_user):
+        self.__user = obj_user
+
     # 订阅行情，过滤已经订阅过的行情
     def sub_market(self, list_instrument_id, user_id, strategy_id):
         list_instrument_id_to_sub = copy.deepcopy(list_instrument_id)  # 保存将要订阅的合约列表
@@ -198,6 +201,7 @@ class MarketManager:
         for strategy_id in self.__dict_strategy:
             if instrument_id == self.__dict_strategy[strategy_id].get_a_instrument_id() or instrument_id == self.__dict_strategy[strategy_id].get_b_instrument_id():
                 self.__dict_strategy[strategy_id].OnRtnDepthMarketData(tick)
+        self.__user.OnRtnDepthMarketData(tick)
 
 
 class MarketManagerForUi(QObject):

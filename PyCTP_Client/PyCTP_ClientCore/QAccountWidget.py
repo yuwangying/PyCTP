@@ -356,7 +356,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新界面行情：[多头价差, 空头价差]
     def slot_update_spread_ui(self, list_data):
-        print(">>> QAccountWidget.slot_update_spread_ui() list_data =", list_data)
+        # print(">>> QAccountWidget.slot_update_spread_ui() list_data =", list_data)
         self.__spread_long = list_data[0]
         self.__spread_short = list_data[1]
         if self.__spread_long != self.__spread_long_last:
@@ -2147,7 +2147,7 @@ class QAccountWidget(QWidget, Ui_Form):
                 or list_update_group_box_data[6] != '0' \
                 or list_update_group_box_data[30] != '0' \
                 or list_update_group_box_data[32] != '0':
-            print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除有持仓的策略", list_update_group_box_data[5], list_update_group_box_data[6], list_update_group_box_data[30], list_update_group_box_data[32], type(list_update_group_box_data[31]))
+            print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除有持仓的策略", list_update_group_box_data[5], list_update_group_box_data[6], list_update_group_box_data[30], list_update_group_box_data[32], list_update_group_box_data)
             # MessageBox().showMessage("错误", "不允许删除有持仓的策略！")
             dict_args = {"title": "消息", "main": "不允许删除有持仓的策略"}
             self.signal_show_alert.emit(dict_args)
