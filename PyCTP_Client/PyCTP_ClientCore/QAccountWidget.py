@@ -2065,16 +2065,16 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新界面：“账户资金”框，panel_show_account
     def slot_update_panel_show_account(self, list_data):
         # print(">>> QAccountWidget.slot_update_panel_show_account() self.__current_tab_name =", self.__current_tab_name, "list_data =", list_data)
-        self.label_value_dongtaiquanyi.setText(list_data[0])  # 动态权益
-        self.label_value_jingtaiquanyi.setText(list_data[1])  # 静态权益
-        self.label_value_chicangyingkui.setText(list_data[2])  # 持仓盈亏
-        self.label_value_pingcangyingkui.setText(list_data[3])  # 平仓盈亏
-        self.label_value_shouxufei.setText(list_data[4])  # 手续费
-        self.label_value_keyongzijin.setText(list_data[5])  # 可用资金
-        self.label_value_zhanyongbaozhengjin.setText(list_data[6])  # 占用保证金
+        self.label_value_dongtaiquanyi.setText(str(list_data[0]))  # 动态权益
+        self.label_value_jingtaiquanyi.setText(str(list_data[1]))  # 静态权益
+        self.label_value_chicangyingkui.setText(str(list_data[2]))  # 持仓盈亏
+        self.label_value_pingcangyingkui.setText(str(list_data[3]))  # 平仓盈亏
+        self.label_value_shouxufei.setText(str(list_data[4]))  # 手续费
+        self.label_value_keyongzijin.setText(str(list_data[5]))  # 可用资金
+        self.label_value_zhanyongbaozhengjin.setText(str(list_data[6]))  # 占用保证金
         self.label_value_fengxiandu.setText(list_data[7])  # 风险度
-        self.label_value_jinrirujin.setText(list_data[8])  # 今日入金
-        self.label_value_jinrichujin.setText(list_data[9])  # 今日出金
+        self.label_value_jinrirujin.setText(str(list_data[8]))  # 今日入金
+        self.label_value_jinrichujin.setText(str(list_data[9]))  # 今日出金
 
     # 鼠标右击弹出菜单中的“添加策略”
     @pyqtSlot()
