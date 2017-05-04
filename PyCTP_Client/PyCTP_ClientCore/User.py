@@ -868,7 +868,7 @@ class User():
         list_panel_show_account_data = list()
         profit_position = self.count_profit_position()  # 计算期货账户持仓盈亏
         used_margin = self.update_current_margin()  # 所有策略占用保证金求和
-        print(">>> User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
+        # print(">>> User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
         # 动态权益 = 静态权益 + 入金 - 出金 + 持仓盈亏 + 平仓盈亏 - 手续费
         variable_equity = self.__QryTradingAccount['PreBalance'] \
                           + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] \
@@ -1428,7 +1428,7 @@ class User():
             if i['ExchangeID'] == 'SHFE':
                 i['CommodityID'] = i['InstrumentID'][:2]
                 list_position_detail_for_trade_SHFE.append(i)
-        print(">>> User.Margin_Occupied_SHFE() user_id =", self.__user_id, "len(list_position_detail_for_trade_SHFE) =", len(list_position_detail_for_trade_SHFE))
+        # print(">>> User.Margin_Occupied_SHFE() user_id =", self.__user_id, "len(list_position_detail_for_trade_SHFE) =", len(list_position_detail_for_trade_SHFE))
         if len(list_position_detail_for_trade_SHFE) == 0:  # 无上期所持仓，返回初始值0
             return self.__Margin_Occupied_SHFE
 
@@ -1439,37 +1439,17 @@ class User():
                 pass
             else:
                 list_commodity_id.append(i['CommodityID'])
-        print(">>> User.Margin_Occupied_SHFE() user_id =", self.__user_id, "list_commodity_id =", list_commodity_id)
+        # print(">>> User.Margin_Occupied_SHFE() user_id =", self.__user_id, "list_commodity_id =", list_commodity_id)
 
         # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
-        # a合约和b合约是同一个品种
-        if len(list_commodity_id) == 1:
-            # margin_buy = 0  # 买持仓保证金
-            # margin_sell = 0  # 卖持仓保证金
-            # for i in list_position_detail_for_trade_SHFE:
-            #     i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
-            #     if i['Direction'] == '0':
-            #         margin_buy += i['CurrMargin']
-            #     elif i['Direction'] == '1':
-            #         margin_sell += i['CurrMargin']
-            # self.__Margin_Occupied_SHFE = max(margin_buy, margin_sell)  # 同品种买卖持仓，仅收大单边保证金
-            self.__Margin_Occupied_SHFE = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE)
-            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
-        # a合约和b合约是不同的品种
-        elif len(list_commodity_id) == 2:
-            # 分别选出两种持仓的明细
-            list_position_detail_for_trade_SHFE_0 = list()
-            list_position_detail_for_trade_SHFE_1 = list()
+        margin_total = 0  # 所有上期所持仓保证金之和
+        for commodity_id in list_commodity_id:  # 'cu'
+            list_position_detail_for_trade_SHFE_single_commodity = list()  # 存放上期所某一品种的持仓记录
             for i in list_position_detail_for_trade_SHFE:
-                if list_commodity_id[0] == i['CommodityID']:
-                    list_position_detail_for_trade_SHFE_0.append(i)
-                elif list_commodity_id[1] == i['CommodityID']:
-                    list_position_detail_for_trade_SHFE_1.append(i)
-            # 计算两个品种分别占用的持仓保证金
-            margin_0 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE_0)
-            margin_1 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE_1)
-            self.__Margin_Occupied_SHFE = margin_0 + margin_1
-
+                if commodity_id == i['CommodityID']:
+                    list_position_detail_for_trade_SHFE_single_commodity.append(i)
+            margin = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE_single_commodity)
+            self.__Margin_Occupied_SHFE += margin
         return self.__Margin_Occupied_SHFE
 
     # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
