@@ -1271,7 +1271,7 @@ class User():
             len_list_position_detail_for_trade = len(self.__qry_investor_position_detail)
             for i in range(len_list_position_detail_for_trade):  # i为order结构体，类型为dict
                 # 持仓明细中trade与trade_new比较：交易日相同、合约代码相同、投保标志相同
-                if self.__qry_investor_position_detail[i - shift]['TradingDay'] == trade_new['TradingDay'] \
+                if self.__qry_investor_position_detail[i - shift]['TradeDate'] == trade_new['TradingDay'] \
                         and self.__qry_investor_position_detail[i - shift]['InstrumentID'] == trade_new[
                             'InstrumentID'] \
                         and self.__qry_investor_position_detail[i - shift]['HedgeFlag'] == trade_new[
@@ -1313,7 +1313,7 @@ class User():
                 #     print(">>>Strategy.update_list_position_detail_for_trade() self.__qry_investor_position_detail[i-shift] =", self.__qry_investor_position_detail[i-shift])
                 #     print(">>>Strategy.update_list_position_detail_for_trade() trade_new =", trade_new)
 
-                if self.__qry_investor_position_detail[i - shift]['TradingDay'] != trade_new['TradingDay'] \
+                if self.__qry_investor_position_detail[i - shift]['TradeDate'] != trade_new['TradingDay'] \
                         and self.__qry_investor_position_detail[i - shift]['InstrumentID'] == trade_new[
                             'InstrumentID'] \
                         and self.__qry_investor_position_detail[i - shift]['HedgeFlag'] == trade_new[
@@ -1353,6 +1353,7 @@ class User():
         """
         volume_traded = min(trade_close['Volume'], trade_open['Volume'])  # 成交量以较小值一个为准
         profit_close = 0  # 平仓盈亏临时变量
+        # 区分平今和平昨的另外
         # 平今：开仓价作为开仓价
         if trade_close['OffsetFlag'] == '3':
             if trade_close['Direction'] == '0':  # 买平仓
