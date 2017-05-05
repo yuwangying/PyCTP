@@ -846,13 +846,37 @@ class SocketManager(QtCore.QThread):
                 #                 print(">>> SocketManager.handle_Queue_get() user_id =", user_id," data_main =", data_main)
                 #             # print(">>> SocketManager.handle_Queue_get() list_update_group_box =", list_update_group_box)
             elif data_flag == 'panel_show_account_data':  # 更新账户资金情况
+                # print("SocketManager.handle_Queue_get() user_id =", user_id, 'data_flag = panel_show_account_data  data_main =', data_main)
                 self.__dict_panel_show_account_data[user_id] = data_main  # 主进程接收并更新user进程发来的界面更新数据-panel_show_account
                 current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
-                if current_tab_name == '所有账户':
-                    pass
-                    # 待续，组合“所有账户”的资金条数据结构，2017年5月4日23:19:30
-                else:
-                    # 收到与tabName相同的期货账户更新界面
+                if current_tab_name == '所有账户':  # 所有账户tab
+                    variable_equity = 0  # 0:动态权益
+                    PreBalance = 0  # 1:静态权益
+                    profit_position = 0  # 2:持仓盈亏
+                    profit_close = 0  # 3:平仓盈亏
+                    commission = 0  # 4:手续费
+                    available_equity = 0  # 5:可用资金
+                    used_margin = 0  # 6:占用保证金
+                    # risk = ''    # 7:风险度,str
+                    Deposit = 0  # 8:今日入金
+                    Withdraw = 0  # 9:今日出金
+                    # print("SocketManager.handle_Queue_get() user_id =", user_id, 'self.__dict_panel_show_account_data =', self.__dict_panel_show_account_data)
+                    for i_user_id in self.__dict_panel_show_account_data:
+                        list_panel_show_account_data_single_user = self.__dict_panel_show_account_data[i_user_id]
+                        if len(list_panel_show_account_data_single_user) > 0:
+                            variable_equity += list_panel_show_account_data_single_user[0]
+                            PreBalance += list_panel_show_account_data_single_user[1]
+                            profit_position += list_panel_show_account_data_single_user[2]
+                            profit_close += list_panel_show_account_data_single_user[3]
+                            commission += list_panel_show_account_data_single_user[4]
+                            available_equity += list_panel_show_account_data_single_user[5]
+                            used_margin += list_panel_show_account_data_single_user[6]
+                            Deposit += list_panel_show_account_data_single_user[8]
+                            Withdraw += list_panel_show_account_data_single_user[9]
+                    # 风险度 = 占用保证金 / 动态权益
+                    risk = str(round((used_margin / variable_equity) * 100)) + '%'  # 7:风险度,str
+                    self.__list_panel_show_account = [variable_equity, PreBalance, profit_position, profit_close, commission, available_equity, used_margin, risk, Deposit, Withdraw]
+                else:  # 单账户tab
                     if user_id == current_tab_name:
                         self.__list_panel_show_account = data_main
                         # self.signal_update_panel_show_account.emit(data_main)

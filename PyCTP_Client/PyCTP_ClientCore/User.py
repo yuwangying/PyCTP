@@ -243,6 +243,7 @@ class User():
             self.__front_id = self.__trader_api.get_front_id()  # 获取前置编号
             self.__session_id = self.__trader_api.get_session_id()  # 获取会话编号
             self.__TradingDay = self.__trader_api.get_TradingDay().decode()  # 获取交易日
+            print("User.login_trade_account() user_id=", self.__user_id, 'self.__TradingDay =', self.__TradingDay)
             print("User.login_trade_account() user_id=", self.__user_id, '登录期货账号成功', Utils.code_transform(login_trade_account))
 
     # 查询资金账户
@@ -320,7 +321,7 @@ class User():
                         'HedgeFlag': i['HedgeFlag'],
                         'Price': i['OpenPrice'],
                         'ExchangeID': i['ExchangeID'],
-                        'TradeDate': i['OpenDate'],
+                        'TradeDate': i['OpenDate'],  # 开仓的交易日
                         'Volume': i['Volume'],
                         'CurrMargin': current_margin,
                         'LastSettlementPrice': i['LastSettlementPrice']
@@ -878,16 +879,16 @@ class User():
         available_equity = variable_equity - used_margin
         # 风险度 = 占用保证金 / 动态权益
         risk = str(round((used_margin / variable_equity) * 100)) + '%'
-        list_panel_show_account_data.append(round(variable_equity))  # 动态权益
-        list_panel_show_account_data.append(round(self.__QryTradingAccount['PreBalance']))  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
-        list_panel_show_account_data.append(round(profit_position))  # 持仓盈亏
-        list_panel_show_account_data.append(round(self.__profit_close))  # 平仓盈亏
-        list_panel_show_account_data.append(round(self.__commission))  # 手续费
-        list_panel_show_account_data.append(round(available_equity))  # 可用资金
-        list_panel_show_account_data.append(round(used_margin))  # 占用保证金
-        list_panel_show_account_data.append(risk)  # 风险度
-        list_panel_show_account_data.append(round(self.__QryTradingAccount['Deposit']))  # 今日入金
-        list_panel_show_account_data.append(round(self.__QryTradingAccount['Withdraw']))  # 今日出金
+        list_panel_show_account_data.append(round(variable_equity))  # 0:动态权益
+        list_panel_show_account_data.append(round(self.__QryTradingAccount['PreBalance']))  # 1:静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
+        list_panel_show_account_data.append(round(profit_position))  # 2:持仓盈亏
+        list_panel_show_account_data.append(round(self.__profit_close))  # 3:平仓盈亏
+        list_panel_show_account_data.append(round(self.__commission))  # 4:手续费
+        list_panel_show_account_data.append(round(available_equity))  # 5:可用资金
+        list_panel_show_account_data.append(round(used_margin))  # 6:占用保证金
+        list_panel_show_account_data.append(risk)  # 7:风险度
+        list_panel_show_account_data.append(round(self.__QryTradingAccount['Deposit']))  # 8:今日入金
+        list_panel_show_account_data.append(round(self.__QryTradingAccount['Withdraw']))  # 9:今日出金
         return list_panel_show_account_data
 
     # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程
@@ -1338,8 +1339,7 @@ class User():
                     elif trade_new['Volume'] > self.__qry_investor_position_detail[i - shift]['Volume']:
                         self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         trade_new['Volume'] -= self.__qry_investor_position_detail[i - shift]['Volume']
-                        self.__qry_investor_position_detail.remove(
-                            self.__qry_investor_position_detail[i - shift])
+                        self.__qry_investor_position_detail.remove(self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
 
     # 计算平仓盈亏，形参分别为开仓和平仓的trade
@@ -1375,12 +1375,22 @@ class User():
             instrument_multiple = self.get_instrument_multiple(instrument_id)
             if instrument_id in self.__dict_last_tick:
                 last_price = self.__dict_last_tick[instrument_id]['LastPrice']
-                # 买持仓
-                if trade['Direction'] == '0':
-                    profit_position = (last_price - trade['Price']) * instrument_multiple * trade['Volume']
-                # 卖持仓
-                elif trade['Direction'] == '1':
-                    profit_position = (trade['Price'] - last_price) * instrument_multiple * trade['Volume']
+                # 今仓
+                if trade['TradeDate'] == self.__TradingDay:
+                    # 买持仓
+                    if trade['Direction'] == '0':
+                        profit_position = (last_price - trade['Price']) * instrument_multiple * trade['Volume']
+                    # 卖持仓
+                    elif trade['Direction'] == '1':
+                        profit_position = (trade['Price'] - last_price) * instrument_multiple * trade['Volume']
+                # 昨仓
+                else:
+                    # 买持仓
+                    if trade['Direction'] == '0':
+                        profit_position = (last_price - trade['LastSettlementPrice']) * instrument_multiple * trade['Volume']
+                    # 卖持仓
+                    elif trade['Direction'] == '1':
+                        profit_position = (trade['LastSettlementPrice'] - last_price) * instrument_multiple * trade['Volume']
             else:
                 profit_position = 0
             self.__profit_position += profit_position
