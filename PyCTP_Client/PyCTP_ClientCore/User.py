@@ -1002,13 +1002,13 @@ class User():
             }
             self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
-            # 进程间通信：'DataFlag': 'OnRtnTrade'
-            dict_data = {
-                'DataFlag': 'OnRtnTrade',
-                'UserId': self.__user_id,
-                'DataMain': Trade
-            }
-            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+            # # 进程间通信：'DataFlag': 'OnRtnTrade'
+            # dict_data = {
+            #     'DataFlag': 'OnRtnTrade',
+            #     'UserId': self.__user_id,
+            #     'DataMain': Trade
+            # }
+            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
             # 缓存，待提取，提取发送给特定strategy对象
             self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
@@ -1055,13 +1055,13 @@ class User():
             }
             self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
-            # 进程间通信：'DataFlag': 'OnRtnOrder'
-            dict_data = {
-                'DataFlag': 'OnRtnOrder',
-                'UserId': self.__user_id,
-                'DataMain': Order
-            }
-            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+            # # 进程间通信：'DataFlag': 'OnRtnOrder'
+            # dict_data = {
+            #     'DataFlag': 'OnRtnOrder',
+            #     'UserId': self.__user_id,
+            #     'DataMain': Order
+            # }
+            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
             # 缓存，待提取，提取发送给特定strategy对象
             self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据

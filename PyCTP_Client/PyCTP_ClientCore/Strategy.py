@@ -1068,6 +1068,8 @@ class Strategy():
                     self.__position_a_sell_yesterday -= trade['Volume']  # 更新持仓
                 elif trade['Direction'] == '1':  # A卖平昨成交回报
                     self.__position_a_buy_yesterday -= trade['Volume']  # 更新持仓
+            else:
+                print(">>> Strategy.update_position_for_OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "A成交，else:")
             self.__position_a_buy = self.__position_a_buy_today + self.__position_a_buy_yesterday
             self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
         # B成交
@@ -1087,6 +1089,8 @@ class Strategy():
                     self.__position_b_sell_yesterday -= trade['Volume']  # 更新持仓
                 elif trade['Direction'] == '1':  # B卖平昨成交回报
                     self.__position_b_buy_yesterday -= trade['Volume']  # 更新持仓
+            else:
+                print(">>> Strategy.update_position_for_OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "B成交，else:")
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_sell + self.__position_b_buy

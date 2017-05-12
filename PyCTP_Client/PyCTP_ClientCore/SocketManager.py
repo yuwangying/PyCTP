@@ -17,6 +17,7 @@ import time
 from PyQt4 import QtCore, QtGui
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
 from User import User
+from xml.dom import minidom
 
 Message = namedtuple("Message", "head checknum buff")
 
@@ -58,11 +59,12 @@ class SocketManager(QtCore.QThread):
     signal_show_alert = QtCore.pyqtSignal(dict)  # 定义信号：显示弹窗
     signal_on_pushButton_set_position_active = QtCore.pyqtSignal()  # 定义信号：激活界面设置持仓按钮
 
-    def __init__(self, ip_address, port, parent=None):
+    def __init__(self, parent=None):
         # threading.Thread.__init__(self)
         super(SocketManager, self).__init__(parent)
-        self.__ip_address = ip_address
-        self.__port = port
+        self.read_ip_address()  # 读取本地xml文件，获得ip_address
+        # self.__ip_address = ip_address
+        # self.__port = port
         self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__event = threading.Event()  # 初始化协程threading.Event()
         self.__msg_ref = 0  # 发送消息引用
@@ -86,7 +88,27 @@ class SocketManager(QtCore.QThread):
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
         self.__recive_msg_flag = True  # 接收socket消息线程运行标志
         self.msg_box = MessageBox()  # 创建消息弹窗
-        self.__list_panel_show_account = list()  # 更新界面资金条数据结构
+        self.__list_panel_show_account = list()  # 更新界面资金条数据结构# 读取xml文件
+
+    def read_ip_address(self):
+        xml_path = "config/trade_server_ip.xml"
+        # xml文件不存在跳出
+        if os.path.exists(xml_path) is False:
+            return
+        else:
+            self.__xml_exist = True
+
+        # 解析文件employ.xml
+        self.__doc_read = minidom.parse(xml_path)
+        # 定位到根元素
+        self.__root_read = self.__doc_read.documentElement
+        NodeList_ip_address = self.__root_read.getElementsByTagName("ip_address")
+        # for i in NodeList_ip_address:  # i:Element
+        #     ip = i.attributes['ip'].value
+        #     port = i.attributes['port'].value
+        self.__ip_address = NodeList_ip_address[0].attributes['ip'].value
+        self.__port = int(NodeList_ip_address[0].attributes['port'].value)
+        print(">>> StocketManager.read_ip_address() ip_address =", self.__ip_address, self.__port)
 
     def set_XML_Manager(self, obj):
         self.__xml_manager = obj

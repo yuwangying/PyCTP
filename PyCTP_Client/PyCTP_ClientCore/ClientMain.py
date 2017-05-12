@@ -23,6 +23,8 @@ from XML_Manager import XML_Manager
 from QAlertBox import QAlertBox
 from TimerThread import TimerThread
 from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
+import multiprocessing
+import win32api
 
 
 class ClientMain(QtCore.QObject):
@@ -566,6 +568,23 @@ class ClientMain(QtCore.QObject):
 #     p.start()  # 开始进程
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    frozen = 'not'
+    if getattr(sys, 'frozen', False):
+        # we are running in a bundle
+        frozen = 'ever so'
+        bundle_dir = sys._MEIPASS
+
+    else:
+        # we are running in a normal Python environment
+        bundle_dir = os.path.dirname(os.path.abspath(__file__))
+    win32api.SetDllDirectory(bundle_dir)
+    sys.path.append(bundle_dir)
+    print('we are', frozen, 'frozen')
+    print('bundle dir is', bundle_dir)
+    print('sys.argv[0] is', sys.argv[0])
+    print('sys.executable is', sys.executable)
+    print('os.getcwd is', os.getcwd())
     print('process_id =', os.getpid(), 'thread.getName()=', threading.current_thread().getName(), ', __main__')  #
 
     app = QtGui.QApplication(sys.argv)
@@ -580,7 +599,7 @@ if __name__ == '__main__':
     # client_main = ClientMain()  # 创建客户端管理类对象
     # ctp_manager = CTPManager()  # 创建内核管理类对象
     xml_manager = XML_Manager()  # 创建XML管理对象
-    socket_manager = SocketManager("192.168.180.130", 8888)  # 创建SocketManager对象
+    socket_manager = SocketManager()  # 创建SocketManager对象   "192.168.180.130", 8888
     q_login = QLogin.QLoginForm()  # 登录窗口
     q_ctp = QCTP()  # 客户端主窗口
     q_alert_box = QAlertBox()  # 提示窗口
