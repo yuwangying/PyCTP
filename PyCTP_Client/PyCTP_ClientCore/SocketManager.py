@@ -27,11 +27,13 @@ def static_create_user_process(dict_user_info, Queue_main, Queue_user):
     # print("SocketManager.static_create_user_process dict_user_info =", dict_user_info['server']['user_info']['userid'])
     user_id = dict_user_info['server']['user_info']['userid']
 
-    log_directory = 'log/' + user_id + '.log'
-    sys.stdout = open(log_directory, 'w')
+    # 标准输出重定向
+    # log_directory = 'log/' + user_id + '.log'
+    # sys.stdout = open(log_directory, 'w')
+    #
+    # error_log_directory = 'log/' + user_id + '_error.log'
+    # sys.stderr = open(error_log_directory, 'w')
 
-    error_log_directory = 'log/' + user_id + '_error.log'
-    sys.stderr = open(error_log_directory, 'w')
     # print("static_create_user_process() dict_user_info =", dict_user_info)
     # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
     # ClientMain.socket_manager.signal_label_login_error_text.emit('创建User', dict_user_info['server']['user_info']['userid'])
@@ -837,6 +839,7 @@ class SocketManager(QtCore.QThread):
                         check_box.setCheckState(QtCore.Qt.Unchecked)
                     i[0] = check_box
                 self.__dict_table_view_data[user_id] = data_main  # 主进程接收并更新user进程发来的界面更新数据-tableView
+                # print(">>> SocketManager.handle_Queue_get() self.__dict_table_view_data[user_id] =", self.__dict_table_view_data[user_id])
                 # print(">>> SocketManager.handle_Queue_get() data_flag = table_widget_data, len(data_main) =", len(data_main))
                 # print(">>> SocketManager.handle_Queue_get() data_flag = table_widget_data, user_id =", user_id, "len(data_main) =", len(data_main))
                 # current_tab_name = self.__QAccountWidget.get_current_tab_name()  # 当前tab页面
@@ -1268,6 +1271,24 @@ class SocketManager(QtCore.QThread):
             dict_args = {"title": "消息", "main": "注意，服务端与客户端持仓不一致"}
             self.signal_show_alert.emit(dict_args)
 
+    # 输出特定策略的持仓变量，格式如下
+    # A总卖 0 A昨卖 0
+    # B总买 0 B昨卖 0
+    # A总买 0 A昨买 0
+    # B总卖 0 B昨卖 0
+    def print_position(self, user_id, strategy_id):
+        dict_table_view_data = self.get_dict_table_view_data()
+        for i_user_id in dict_table_view_data:
+            if i_user_id == user_id:
+                for list_strategy_info in dict_table_view_data[i_user_id]:
+                    if list_strategy_info[2] == strategy_id:
+                        print("SocketManager.print_position() user_id =", user_id, "strategy_id =", strategy_id)
+                        print("A总卖", list_strategy_info[30], "A昨卖", list_strategy_info[31])
+                        print("B总买", list_strategy_info[6], "B昨买", list_strategy_info[35])
+                        print("A总买", list_strategy_info[32], "A昨买", list_strategy_info[33])
+                        print("B总卖", list_strategy_info[5], "B昨卖", list_strategy_info[34])
+                        break  # 跳出1282行for
+                break  # 跳出1280行for
 
 if __name__ == '__main__':
     # 创建socket套接字

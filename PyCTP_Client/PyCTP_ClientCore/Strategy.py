@@ -396,7 +396,7 @@ class Strategy():
                 len1 = len(self.__list_position_detail_for_order)
                 len2 = len(self.__list_position_detail_for_trade)
                 print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "昨持仓明细 为初始化持仓明细，order、trade持仓明细的长度分别为", len1, len2)
-            # 当前交易日有修改过策略持仓，持仓明细初始值为修改策略持仓一刻的今日持仓明细
+            # 当前交易日有修改过策略持仓，持仓明细初始值为修改策略持仓一刻时保存的今日持仓明细
             else:
                 # 今日持仓明细order
                 self.__list_position_detail_for_order = list()
@@ -656,7 +656,7 @@ class Strategy():
             print("Strategy.update_list_position_detail_for_trade() 既不属于A合约也不属于B合约的Trade")
 
     def action_for_UI_query(self):
-        print("Strategy.print_list_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
+        print("Strategy.action_for_UI_query() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
         print(" self.__current_margin =", self.update_current_margin())
         print("A总卖", self.__position_a_sell, "A昨卖", self.__position_a_sell_yesterday)
         print("B总买", self.__position_b_buy, "B昨卖", self.__position_b_buy_yesterday)
@@ -1067,7 +1067,7 @@ class Strategy():
                 elif trade['Direction'] == '1':  # A卖平昨成交回报
                     self.__position_a_buy_yesterday -= trade['Volume']  # 更新持仓
             else:
-                print(">>> Strategy.update_position_for_OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "A成交，else:")
+                print(">>> Strategy.update_position_for_OnRtnTrade() 异常 user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "A成交，else:")
             self.__position_a_buy = self.__position_a_buy_today + self.__position_a_buy_yesterday
             self.__position_a_sell = self.__position_a_sell_today + self.__position_a_sell_yesterday
         # B成交
@@ -1088,9 +1088,9 @@ class Strategy():
                 elif trade['Direction'] == '1':  # B卖平昨成交回报
                     self.__position_b_buy_yesterday -= trade['Volume']  # 更新持仓
             else:
-                print(">>> Strategy.update_position_for_OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "B成交，else:")
+                print(">>> Strategy.update_position_for_OnRtnTrade() 异常 user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "B成交，else:")
         else:
-            print(">>> Strategy.update_position_for_OnRtnTrade() user_id =", self.__user_id, "strategy_id =",
+            print(">>> Strategy.update_position_for_OnRtnTrade() 异常 user_id =", self.__user_id, "strategy_id =",
                   self.__strategy_id, "既不属于A合约也不属于B合约")
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday

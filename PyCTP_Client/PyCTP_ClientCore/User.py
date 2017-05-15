@@ -1379,7 +1379,7 @@ class User():
             if instrument_id in self.__dict_last_tick:
                 last_price = self.__dict_last_tick[instrument_id]['LastPrice']
                 # 今仓
-                if trade['TradeDate'] == self.__TradingDay:
+                if trade['TradingDay'] == self.__TradingDay:
                     # 买持仓
                     if trade['Direction'] == '0':
                         profit_position = (last_price - trade['Price']) * instrument_multiple * trade['Volume']

@@ -43,4 +43,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=False,
-               name='ClientMain')
+               name='bee')

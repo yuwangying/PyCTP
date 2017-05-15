@@ -589,10 +589,10 @@ if __name__ == '__main__':
         print("ClientMin.'__main__' log文件夹不存在，创建log文件夹")
     os.mkdir('log')
     # print全部存到log本地文件
-    error_handler = open('log/main_error.log', 'w')
-    sys.stderr = error_handler
-    f_handler = open('log/main.log', 'w')
-    sys.stdout = f_handler
+    # error_handler = open('log/main_error.log', 'w')
+    # sys.stderr = error_handler
+    # f_handler = open('log/main.log', 'w')
+    # sys.stdout = f_handler
     print('we are', frozen, 'frozen')
     print('bundle dir is', bundle_dir)
     print('sys.argv[0] is', sys.argv[0])
