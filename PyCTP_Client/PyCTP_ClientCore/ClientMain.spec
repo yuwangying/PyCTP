@@ -36,7 +36,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=False,
-          console=False , icon='img\\rocket.ico')
+          console=True , icon='img\\rocket.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
