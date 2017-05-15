@@ -11,16 +11,16 @@ import threading
 from operator import itemgetter
 from datetime import datetime
 import copy
-import PyCTP
-from pymongo import MongoClient
 from PyCTP_Trade import PyCTP_Trader_API
 import Utils
 from pandas import DataFrame, Series
-import pandas as pd
 import queue
-from PyQt4 import QtCore
 from MarketManager import MarketManager
 from Strategy import Strategy
+import PyCTP
+# from pymongo import MongoClient
+# from PyQt4 import QtCore
+# import pandas as pd
 
 
 # class User(QtCore.QObject):
@@ -56,8 +56,8 @@ class User():
         self.__Margin_Occupied_CZCE = 0
         self.__Margin_Occupied_DCE = 0
 
-        self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
         self.load_server_data(self.__init_arguments)  # 组织从server获取到的数据
+        self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
 
         self.__qry_api_last_time = time.time()  # 类型浮点数，最后一次查询Trade_Api的时间
         self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用首位固定为1，后两位为策略编号，中间部分递增1
@@ -392,28 +392,28 @@ class User():
     def load_xml_data(self, dict_arguments):
         # 从本地xml文件获取数据
         self.__xml_exist = dict_arguments['xml']['xml_exist']  # xml读取是否成功
-        print("User.__init__() self.__xml_exist =", self.__xml_exist)
+        print("User.load_xml_data() user_id =", self.__user_id, "self.__xml_exist =", self.__xml_exist)
         if self.__xml_exist:
             # 从xml获取到的xml读取状态信息
             self.__xml_dict_user_save_info = dict_arguments['xml']['dict_user_save_info']
-            print("User.__init__() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
+            print("User.load_xml_data() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
             # 从xml获取到的list_strategy_arguments
             self.__xml_list_strategy_arguments = dict_arguments['xml']['list_strategy_arguments']
-            print("User.__init__() self.__xml_list_strategy_arguments =", self.__xml_list_strategy_arguments)
+            print("User.load_xml_data() self.__xml_list_strategy_arguments =", self.__xml_list_strategy_arguments)
             # 从xml获取到的list_strategy_statistics
             self.__xml_list_strategy_statistics = dict_arguments['xml']['list_strategy_statistics']
-            print("User.__init__() self.__xml_list_strategy_statistics =", self.__xml_list_strategy_statistics)
+            print("User.load_xml_data() self.__xml_list_strategy_statistics =", self.__xml_list_strategy_statistics)
             # 从xml获取到的list_user_instrument_statistics
             self.__xml_list_user_instrument_statistics = dict_arguments['xml']['list_user_instrument_statistics']
-            print("User.__init__() self.__xml_list_user_instrument_statistics =",
+            print("User.load_xml_data() self.__xml_list_user_instrument_statistics =",
                   self.__xml_list_user_instrument_statistics)
             # 从xml获取到的list_position_detail_for_order
             self.__xml_list_position_detail_for_order = dict_arguments['xml']['list_position_detail_for_order']
-            print("User.__init__() self.__xml_list_position_detail_for_order =",
+            print("User.load_xml_data() self.__xml_list_position_detail_for_order =",
                   self.__xml_list_position_detail_for_order)
             # 从xml获取到的list_position_detail_for_trade
             self.__xml_list_position_detail_for_trade = dict_arguments['xml']['list_position_detail_for_trade']
-            print("User.__init__() self.__xml_list_position_detail_for_trade =",
+            print("User.load_xml_data() self.__xml_list_position_detail_for_trade =",
                   self.__xml_list_position_detail_for_trade)
 
     # 组织从server获取到的数据
@@ -422,26 +422,28 @@ class User():
         self.__server_dict_trader_info = dict_arguments['server']['trader_info']
         # 从服务端获取到的user_info
         self.__server_dict_user_info = dict_arguments['server']['user_info']
-        print("User.__init__() self.__server_dict_user_info =", self.__server_dict_user_info)
+        self.__user_id = self.__server_dict_user_info['userid']
+        print("User.load_server_data() user_id =", self.__user_id)
+        print("User.load_server_data() self.__server_dict_user_info =", self.__server_dict_user_info)
         # 从服务端获取到的market_info
         self.__server_dict_market_info = dict_arguments['server']['market_info']
-        print("User.__init__() self.__server_dict_market_info =", self.__server_dict_market_info)
+        print("User.load_server_data() self.__server_dict_market_info =", self.__server_dict_market_info)
         # 从服务端获取到的strategy_info
         self.__server_list_strategy_info = dict_arguments['server']['strategy_info']
-        print("User.__init__() self.__server_list_strategy_info =", self.__server_list_strategy_info)
+        print("User.load_server_data() self.__server_list_strategy_info =", self.__server_list_strategy_info)
         # 从服务端获取到的list_position_detail_for_order
         self.__server_list_position_detail_for_order_yesterday = dict_arguments['server']['list_position_detail_for_order']
-        print("User.__init__() self.__server_list_position_detail_for_order_yesterday =",
+        print("User.load_server_data() self.__server_list_position_detail_for_order_yesterday =",
               self.__server_list_position_detail_for_order_yesterday)
         # 从服务端获取到的list_position_detail_for_trade
         self.__server_list_position_detail_for_trade_yesterday = dict_arguments['server']['list_position_detail_for_trade']
-        print("User.__init__() self.__server_list_position_detail_for_trade_yesterday =", self.__server_list_position_detail_for_trade_yesterday)
+        print("User.load_server_data() self.__server_list_position_detail_for_trade_yesterday =", self.__server_list_position_detail_for_trade_yesterday)
         # 从服务端获取到的list_position_detail_for_order_today
         self.__server_list_position_detail_for_order_today = dict_arguments['server']['list_position_detail_for_order_today']
-        print("User.__init__() self.__server_list_position_detail_for_order_today =", self.__server_list_position_detail_for_order_today)
+        print("User.load_server_data() self.__server_list_position_detail_for_order_today =", self.__server_list_position_detail_for_order_today)
         # 从服务端获取到的list_position_detail_for_trade_today
         self.__server_list_position_detail_for_trade_today = dict_arguments['server']['list_position_detail_for_trade_today']
-        print("User.__init__() self.__server_list_position_detail_for_trade_today =", self.__server_list_position_detail_for_trade_today)
+        print("User.load_server_data() self.__server_list_position_detail_for_trade_today =", self.__server_list_position_detail_for_trade_today)
 
         self.__trader_id = self.__server_dict_user_info['traderid']
         self.__user_id = self.__server_dict_user_info['userid']

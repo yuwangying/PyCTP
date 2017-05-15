@@ -7,7 +7,7 @@ def get_pandas_path():
     pandas_path = pandas.__path__[0]
     return pandas_path
 
-added_files = [('D:\\Python34\\DLLs\\python3.dll', '.'),('*.dll', '.'),('img', 'img'),('image', 'image'),('config', 'config')]
+added_files = [('D:\\Python34\\DLLs\\python3.dll', '.'),('*.dll', '.'),('img', 'img'),('image', 'image'),('config', 'config'),('log', 'log')]
 
 a = Analysis(['ClientMain.py'],
              pathex=['.', 'D:\\CTP\\PyCTP\\PyCTP_Client\\PyCTP_ClientCore'],
@@ -36,7 +36,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=False,
-          console=True , icon='img\\rocket.ico')
+          console=False , icon='img\\rocket.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

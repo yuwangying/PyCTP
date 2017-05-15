@@ -4,18 +4,18 @@ Created on Wed Jul 27 13:50 2016
 @author: YuWangying
 """
 
-import sys
 import time
 import os
 import copy
 from PyQt4.QtCore import QObject
 from PyQt4 import QtCore
-import threading
-import chardet
-import pandas as pd
-from pandas import Series, DataFrame
 from PyCTP_Market import PyCTP_Market_API
 import Utils
+# import sys
+# import threading
+# import chardet
+# import pandas as pd
+# from pandas import Series, DataFrame
 
 
 class MarketManager:

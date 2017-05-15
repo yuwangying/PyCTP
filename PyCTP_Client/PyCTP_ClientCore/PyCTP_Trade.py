@@ -8,11 +8,11 @@ Created on Tue Jan 12 00:31:14 2016
 import sys
 from datetime import datetime
 import threading
-import PyCTP
 import pandas as pd
 from pandas import Series, DataFrame
 import Utils
-from MessageBox import MessageBox
+import PyCTP
+# from MessageBox import MessageBox
 
 
 class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
@@ -452,6 +452,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             self.__TradingDay = RspUserLogin['TradingDay']
             self.__SessionID = RspUserLogin['SessionID']
             self.__MaxOrderRef = RspUserLogin['MaxOrderRef']
+            # print(">>> PyCTP_Trade.OnRspUserLogin() RspUserLogin['MaxOrderRef'] =", type(RspUserLogin['MaxOrderRef']), RspUserLogin['MaxOrderRef'], "RspUserLogin =", RspUserLogin)
             self.__OrderRef = int(self.__MaxOrderRef)  # 初始化报单引用
             self.__OrderActionRef = int(self.__MaxOrderRef)
             self.__LoginTime = RspUserLogin['LoginTime']

@@ -8,22 +8,30 @@ import struct
 import threading
 import json
 import queue
-import copy
-from QCTP import QCTP
 from MessageBox import MessageBox
-from QAccountWidget import QAccountWidget
 from MarketManager import MarketManagerForUi
 import time
 from PyQt4 import QtCore, QtGui
-from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
+from multiprocessing import Process, Queue  #, Manager, Value, Array, Pipe
 from User import User
 from xml.dom import minidom
+# import copy
+# from QCTP import QCTP
+# from QAccountWidget import QAccountWidget
 
 Message = namedtuple("Message", "head checknum buff")
 
 
 # 创建user(期货账户)
 def static_create_user_process(dict_user_info, Queue_main, Queue_user):
+    # print("SocketManager.static_create_user_process dict_user_info =", dict_user_info['server']['user_info']['userid'])
+    user_id = dict_user_info['server']['user_info']['userid']
+
+    log_directory = 'log/' + user_id + '.log'
+    sys.stdout = open(log_directory, 'w')
+
+    error_log_directory = 'log/' + user_id + '_error.log'
+    sys.stderr = open(error_log_directory, 'w')
     # print("static_create_user_process() dict_user_info =", dict_user_info)
     # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
     # ClientMain.socket_manager.signal_label_login_error_text.emit('创建User', dict_user_info['server']['user_info']['userid'])

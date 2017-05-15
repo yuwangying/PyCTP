@@ -1,30 +1,30 @@
 import os
 import sys
-from CTPManager import CTPManager
 from PyQt4 import QtGui
 from PyQt4 import QtCore
-from PyQt4.QtGui import QApplication, QCompleter, QLineEdit, QStringListModel
-import QLogin  # from QLogin import QLoginForm
 from QCTP import QCTP
-from QAccountWidget import QAccountWidget
-from QNewStrategy import QNewStrategy
-from SocketManager import SocketManager
 import json
-import Utils
-import time
 import threading
-from MarketManager import MarketManager
-from Trader import Trader
-from User import User
 from Strategy import Strategy
 from SocketManager import SocketManager
-from MessageBox import MessageBox
 from XML_Manager import XML_Manager
 from QAlertBox import QAlertBox
-from TimerThread import TimerThread
-from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
+import QLogin
 import multiprocessing
 import win32api
+import shutil
+# from TimerThread import TimerThread
+# from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
+# from CTPManager import CTPManager
+# from QAccountWidget import QAccountWidget
+# from QNewStrategy import QNewStrategy
+# from SocketManager import SocketManager
+# import Utils
+# import time
+# from MarketManager import MarketManager
+# from Trader import Trader
+# from User import User
+# from MessageBox import MessageBox
 
 
 class ClientMain(QtCore.QObject):
@@ -580,6 +580,19 @@ if __name__ == '__main__':
         bundle_dir = os.path.dirname(os.path.abspath(__file__))
     win32api.SetDllDirectory(bundle_dir)
     sys.path.append(bundle_dir)
+
+    # 删除log文件夹，创建log文件夹
+    if os.path.exists('log'):
+        print("ClientMin.'__main__' log文件夹存在，删除重建log文件夹")
+        shutil.rmtree('log')
+    else:
+        print("ClientMin.'__main__' log文件夹不存在，创建log文件夹")
+    os.mkdir('log')
+    # print全部存到log本地文件
+    error_handler = open('log/main_error.log', 'w')
+    sys.stderr = error_handler
+    f_handler = open('log/main.log', 'w')
+    sys.stdout = f_handler
     print('we are', frozen, 'frozen')
     print('bundle dir is', bundle_dir)
     print('sys.argv[0] is', sys.argv[0])

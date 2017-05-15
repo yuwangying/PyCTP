@@ -9,9 +9,9 @@ import sys
 import threading
 import time
 import Utils
-import PyCTP
-import pandas as pd
 from pandas import Series, DataFrame
+import PyCTP
+# import pandas as pd
 
 
 class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):

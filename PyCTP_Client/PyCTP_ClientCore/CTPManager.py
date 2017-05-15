@@ -4,33 +4,32 @@ Created on Wed Jul 27 13:50 2016
 @author: YuWangying
 """
 
-import sys
 import time
 import os
 import threading
-import chardet
 from PyQt4 import QtCore
-from PyQt4.QtGui import QApplication, QCompleter, QLineEdit, QStringListModel
-import pandas as pd
-from pandas import Series, DataFrame
-from pymongo import MongoClient
+from PyQt4.QtGui import QCompleter, QStringListModel  # , QApplication, QLineEdit
 from DBManager import DBManger
-from PyCTP_Trade import PyCTP_Trader_API
-from PyCTP_Market import PyCTP_Market_API
-import Utils
 from Trader import Trader
 from User import User
 from Strategy import Strategy
 from MarketManager import MarketManager
-from QAccountWidget import QAccountWidget
 from QNewStrategy import QNewStrategy
-from MessageBox import MessageBox
 from StrategyDataModel import StrategyDataModel
-from collections import namedtuple  # Socket所需package
-from StrategyDataModel import StrategyDataModel
-import socket
-import struct
-from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
+from multiprocessing import Process, Manager  # , Value, Array, Queue, Pipe
+# import sys
+# import chardet
+# import socket
+# import struct
+# from MessageBox import MessageBox
+# from collections import namedtuple  # Socket所需package
+# from QAccountWidget import QAccountWidget
+# from PyCTP_Trade import PyCTP_Trader_API
+# from PyCTP_Market import PyCTP_Market_API
+# import Utils
+# import pandas as pd
+# from pandas import Series, DataFrame
+# from pymongo import MongoClient
 
 
 # 创建user(期货账户)
@@ -542,17 +541,17 @@ class CTPManager(QtCore.QObject):
         self.__DBManager = DBManger()
 
     # 设置View视窗所需的data_list
-    def set_list_strategy_view(self, list_data):
-        self.__list_strategy_view = list_data
+    # def set_list_strategy_view(self, list_data):
+    #     self.__list_strategy_view = list_data
 
     # 获取View视窗所需的data_list
-    def get_list_strategy_view(self):
-        self.__list_strategy_view = list()  # 初始化view视窗中的数据
-        index = -1
-        for obj_strategy in self.__list_strategy:  # 遍历所有策略对象，将所有策略的list_strategy_view合并到一个list显示到界面view
-            self.__list_strategy_view.append(obj_strategy.get_list_strategy_view())
-        print(">>> CTPManager.get_list_strategy_view() self.__list_strategy_view =", self.__list_strategy_view)
-        return self.__list_strategy_view
+    # def get_list_strategy_view(self):
+    #     self.__list_strategy_view = list()  # 初始化view视窗中的数据
+    #     index = -1
+    #     for obj_strategy in self.__list_strategy:  # 遍历所有策略对象，将所有策略的list_strategy_view合并到一个list显示到界面view
+    #         self.__list_strategy_view.append(obj_strategy.get_list_strategy_view())
+    #     print(">>> CTPManager.get_list_strategy_view() self.__list_strategy_view =", self.__list_strategy_view)
+    #     return self.__list_strategy_view
 
     # 获取窗口对象
     def get_QAccountWidget(self):

@@ -10,17 +10,17 @@ import copy
 import json
 from PyQt4 import QtGui
 import datetime
-from PyCTP_Trade import PyCTP_Trader_API
-from PyCTP_Market import PyCTP_Market_API
-from OrderAlgorithm import OrderAlgorithm
-import PyCTP
-import time
 import Utils
 from pandas import DataFrame, Series
 import pandas as pd
 from PyQt4 import QtCore
-import queue
-import threading
+import PyCTP
+# import queue
+# import threading
+# from PyCTP_Trade import PyCTP_Trader_API
+# from PyCTP_Market import PyCTP_Market_API
+# from OrderAlgorithm import OrderAlgorithm
+# import time
 
 
 class Strategy():
@@ -149,21 +149,6 @@ class Strategy():
         # self.tick_thread.started.connect(self.slot_handle_tick)  # 线程self.tick_thread绑定到self.slot_handle_tick
         # self.tick_thread.start()  # 启动线程
         # self.moveToThread(self.tick_thread)  # 把本类Strategy移到线程self.tick_thread里
-
-    # 核心统计
-    # def run_count(self):
-    #     while True:
-    #         # 计算OnRtnOrder()返回
-    #         if self.__queue_OnRtnOrder.qsize() > 0:
-    #             order = self.__queue_send_msg.get()
-    #
-    #         # 计算OnRtnTrade()返回
-    #         if self.__queue_OnRtnTrade.qsize() > 0:
-    #             trade = self.__queue_send_msg.get()
-    #
-    #         # 计算OnRtnDepthMarketData()返回
-    #         if self.__queue_OnRtnDepthMarketData.qsize() > 0:
-    #             tick = self.__queue_send_msg.get()
 
     # 设置参数
     def set_arguments(self, dict_args):
@@ -379,6 +364,7 @@ class Strategy():
 
     # 装载持仓明细数据order和trade
     def init_position_detail(self):
+        print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__update_position_detail_record_time) =", len(self.__update_position_detail_record_time))
         # RESUM模式启动，xml数据可用，装载xml数据
         if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
             # 持仓明细order
@@ -407,7 +393,10 @@ class Strategy():
                 for i in self.__user.get_server_list_position_detail_for_trade_yesterday():
                     if i['StrategyID'] == self.__strategy_id:
                         self.__list_position_detail_for_trade.append(i)
-            # 当前交易日有修改过策略持仓，持仓明细初始值为今日持仓明细
+                len1 = len(self.__list_position_detail_for_order)
+                len2 = len(self.__list_position_detail_for_trade)
+                print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "昨持仓明细 为初始化持仓明细，order、trade持仓明细的长度分别为", len1, len2)
+            # 当前交易日有修改过策略持仓，持仓明细初始值为修改策略持仓一刻的今日持仓明细
             else:
                 # 今日持仓明细order
                 self.__list_position_detail_for_order = list()
@@ -421,12 +410,16 @@ class Strategy():
                         self.__list_position_detail_for_trade.append(i)
                 len1 = len(self.__list_position_detail_for_order)
                 len2 = len(self.__list_position_detail_for_trade)
-
                 self.__filter_OnRtnOrder = True  # OnRtnOrder
                 self.__filter_OnRtnTrade = True  # OnRtnTrade
                 self.__filter_date = self.__update_position_detail_record_time[:8]
                 self.__filter_time = self.__update_position_detail_record_time[8:]
-                print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "今持仓明细初始化为持仓明细，order、trade长度分别为", len1, len2)
+                print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "今持仓明细 为初始化持仓明细，order、trade持仓明细的长度分别为", len1, len2)
+
+            print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
+                  "self.__list_position_detail_for_order =", self.__list_position_detail_for_order)
+            print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
+                  "self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
 
     # 程序运行中查询策略信息，收到服务端消息之后设置策略实例参数
     def set_arguments_query_strategy_info(self, dict_args):
@@ -625,7 +618,6 @@ class Strategy():
                         trade_new['Volume'] -= self.__list_position_detail_for_trade[i-shift]['Volume']
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
-
         # trade_new中"OffsetFlag"值="4"为平昨
         elif trade_new['OffsetFlag'] == '4':
             shift = 0
@@ -660,14 +652,20 @@ class Strategy():
                         trade_new['Volume'] -= self.__list_position_detail_for_trade[i-shift]['Volume']
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
+        else:
+            print("Strategy.update_list_position_detail_for_trade() 既不属于A合约也不属于B合约的Trade")
 
     def action_for_UI_query(self):
         print("Strategy.print_list_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
-        print("self.__current_margin =", self.update_current_margin())
-        print(" self.__list_position_detail_for_trade 长度 =", len(self.__list_position_detail_for_trade))
+        print(" self.__current_margin =", self.update_current_margin())
+        print("A总卖", self.__position_a_sell, "A昨卖", self.__position_a_sell_yesterday)
+        print("B总买", self.__position_b_buy, "B昨卖", self.__position_b_buy_yesterday)
+        print("A总买", self.__position_a_buy, "A昨买", self.__position_a_buy_yesterday)
+        print("B总卖", self.__position_b_sell, "B昨卖", self.__position_b_sell_yesterday)
+        print(" self.__list_position_detail_for_trade 长度", len(self.__list_position_detail_for_trade))
         for i in self.__list_position_detail_for_trade:
             print(i)
-        print(" self.__list_position_detail_for_order 长度 =", len(self.__list_position_detail_for_order))
+        print(" self.__list_position_detail_for_order 长度", len(self.__list_position_detail_for_order))
         for i in self.__list_position_detail_for_order:
             print(i)
 
@@ -1091,6 +1089,9 @@ class Strategy():
                     self.__position_b_buy_yesterday -= trade['Volume']  # 更新持仓
             else:
                 print(">>> Strategy.update_position_for_OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "B成交，else:")
+        else:
+            print(">>> Strategy.update_position_for_OnRtnTrade() user_id =", self.__user_id, "strategy_id =",
+                  self.__strategy_id, "既不属于A合约也不属于B合约")
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_sell + self.__position_b_buy
@@ -1230,6 +1231,8 @@ class Strategy():
             self.__b_commission += self.count_commission(Trade)  # B手续费
             if self.__b_order_lots > 0:
                 self.__b_trade_rate = self.__b_traded_lots / self.__b_order_lots  # A成交率
+        else:
+            print("Strategy.statistics_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "既不属于A也不属于B合约的trade")
         self.__total_traded_lots = self.__a_traded_lots + self.__b_traded_lots
         self.__total_traded_amount = self.__a_traded_amount + self.__b_traded_amount  # A、B成交金额合计
         self.__total_commission = self.__a_commission + self.__b_commission  # 手续费
@@ -1435,11 +1438,13 @@ class Strategy():
                 profit_close = (trade_close['Price'] - trade_open['Price']) * self.__b_instrument_multiple * volume_traded
             self.__b_profit_close += profit_close
             self.__dict_statistics['b_profit_close'] += profit_close  # A平仓盈亏
+        else:
+            print("Strategy.count_profit() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "既不属于A合约也不属于B合约的Trade")
         self.__profit_close = self.__a_profit_close + self.__b_profit_close
         self.__profit = self.__profit_close - self.__total_commission
         # A、B平仓盈亏累计
         self.__dict_statistics['profit_close'] = self.__profit_close
-        # A、B净盈亏
+        # A、B净盈亏之和
         self.__dict_statistics['profit'] = self.__profit
 
         # self.__b_instrument_multiple,正确
