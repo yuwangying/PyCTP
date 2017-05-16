@@ -982,7 +982,8 @@ class User():
         return self.__trader_api.QryDepthMarketData(instrument_id)
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
-    def OnRtnTrade(self, Trade):
+    def OnRtnTrade(self, Trade_input):
+        Trade = copy.deepcopy(Trade_input)  # 深拷贝
         t = datetime.now()  # 取接收到回调数据的本地系统时间
         # self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
         self.statistics_for_trade(Trade)  # 期货账户统计，基于trade
@@ -1018,6 +1019,8 @@ class User():
             # for i in self.__list_strategy:  # 转到strategy回调函数
             #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
             #         i.OnRtnOrder(Trade)
+        else:
+            print("User.OnRtnTrade() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的trade")
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, trade):
@@ -1028,7 +1031,8 @@ class User():
             self.__commission += self.count_commission(trade)
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
-    def OnRtnOrder(self, Order):
+    def OnRtnOrder(self, Order_input):
+        Order = copy.deepcopy(Order_input)
         t = datetime.now()  #取接收到回调数据的本地系统时间
         # self.statistics(order=Order)  # 统计期货账户的合约撤单次数
         # self.statistics_for_order(Order)  # 期货账户统计，基于trade
@@ -1068,6 +1072,8 @@ class User():
             # 缓存，待提取，提取发送给特定strategy对象
             self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据
             # self.__dict_strategy[strategy_id].OnRtnOrder(Order)
+        else:
+            print("User.OnRtnOrder() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的order")
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""
