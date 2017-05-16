@@ -12,6 +12,7 @@ import pandas as pd
 from pandas import Series, DataFrame
 import Utils
 import PyCTP
+import copy
 # from MessageBox import MessageBox
 
 
@@ -653,9 +654,10 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         # series_order = Series(Order)
         # self.__df_order = DataFrame.append(self.__df_order, other=series_order, ignore_index=True)
 
-    def OnRtnTrade(self, Trade):
+    def OnRtnTrade(self, Trade_input):
+        Trade = copy.deepcopy(Trade_input)
         """成交回报"""
-        # t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
+        t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
         # Trade['time'] = t
         Trade = Utils.code_transform(Trade)
         if Utils.PyCTP_Trade_API_print:

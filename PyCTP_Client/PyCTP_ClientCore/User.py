@@ -982,8 +982,8 @@ class User():
         return self.__trader_api.QryDepthMarketData(instrument_id)
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
-    def OnRtnTrade(self, Trade_input):
-        Trade = copy.deepcopy(Trade_input)  # 深拷贝
+    def OnRtnTrade(self, Trade):
+        # Trade = copy.deepcopy(Trade_input)  # 深拷贝
         t = datetime.now()  # 取接收到回调数据的本地系统时间
         # self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
         self.statistics_for_trade(Trade)  # 期货账户统计，基于trade
@@ -1115,9 +1115,13 @@ class User():
         while True:
             trade = self.__queue_OnRtnTrade.get()
             # print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
+            found_flag = False
             for strategy_id in self.__dict_strategy:
                 if trade['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
                     self.__dict_strategy[strategy_id].OnRtnTrade(trade)
+                    found_flag = True
+            if not found_flag:
+                print("User.threading_run_OnRtnTrade() 异常 user_id =", self.__user_id, "trade未传递给策略对象,Trade结构体中StrategyID=", trade['StrategyID'])
             self.handle_OnRtnTrade(trade)
             # self.update_list_position_detail_for_trade(trade)  # 更新user的持仓明细
             # self.__commission += self.count_commission(trade)

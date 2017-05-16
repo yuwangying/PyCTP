@@ -1050,6 +1050,10 @@ class Strategy():
 
     # 更新持仓变量，由OnRtnTrade()调用
     def update_position_for_OnRtnTrade(self, trade):
+        if trade['Direction'] not in ['0', '1']:
+            print(">>> Strategy.update_position_for_OnRtnTrade() 异常 user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "trade['Direction'] =", trade['Direction'])
+        if trade['Volume'] == 0:
+            print(">>> Strategy.update_position_for_OnRtnTrade() 异常 user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "trade['Volume'] =", trade['Volume'])
         # A成交
         if trade['InstrumentID'] == self.__a_instrument_id:
             if trade['OffsetFlag'] == '0':  # A开仓成交回报
@@ -2088,8 +2092,8 @@ class Strategy():
                      'IsLast': IsLast}
         # self.trade_task(dict_args)  # 转到交易任务处理
 
-    def OnRtnOrder(self, Order_input):
-        Order = copy.deepcopy(Order_input)  # 深度拷贝
+    def OnRtnOrder(self, Order):
+        # Order = copy.deepcopy(Order_input)  # 深度拷贝
         """报单回报"""
         # print(">>> Strategy.OnRtnOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Order =", Order)
         if Utils.Strategy_print:
@@ -2118,8 +2122,8 @@ class Strategy():
         # self.statistics_for_order(Order)  # 统计
         #   # 更新界面
 
-    def OnRtnTrade(self, trade_input):
-        Trade = copy.deepcopy(trade_input)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+    def OnRtnTrade(self, Trade):
+        # Trade = copy.deepcopy(trade_input)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
         """成交回报"""
         if Utils.Strategy_print:
             print('Strategy.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade', Trade)
