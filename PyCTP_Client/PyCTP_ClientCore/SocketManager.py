@@ -1276,7 +1276,7 @@ class SocketManager(QtCore.QThread):
     # B总买 0 B昨卖 0
     # A总买 0 A昨买 0
     # B总卖 0 B昨卖 0
-    def print_position(self, user_id, strategy_id):
+    def print_strategy_data(self, user_id, strategy_id):
         dict_table_view_data = self.get_dict_table_view_data()
         for i_user_id in dict_table_view_data:
             if i_user_id == user_id:
@@ -1287,6 +1287,7 @@ class SocketManager(QtCore.QThread):
                         print("B总买", list_strategy_info[6], "B昨买", list_strategy_info[35])
                         print("A总买", list_strategy_info[32], "A昨买", list_strategy_info[33])
                         print("B总卖", list_strategy_info[5], "B昨卖", list_strategy_info[34])
+                        print("平仓盈亏-手续费=净盈亏", list_strategy_info[9], list_strategy_info[10], list_strategy_info[11])
                         break  # 跳出1282行for
                 break  # 跳出1280行for
 

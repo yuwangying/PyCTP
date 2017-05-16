@@ -1188,10 +1188,14 @@ class User():
     def get_commission(self, instrument_id, exchange_id):
         # 获取品种代码，例如cu、zn
         if exchange_id in ['SHFE', 'CFFEX', 'DZCE']:
-            self.commodity_id = instrument_id[:2]
+            commodity_id = instrument_id[:2]
         elif exchange_id in ['DCE']:
-            self.commodity_id = instrument_id[:1]
-        if self.commodity_id not in self.__dict_commission:
+            commodity_id = instrument_id[:1]
+        else:
+            commodity_id = ''
+            print("User.get_commission() 异常，交易所代码在四个交易所之外 user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id)
+
+        if commodity_id not in self.__dict_commission:
             # 通过API查询单个品种的手续费率dict
             self.qry_api_interval_manager()  # API查询时间间隔管理
             # 尝试三次获取指定合约的手续费详细
@@ -1201,7 +1205,7 @@ class User():
                 list_commission = self.__trader_api.QryInstrumentCommissionRate(instrument_id.encode())
                 if isinstance(list_commission, list):
                     dict_commission = Utils.code_transform(list_commission[0])
-                    flag = 0
+                    print("User.get_mmission() 获取手续费成功", "user_id =", self.__user_id, "instrument_id =", instrument_id, "dict_commission =", dict_commission)
                     break
                 else:
                     flag += 1
@@ -1210,8 +1214,8 @@ class User():
             if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
                 print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
             # print(">>> User.get_commission() ", dict_commission)
-            self.__dict_commission[self.commodity_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
-        return self.__dict_commission[self.commodity_id]
+            self.__dict_commission[commodity_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
+        return self.__dict_commission[commodity_id]
 
     # 添加字段"本次成交量"，order结构中加入字段VolumeTradedBatch
     def add_VolumeTradedBatch(self, order):

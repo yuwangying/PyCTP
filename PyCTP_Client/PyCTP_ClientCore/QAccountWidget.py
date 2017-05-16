@@ -288,7 +288,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__current_tab_index = int_tab_index  # 保存当前tab的index
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
         self.on_pushButton_set_position_active()  # 激活设置持仓按钮，设置持仓参数框设置只读
-        print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
+        # print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         if self.get_total_process_finished():  # 所有子进程初始化完成
             self.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
         # 更新期货账户开关或所有账户开关按钮
@@ -2359,6 +2359,14 @@ class QAccountWidget(QWidget, Ui_Form):
             dict_args = {"title": "消息", "main": "‘总手’必须大于‘每份’"}
             self.signal_show_alert.emit(dict_args)
             return
+        elif int(self.lineEdit_Achedanxianzhi.text()) <= 0:  # 正确值：A撤单次数限制必须大于0
+            dict_args = {"title": "消息", "main": "‘A限制’必须大于0"}
+            self.signal_show_alert.emit(dict_args)
+            return
+        elif int(self.lineEdit_Bchedanxianzhi.text()) <= 0:  # 正确值：B撤单次数限制必须大于0
+            dict_args = {"title": "消息", "main": "‘B限制’必须大于0"}
+            self.signal_show_alert.emit(dict_args)
+            return
         elif self.doubleSpinBox_kongtoukai.value() <= self.doubleSpinBox_kongtouping.value():  # 正确值：空头开 > 空头平
             # self.signal_show_QMessageBox.emit(["错误", "‘空头开’必须大于‘空头平’"])
             dict_args = {"title": "消息", "main": "‘空头开’必须大于‘空头平’"}
@@ -2662,7 +2670,7 @@ class QAccountWidget(QWidget, Ui_Form):
         buff = {"UserID": str_user_id, "StrategyID": str_strategy_id, "MsgType": 91, "PrintListPoisitionDetail": 1}
         dict_Queue_main = self.__socket_manager.get_dict_Queue_main()
         dict_Queue_main[str_user_id].put(buff)
-        self.__socket_manager.print_position(str_user_id, str_strategy_id)  # soketManager输出特定策略的变量，输出格式如下
+        self.__socket_manager.print_strategy_data(str_user_id, str_strategy_id)  # soketManager输出特定策略的变量，输出格式如下
         # A总卖 0 A昨卖 0
         # B总买 0 B昨卖 0
         # A总买 0 A昨买 0

@@ -662,12 +662,13 @@ class Strategy():
         print("B总买", self.__position_b_buy, "B昨卖", self.__position_b_buy_yesterday)
         print("A总买", self.__position_a_buy, "A昨买", self.__position_a_buy_yesterday)
         print("B总卖", self.__position_b_sell, "B昨卖", self.__position_b_sell_yesterday)
-        print(" self.__list_position_detail_for_trade 长度", len(self.__list_position_detail_for_trade))
-        for i in self.__list_position_detail_for_trade:
-            print(i)
-        print(" self.__list_position_detail_for_order 长度", len(self.__list_position_detail_for_order))
-        for i in self.__list_position_detail_for_order:
-            print(i)
+        print("平仓盈亏-手续费=净盈亏", self.__profit_close, self.__total_commission, self.__profit)
+        # print(" self.__list_position_detail_for_trade 长度", len(self.__list_position_detail_for_trade))
+        # for i in self.__list_position_detail_for_trade:
+        #     print(i)
+        # print(" self.__list_position_detail_for_order 长度", len(self.__list_position_detail_for_order))
+        # for i in self.__list_position_detail_for_order:
+        #     print(i)
 
     # 设置持仓时更新持仓明细列表专用方法，较update_list_position_detail_for_trade()去掉了统计类代码
     def update_list_position_detail_for_trade_set_position(self, trade):
@@ -1236,6 +1237,7 @@ class Strategy():
         self.__total_traded_lots = self.__a_traded_lots + self.__b_traded_lots
         self.__total_traded_amount = self.__a_traded_amount + self.__b_traded_amount  # A、B成交金额合计
         self.__total_commission = self.__a_commission + self.__b_commission  # 手续费
+        self.__profit = self.__profit_close - self.__total_commission  # 更新净盈亏
         self.__dict_statistics['volume'] = self.__total_traded_lots  # 成交量
         self.__dict_statistics['amount'] = self.__total_traded_amount  # 成交金额
         self.__dict_statistics['commission'] = self.__total_commission  # 手续费
