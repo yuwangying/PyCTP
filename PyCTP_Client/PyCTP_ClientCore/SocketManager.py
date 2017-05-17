@@ -661,6 +661,7 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
             elif buff['MsgType'] == 22:  # 查询策略，查询单个策略
                 print("SocketManager.receive_msg() MsgType=22，查询策略，查询单个策略", buff)
+                self.print_strategy_info_for_soket(buff)  # 打印从服务端收到的持仓信息
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     user_id = buff['UserID']
                     strategy_id = buff['StrategyID']
@@ -1282,7 +1283,7 @@ class SocketManager(QtCore.QThread):
             if i_user_id == user_id:
                 for list_strategy_info in dict_table_view_data[i_user_id]:
                     if list_strategy_info[2] == strategy_id:
-                        print("SocketManager.print_position() user_id =", user_id, "strategy_id =", strategy_id)
+                        print("SocketManager.print_position() 主进程数据 user_id =", user_id, "strategy_id =", strategy_id)
                         print("A总卖", list_strategy_info[30], "A昨卖", list_strategy_info[31])
                         print("B总买", list_strategy_info[6], "B昨买", list_strategy_info[35])
                         print("A总买", list_strategy_info[32], "A昨买", list_strategy_info[33])
@@ -1290,6 +1291,13 @@ class SocketManager(QtCore.QThread):
                         print("平仓盈亏-手续费=净盈亏", list_strategy_info[9], list_strategy_info[10], list_strategy_info[11])
                         break  # 跳出1282行for
                 break  # 跳出1280行for
+
+    def print_strategy_info_for_soket(self, buff):
+        print("SocketManager.print_strategy_info_for_soket() 服务端数据程数据 user_id =", buff['UserID'], "strategy_id =", buff['StrategyID'])
+        print("A总卖", buff['Info'][0]['position_a_sell'], "A昨卖", buff['Info'][0]['position_a_sell_yesterday'])
+        print("B总买", buff['Info'][0]['position_b_buy'], "B昨买", buff['Info'][0]['position_b_buy_yesterday'])
+        print("A总买", buff['Info'][0]['position_a_buy'], "A昨买", buff['Info'][0]['position_a_buy_yesterday'])
+        print("B总卖", buff['Info'][0]['position_b_sell'], "B昨卖", buff['Info'][0]['position_b_sell_yesterday'])
 
 if __name__ == '__main__':
     # 创建socket套接字
