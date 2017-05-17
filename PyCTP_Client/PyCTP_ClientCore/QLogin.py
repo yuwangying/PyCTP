@@ -144,6 +144,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
         # TODO: not implemented yet
         # raise NotImplementedError
 
+
 if __name__ == "__main__":
     import sys
 

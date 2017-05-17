@@ -627,7 +627,7 @@ if __name__ == '__main__':
     socket_manager.set_QAccountWidget(q_ctp.widget_QAccountWidget)
     q_ctp.set_QLogin(q_login)
 
-    socket_manager.connect()  # 建立socket连接
+    # socket_manager.connect()  # 建立socket连接
     socket_manager.start()
 
 

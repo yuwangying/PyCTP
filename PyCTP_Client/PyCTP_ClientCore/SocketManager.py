@@ -96,9 +96,13 @@ class SocketManager(QtCore.QThread):
         self.__dict_user_process_finished = dict()  # 子进程初始化完成信息
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
-        self.__recive_msg_flag = True  # 接收socket消息线程运行标志
+        self.__recive_msg_flag = False  # 接收socket消息线程运行标志
         self.msg_box = MessageBox()  # 创建消息弹窗
         self.__list_panel_show_account = list()  # 更新界面资金条数据结构# 读取xml文件
+
+        self.__thread_connect = threading.Thread(target=self.connect)
+        self.__thread_connect.setDaemon(True)
+        self.__thread_connect.start()
 
     def read_ip_address(self):
         xml_path = "config/trade_server_ip.xml"
@@ -326,18 +330,28 @@ class SocketManager(QtCore.QThread):
 
     # 连接服务器
     def connect(self):
-        # 创建socket套接字
-        if self.__sockfd:
-            # 连接服务器: IP,port
-            try:
-                # 进行与服务端的连接(ip地址根据实际情况进行更改)
-                self.__sockfd.connect((self.__ip_address, self.__port))
-            except socket.error as e:
-                print("SocketManager.connect() socket error", e)
-                MessageBox().showMessage("错误", "连接服务器失败！")
-                # dict_args = {"title": "消息", "main": "连接服务器失败"}
-                # self.signal_show_alert.emit(dict_args)
-                sys.exit(1)
+        while self.__recive_msg_flag is False:
+            self.__recive_msg_flag = True
+            # 创建socket套接字
+            if self.__sockfd:
+                # 连接服务器: IP,port
+                try:
+                    print("SocketManager.connect() self.__ip_address", self.__ip_address)
+                    # 进行与服务端的连接(ip地址根据实际情况进行更改)
+                    self.__sockfd.connect((self.__ip_address, self.__port))
+                except socket.error as e:
+                    self.__recive_msg_flag = False
+                    print("SocketManager.connect() socket error", e)
+                    # self.signal_label_login_error_text.emit('登录失败,自动重连')
+                    MessageBox().showMessage("错误", "连接服务器失败！")
+                    time.sleep(5)
+                    # self.connect()
+                    # dict_args = {"title": "消息", "main": "连接服务器失败"}
+                    # self.signal_show_alert.emit(dict_args)
+                    # sys.exit(1)
+                finally:
+                    if self.__recive_msg_flag is not False:
+                        self.__recive_msg_flag = True
 
     # ------------------------------------------------------
     # RecvN
@@ -353,7 +367,9 @@ class SocketManager(QtCore.QThread):
             except socket.error as e:
                 self.__RecvN = False
                 print("SocketManager.RecvN()", e, n, totalRecved)
-                MessageBox().showMessage("错误", "与服务器断开连接！")
+                MessageBox().showMessage("错误", "接收消息失败！")
+                self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.__thread_connect.start()
                 return None
             # print("onceContent", onceContent)
             totalContent += onceContent
@@ -388,6 +404,10 @@ class SocketManager(QtCore.QThread):
             size = self.__sockfd.send(data)  # 发送数据
         except socket.timeout as e:
             print("SocketManager.slot_send_msg()", e)
+            MessageBox().showMessage("错误", "发送消息失败")
+            self.__recive_msg_flag = False
+            self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.__thread_connect.start()
         self.__event.clear()
         return size if self.__event.wait(2.0) else -1
 
