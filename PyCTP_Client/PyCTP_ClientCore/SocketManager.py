@@ -429,7 +429,7 @@ class SocketManager(QtCore.QThread):
                 try:
                     # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
                     # data = self.__sockfd.recv(30 * 1024 + 14)
-                    data = self.RecvN(self.__sockfd, 60 * 1024 + 14)
+                    data = self.RecvN(self.__sockfd, 80 * 1024 + 14)
                 except socket.error as e:
                     print(e)
 
