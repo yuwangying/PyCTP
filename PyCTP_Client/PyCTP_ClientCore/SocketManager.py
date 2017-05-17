@@ -431,7 +431,7 @@ class SocketManager(QtCore.QThread):
                     # data = self.__sockfd.recv(30 * 1024 + 14)
                     data = self.RecvN(self.__sockfd, 80 * 1024 + 14)
                 except socket.error as e:
-                    print(e) 
+                    print(e)
 
                 # 解包数据
                 if data is not None:

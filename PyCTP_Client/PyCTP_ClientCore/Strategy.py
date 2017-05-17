@@ -2155,7 +2155,7 @@ class Strategy():
         self.update_list_position_detail_for_order(Order)
 
         # 更新持仓变量
-        self.update_position_for_OnRtnOrder(Order)
+        # self.update_position_for_OnRtnOrder(Order)
         # self.update_position_of_position_detail_for_order()  # 遍历持仓明细更新持仓变量
 
         series_order = Series(Order)
@@ -2205,7 +2205,7 @@ class Strategy():
         self.update_list_position_detail_for_trade(Trade)
 
         # 更新持仓变量
-        # self.update_position_for_OnRtnTrade(Trade)
+        self.update_position_for_OnRtnTrade(Trade)
         # self.update_position_of_position_detail_for_trade()  # 遍历持仓明细更新持仓变量
 
         # 更新界面
