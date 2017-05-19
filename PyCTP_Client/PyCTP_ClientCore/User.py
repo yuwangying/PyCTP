@@ -985,25 +985,27 @@ class User():
     def OnRtnTrade(self, Trade):
         # Trade = copy.deepcopy(Trade_input)  # 深拷贝
         t = datetime.now()  # 取接收到回调数据的本地系统时间
+        # Trade新增字段
+        Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
+        Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
+        Trade['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的本地系统时间
+
         # self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
         self.statistics_for_trade(Trade)  # 期货账户统计，基于trade
+        self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
 
         # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
-        if len(Trade['OrderRef']) == 12 and Trade['OrderRef'][:1] == '1':
-            # Order新增字段
-            Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
-            Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
-            Trade['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的本地系统时间
+        # if len(Trade['OrderRef']) == 12 and Trade['OrderRef'][:1] == '1':
             # Trade['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
 
             # 进程间通信：'DataFlag': 'instrument_statistics'
-            self.instrument_open_count(Trade)  # 统计合约撤单次数
-            dict_data = {
-                'DataFlag': 'instrument_statistics',
-                'UserId': self.__user_id,
-                'DataMain': self.__dict_instrument_statistics
-            }
-            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+            # self.instrument_open_count(Trade)  # 统计合约撤单次数
+            # dict_data = {
+            #     'DataFlag': 'instrument_statistics',
+            #     'UserId': self.__user_id,
+            #     'DataMain': self.__dict_instrument_statistics
+            # }
+            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
             # # 进程间通信：'DataFlag': 'OnRtnTrade'
             # dict_data = {
@@ -1013,14 +1015,12 @@ class User():
             # }
             # self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
-            # 缓存，待提取，提取发送给特定strategy对象
-            self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
 
             # for i in self.__list_strategy:  # 转到strategy回调函数
             #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
             #         i.OnRtnOrder(Trade)
-        else:
-            print("User.OnRtnTrade() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的trade")
+        # else:
+        #     print("User.OnRtnTrade() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的trade")
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, trade):
@@ -1115,14 +1115,16 @@ class User():
         while True:
             trade = self.__queue_OnRtnTrade.get()
             # print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
-            found_flag = False
-            for strategy_id in self.__dict_strategy:
-                if trade['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
-                    self.__dict_strategy[strategy_id].OnRtnTrade(trade)
-                    found_flag = True
-            if not found_flag:
-                print("User.threading_run_OnRtnTrade() 异常 user_id =", self.__user_id, "trade未传递给策略对象,Trade结构体中StrategyID=", trade['StrategyID'])
-            self.handle_OnRtnTrade(trade)
+            # 过滤出本套利系统的trade，并将trade传给Strategy对象
+            if len(trade['OrderRef']) == 12 and trade['OrderRef'][:1] == '1':
+                found_flag = False
+                for strategy_id in self.__dict_strategy:
+                    if trade['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
+                        self.__dict_strategy[strategy_id].OnRtnTrade(trade)
+                        found_flag = True
+                if not found_flag:
+                    print("User.threading_run_OnRtnTrade() 异常 user_id =", self.__user_id, "trade未传递给策略对象,Trade结构体中StrategyID=", trade['StrategyID'])
+            self.handle_OnRtnTrade(trade)  # User的trade运算
             # self.update_list_position_detail_for_trade(trade)  # 更新user的持仓明细
             # self.__commission += self.count_commission(trade)
 
