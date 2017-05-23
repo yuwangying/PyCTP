@@ -1878,16 +1878,19 @@ class Strategy():
                 # A买持仓
                 if trade['InstrumentID'] == self.__a_instrument_id and trade['Direction'] == '0':
                     trade['ProfitPosition'] = (self.__a_tick['LastPrice'] - trade['Price']) * self.__a_instrument_multiple * trade['Volume']
+                    self.__profit_position += trade['ProfitPosition']
                 # A卖持仓
                 elif trade['InstrumentID'] == self.__a_instrument_id and trade['Direction'] == '1':
                     trade['ProfitPosition'] = (trade['Price'] - self.__a_tick['LastPrice']) * self.__a_instrument_multiple * trade['Volume']
+                    self.__profit_position += trade['ProfitPosition']
                 # B买持仓
                 elif trade['InstrumentID'] == self.__b_instrument_id and trade['Direction'] == '0':
                     trade['ProfitPosition'] = (self.__b_tick['LastPrice'] - trade['Price']) * self.__b_instrument_multiple * trade['Volume']
+                    self.__profit_position += trade['ProfitPosition']
                 # B卖持仓
                 elif trade['InstrumentID'] == self.__b_instrument_id and trade['Direction'] == '1':
                     trade['ProfitPosition'] = (trade['Price'] - self.__b_tick['LastPrice']) * self.__b_instrument_multiple * trade['Volume']
-                self.__profit_position += trade['ProfitPosition']
+                    self.__profit_position += trade['ProfitPosition']
         # else:
         #     print(">>> Strategy.count_profit_position() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "tick为空")
         # print(">>> Strategy.count_profit_position() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__profit_position =", self.__profit_position)
