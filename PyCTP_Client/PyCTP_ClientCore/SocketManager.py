@@ -76,6 +76,11 @@ class SocketManager(QtCore.QThread):
         # self.__ip_address = ip_address
         # self.__port = port
         self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        socket_value = self.__sockfd.getsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE)
+        if socket_value == 0:
+            self.__sockfd.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            self.__sockfd.ioctl(socket.SIO_KEEPALIVE_VALS, (1, 10000, 3000))# 激活心跳功能，10秒激活时间，频率3秒
         self.__event = threading.Event()  # 初始化协程threading.Event()
         self.__msg_ref = 0  # 发送消息引用
         self.__RecvN = True  # RecvN方法运行状态，True正常，False异常
