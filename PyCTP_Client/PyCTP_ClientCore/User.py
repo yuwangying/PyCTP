@@ -251,6 +251,9 @@ class User():
         """查询资金账户"""
         # time.sleep(1.0)
         self.qry_api_interval_manager()  # API查询时间间隔管理
+        time_now = datetime.now()
+        self.__date_qry_trading_account = time_now.strftime('%Y%m%d')  # 查询投资者持仓明细的北京时间
+        self.__time_qry_trading_account = time_now.strftime('%H:%M:%S')  # 查询投资者持仓明细的北京时间
         list_QryTradingAccount = self.__trader_api.QryTradingAccount()
         if isinstance(list_QryTradingAccount, list):
             if isinstance(list_QryTradingAccount[0], dict):
@@ -1024,11 +1027,13 @@ class User():
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, trade):
-        if trade['TradeDate'] > self.__date_qry_inverstor_position_detail \
-                or (trade['TradeDate'] == self.__date_qry_inverstor_position_detail
-                    and trade['TradeTime'] >= self.__time_qry_inverstor_position_detail):
+        if trade['TradeDate'] > self.__date_qry_trading_account \
+                or (trade['TradeDate'] == self.__date_qry_trading_account
+                    and trade['TradeTime'] >= self.__time_qry_trading_account):
             self.update_list_position_detail_for_trade(trade)  # 更新user的持仓明细，同时统计平仓盈亏
             self.__commission += self.count_commission(trade)
+        else:
+            print("User.handle_OnRtnTrade() 过滤掉查询投资者持仓明细之前的trade，trade['Date'] =", trade['TradeDate'], "trade['TradeTime'] =", trade['TradeTime'])
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order_input):
