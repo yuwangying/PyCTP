@@ -473,13 +473,13 @@ class SocketManager(QtCore.QThread):
             if tmp_msg is not None:
                 self.send_msg_to_server(tmp_msg)
 
-    # 收到部分消息，当IsLast标志位1，收到一条完整的消息
+    # 组装分段发送的消息，当IsLast==1，消息接收完成
     def receive_part_msg(self, buff):
         if buff['IsLast'] == 0:
             self.__list_info_group.append(buff['Info'][0])
         elif buff['IsLast'] == 1:
             # full_msg = copy.deepcopy(buff)
-            if buff['MsgType'] in [1, 8, 9, 13, 14, 18, 19]:
+            if buff['MsgType'] in [1, 7, 8, 9, 13, 14, 18, 19]:
                 # self.receive_msg(buff)
                 pass
                 print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
