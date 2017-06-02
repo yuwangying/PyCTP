@@ -3,6 +3,7 @@
 import os
 from collections import namedtuple
 import socket
+import copy
 import sys
 import struct
 import threading
@@ -76,6 +77,7 @@ class SocketManager(QtCore.QThread):
         # self.__ip_address = ip_address
         # self.__port = port
         self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__list_info_group = list()  # 一个消息分为多条发送，临时保存已经接收到的消息
 
         socket_value = self.__sockfd.getsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE)
         if socket_value == 0:
@@ -434,7 +436,7 @@ class SocketManager(QtCore.QThread):
                 try:
                     # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
                     # data = self.__sockfd.recv(30 * 1024 + 14)
-                    data = self.RecvN(self.__sockfd, 80 * 1024 + 14)
+                    data = self.RecvN(self.__sockfd, 2 * 1024 + 14)
                 except socket.error as e:
                     print(e)
 
@@ -452,13 +454,13 @@ class SocketManager(QtCore.QThread):
                     if (m.checknum == checknum) and (m.head == "gmqh_sh_2016"):
                         # 打印接收到的数据
                         dict_buff = eval(m.buff)  # str to dict
-                        self.receive_msg(dict_buff)
+                        self.receive_part_msg(dict_buff)
                         if dict_buff['MsgRef'] == self.__msg_ref:  # 收到服务端发送的收到消息回报
                             self.__event.set()
                     else:
                         print("SocketManager.run() 接收到的数据有误", m.buff)
                         continue
-            print(">>> SocketManager run() takes time = %s" % (time.time() - start_time))
+            # print(">>> SocketManager run() takes time = %s" % (time.time() - start_time))
         print(">>> SocketManager run() stop")
 
     # 发送消息线程
@@ -470,6 +472,26 @@ class SocketManager(QtCore.QThread):
             tmp_msg = self.__queue_send_msg.get()
             if tmp_msg is not None:
                 self.send_msg_to_server(tmp_msg)
+
+    # 收到部分消息，当IsLast标志位1，收到一条完整的消息
+    def receive_part_msg(self, buff):
+        if buff['IsLast'] == 0:
+            self.__list_info_group.append(buff['Info'][0])
+        elif buff['IsLast'] == 1:
+            # full_msg = copy.deepcopy(buff)
+            if buff['MsgType'] in [1, 8, 9, 13, 14, 18, 19]:
+                # self.receive_msg(buff)
+                pass
+                print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
+            else:
+                if len(buff['Info']) > 0:
+                    self.__list_info_group.append(buff['Info'][0])
+                buff['Info'] = self.__list_info_group
+                self.__list_info_group = list()
+                print(">>> SocketManager.receive_part_msg() IsLast = 1，Info长度 =", len(buff['Info']), "MsgType =", buff['MsgType'], "full_msg =", buff)
+            self.receive_msg(buff)
+        else:
+            print(">>> SocketManager.receive_part_msg() IsLast字段异常，buff =", buff)
 
     # 处理收到的消息
     def receive_msg(self, buff):
