@@ -630,12 +630,6 @@ class SocketManager(QtCore.QThread):
             elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
                 print("SocketManager.receive_msg() MsgType=12，修改策略持仓", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    # # 更新内核中的策略持仓
-                    # for i_strategy in self.__ctp_manager.get_list_strategy():
-                    #     if i_strategy.get_user_id() == buff['UserID'] \
-                    #             and i_strategy.get_strategy_id() == buff['StrategyID']:
-                    #         i_strategy.set_position(buff['Info'][0])
-                    #         break
                     dict_args = buff['Info'][0]  # 策略参数dict
                     user_id = dict_args['user_id']
                     self.__dict_Queue_main[user_id].put(buff)
@@ -665,22 +659,10 @@ class SocketManager(QtCore.QThread):
                     # 进程通信，将消息发给对应的user进程
                     user_id = buff['UserID']
                     self.__dict_Queue_main[user_id].put(buff)
-                    # self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 更新一次全部数据
-                    # self.signal_init_ui_on_off.emit(buff)  # 发送信号，更新tableView中特定的index
                     self.__QAccountWidget.set_clicked_strategy_on_off(buff['OnOff'])
                     self.signal_update_strategy_on_off.emit(buff)  # 更新策略开关
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=13 修改策略交易开关失败")
-            # elif buff['MsgType'] == 14:  # 修改策略只平开关
-            #     print("SocketManager.receive_msg() MsgType=14，修改策略只平开关", buff)
-            #     if buff['MsgResult'] == 0:  # 消息结果成功
-            #         for i_strategy in self.__ctp_manager.get_list_strategy():
-            #             if i_strategy.get_user_id() == buff['UserID'] \
-            #                     and i_strategy.get_strategy_id() == buff['StrategyID']:
-            #                 i_strategy.set_only_close(buff['OnOff'])  # 更新内核中策略只平开关
-            #                 break
-            #     elif buff['MsgResult'] == 1:  # 消息结果失败
-            #         print("SocketManager.receive_msg() MsgType=14 修改策略只平开关失败")
             elif buff['MsgType'] == 8:  # 修改交易员开关
                 print("SocketManager.receive_msg() MsgType=8，修改交易员开关", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
@@ -697,12 +679,7 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     user_id = buff['UserID']
                     self.__dict_user_on_off[user_id] = buff['OnOff']
-                    # print(">>> SocketManager.receive_msg() self.__dict_user_on_off =", self.__dict_user_on_off)
                     self.__dict_Queue_main[user_id].put(buff)  # 将修改期货账户开关回报发送给user进程
-                    # for i_user in self.__ctp_manager.get_list_user():
-                    #     if i_user.get_user_id().decode() == buff['UserID']:
-                    #         i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
-                    #         break
                     self.signal_setTabIcon.emit(buff['OnOff'])
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
@@ -712,16 +689,31 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     user_id = buff['UserID']
                     strategy_id = buff['StrategyID']
-                    # self.__dict_Queue_main[user_id].put(buff)  # 将修改期货账户开关回报发送给user进程
-                    # for i_user in self.__ctp_manager.get_list_user():
-                    #     if i_user.get_user_id().decode() == buff['UserID']:
-                    #         i_user.set_on_off(buff['OnOff'])  # 设置内核中期货账户开关
-                    #         break
                     self.check_strategy_position(buff)  # 核对策略市场
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
                 # 收到查询策略回报消息，激活“查询”按钮
                 self.signal_activate_query_strategy_pushbutton.emit()
+            elif buff['MsgType'] == 18:  # 服务端CTP行情断开、连接通知，服务端主动发送给客户端
+                if buff['MsgResult'] == 0:
+                    print("SocketManager.receive_msg() MsgType=18，服务端行情连接成功", buff)
+                    dict_args = {"title": "消息", "main": "服务端行情连接成功"}
+                    self.signal_show_alert.emit(dict_args)
+                elif buff['MsgResult'] == 1:
+                    print("SocketManager.receive_msg() MsgType=18，服务端行情连接断开", buff)
+                    dict_args = {"title": "消息", "main": "注意，服务端行情连接断开"}
+                    self.signal_show_alert.emit(dict_args)
+            elif buff['MsgType'] == 19:  # 服务端CTP交易断开、连接通知，服务端主动发送给客户端
+                if buff['MsgResult'] == 0:
+                    print("SocketManager.receive_msg() MsgType=19，UserID=", buff['UserID'], "服务端交易连接成功", buff)
+                    str_print = ''.join(["期货账号", buff['UserID'], "交易连接成功"])
+                    dict_args = {"title": "消息", "main": str_print}
+                    self.signal_show_alert.emit(dict_args)
+                elif buff['MsgResult'] == 1:
+                    print("SocketManager.receive_msg() MsgType=19，UserID=", buff['UserID'], "服务端交易连接断开", buff)
+                    str_print = ''.join(["期货账号", buff['UserID'], "交易连接断开"])
+                    dict_args = {"title": "消息", "main": str_print}
+                    self.signal_show_alert.emit(dict_args)
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             pass
 
