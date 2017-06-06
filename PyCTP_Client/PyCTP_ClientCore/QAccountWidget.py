@@ -2134,10 +2134,11 @@ class QAccountWidget(QWidget, Ui_Form):
     # 鼠标右击弹出菜单中的“删除策略”
     @pyqtSlot()
     def slot_action_del_strategy(self):
-        print(">>> QAccountWidget.slot_action_del_strategy() 删除策略，user_id =", self.__clicked_user_id, "strategy_id =", self.__clicked_strategy_id)
-        # 判断策略是否可以安全删除：策略无持仓，开关为关闭
         list_update_group_box_data = self.get_list_update_group_box_data()
-        if list_update_group_box_data[0] == 1:
+        strategy_on_off = list_update_group_box_data[0].checkState()
+        # print(">>> QAccountWidget.slot_action_del_strategy() 删除策略，user_id =", self.__clicked_user_id, "strategy_id =", self.__clicked_strategy_id, "策略开关 =", strategy_on_off, type(strategy_on_off))
+        # 判断策略是否可以安全删除：策略无持仓，开关为关闭
+        if strategy_on_off == 2:
             print(">>> QAccountWidget.slot_action_del_strategy() 不允许删除策略开关为开的策略")
             # MessageBox().showMessage("错误", "不允许删除策略开关为开的策略！")
             dict_args = {"title": "消息", "main": "不允许删除策略开关为开的策略"}
