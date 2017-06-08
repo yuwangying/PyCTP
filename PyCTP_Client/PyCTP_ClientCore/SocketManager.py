@@ -694,7 +694,8 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
                 # 收到查询策略回报消息，激活“查询”按钮
                 self.signal_activate_query_strategy_pushbutton.emit()
-            elif buff['MsgType'] == 18:  # 服务端CTP行情断开、连接通知，服务端主动发送给客户端
+        elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
+            if buff['MsgType'] == 18:  # 服务端CTP行情断开、连接通知，服务端主动发送给客户端
                 if buff['MsgResult'] == 0:
                     print("SocketManager.receive_msg() MsgType=18，服务端行情连接成功", buff)
                     dict_args = {"title": "消息", "main": "服务端行情连接成功"}
@@ -703,6 +704,8 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=18，服务端行情连接断开", buff)
                     dict_args = {"title": "消息", "main": "注意，服务端行情连接断开"}
                     self.signal_show_alert.emit(dict_args)
+                else:
+                    print("SocketManager.receive_msg() MsgType=18，服务端行情连接或断开的客户端界面提醒异常", buff)
             elif buff['MsgType'] == 19:  # 服务端CTP交易断开、连接通知，服务端主动发送给客户端
                 if buff['MsgResult'] == 0:
                     print("SocketManager.receive_msg() MsgType=19，UserID=", buff['UserID'], "服务端交易连接成功", buff)
@@ -714,8 +717,8 @@ class SocketManager(QtCore.QThread):
                     str_print = ''.join(["期货账号", buff['UserID'], "交易连接断开"])
                     dict_args = {"title": "消息", "main": str_print}
                     self.signal_show_alert.emit(dict_args)
-        elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
-            pass
+                else:
+                    print("SocketManager.receive_msg() MsgType=19，服务端交易连接或断开的客户端界面提醒异常", buff)
 
     # 查询行情信息
     def qry_market_info(self):

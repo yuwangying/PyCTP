@@ -97,6 +97,8 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             self.label_error_msg.setText(str_output)
             return
 
+        user_id = self.comboBox_user_id.currentText()
+
         # 策略名为两位数字，如果填写了一位数字则自动补全为两位数字
         if len(self.lineEdit_strategy_id.text()) == 1:
             str_strategy_id = '0' + self.lineEdit_strategy_id.text()
@@ -104,14 +106,15 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
         elif len(self.lineEdit_strategy_id.text()) == 2:
             str_strategy_id = self.lineEdit_strategy_id.text()
 
-        # strategy_id除重判断，针对当前user_id的已经存在的策略判断
-        dict_user_process_data = self.__socket_manager.get_dict_user_process_data()
-        user_id = self.comboBox_user_id.currentText()  # 新建策略窗口中显示的期货账号
-        dict_total_strategy_arguments = dict_user_process_data[user_id]['running']['strategy_arguments']
-        if str_strategy_id in dict_total_strategy_arguments:
-            str_output = "期货账户" + user_id + "已存在策略" + str_strategy_id + "，\n不能重复创建！"
-            self.label_error_msg.setText(str_output)
-            return
+        # 检查同一个期货账户内是否已经存在重复的策略ID
+        list_update_table_view_data = self.__QAccountWidget.get_list_update_table_view_data()
+        for i in list_update_table_view_data:
+            # print(">>> QNewStrategy.on_pushButton_ok_clicked() user_id =", i[1], type(i[1]), "strategy_id =", i[2], type(i[2]))
+            if i[1] == self.comboBox_user_id.currentText() and i[2] == str_strategy_id:
+                str_output = "不能重复创建策略:" + str_strategy_id
+                # print(">>> QNewStrategy.on_pushButton_ok_clicked() user_id =", i[1], type(i[1]), "strategy_id =", i[2], type(i[2]), "已经存在该策略:")
+                self.label_error_msg.setText(str_output)
+                return
 
         str_output = "正在创建策略：" + self.lineEdit_strategy_id.text()
         self.label_error_msg.setText(str_output)

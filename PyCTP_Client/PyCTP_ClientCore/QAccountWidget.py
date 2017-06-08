@@ -513,6 +513,7 @@ class QAccountWidget(QWidget, Ui_Form):
     def create_QNewStrategy(self):
         # print(">>> QAccountWidget.create_QNewStrategy()")
         self.__q_new_strategy = QNewStrategy()
+
         # 设置图标
         self.__q_new_strategy.setWindowIcon(QtGui.QIcon(':/image/bee.ico'))
         completer = QCompleter()
