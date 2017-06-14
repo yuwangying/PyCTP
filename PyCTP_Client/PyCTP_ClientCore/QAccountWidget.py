@@ -56,7 +56,7 @@ class QAccountWidget(QWidget, Ui_Form):
     """
     Signal_SendMsg = QtCore.pyqtSignal(str)  # 自定义信号
     signal_update_groupBox_trade_args_for_query = QtCore.pyqtSignal(Strategy)  # 定义信号：更新界面参数框
-    signal_send_msg = QtCore.pyqtSignal(str)  # 窗口修改策略 -> SocketManager发送修改指令
+    signal_send_msg = QtCore.pyqtSignal(dict)  # 窗口修改策略 -> SocketManager发送修改指令
     signal_show_QMessageBox = QtCore.pyqtSignal(list)  # 定义信号：弹窗 -> ClientMain(主线程)中槽函数调用弹窗
     signal_lineEdit_duotoujiacha_setText = QtCore.pyqtSignal(str)  # 定义信号：多头价差lineEdit更新
     signal_lineEdit_kongtoujiacha_setText = QtCore.pyqtSignal(str)  # 定义信号：self.lineEdit_kongtoujiacha.setText()
@@ -2166,8 +2166,8 @@ class QAccountWidget(QWidget, Ui_Form):
             'UserID': self.__clicked_user_id,
             'StrategyID':self.__clicked_strategy_id
             }
-        json_msg = json.dumps(dict_msg)
-        self.signal_send_msg.emit(json_msg)
+        # json_msg = json.dumps(dict_msg)
+        self.signal_send_msg.emit(dict_msg)
 
     def send_msg_revise_strategy_on_off(self, dict_args):
         dict_msg = {
@@ -2180,8 +2180,8 @@ class QAccountWidget(QWidget, Ui_Form):
             'StrategyID': dict_args['strategy_id'],
             'OnOff': dict_args['on_off']
         }
-        json_msg = json.dumps(dict_msg)
-        self.signal_send_msg.emit(json_msg)
+        # json_msg = json.dumps(dict_msg)
+        self.signal_send_msg.emit(dict_msg)
 
     @pyqtSlot()
     def on_pushButton_query_account_clicked(self):
@@ -2285,8 +2285,8 @@ class QAccountWidget(QWidget, Ui_Form):
                 'TraderID': self.__socket_manager.get_trader_id(),
                 'UserID': self.__current_tab_name,
                 'OnOff': on_off}
-        json_trade_onoff = json.dumps(dict_trade_onoff)
-        self.signal_send_msg.emit(json_trade_onoff)
+        # json_trade_onoff = json.dumps(dict_trade_onoff)
+        self.signal_send_msg.emit(dict_trade_onoff)
 
     # 联动加
     @pyqtSlot()
@@ -2444,10 +2444,10 @@ class QAccountWidget(QWidget, Ui_Form):
                 "buy_open_on_off": (1 if self.checkBox_duotoukai.isChecked() else 0)  # 价差买开触发开关
             }]
         }
-        json_StrategyEditWithoutPosition = json.dumps(dict_args)
+        # json_StrategyEditWithoutPosition = json.dumps(dict_args)
         # self.__client_main.signal_send_msg.emit(json_StrategyEditWithoutPosition)
-        print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() json_StrategyEditWithoutPosition =",json_StrategyEditWithoutPosition)
-        self.signal_send_msg.emit(json_StrategyEditWithoutPosition)  # 发送信号到SocketManager.slot_send_msg
+        print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() dict_args =", dict_args)
+        self.signal_send_msg.emit(dict_args)  # 发送信号到SocketManager.slot_send_msg
 
     @pyqtSlot()
     def on_pushButton_set_position_clicked(self):
@@ -2607,8 +2607,8 @@ class QAccountWidget(QWidget, Ui_Form):
                     "position_b_sell_yesterday": int(self.lineEdit_Bzuosell.text())  # B昨卖
                 }]
             }
-            json_setPosition = json.dumps(dict_setPosition)
-            self.signal_send_msg.emit(json_setPosition)  # 发送信号到SocketManager.slot_send_msg
+            # json_setPosition = json.dumps(dict_setPosition)
+            self.signal_send_msg.emit(dict_setPosition)  # 发送信号到SocketManager.slot_send_msg
 
     # 激活设置持仓按钮，禁用仓位输入框
     @QtCore.pyqtSlot()
@@ -2659,8 +2659,8 @@ class QAccountWidget(QWidget, Ui_Form):
                                'TraderID': self.__socket_manager.get_trader_id(),
                                'UserID': str_user_id,
                                'StrategyID': str_strategy_id}
-        json_query_strategy = json.dumps(dict_query_strategy)
-        self.signal_send_msg.emit(json_query_strategy)
+        # json_query_strategy = json.dumps(dict_query_strategy)
+        self.signal_send_msg.emit(dict_query_strategy)
 
         # 测试用：触发保存df_order和df_trade保存到本地
         # 进程间通信，触发特殊指令：保存策略的OnRtnOrder和OnRtnTrade到本地
@@ -2724,8 +2724,10 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__dict_clicked_info =", self.__dict_clicked_info)
         self.__socket_manager.set_clicked_info(row, column, self.__clicked_user_id, self.__clicked_strategy_id)
         self.get_list_update_group_box_data()  # 获取最新groupBox的更新数据
-        a_instrument_id = self.__list_update_group_box_data[3][:6]
-        b_instrument_id = self.__list_update_group_box_data[3][7:]
+        # a_instrument_id = self.__list_update_group_box_data[3][:6]
+        # b_instrument_id = self.__list_update_group_box_data[3][7:]
+        a_instrument_id = self.__list_update_group_box_data[45]
+        b_instrument_id = self.__list_update_group_box_data[46]
         list_instrument_id = [a_instrument_id, b_instrument_id]
         # self.__socket_manager.get_market_manager().group_box_sub_market(list_instrument_id)
         self.__clicked_list_instrument_id = list_instrument_id

@@ -412,8 +412,6 @@ class SocketManager(QtCore.QThread):
         # print("send m.checknum = ", m.checknum)
         # 打包数据(13位的head,1位校验码,不定长数据段)
         data = struct.pack(">13s1B" + str(len(m.buff.encode()) + 1) + "s", m.head.encode(), m.checknum, m.buff.encode())
-
-        print("SocketManager.slot_send_msg()", data)
         try:
             size = self.__sockfd.send(data)  # 发送数据
         except socket.timeout as e:
@@ -430,7 +428,8 @@ class SocketManager(QtCore.QThread):
     def slot_send_msg(self, buff):
         # thread = threading.current_thread()
         # print(">>> SocketManager.run() thread.getName()=", thread.getName())
-        self.__queue_send_msg.put(buff)
+        json_qry_market_info = json.dumps(buff)
+        self.__queue_send_msg.put(json_qry_market_info)
 
     # 接收消息线程
     def run(self):
@@ -475,11 +474,11 @@ class SocketManager(QtCore.QThread):
         while True:
             time.sleep(5)
             if self.__hearbeat_flag:
-                print("SocketManager.run_heartbeat() 心跳正常")
+                # print("SocketManager.run_heartbeat() 心跳正常")
                 self.__hearbeat_flag = False
                 self.send_heartbeat_msg()  # 发送心跳
             else:
-                print("SocketManager.run_heartbeat() MsgType=23，与服务端断开连接", buff)
+                print("SocketManager.run_heartbeat() MsgType=23，与服务端断开连接")
                 dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
                 self.signal_show_alert.emit(dict_args)
 
@@ -502,13 +501,13 @@ class SocketManager(QtCore.QThread):
             if buff['MsgType'] in [1, 7, 8, 9, 13, 14, 18, 19, 23]:  # 不存在字段Info的消息类型
                 # self.receive_msg(buff)
                 pass
-                print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
+                # print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
             else:
                 if len(buff['Info']) > 0:
                     self.__list_info_group.append(buff['Info'][0])
                 buff['Info'] = self.__list_info_group
                 self.__list_info_group = list()
-                print(">>> SocketManager.receive_part_msg() IsLast = 1，Info长度 =", len(buff['Info']), "MsgType =", buff['MsgType'], "full_msg =", buff)
+                # print(">>> SocketManager.receive_part_msg() IsLast = 1，Info长度 =", len(buff['Info']), "MsgType =", buff['MsgType'], "full_msg =", buff)
             self.receive_msg(buff)
         else:
             print(">>> SocketManager.receive_part_msg() IsLast字段异常，buff =", buff)
@@ -535,7 +534,7 @@ class SocketManager(QtCore.QThread):
                     # self.qry_market_info()  # 发送：查询行情配置，MsgType=4
                     self.set_dict_trader_info(buff)
                     self.__dict_user_on_off['所有账户'] = buff['OnOff']
-                    self.__thread_heartbeat.start()  # 开始线程：开始心跳
+                    # self.__thread_heartbeat.start()  # 开始线程：开始心跳
                 elif buff['MsgResult'] == 1:  # 验证不通过
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -751,8 +750,8 @@ class SocketManager(QtCore.QThread):
                                 'MsgType': 4,  # 查询行情信息
                                 'TraderID': self.__trader_id
                                 }
-        json_qry_market_info = json.dumps(dict_qry_market_info)
-        self.slot_send_msg(json_qry_market_info)
+        # json_qry_market_info = json.dumps(dict_qry_market_info)
+        self.slot_send_msg(dict_qry_market_info)
         self.signal_label_login_error_text.emit('查询行情信息')
 
     # 查询期货账户信息
@@ -764,8 +763,8 @@ class SocketManager(QtCore.QThread):
                               'TraderID': self.__trader_id,
                               'UserID': ''
                               }
-        json_qry_user_info = json.dumps(dict_qry_user_info)
-        self.slot_send_msg(json_qry_user_info)
+        # json_qry_user_info = json.dumps(dict_qry_user_info)
+        self.slot_send_msg(dict_qry_user_info)
         self.signal_label_login_error_text.emit('查询期货账户信息')
 
     # 查询期货账户会话ID
@@ -778,8 +777,8 @@ class SocketManager(QtCore.QThread):
                                   'UserID': ''
                                   }
         # {"MsgRef": 1, "MsgSendFlag": 0, "MsgSrc": 0, "MsgType": 16, "TraderID": "1601", "UserID": ""} UserID为空，返回TraderID所属的所有user的sessions
-        json_qry_sessions_info = json.dumps(dict_qry_sessions_info)
-        self.slot_send_msg(json_qry_sessions_info)
+        # json_qry_sessions_info = json.dumps(dict_qry_sessions_info)
+        self.slot_send_msg(dict_qry_sessions_info)
         self.signal_label_login_error_text.emit('查询sessions')
 
     # 查询下单算法
@@ -790,8 +789,8 @@ class SocketManager(QtCore.QThread):
                                    'MsgType': 11,  # 查询期货账户
                                    'TraderID': self.__trader_id,
                                    }
-        json_qry_algorithm_info = json.dumps(dict_qry_algorithm_info)
-        self.slot_send_msg(json_qry_algorithm_info)
+        # json_qry_algorithm_info = json.dumps(dict_qry_algorithm_info)
+        self.slot_send_msg(dict_qry_algorithm_info)
         self.signal_label_login_error_text.emit('查询下单算法')
 
     # 查询策略
@@ -804,8 +803,8 @@ class SocketManager(QtCore.QThread):
                                   'UserID': '',
                                   'StrategyID': ''
                                   }
-        json_qry_strategy_info = json.dumps(dict_qry_strategy_info)
-        self.slot_send_msg(json_qry_strategy_info)
+        # json_qry_strategy_info = json.dumps(dict_qry_strategy_info)
+        self.slot_send_msg(dict_qry_strategy_info)
         self.signal_label_login_error_text.emit('查询策略')
 
     """
@@ -834,8 +833,8 @@ class SocketManager(QtCore.QThread):
             'TraderID': self.__trader_id,
             'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的持仓明细
         }
-        json_qry_position_detial_for_order = json.dumps(dict_qry_position_detial_for_order)
-        self.slot_send_msg(json_qry_position_detial_for_order)
+        # json_qry_position_detial_for_order = json.dumps(dict_qry_position_detial_for_order)
+        self.slot_send_msg(dict_qry_position_detial_for_order)
         self.signal_label_login_error_text.emit('查询期货账户昨日持仓明细(order)')
 
     # 查询期货账户昨日持仓明细（trade）
@@ -848,8 +847,8 @@ class SocketManager(QtCore.QThread):
             'TraderID': self.__trader_id,
             'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的持仓明细
         }
-        json_qry_position_detial_for_trade = json.dumps(dict_qry_position_detial_for_trade)
-        self.slot_send_msg(json_qry_position_detial_for_trade)
+        # json_qry_position_detial_for_trade = json.dumps(dict_qry_position_detial_for_trade)
+        self.slot_send_msg(dict_qry_position_detial_for_trade)
         self.signal_label_login_error_text.emit('查询期货账户昨日持仓明细(trade)')
 
     # 发送心跳消息
@@ -861,8 +860,8 @@ class SocketManager(QtCore.QThread):
             'MsgType': 23,  # 查询期货账户昨日持仓明细trade
             'TraderID': self.__trader_id
         }
-        json_send_heartbeat_msg = json.dumps(dict_send_heartbeat_msg)
-        self.slot_send_msg(json_send_heartbeat_msg)
+        # json_send_heartbeat_msg = json.dumps(dict_send_heartbeat_msg)
+        self.slot_send_msg(dict_send_heartbeat_msg)
 
     """
     # 查询交易员开关
@@ -1053,6 +1052,7 @@ class SocketManager(QtCore.QThread):
         self.data_structure()  # 组织和创建客户端运行数据结构
         self.create_user_process()  # 创建user进程
         self.signal_q_ctp_show.emit()  # 显示主窗口，显示qctp，显示QCTP
+        self.__thread_heartbeat.start()  # 开始线程：开始心跳
         # self.__q_ctp.show()  # 显示主窗口
         # self.__q_login.hide()  # 隐藏登录窗口
 

@@ -24,7 +24,7 @@ class QLoginForm(QWidget, Ui_LoginForm):
     Class documentation goes here.
     """
 
-    signal_send_msg = QtCore.pyqtSignal(str)  # 信号：绑定到SocketManager的send_msg函数
+    signal_send_msg = QtCore.pyqtSignal(dict)  # 信号：绑定到SocketManager的send_msg函数
 
     def __init__(self, parent=None):
         """
@@ -104,8 +104,8 @@ class QLoginForm(QWidget, Ui_LoginForm):
                              'TraderID': self.lineEdit_trader_id.text(),
                              'Password': self.lineEdit_trader_password.text()
                              }
-        json_login = json.dumps(self.__dict_login)
-        self.signal_send_msg.emit(json_login)
+        # json_login = json.dumps(self.__dict_login)
+        self.signal_send_msg.emit(self.__dict_login)
 
     # 获得交易员登录信息
     def get_dict_login(self):

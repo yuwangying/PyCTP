@@ -17,7 +17,7 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
     Class documentation goes here.
     """
 
-    signal_send_msg = QtCore.pyqtSignal(str)  # 定义信号：新建策略窗新建策略指令 -> SocketManager.slot_send_msg
+    signal_send_msg = QtCore.pyqtSignal(dict)  # 定义信号：新建策略窗新建策略指令 -> SocketManager.slot_send_msg
 
     def __init__(self, parent=None):
         """
@@ -140,8 +140,8 @@ class QNewStrategy(QWidget, Ui_NewStrategy):
             'UserID': dict_strategy_args['user_id'],
             'Info': [dict_strategy_args]
         }
-        json_create_strategy = json.dumps(dict_create_strategy)
-        self.signal_send_msg.emit(json_create_strategy)  # 发送新建策略信号 -> SocketManager.slot_send_msg
+        # json_create_strategy = json.dumps(dict_create_strategy)
+        self.signal_send_msg.emit(dict_create_strategy)  # 发送新建策略信号 -> SocketManager.slot_send_msg
 
     # 判断显示窗口是否是"总账户"
     def is_all_account_widget(self):
