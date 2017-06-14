@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/">
+    <file>image/rocket.ico</file>
+    <file>image/bee.ico</file>
+    <file>image/login_bee.png</file>
+  </qresource>
+</RCC>

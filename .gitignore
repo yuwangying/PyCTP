@@ -1,0 +1,5 @@
+PyCTP_Client/PyCTP_ClientCore/build
+PyCTP_Client/PyCTP_ClientCore/dist
+PyCTP_Integration/.idea/*
+PyCTP_Client/PyCTP_ClientCore/conn
+PyCTP_Client/PyCTP_ClientCore/.idea/

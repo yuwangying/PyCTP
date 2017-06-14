@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Project SYSTEM "Project-5.1.dtd">
+<!-- eric project file for project QCTP -->
+<!-- Saved: 2017-04-25, 15:06:03 -->
+<!-- Copyright (C) 2017 gmqh,  -->
+<Project version="5.1">
+  <Language>en_US</Language>
+  <Hash>38ebbb11afed2ebe39aeb9f1442bb55b89ae56af</Hash>
+  <ProgLanguage mixed="0">Python3</ProgLanguage>
+  <ProjectType>Qt4</ProjectType>
+  <Description>QCTP is the GUI of PyCTP.
+QCTP is friendly for traders.</Description>
+  <Version>0.1</Version>
+  <Author>gmqh</Author>
+  <Email></Email>
+  <Sources>
+    <Source>QAccountWidget.py</Source>
+    <Source>QAlertBox.py</Source>
+    <Source>QCTP.py</Source>
+    <Source>QMessageCenter.py</Source>
+    <Source>QStrategySetting.py</Source>
+    <Source>Ui_QAccountWidget.py</Source>
+    <Source>Ui_QAlertBox.py</Source>
+    <Source>Ui_QCTP.py</Source>
+    <Source>Ui_QLogin.py</Source>
+    <Source>Ui_QMessageCenter.py</Source>
+    <Source>Ui_QMessageTable.py</Source>
+    <Source>Ui_QOrderWidget.py</Source>
+    <Source>Ui_QStrategySetting.py</Source>
+    <Source>img_rc.py</Source>
+  </Sources>
+  <Forms>
+    <Form>QAccountWidget.ui</Form>
+    <Form>QAlertBox.ui</Form>
+    <Form>QCTP.ui</Form>
+    <Form>QLogin.ui</Form>
+    <Form>QMessageCenter.ui</Form>
+    <Form>QMessageTable.ui</Form>
+    <Form>QOrderWidget.ui</Form>
+    <Form>QStrategySetting.ui</Form>
+  </Forms>
+  <Translations/>
+  <Resources>
+    <Resource>img.qrc</Resource>
+  </Resources>
+  <Interfaces/>
+  <Others/>
+  <Vcs>
+    <VcsType>None</VcsType>
+  </Vcs>
+  <FiletypeAssociations>
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES"/>
+    <FiletypeAssociation pattern="*.py" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.py3" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw3" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.qm" type="TRANSLATIONS"/>
+    <FiletypeAssociation pattern="*.qrc" type="RESOURCES"/>
+    <FiletypeAssociation pattern="*.ts" type="TRANSLATIONS"/>
+    <FiletypeAssociation pattern="*.ui" type="FORMS"/>
+  </FiletypeAssociations>
+</Project>
