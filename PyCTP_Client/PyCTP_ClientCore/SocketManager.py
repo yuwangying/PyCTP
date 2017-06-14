@@ -64,7 +64,7 @@ class SocketManager(QtCore.QThread):
     signal_init_ui_on_off = QtCore.pyqtSignal(int)  # 定义信号：SocketManager收到交易员登录成功信息 -> 初始化界面“开始策略”按钮
     signal_update_strategy_on_off = QtCore.pyqtSignal(dict)  # 定义信号：SocketManager收到修改策略开关回报 -> 界面talbeView更新特定的index
     signal_init_groupBox_order_algorithm = QtCore.pyqtSignal(list)  # 定义信号LSocketManger下单算法信息 -> 界面groupBox初始化下单算法选项
-    signal_show_message = QtCore.pyqtSignal(list)  # 定义信号显示提示朝窗口 -> 消息弹窗
+    # signal_show_message = QtCore.pyqtSignal(list)  # 定义信号显示提示朝窗口 -> 消息弹窗
     signal_setTabIcon = QtCore.pyqtSignal(int)  # Socket收到修改期货账户开关或交易员开关 -> 设置tabbar样式
     signal_init_setTabIcon = QtCore.pyqtSignal()  # Socket收到查询期货账户信息 -> 界面初始化tab样式
     signal_show_alert = QtCore.pyqtSignal(dict)  # 定义信号：显示弹窗
@@ -90,6 +90,9 @@ class SocketManager(QtCore.QThread):
         self.__thread_send_msg = threading.Thread(target=self.run_send_msg)  # 创建发送socket消息线程
         self.__thread_send_msg.setDaemon(True)  # 设置主线程退出该线程也退出
         self.__thread_send_msg.start()  # 开始线程：发送socket消息线程
+        self.__thread_heartbeat = threading.Thread(target=self.run_heartbeat)  # 创建心跳进程
+        self.__hearbeat_flag = True  # 心跳标志初始值，True：心跳正常，False：心跳异常
+        # self.__thread_heartbeat.start()  # 开始线程：开始心跳
         # self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
         self.__list_instrument_info = list()  # 所有合约信息
         self.__list_update_widget_data = list()  # 向ui发送更新界面信号的数据结构
@@ -104,7 +107,7 @@ class SocketManager(QtCore.QThread):
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
         self.__recive_msg_flag = False  # 接收socket消息线程运行标志
-        self.msg_box = MessageBox()  # 创建消息弹窗
+        # self.msg_box = MessageBox()  # 创建消息弹窗
         self.__list_panel_show_account = list()  # 更新界面资金条数据结构# 读取xml文件
 
         self.__thread_connect = threading.Thread(target=self.connect)
@@ -350,7 +353,9 @@ class SocketManager(QtCore.QThread):
                     self.__recive_msg_flag = False
                     print("SocketManager.connect() socket error", e)
                     # self.signal_label_login_error_text.emit('登录失败,自动重连')
-                    MessageBox().showMessage("错误", "连接服务器失败！")
+                    # MessageBox().showMessage("错误", "连接服务器失败！")
+                    dict_args = {"title": "消息", "main": "注意：连接服务器失败"}
+                    self.signal_show_alert.emit(dict_args)
                     time.sleep(5)
                     # self.connect()
                     # dict_args = {"title": "消息", "main": "连接服务器失败"}
@@ -374,7 +379,9 @@ class SocketManager(QtCore.QThread):
             except socket.error as e:
                 self.__RecvN = False
                 print("SocketManager.RecvN()", e, n, totalRecved)
-                MessageBox().showMessage("错误", "接收消息失败！")
+                # MessageBox().showMessage("错误", "接收消息失败！")
+                dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+                self.signal_show_alert.emit(dict_args)
                 self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.__thread_connect.start()
                 return None
@@ -411,7 +418,7 @@ class SocketManager(QtCore.QThread):
             size = self.__sockfd.send(data)  # 发送数据
         except socket.timeout as e:
             print("SocketManager.slot_send_msg()", e)
-            MessageBox().showMessage("错误", "发送消息失败")
+            # MessageBox().showMessage("错误", "发送消息失败")
             self.__recive_msg_flag = False
             self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__thread_connect.start()
@@ -463,6 +470,19 @@ class SocketManager(QtCore.QThread):
             # print(">>> SocketManager run() takes time = %s" % (time.time() - start_time))
         print(">>> SocketManager run() stop")
 
+    # 心跳进程
+    def run_heartbeat(self):
+        while True:
+            time.sleep(5)
+            if self.__hearbeat_flag:
+                print("SocketManager.run_heartbeat() 心跳正常")
+                self.__hearbeat_flag = False
+                self.send_heartbeat_msg()  # 发送心跳
+            else:
+                print("SocketManager.run_heartbeat() MsgType=23，与服务端断开连接", buff)
+                dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+                self.signal_show_alert.emit(dict_args)
+
     # 发送消息线程
     def run_send_msg(self):
         # thread = threading.current_thread()
@@ -479,7 +499,7 @@ class SocketManager(QtCore.QThread):
             self.__list_info_group.append(buff['Info'][0])
         elif buff['IsLast'] == 1:
             # full_msg = copy.deepcopy(buff)
-            if buff['MsgType'] in [1, 7, 8, 9, 13, 14, 18, 19]:
+            if buff['MsgType'] in [1, 7, 8, 9, 13, 14, 18, 19, 23]:  # 不存在字段Info的消息类型
                 # self.receive_msg(buff)
                 pass
                 print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
@@ -515,6 +535,7 @@ class SocketManager(QtCore.QThread):
                     # self.qry_market_info()  # 发送：查询行情配置，MsgType=4
                     self.set_dict_trader_info(buff)
                     self.__dict_user_on_off['所有账户'] = buff['OnOff']
+                    self.__thread_heartbeat.start()  # 开始线程：开始心跳
                 elif buff['MsgResult'] == 1:  # 验证不通过
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -694,6 +715,8 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
                 # 收到查询策略回报消息，激活“查询”按钮
                 self.signal_activate_query_strategy_pushbutton.emit()
+            elif buff['MsgType'] == 23:  # 服务端的心跳回应
+                self.__hearbeat_flag = True  # 心跳设置为正常
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             if buff['MsgType'] == 18:  # 服务端CTP行情断开、连接通知，服务端主动发送给客户端
                 if buff['MsgResult'] == 0:
@@ -828,6 +851,18 @@ class SocketManager(QtCore.QThread):
         json_qry_position_detial_for_trade = json.dumps(dict_qry_position_detial_for_trade)
         self.slot_send_msg(json_qry_position_detial_for_trade)
         self.signal_label_login_error_text.emit('查询期货账户昨日持仓明细(trade)')
+
+    # 发送心跳消息
+    def send_heartbeat_msg(self):
+        dict_send_heartbeat_msg = {
+            'MsgRef': self.msg_ref_add(),
+            'MsgSendFlag': 0,  # 发送标志，客户端发出0，服务端发出1
+            'MsgSrc': 0,  # 消息源，客户端0，服务端1
+            'MsgType': 23,  # 查询期货账户昨日持仓明细trade
+            'TraderID': self.__trader_id
+        }
+        json_send_heartbeat_msg = json.dumps(dict_send_heartbeat_msg)
+        self.slot_send_msg(json_send_heartbeat_msg)
 
     """
     # 查询交易员开关
