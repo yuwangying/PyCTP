@@ -21,4 +21,4 @@ PyCTP
 * PyCTP_SOCKET  
   * 实现PyCTP与Server之间的socket通信版本  
 
-### 更新时间:2016.07.21  
+### 更新时间:2017.06.14  
