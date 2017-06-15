@@ -92,7 +92,7 @@ class SocketManager(QtCore.QThread):
         self.__thread_send_msg.start()  # 开始线程：发送socket消息线程
         self.__thread_heartbeat = threading.Thread(target=self.run_heartbeat)  # 创建心跳进程
         self.__thread_heartbeat.setDaemon(True)
-        self.__hearbeat_flag = True  # 心跳标志初始值，True：心跳正常，False：心跳异常
+        # self.__hearbeat_flag = True  # 心跳标志初始值，True：心跳正常，False：心跳异常
         # self.__thread_heartbeat.start()  # 开始线程：开始心跳
         # self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
         self.__list_instrument_info = list()  # 所有合约信息
@@ -381,7 +381,7 @@ class SocketManager(QtCore.QThread):
                 self.__RecvN = False
                 print("SocketManager.RecvN()", e, n, totalRecved)
                 # MessageBox().showMessage("错误", "接收消息失败！")
-                dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+                dict_args = {"title": "消息", "main": "注意：接收服务端消息失败"}
                 self.signal_show_alert.emit(dict_args)
                 self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.__thread_connect.start()
@@ -415,9 +415,16 @@ class SocketManager(QtCore.QThread):
         data = struct.pack(">13s1B" + str(len(m.buff.encode()) + 1) + "s", m.head.encode(), m.checknum, m.buff.encode())
         try:
             size = self.__sockfd.send(data)  # 发送数据
-        except socket.timeout as e:
-            print("SocketManager.slot_send_msg()", e)
+        except socket.error as e:
+            print("SocketManager.slot_send_msg() except socket.error as e:", e)
             # MessageBox().showMessage("错误", "发送消息失败")
+            dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+            self.signal_show_alert.emit(dict_args)
+        except socket.timeout as e:
+            print("SocketManager.slot_send_msg() except socket.timeout as e:", e)
+            # MessageBox().showMessage("错误", "发送消息失败")
+            dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+            self.signal_show_alert.emit(dict_args)
             self.__recive_msg_flag = False
             self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__thread_connect.start()
@@ -473,15 +480,16 @@ class SocketManager(QtCore.QThread):
     # 心跳进程
     def run_heartbeat(self):
         while True:
-            time.sleep(5)
-            if self.__hearbeat_flag:
-                # print("SocketManager.run_heartbeat() 心跳正常")
-                self.__hearbeat_flag = False
-                self.send_heartbeat_msg()  # 发送心跳
-            else:
-                print("SocketManager.run_heartbeat() MsgType=23，与服务端断开连接")
-                dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
-                self.signal_show_alert.emit(dict_args)
+            time.sleep(20)
+            self.send_heartbeat_msg()  # 发送心跳
+            # if self.__hearbeat_flag:
+            #     # print("SocketManager.run_heartbeat() 心跳正常")
+            #     self.__hearbeat_flag = False
+            #     self.send_heartbeat_msg()  # 发送心跳
+            # else:
+            #     print("SocketManager.run_heartbeat() MsgType=23，与服务端断开连接")
+            #     dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+            #     self.signal_show_alert.emit(dict_args)
 
     # 发送消息线程
     def run_send_msg(self):
@@ -715,8 +723,8 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
                 # 收到查询策略回报消息，激活“查询”按钮
                 self.signal_activate_query_strategy_pushbutton.emit()
-            elif buff['MsgType'] == 23:  # 服务端的心跳回应
-                self.__hearbeat_flag = True  # 心跳设置为正常
+            # elif buff['MsgType'] == 23:  # 服务端的心跳回应
+            #     self.__hearbeat_flag = True  # 心跳设置为正常
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             if buff['MsgType'] == 18:  # 服务端CTP行情断开、连接通知，服务端主动发送给客户端
                 if buff['MsgResult'] == 0:
