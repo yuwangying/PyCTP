@@ -54,6 +54,11 @@ class Strategy():
         self.init_variable()  # 初始化变量
         self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取TdApi的交易日
         self.set_arguments(dict_args)  # 设置策略参数，形参由server端获取到
+        # 从API查询期货合约信息中未找到该合约代码，则不创建Strategy对象
+        # if self.if_exist_instrument_id(self.__a_instrument_id) == False:
+        #     return
+        # if self.if_exist_instrument_id(self.__b_instrument_id) == False:
+        #     return
         self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
         self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
         self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
@@ -1500,6 +1505,16 @@ class Strategy():
 
     def get_b_instrument_id(self):
         return self.__b_instrument_id
+
+    # 判断从API查询的合约信息中是否存在形参的合约，存在：返回True，不存在：返回False
+    def if_exist_instrument_id(self, instrument_id):
+        found_flag = False
+        for i in self.__user.get_instrument_info():
+            if i['InstrumentID'] == instrument_id:
+                found_flag = True
+                return True
+        if found_flag == False:
+            return False
 
     # 获取指定合约最小跳'PriceTick'
     def get_price_tick(self, instrument_id):

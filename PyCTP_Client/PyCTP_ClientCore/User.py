@@ -1235,7 +1235,12 @@ class User():
     # 形参：合约代码'cu1703'，交易所代码'SHFE'
     def get_commission(self, instrument_id, exchange_id):
         # 获取品种代码，例如cu、zn
-        if exchange_id in ['SHFE', 'CFFEX', 'DZCE']:
+        if exchange_id == 'SHFE':
+            if len(instrument_id) == 6:
+                commodity_id = instrument_id[:2]
+            elif len(instrument_id) == 5:
+                commodity_id = instrument_id[:1]
+        elif exchange_id in ['CFFEX', 'DZCE']:
             commodity_id = instrument_id[:2]
         elif exchange_id in ['DCE']:
             commodity_id = instrument_id[:1]
@@ -1247,21 +1252,26 @@ class User():
             # 通过API查询单个品种的手续费率dict
             self.qry_api_interval_manager()  # API查询时间间隔管理
             # 尝试三次获取指定合约的手续费详细
+            flag_get_commission_success = False  # 获取手续费率成功标志位，默认获取失败，False
             flag = 0
             while flag < 3:
                 self.qry_api_interval_manager()  # API查询时间间隔管理
                 list_commission = self.__trader_api.QryInstrumentCommissionRate(instrument_id.encode())
-                if isinstance(list_commission, list):
+                if isinstance(list_commission, list) and len(list_commission) > 0:
+                    print(">>>User.get_commission() user_id =", self.__user_id, "list_commission =", list_commission)
                     dict_commission = Utils.code_transform(list_commission[0])
-                    print("User.get_mmission() 获取手续费成功", "user_id =", self.__user_id, "instrument_id =", instrument_id, "dict_commission =", dict_commission)
+                    print("User.get_mmission() 获取手续费成功", "user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "dict_commission =", dict_commission)
+                    flag_get_commission_success = True
                     break
                 else:
                     flag += 1
                     print("User.get_mmission() 获取手续费失败，尝试次数", flag, "user_id =", self.__user_id, "instrument_id =", instrument_id,
                           "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
-            if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
-                print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
+            # if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
+            #     print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
             # print(">>> User.get_commission() ", dict_commission)
+            if flag_get_commission_success == False:  # 获取手续费失败，返回空dict
+                dict_commission = dict()
             self.__dict_commission[commodity_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
         return self.__dict_commission[commodity_id]
 
