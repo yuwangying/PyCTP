@@ -91,6 +91,7 @@ class SocketManager(QtCore.QThread):
         self.__thread_send_msg.setDaemon(True)  # 设置主线程退出该线程也退出
         self.__thread_send_msg.start()  # 开始线程：发送socket消息线程
         self.__thread_heartbeat = threading.Thread(target=self.run_heartbeat)  # 创建心跳进程
+        self.__thread_heartbeat.setDaemon(True)
         self.__hearbeat_flag = True  # 心跳标志初始值，True：心跳正常，False：心跳异常
         # self.__thread_heartbeat.start()  # 开始线程：开始心跳
         # self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
