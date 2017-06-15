@@ -66,91 +66,6 @@ class Strategy():
         self.__df_OnRtnOrder = DataFrame()
         self.__df_OnRtnTrade = DataFrame()
 
-        # self.set_init_finished(True)  # 策略初始化完成
-
-        # self.init_list_position_detail_for_order()  # 初始化策略持仓明细order
-        # self.init_list_position_detail_for_trade()  # 初始化策略持仓明细trade
-
-        # self.__init_finished = False  # strategy对象内部属性初始化状态
-        # self.__init_finished_statistics = False  # strategy统计指标初始化状态
-        # self.__trade_tasking = False  # 交易任务进行中
-        # self.__a_order_insert_args = dict()  # a合约报单参数
-        # self.__b_order_insert_args = dict()  # b合约报单参数
-        # self.__list_QryOrder = list()  # 属于本策略的QryOrder列表
-        # self.__list_QryTrade = list()  # 属于本策略的QryTrade列表
-        # self.__list_position_detail_for_order = list()  # 策略持仓明细列表，用order维护
-        # self.__list_position_detail_for_trade = list()  # 策略持仓明细列表，用trade维护
-        # self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
-        # self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
-        # self.__a_tick = None  # A合约tick（第一腿）
-        # self.__b_tick = None  # B合约tick（第二腿）
-        # self.__spread_long = None  # 市场多头价差：A合约买一价 - B合约买一价
-        # self.__spread_long_volume = None  # 市场多头价差盘口挂单量min(A合约买一量 - B合约买一量)
-        # self.__spread_short = None  # 市场空头价差：A合约卖一价 - B合约卖一价
-        # self.__spread_short_volume = None  # 市场空头价差盘口挂单量：min(A合约买一量 - B合约买一量)
-        # self.__spread = None  # 市场最新价价差
-        # self.__order_ref_a = None  # A合约报单引用
-        # self.__order_ref_b = None  # B合约报单引用
-        # self.__order_ref_last = None  # 最后一次实际使用的报单引用
-        # self.__dict_yesterday_position = dict()  # 本策略昨仓
-        # self.__dict_statistics = dict()  # 保存统计类指标的dict
-        # self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnOrder发来的数据
-        # self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnTrade发来的数据
-        # self.__queue_OnRtnDepthMarketData = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnDepthMarketData发来的数据
-        # self.__thread_run_count = threading.Thread(target=self.run_count)  # 创建核心统计运算线程
-        # self.__list_strategy_view = list()  # 单策略对象在view视窗中所显示的数据list，list内容：['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交额', 'A成交率', 'B成交率', '交易模型', '下单算法']
-
-        # 界面交互标志
-        # self.__clicked_total = False  # 策略在主窗口中被选中的标志
-        # self.__clicked_signal = False  # 策略在单账户窗口中被选中的标志
-        # self.__last_to_ui_spread_short = None  # 最后价差值初始值
-        # self.__last_to_ui_spread_long = None  # 最后价差值初始值
-
-        # self.set_arguments(dict_args)  # 设置策略参数
-        # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
-
-        # 通过API查询的数据，统一放到期货账户登录成功之后再调用
-        # self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
-        # self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
-        # self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
-        # self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
-        # self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
-        # self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
-        # self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
-        # self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
-        # self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
-        # self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
-
-
-        # 程序运行中新添加的策略设置为窗口类和管理类的属性
-        # if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
-        #     self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
-        #     self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
-
-        # 从user类的list_QryOrder中选出本策略的list_QryOrder
-        # self.get_list_QryOrder()
-        # 从user类的list_QryTrade中选出本策略的list_QryTrade
-        # self.get_list_QryTrade()
-
-        # 初始化策略持仓明细列表，以及初始化统计类指标
-        # self.init_list_position_detail_for_order()
-        # self.init_list_position_detail_for_trade()
-
-        # 初始化策略持仓变量
-        # self.init_position()
-        # 初始化统计指标
-        # self.init_statistics()
-
-        # self.__init_finished = True
-        # print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
-
-        # 定义内部处理tick线程
-        # self.signal_handle_tick.connect(self.slot_handle_tick)
-        # self.tick_thread = QtCore.QThread()  # 创建线程实例
-        # self.tick_thread.started.connect(self.slot_handle_tick)  # 线程self.tick_thread绑定到self.slot_handle_tick
-        # self.tick_thread.start()  # 启动线程
-        # self.moveToThread(self.tick_thread)  # 把本类Strategy移到线程self.tick_thread里
-
     # 设置参数
     def set_arguments(self, dict_args):
         self.__dict_arguments = copy.deepcopy(dict_args)  # 将形参转存为私有变量
@@ -295,6 +210,8 @@ class Strategy():
         self.__total_traded_amount = 0  # A、B成交金额
         self.__a_commission = 0  # A手续费
         self.__b_commission = 0  # B手续费
+        self.__a_commission_order = 0  # A合约申报费，中金所股指期货合约存在申报费
+        self.__b_commission_order = 0  # B合约申报费
         self.__total_commission = 0  # 总手续费
         self.__a_trade_rate = 0  # A成交概率(成交手数/报单手数)
         self.__b_trade_rate = 0  # B成交概率(成交手数/报单手数)
@@ -335,6 +252,9 @@ class Strategy():
             'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
             'b_trade_rate': self.__b_trade_rate  # B成交概率(成交手数/报单手数)
         }
+
+        # 统计申报费的OrderRef管理list
+        self.__list_OrderRef_for_count_commission_order = list()
 
     def get_list_strategy_view(self):
         # ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
@@ -1443,7 +1363,34 @@ class Strategy():
                     self.__dict_commission_a['CloseRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
                     + self.__dict_commission_a['CloseRatioByVolume'] * trade['Volume']
         return commission_amount
-    
+
+    # 计算申报费
+    def count_commission_order(self, order):
+        if order['ExchangeID'] == 'CFFEX':  # 中金所品种
+            InstrumentID = order['InstrumentID']
+            if len(InstrumentID) == 6:
+                CommodityID = InstrumentID[:2]
+            elif len(InstrumentID) == 5:
+                CommodityID = InstrumentID[:1]
+            if CommodityID in ['IF', 'IH', 'IC']:  # 三个品种统计申报费
+                OrderRef = order['OrderRef']
+                if OrderRef not in self.__list_OrderRef_for_count_commission_order:
+                    self.__list_OrderRef_for_count_commission_order.append(OrderRef)
+                    if InstrumentID == self.__a_instrument_id:
+                        self.__a_commission_order += 1
+                    elif InstrumentID == self.__b_instrument_id:
+                        self.__b_commission_order += 1
+                    print(">>>Strategy.count_commission_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "申报费", self.__a_instrument_id, "=", self.__a_commission_order, self.__b_instrument_id, "=", self.__b_commission_order)
+                else:
+                    if order['OrderStatus'] in ['0', '5']:
+                        self.__list_OrderRef_for_count_commission_order.remove(OrderRef)
+                        if order['OrderStatus'] == '5':
+                            if InstrumentID == self.__a_instrument_id:
+                                self.__a_commission_order += 1
+                            elif InstrumentID == self.__b_instrument_id:
+                                self.__b_commission_order += 1
+                            print(">>>Strategy.count_commission_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "申报费", self.__a_instrument_id, "=", self.__a_commission_order, self.__b_instrument_id, "=", self.__b_commission_order)
+
     # 计算策略持仓盈亏，由行情回调驱动
     def update_profit_position(self, tick):
         if len(self.__list_position_detail_for_trade) > 0:  # 有持仓时更新持仓盈亏
@@ -1908,8 +1855,8 @@ class Strategy():
             'a_traded_amount': self.__a_traded_amount,  # A成交金额
             'b_traded_amount': self.__b_traded_amount,  # B成交金额
             'total_traded_amount': self.__total_traded_amount,  # 总成交量
-            'a_commission_count': self.__a_commission,  # A手续费
-            'b_commission_count': self.__b_commission,  # B手续费
+            'a_commission_count': self.__a_commission + self.__a_commission_order,  # A手续费
+            'b_commission_count': self.__b_commission + self.__b_commission_order,  # B手续费
             'commission': self.__total_commission,  # 总手续费
             'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
             'b_trade_rate': self.__b_trade_rate,  # B成交概率(成交手数/报单手数)
@@ -2169,6 +2116,9 @@ class Strategy():
 
         # 更新统计指标
         self.statistics_for_order(Order)
+
+        # 统计中金所部分品种申报费：IF\IH\IC
+        self.count_commission_order(Order)
 
         # 更新界面
         # self.signal_update_strategy.emit(self)
