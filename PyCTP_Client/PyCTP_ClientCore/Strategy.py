@@ -106,42 +106,7 @@ class Strategy():
         self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
         self.__update_position_detail_record_time = dict_args['update_position_detail_record_time']  # 修改策略持仓时间，空字符串：本交易日没有修改持仓
-        print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__update_position_detail_record_time =", self.__update_position_detail_record_time)
-
-        # strategy_arguments = {
-        #     'user_id': self.__user_id,
-        #     'strategy_id': self.__strategy_id,
-        #     'trade_model': self.__trade_model,
-        #     'order_algorithm': self.__order_algorithm,
-        #     'lots': self.__lots,
-        #     'lots_batch': self.__lots_batch,
-        #     'stop_loss': self.__stop_loss,
-        #     'on_off': self.__strategy_on_off,
-        #     'spread_shift': self.__spread_shift,
-        #     'a_instrument_id': self.__a_instrument_id,
-        #     'b_instrument_id': self.__b_instrument_id,
-        #     'a_limit_price_shift': self.__a_limit_price_shift,
-        #     'b_limit_price_shift': self.__b_limit_price_shift,
-        #     'a_wait_price_tick': self.__a_wait_price_tick,
-        #     'b_wait_price_tick': self.__b_wait_price_tick,
-        #     'a_order_action_limit': self.__a_order_action_limit,
-        #     'b_order_action_limit': self.__b_order_action_limit,
-        #     'buy_open': self.__buy_open,
-        #     'sell_close': self.__sell_close,
-        #     'sell_open': self.__sell_open,
-        #     'buy_close': self.__buy_close,
-        #     'sell_open_on_off': self.__sell_open_on_off,
-        #     'buy_close_on_off': self.__buy_close_on_off,
-        #     'buy_open_on_off': self.__sell_close_on_off,
-        #     'sell_close_on_off': self.__buy_open_on_off
-        # }
-        # dict_msg = {
-        #     'DataFlag': 'strategy_arguments',
-        #     'UserId': self.__user_id,
-        #     'DataMain': strategy_arguments  # 最新策略参数
-        # }
-        # print(">>> Strategy.set_arguments() user_id =", self.__user_id, 'data_flag =', 'strategy_arguments', 'data_msg =', dict_msg)
-        # self.__user.get_Queue_user().put(dict_msg)
+        # print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__update_position_detail_record_time =", self.__update_position_detail_record_time)
 
     # 获取参数
     def get_arguments(self):
@@ -590,7 +555,7 @@ class Strategy():
         print("B总买", self.__position_b_buy, "B昨卖", self.__position_b_buy_yesterday)
         print("A总买", self.__position_a_buy, "A昨买", self.__position_a_buy_yesterday)
         print("B总卖", self.__position_b_sell, "B昨卖", self.__position_b_sell_yesterday)
-        print("平仓盈亏-手续费=净盈亏", self.__profit_close, self.__total_commission, self.__profit)
+        # print("平仓盈亏-手续费=净盈亏", self.__profit_close, self.__total_commission, self.__profit)
         # print(" self.__list_position_detail_for_trade 长度", len(self.__list_position_detail_for_trade))
         # for i in self.__list_position_detail_for_trade:
         #     print(i)
@@ -698,7 +663,7 @@ class Strategy():
         # 郑商所：同一合约买、卖持仓，仅收较大单边保证金，同一品种内区分不同月份合约
         # 大商所：没有保证金免收政策
         # 中金所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
-        # self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
+        self.__Margin_Occupied_CFFEX = 0  # self.Margin_Occupied_CFFEX()
         self.__Margin_Occupied_SHFE = self.Margin_Occupied_SHFE()
         self.__Margin_Occupied_CZCE = 0  # self.Margin_Occupied_CZCE()
         self.__Margin_Occupied_DCE = 0  # self.Margin_Occupied_DCE()

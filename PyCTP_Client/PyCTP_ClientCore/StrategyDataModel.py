@@ -63,7 +63,7 @@ class StrategyDataModel(QAbstractTableModel):
                 self.__QAccountWidget.tableView_Trade_Args.resizeColumnsToContents()  # tableView列宽自动适应
                 self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
                 self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
-                print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
+                # print(">>> StrategyDataModel.slot_set_data_list() 只需要设置一次tableView列宽")
             # # 第一列更新为checkBox
             # for i in self.__data_list:
             #     checkbox = QtGui.QCheckBox()
@@ -102,7 +102,7 @@ class StrategyDataModel(QAbstractTableModel):
     # 刷新tableView全部元素
     def update_table_view_total(self, data_list):
         self.__data_list = data_list
-        print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域, len(data_list) =", len(data_list))
+        # print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域, len(data_list) =", len(data_list))
         t1 = self.index(0, 1)  # 左上角
         t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
 
@@ -135,7 +135,7 @@ class StrategyDataModel(QAbstractTableModel):
             for i in range(len(self.__data_list)):
                 if self.__data_list[i][1] == user_id and self.__data_list[i][2] == strategy_id:
                     row = i
-                    print(">>> StrategyDataModel.slot_update_strategy_on_off() user_id =", user_id, "strategy_id =", strategy_id)
+                    print(">>> StrategyDataModel.slot_update_strategy_on_off() user_id =", user_id, "strategy_id =", strategy_id, "针对特定的单个strategy更新界面开关")
                     if on_off == 1:
                         self.__data_list[row][0].setText('开')
                         self.__data_list[row][0].setCheckState(QtCore.Qt.Checked)

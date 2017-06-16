@@ -305,14 +305,14 @@ class QAccountWidget(QWidget, Ui_Form):
         # if self.tableView_Trade_Args.StrategyDataModel is not None:
         # if self.tableView_Trade_Args.model() is not None:
         #     self.tableView_Trade_Args.StrategyDataModel.set_update_once(True)  # 更新一次tableView内全部index
-        print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name, "int_tab_index =", int_tab_index)
+        # print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name, "int_tab_index =", int_tab_index)
         # print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         dict_tab_clicked_info = self.__dict_clicked_info[self.__current_tab_name]
         # print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
         # 主动触发鼠标单击事件
         if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
-            print("QAccountWidget.slot_tab_changed() if len(dict_tab_clicked_info) > 0:")
+            # print("QAccountWidget.slot_tab_changed() if len(dict_tab_clicked_info) > 0:")
             row = dict_tab_clicked_info['row']
             column = dict_tab_clicked_info['column']
             self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
@@ -373,7 +373,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
-        
+
     def get_ClientMain(self):
         return self.__client_main
 
@@ -455,10 +455,10 @@ class QAccountWidget(QWidget, Ui_Form):
         print(">>> QAccountWidget.get_clicked_status() self.sender()=", self.sender(), " widget_name=", self.__widget_name, 'user_id=',
               self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
         return self.__clicked_status
-    
+
     def set_list_strategy(self, list_strategy):
         self.__list_strategy = list_strategy
-        
+
     def get_list_strategy(self):
         return self.__list_strategy
 
@@ -2190,7 +2190,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot()
     def on_pushButton_only_close_clicked(self):
         """
@@ -2379,7 +2379,7 @@ class QAccountWidget(QWidget, Ui_Form):
             dict_args = {"title": "消息", "main": "‘多头开’必须小于‘多头平’"}
             self.signal_show_alert.emit(dict_args)
             return
-    
+
     @pyqtSlot()
     def on_pushButton_set_strategy_clicked(self):
         print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() called")
@@ -2613,7 +2613,7 @@ class QAccountWidget(QWidget, Ui_Form):
     # 激活设置持仓按钮，禁用仓位输入框
     @QtCore.pyqtSlot()
     def on_pushButton_set_position_active(self):
-        print(">>> QAccountWidget.on_pushButton_set_position_active() called")
+        # print(">>> QAccountWidget.on_pushButton_set_position_active() called")
         self.set_allow_update_group_box_position(False)  # 允许刷新groupBox中的持仓变量LineEdit为False
         self.lineEdit_Azongsell.setReadOnly(True)  # 文本框只读
         self.lineEdit_Azongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
@@ -2745,7 +2745,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         # raise NotImplementedError
         pass
-    
+
     @pyqtSlot(int)
     def on_checkBox_kongtoukai_stateChanged(self, p0):
         """
@@ -2756,7 +2756,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(bool)
     def on_checkBox_duotouping_clicked(self, checked):
         """
@@ -2767,7 +2767,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(int)
     def on_checkBox_duotouping_stateChanged(self, p0):
         """
@@ -2778,7 +2778,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(bool)
     def on_checkBox_duotoukai_clicked(self, checked):
         """
@@ -2789,7 +2789,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(int)
     def on_checkBox_duotoukai_stateChanged(self, p0):
         """
@@ -2800,7 +2800,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(bool)
     def on_checkBox_kongtouping_clicked(self, checked):
         """
@@ -2811,7 +2811,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(int)
     def on_checkBox_kongtouping_stateChanged(self, p0):
         """
@@ -2822,7 +2822,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     #@pyqtSlot(QPoint)
     #def on_tablewidget_tableWidget_Trade_Args_customContextMenuRequested(self, pos):
         """
@@ -2834,7 +2834,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         ## raise NotImplementedError
 
-    
+
     @pyqtSlot(int)
     def on_comboBox_qihuozhanghao_currentIndexChanged(self, index):
         """
@@ -2846,7 +2846,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         # raise NotImplementedError
         # print(">>> QAccountWidget.on_comboBox_qihuozhanghao_currentIndexChanged()")
-    
+
     @pyqtSlot(str)
     def on_comboBox_qihuozhanghao_currentIndexChanged(self, p0):
         """
@@ -2868,7 +2868,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(str)
     def on_comboBox_jiaoyimoxing_currentIndexChanged(self, p0):
         """
@@ -2879,7 +2879,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         print("currentindex string %s" % p0)
-    
+
     @pyqtSlot(int)
     def on_comboBox_celuebianhao_currentIndexChanged(self, index):
         """
@@ -2890,7 +2890,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         print("currentindex %d" % index)
-    
+
     @pyqtSlot(str)
     def on_comboBox_celuebianhao_currentIndexChanged(self, p0):
         """

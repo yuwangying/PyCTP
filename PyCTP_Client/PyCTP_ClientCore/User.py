@@ -66,31 +66,6 @@ class User():
 
         self.__qry_api_last_time = time.time()  # 类型浮点数，最后一次查询Trade_Api的时间
         self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用首位固定为1，后两位为策略编号，中间部分递增1
-        # self.__list_sessionid = list()  # 当前交易日，期货账户所有会话id，服务端的
-        # self.__server_list_position_detail_for_order_yesterday = list()  # 期货账户持仓明细，内部元素结构为order
-        # self.__server_list_position_detail_for_trade_yesterday = list()  # 期货账户持仓明细，内部元素结构为trade
-        # self.__list_order_process = list()  # 挂单列表，未成交、部分成交还在队列中
-        # self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
-        # self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
-        # self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
-        # self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
-        # self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
-        # self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，
-        # self.__dict_open_counter = dict()  # 记录合约开仓手数的字典，交易日换日时初始化
-        # self.__init_finished = False  # 初始化完成
-        # self.__init_finished_succeed = True  # user初始化成功，初始化过程中遇到任何异常就设置为False
-
-        # self.__dict_panel_show_account = dict()  # 单账户窗口显示的数据，{动态权益，静态权益，持仓盈亏，平仓盈亏，手续费，可用资金，占用保证金，下单冻结，风险度，今日入金，今日出金}
-        # self.__current_margin = 0  # 期货账户的持仓占用保证金
-        # self.__commission = 0  # 期货账户手续费
-        # self.__profit_position = 0  # 期货账户持仓盈亏
-        # self.__profit_close = 0  # 期货账户平仓盈亏
-        #
-        # self.__df_order = DataFrame()  # 保存该期货账户的所有OnRtnOrder来的记录
-        # self.__df_trade = DataFrame()  # 保存该期货账户的所有OnRtnTrade来的记录
-        # self.__df_qry_order = DataFrame()  # 保存该期货账户的所有QryOrder返回的记录
-        # self.__df_qry_trade = DataFrame()  # 保存该期货账户的所有QryTrade返回的记录
-        # self.__df_log = DataFrame()  # 测试时用来保存user全局日志
 
         # 创建行情，获取交易日
         self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
@@ -544,7 +519,7 @@ class User():
         # 查询策略
         # 界面点击“查询”按钮触发的特殊进程间通信
         elif dict_data['MsgType'] == 91:
-            print(">>> User.handle_Queue_get() user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信", dict_data)
+            print(">>> User.handle_Queue_get() 进程通信main->user，user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信", dict_data)
             # 91:保存OnRtnOrder、OnRtnTrade
             # for strategy_id in self.__dict_strategy:
                 # self.__dict_strategy[strategy_id].save_df_order_trade()
@@ -996,8 +971,8 @@ class User():
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
-        # Trade = copy.deepcopy(Trade_input)  # 深拷贝
         t = datetime.now()  # 取接收到回调数据的本地系统时间
+        print(">>>User.OnRtnTrade() Trade =", Trade)
         # Trade新增字段
         Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
@@ -1006,34 +981,6 @@ class User():
         # self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
         self.statistics_for_trade(Trade)  # 期货账户统计，基于trade
         self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
-
-        # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
-        # if len(Trade['OrderRef']) == 12 and Trade['OrderRef'][:1] == '1':
-            # Trade['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
-
-            # 进程间通信：'DataFlag': 'instrument_statistics'
-            # self.instrument_open_count(Trade)  # 统计合约撤单次数
-            # dict_data = {
-            #     'DataFlag': 'instrument_statistics',
-            #     'UserId': self.__user_id,
-            #     'DataMain': self.__dict_instrument_statistics
-            # }
-            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
-
-            # # 进程间通信：'DataFlag': 'OnRtnTrade'
-            # dict_data = {
-            #     'DataFlag': 'OnRtnTrade',
-            #     'UserId': self.__user_id,
-            #     'DataMain': Trade
-            # }
-            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
-
-
-            # for i in self.__list_strategy:  # 转到strategy回调函数
-            #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
-            #         i.OnRtnOrder(Trade)
-        # else:
-        #     print("User.OnRtnTrade() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的trade")
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, trade):
@@ -1046,23 +993,10 @@ class User():
             print("User.handle_OnRtnTrade() 过滤掉查询投资者持仓明细之前的trade，trade['Date'] =", trade['TradeDate'], "trade['TradeTime'] =", trade['TradeTime'])
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
-    def OnRtnOrder(self, Order_input):
-        Order = copy.deepcopy(Order_input)
+    def OnRtnOrder(self, Order):
         t = datetime.now()  #取接收到回调数据的本地系统时间
-
+        print(">>>User.OnRtnOrder() Order =", Order)
         self.__queue_OnRtnOrder_user.put(Order)  # 缓存期货账户的所有order
-        # 计算申报费
-        # if Order['InsertDate'] > self.__date_qry_trading_account \
-        #         or (Order['InsertDate'] == self.__date_qry_trading_account
-        #             and Order['InsertTime'] >= self.__time_qry_trading_account):
-        #     self.count_commission_order(Order)
-        # else:
-        #     print("User.handle_OnRtnTrade() 过滤掉查询投资者持仓明细之前的trade，Order['InsertDate'] =", Order['InsertDate'], "Order['InsertTime'] =", Order['InsertTime'])
-
-        # 所有trade回调保存到DataFrame格式变量
-        # series_order = Series(Order)
-        # self.__df_order = DataFrame.append(self.__df_order, other=series_order, ignore_index=True)
-        # self.write_log(t.strftime("%Y-%m-%d %H:%M:%S"), 'OnRtnOrder', '报单回调', str(Order))  # 保存到DataFrame格式日志
         
         # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
         if len(Order['OrderRef']) == 12 and Order['OrderRef'][:1] == '1':
@@ -1150,6 +1084,7 @@ class User():
         print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id)
         while True:
             trade = self.__queue_OnRtnTrade.get()
+            self.process_trade_offset_flag(trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
             # print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
             # 过滤出本套利系统的trade，并将trade传给Strategy对象
             if len(trade['OrderRef']) == 12 and trade['OrderRef'][:1] == '1':
@@ -1471,6 +1406,9 @@ class User():
             commission_amount = \
                 dict_commission_detail['OpenRatioByMoney'] * trade['Price'] * trade[
                     'Volume'] * instrument_multiple + dict_commission_detail['OpenRatioByVolume'] * trade['Volume']
+        elif trade['OffsetFlag'] == '1':
+            commission_amount = 0
+            print(">>>User.count_commission() user_id =", self.__user_id, "异常平仓标志位，OffsetFlag=", trade['OffsetFlag'])
         # 平今
         elif trade['OffsetFlag'] == '3':
             commission_amount = \
@@ -1720,6 +1658,18 @@ class User():
             elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
                 self.__dict_strategy[strategy_id].set_b_open_count(open_count)
 
+    # 根据持仓明细规则将平仓标志位OffsetFlag的值由1转换为3或4
+    def process_trade_offset_flag(self, trade):
+        if trade['OffsetFlag'] == '1':  # 平仓标志位为1，需要转换
+            for i in self.__qry_investor_position_detail:
+                if i['InstrumentID'] == trade['InstrumentID'] and i['Direction'] != trade['Direction']:
+                    if i['TradingDay'] != self.__TradingDay:
+                        trade['OffsetFlag'] = '4'  # 修改平仓标志位
+                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为4，trade=", trade)
+                    elif i['TradingDay'] == self.__TradingDay:
+                        trade['OffsetFlag'] = '3'  # 修改平仓标志位
+                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为3，trade=", trade)
+                    break
 
 if __name__ == '__main__':
     print("User.py, if __name__ == '__main__':")

@@ -436,8 +436,8 @@ class SocketManager(QtCore.QThread):
     def slot_send_msg(self, buff):
         # thread = threading.current_thread()
         # print(">>> SocketManager.run() thread.getName()=", thread.getName())
-        json_qry_market_info = json.dumps(buff)
-        self.__queue_send_msg.put(json_qry_market_info)
+        # json_qry_market_info = json.dumps(buff)
+        self.__queue_send_msg.put(buff)
 
     # 接收消息线程
     def run(self):
@@ -499,7 +499,10 @@ class SocketManager(QtCore.QThread):
         while True:
             tmp_msg = self.__queue_send_msg.get()
             if tmp_msg is not None:
-                self.send_msg_to_server(tmp_msg)
+                if tmp_msg['MsgType'] != 23:
+                    print("SocketManager.run_send_msg() MsgType =", tmp_msg['MsgType'], tmp_msg)
+                json_tmp_msg = json.dumps(tmp_msg)
+                self.send_msg_to_server(json_tmp_msg)
 
     # 组装分段发送的消息，当IsLast==1，消息接收完成
     def receive_part_msg(self, buff):
@@ -1307,7 +1310,7 @@ class SocketManager(QtCore.QThread):
             # 从user下所有的策略参数中找到特定的策略
             if strategy_id == i[2]:
                 list_strategy_args = i
-                print(">>> SocketManager.check_strategy_position() list_strategy_args =", list_strategy_args)
+                # print(">>> SocketManager.check_strategy_position() list_strategy_args =", list_strategy_args)
                 break
         position_b_sell = int(list_strategy_args[5])
         position_b_sell_yesterday = int(list_strategy_args[34])
@@ -1320,28 +1323,28 @@ class SocketManager(QtCore.QThread):
         equality_flag = True
         if position_b_sell != buff['Info'][0]['position_b_sell']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_sell != buff['Info'][0]['position_b_sell']", position_b_sell, buff['Info'][0]['position_b_sell'], type(position_b_sell), type(buff['Info'][0]['position_b_sell']))
+            # print(">>> SocketManager.check_strategy_position() position_b_sell != buff['Info'][0]['position_b_sell']", position_b_sell, buff['Info'][0]['position_b_sell'], type(position_b_sell), type(buff['Info'][0]['position_b_sell']))
         if position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']", position_b_sell_yesterday, buff['Info'][0]['position_b_sell_yesterday'], type(position_b_sell_yesterday), type(buff['Info'][0]['position_b_sell_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']", position_b_sell_yesterday, buff['Info'][0]['position_b_sell_yesterday'], type(position_b_sell_yesterday), type(buff['Info'][0]['position_b_sell_yesterday']))
         if position_b_buy != buff['Info'][0]['position_b_buy']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_buy != buff['Info'][0]['position_b_buy']", position_b_buy, buff['Info'][0]['position_b_buy'], type(position_b_buy), type(buff['Info'][0]['position_b_buy']))
+            # print(">>> SocketManager.check_strategy_position() position_b_buy != buff['Info'][0]['position_b_buy']", position_b_buy, buff['Info'][0]['position_b_buy'], type(position_b_buy), type(buff['Info'][0]['position_b_buy']))
         if position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']", position_b_buy_yesterday, buff['Info'][0]['position_b_buy_yesterday'], type(position_b_buy_yesterday), type(buff['Info'][0]['position_b_buy_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']", position_b_buy_yesterday, buff['Info'][0]['position_b_buy_yesterday'], type(position_b_buy_yesterday), type(buff['Info'][0]['position_b_buy_yesterday']))
         if position_a_sell != buff['Info'][0]['position_a_sell']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_sell != buff['Info'][0]['position_a_sell']", position_a_sell, buff['Info'][0]['position_a_sell'], type(position_a_sell), type(buff['Info'][0]['position_a_sell']))
+            # print(">>> SocketManager.check_strategy_position() position_a_sell != buff['Info'][0]['position_a_sell']", position_a_sell, buff['Info'][0]['position_a_sell'], type(position_a_sell), type(buff['Info'][0]['position_a_sell']))
         if position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']", position_a_sell_yesterday, buff['Info'][0]['position_a_sell_yesterday'], type(position_a_sell_yesterday), type(buff['Info'][0]['position_a_sell_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']", position_a_sell_yesterday, buff['Info'][0]['position_a_sell_yesterday'], type(position_a_sell_yesterday), type(buff['Info'][0]['position_a_sell_yesterday']))
         if position_a_buy != buff['Info'][0]['position_a_buy']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_buy != buff['Info'][0]['position_a_buy']", position_a_buy, buff['Info'][0]['position_a_buy'], type(position_a_buy), type(buff['Info'][0]['position_a_buy']))
+            # print(">>> SocketManager.check_strategy_position() position_a_buy != buff['Info'][0]['position_a_buy']", position_a_buy, buff['Info'][0]['position_a_buy'], type(position_a_buy), type(buff['Info'][0]['position_a_buy']))
         if position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']", position_a_buy_yesterday, buff['Info'][0]['position_a_buy_yesterday'], type(position_a_buy_yesterday), type(buff['Info'][0]['position_a_buy_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']", position_a_buy_yesterday, buff['Info'][0]['position_a_buy_yesterday'], type(position_a_buy_yesterday), type(buff['Info'][0]['position_a_buy_yesterday']))
         if equality_flag:
             pass
             # QMessageBox().showMessage("消息", "服务端与客户端持仓一致！")
@@ -1374,7 +1377,7 @@ class SocketManager(QtCore.QThread):
                         print("B总买", list_strategy_info[6], "B昨买", list_strategy_info[35])
                         print("A总买", list_strategy_info[32], "A昨买", list_strategy_info[33])
                         print("B总卖", list_strategy_info[5], "B昨卖", list_strategy_info[34])
-                        print("平仓盈亏-手续费=净盈亏", list_strategy_info[9], list_strategy_info[10], list_strategy_info[11])
+                        # print("平仓盈亏-手续费=净盈亏", list_strategy_info[9], list_strategy_info[10], list_strategy_info[11])
                         break  # 跳出1282行for
                 break  # 跳出1280行for
 
