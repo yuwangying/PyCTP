@@ -1453,7 +1453,7 @@ class User():
         # 郑商所：同一合约买、卖持仓，仅收较大单边保证金，同一品种内区分不同月份合约
         # 大商所：没有保证金免收政策
         # 中金所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
-        # self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
+        self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
         self.__Margin_Occupied_SHFE = self.Margin_Occupied_SHFE()
         self.__Margin_Occupied_CZCE = 0  # self.Margin_Occupied_CZCE()
         self.__Margin_Occupied_DCE = 0  # self.Margin_Occupied_DCE()
@@ -1461,6 +1461,63 @@ class User():
         # 策略统计结构体中的元素：策略持仓占用保证金
         self.__current_margin = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
         return self.__current_margin
+
+    # 统计持仓明细中属于上海期货交易所的持仓保证金
+    def Margin_Occupied_CFFEX(self):
+        self.__Margin_Occupied_CFFEX = 0
+        # 从持仓明细中过滤出上海期货交易所的持仓明细
+        list_position_detail_for_trade_CFFEX = list()
+        for i in self.__qry_investor_position_detail:
+            if i['ExchangeID'] == 'CFFEX':
+                i['CommodityID'] = Utils.extract_commodity_id(i['InstrumentID'])  # 品种代码
+                list_position_detail_for_trade_CFFEX.append(i)
+        if len(list_position_detail_for_trade_CFFEX) == 0:  # 无持仓，返回保证金初始值0
+            return self.__Margin_Occupied_CFFEX
+
+        # 选出持仓明细中存在的品种代码
+        list_commodity_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_CFFEX:
+            if i['CommodityID'] in list_commodity_id:
+                pass
+            else:
+                list_commodity_id.append(i['CommodityID'])
+        # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # a合约和b合约是同一个品种
+        if len(list_commodity_id) == 1:
+            self.__Margin_Occupied_CFFEX = self.count_single_instrument_margin_CFFEX(list_position_detail_for_trade_CFFEX)
+            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
+        # a合约和b合约是不同的品种
+        elif len(list_commodity_id) == 2:
+            # 分别选出两种持仓的明细
+            list_position_detail_for_trade_CFFEX_0 = list()
+            list_position_detail_for_trade_CFFEX_1 = list()
+            for i in list_position_detail_for_trade_CFFEX:
+                if list_commodity_id[0] == i['CommodityID']:
+                    list_position_detail_for_trade_CFFEX_0.append(i)
+                elif list_commodity_id[1] == i['CommodityID']:
+                    list_position_detail_for_trade_CFFEX_1.append(i)
+            # 计算两个品种分别占用的持仓保证金
+            margin_0 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_0)
+            margin_1 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_1)
+            self.__Margin_Occupied_SHFE = margin_0 + margin_1
+        return self.__Margin_Occupied_CFFEX
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_CFFEX(self, list_input):
+        list_position_detail_for_trade_CFFEX = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_CFFEX:
+            instrument_id = i['InstrumentID']
+            instrument_multiple = self.get_instrument_multiple(instrument_id)
+            instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id)
+            i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = max(margin_buy, margin_sell)
+        return margin
 
     # 统计持仓明细中属于上海期货交易所的持仓保证金
     def Margin_Occupied_SHFE(self):
