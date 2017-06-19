@@ -659,14 +659,14 @@ class Strategy():
     # 更新占用保证金
     def update_current_margin(self):
         # print(">>> Strategy.update_current_margin() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
-        # 上期所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
-        # 郑商所：同一合约买、卖持仓，仅收较大单边保证金，同一品种内区分不同月份合约
-        # 大商所：没有保证金免收政策
         # 中金所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
+        # 上期所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
+        # 郑商所：同一个合约买持仓和卖持仓，仅收较大单边保证金
+        # 大商所：没有保证金免收政策
         self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
         self.__Margin_Occupied_SHFE = self.Margin_Occupied_SHFE()
-        self.__Margin_Occupied_CZCE = 0  # self.Margin_Occupied_CZCE()
-        self.__Margin_Occupied_DCE = 0  # self.Margin_Occupied_DCE()
+        self.__Margin_Occupied_CZCE = self.Margin_Occupied_CZCE()
+        self.__Margin_Occupied_DCE = self.Margin_Occupied_DCE()
         # self.__Margin_Occupied_total = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
         # 策略统计结构体中的元素：策略持仓占用保证金
         self.__current_margin = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
@@ -1232,10 +1232,10 @@ class Strategy():
     def get_dict_statistics(self):
         return self.__dict_statistics
 
-    # 统计持仓明细中属于上海期货交易所的持仓保证金
+    # 统计持仓明细中属于中金所的持仓保证金
     def Margin_Occupied_CFFEX(self):
         self.__Margin_Occupied_CFFEX = 0
-        # 从持仓明细中过滤出上海期货交易所的持仓明细
+        # 从持仓明细中过滤出中金所的持仓明细
         list_position_detail_for_trade_CFFEX = list()
         for i in self.__list_position_detail_for_trade:
             if i['ExchangeID'] == 'CFFEX':
@@ -1332,6 +1332,99 @@ class Strategy():
         margin_buy = 0  # 买持仓保证金
         margin_sell = 0  # 卖持仓保证金
         for i in list_position_detail_for_trade_SHFE:
+            i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = max(margin_buy, margin_sell)
+        return margin
+
+    # 统计持仓明细中属于上海期货交易所的持仓保证金
+    def Margin_Occupied_CZCE(self):
+        self.__Margin_Occupied_CZCE = 0
+        # 从持仓明细中过滤出郑州期货交易所的持仓明细
+        list_position_detail_for_trade_CZCE = list()
+        for i in self.__list_position_detail_for_trade:
+            if i['ExchangeID'] == 'SHFE':
+                i['CommodityID'] = i['InstrumentID'][:2]
+                list_position_detail_for_trade_CZCE.append(i)
+        if len(list_position_detail_for_trade_CZCE) == 0:  # 无上期所持仓，返回初始值0
+            return self.__Margin_Occupied_CZCE
+
+        # 选出持仓明细中存在的品种代码
+        list_commodity_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_CZCE:
+            if i['CommodityID'] in list_commodity_id:
+                pass
+            else:
+                list_commodity_id.append(i['CommodityID'])
+        # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # a合约和b合约是同一个品种
+        self.__Margin_Occupied_CZCE = self.count_single_instrument_margin_CZCE(list_position_detail_for_trade_CZCE)
+        # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_CZCE =", self.__Margin_Occupied_CZCE)
+        return self.__Margin_Occupied_CZCE
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_CZCE(self, list_input):
+        list_position_detail_for_trade_CZCE = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_CZCE:
+            i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = margin_buy + margin_sell
+        return margin
+
+    # 统计持仓明细中属于大连期货交易所的持仓保证金
+    def Margin_Occupied_DCE(self):
+        self.__Margin_Occupied_DCE = 0
+        # 从持仓明细中过滤出大连期货交易所的持仓明细
+        list_position_detail_for_trade_DCE = list()
+        for i in self.__list_position_detail_for_trade:
+            if i['ExchangeID'] == 'SHFE':
+                i['CommodityID'] = i['InstrumentID'][:2]
+                list_position_detail_for_trade_DCE.append(i)
+        if len(list_position_detail_for_trade_DCE) == 0:  # 无上期所持仓，返回初始值0
+            return self.__Margin_Occupied_DCE
+
+        # 选出持仓明细中存在的品种代码
+        list_commodity_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_DCE:
+            if i['CommodityID'] in list_commodity_id:
+                pass
+            else:
+                list_commodity_id.append(i['CommodityID'])
+        # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # a合约和b合约是同一个品种
+        if len(list_commodity_id) == 1:
+            self.__Margin_Occupied_DCE = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE)
+            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_DCE =", self.__Margin_Occupied_DCE)
+        # a合约和b合约是不同的品种
+        elif len(list_commodity_id) == 2:
+            # 分别选出两种持仓的明细
+            list_position_detail_for_trade_DCE_0 = list()
+            list_position_detail_for_trade_DCE_1 = list()
+            for i in list_position_detail_for_trade_DCE:
+                if list_commodity_id[0] == i['CommodityID']:
+                    list_position_detail_for_trade_DCE_0.append(i)
+                elif list_commodity_id[1] == i['CommodityID']:
+                    list_position_detail_for_trade_DCE_1.append(i)
+            # 计算两个品种分别占用的持仓保证金
+            margin_0 = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE_0)
+            margin_1 = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE_1)
+            self.__Margin_Occupied_DCE = margin_0 + margin_1
+        return self.__Margin_Occupied_DCE
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_DCE(self, list_input):
+        list_position_detail_for_trade_DCE = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_DCE:
             i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
             if i['Direction'] == '0':
                 margin_buy += i['CurrMargin']
