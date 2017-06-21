@@ -1220,6 +1220,10 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_celuebianhao.setText('')  # 策略编号
         self.comboBox_jiaoyimoxing.setCurrentIndex(-1)
         self.comboBox_xiadansuanfa.setCurrentIndex(-1)
+        self.lineEdit_Aheyue.setText('')  # A合约
+        self.lineEdit_Bheyue.setText('')  # B合约
+        self.lineEdit_Achengshu.setText('')  # A合约乘数
+        self.lineEdit_Bchengshu.setText('')  # B合约乘数
         self.lineEdit_zongshou.setText('')  # 总手
         self.lineEdit_meifen.setText('')  # 每份
         self.spinBox_zhisun.setValue(0)  # 止损
@@ -1499,6 +1503,10 @@ class QAccountWidget(QWidget, Ui_Form):
         index_comboBox = self.comboBox_xiadansuanfa.findText(dict_strategy_arguments['order_algorithm'])  # 下单算法
         if index_comboBox != -1:
             self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+        self.lineEdit_Aheyue.setText(dict_strategy_arguments['a_instrument_id'])  # A合约
+        self.lineEdit_Bheyue.setText(dict_strategy_arguments['b_instrument_id'])  # B合约
+        self.lineEdit_Achengshu.setText(str(dict_strategy_arguments['instrument_a_scale']))  # A合约乘数
+        self.lineEdit_Bchengshu.setText(str(dict_strategy_arguments['instrument_b_scale']))  # B合约乘数
         self.lineEdit_zongshou.setText(str(dict_strategy_arguments['lots']))  # 总手
         self.lineEdit_meifen.setText(str(dict_strategy_arguments['lots_batch']))  # 每份
         self.spinBox_zhisun.setValue(dict_strategy_arguments['stop_loss'])  # 止损
@@ -1563,6 +1571,10 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> QAccountWidget.slot_update_group_box() index_comboBox =", index_comboBox)
         if index_comboBox != -1:
             self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+        self.lineEdit_Aheyue.setText(self.__list_update_group_box_data[45])  # A合约
+        self.lineEdit_Bheyue.setText(self.__list_update_group_box_data[46])  # B合约
+        self.lineEdit_Achengshu.setText(str(self.__list_update_group_box_data[47]))  # A合约乘数
+        self.lineEdit_Bchengshu.setText(str(self.__list_update_group_box_data[48]))  # B合约乘数
         self.lineEdit_zongshou.setText(self.__list_update_group_box_data[18])  # 总手
         self.lineEdit_meifen.setText(self.__list_update_group_box_data[19])  # 每份
         self.spinBox_zhisun.setValue(self.__list_update_group_box_data[20])  # 止损
@@ -1699,6 +1711,10 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_celuebianhao.setText(str_none)  # 策略编号
         self.comboBox_jiaoyimoxing.setCurrentIndex(-1)
         self.comboBox_xiadansuanfa.setCurrentIndex(-1)
+        self.lineEdit_Aheyue.setText(str_none)  # A合约
+        self.lineEdit_Bheyue.setText(str_none)  # B合约
+        self.lineEdit_Achengshu.setText(str_none)  # A合约乘数
+        self.lineEdit_Bchengshu.setText(str_none)  # B合约乘数
         self.lineEdit_zongshou.setText(str_none)  # 总手
         self.lineEdit_meifen.setText(str_none)  # 每份
         self.spinBox_zhisun.setValue(int_none)  # 止损
@@ -2008,6 +2024,10 @@ class QAccountWidget(QWidget, Ui_Form):
         for i_strategy in self.__client_main.get_CTPManager().get_list_strategy():
             if i_strategy.get_user_id() == self.comboBox_qihuozhanghao.currentText() and i_strategy.get_strategy_id() == self.comboBox_celuebianhao.currentText():
                 dict_args = i_strategy.get_arguments()
+                self.lineEdit_Aheyue.setText(dict_args['Aheyue'])  # A合约
+                self.lineEdit_Bheyue.setText(dict_args['Bheyue'])
+                self.lineEdit_Achengshu.setText(str(dict_args['Achengshu']))  # A合约乘数
+                self.lineEdit_Bchengshu.setText(str(dict_args['Bchengshu']))
                 self.lineEdit_zongshou.setText(str(dict_args['lots']))  # 总手
                 self.lineEdit_meifen.setText(str(dict_args['lots_batch']))  # 每份
                 self.spinBox_zhisun.setValue(dict_args['stop_loss'])  # 止损
@@ -2432,6 +2452,8 @@ class QAccountWidget(QWidget, Ui_Form):
                 # "on_off": # 策略开关int，1开、0关
                 "trade_model": self.comboBox_jiaoyimoxing.currentText(),  # 交易模型
                 "order_algorithm": self.comboBox_xiadansuanfa.currentText(),  # 下单算法
+                "instrument_a_scale": int(self.lineEdit_Achengshu.text()),  # A合约乘数
+                "instrument_b_scale": int(self.lineEdit_Bchengshu.text()),  # B合约乘数
                 "lots": int(self.lineEdit_zongshou.text()),  # 总手
                 "lots_batch": int(self.lineEdit_meifen.text()),  # 每份
                 "stop_loss": float(self.spinBox_zhisun.text()),  # 止损跳数

@@ -815,8 +815,8 @@ class User():
             list_strategy_data.append(strategy_arguments['buy_open_on_off'])  # 44:买开-开关
             list_strategy_data.append(strategy_arguments['a_instrument_id'])  # 45:A合约代码
             list_strategy_data.append(strategy_arguments['b_instrument_id'])  # 46:B合约代码
-            list_strategy_data.append(1)  # (strategy_arguments['buy_open_on_off'])  # 47:A合约手数
-            list_strategy_data.append(1)  # (strategy_arguments['buy_open_on_off'])  # 48:B合约手数
+            list_strategy_data.append(strategy_arguments['instrument_a_scale'])  # 47:A合约手数
+            list_strategy_data.append(strategy_arguments['instrument_b_scale'])  # 48:B合约手数
             list_table_widget_data.append(list_strategy_data)
         list_table_widget_data = sorted(list_table_widget_data, key=itemgetter(2))
         return list_table_widget_data

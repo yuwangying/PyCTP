@@ -82,6 +82,8 @@ class Strategy():
 
         self.__trade_model = dict_args['trade_model']  # 交易模型
         self.__order_algorithm = dict_args['order_algorithm']  # 下单算法选择标志位
+        self.__instrument_a_scale = dict_args['instrument_a_scale']  # A合约乘数
+        self.__instrument_b_scale = dict_args['instrument_b_scale']  # B合约乘数
         self.__lots = dict_args['lots']  # 总手
         self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
         self.__stop_loss = dict_args['stop_loss']  # 止损，单位为最小跳数
@@ -117,6 +119,8 @@ class Strategy():
             'on_off': self.__strategy_on_off,
             'trade_model': self.__trade_model,
             'order_algorithm': self.__order_algorithm,
+            'instrument_a_scale': self.__instrument_a_scale,
+            'instrument_b_scale': self.__instrument_b_scale,
             'lots': self.__lots,
             'lots_batch': self.__lots_batch,
             'stop_loss': self.__stop_loss,
