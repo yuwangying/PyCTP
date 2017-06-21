@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1409</width>
-    <height>504</height>
+    <height>519</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -683,7 +683,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>150</y>
+          <y>180</y>
           <width>60</width>
           <height>16</height>
          </rect>
@@ -722,7 +722,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>120</y>
+          <y>150</y>
           <width>60</width>
           <height>16</height>
          </rect>
@@ -735,7 +735,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>180</y>
+          <y>210</y>
           <width>60</width>
           <height>16</height>
          </rect>
@@ -748,7 +748,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>210</y>
+          <y>240</y>
           <width>72</width>
           <height>19</height>
          </rect>
@@ -761,7 +761,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>270</y>
+          <y>300</y>
           <width>72</width>
           <height>19</height>
          </rect>
@@ -774,7 +774,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>300</y>
+          <y>330</y>
           <width>72</width>
           <height>19</height>
          </rect>
@@ -786,8 +786,8 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_zongshou">
         <property name="geometry">
          <rect>
-          <x>328</x>
-          <y>30</y>
+          <x>244</x>
+          <y>90</y>
           <width>30</width>
           <height>16</height>
          </rect>
@@ -810,7 +810,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>240</y>
+          <y>270</y>
           <width>72</width>
           <height>19</height>
          </rect>
@@ -822,8 +822,8 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_celuebianhao">
         <property name="geometry">
          <rect>
-          <x>214</x>
-          <y>30</y>
+          <x>12</x>
+          <y>90</y>
           <width>60</width>
           <height>16</height>
          </rect>
@@ -835,8 +835,8 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_xiadansuanfa">
         <property name="geometry">
          <rect>
-          <x>214</x>
-          <y>60</y>
+          <x>128</x>
+          <y>90</y>
           <width>60</width>
           <height>16</height>
          </rect>
@@ -848,8 +848,8 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_meifen">
         <property name="geometry">
          <rect>
-          <x>328</x>
-          <y>60</y>
+          <x>326</x>
+          <y>90</y>
           <width>30</width>
           <height>16</height>
          </rect>
@@ -865,7 +865,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>80</x>
-          <y>120</y>
+          <y>150</y>
           <width>46</width>
           <height>21</height>
          </rect>
@@ -881,7 +881,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>68</x>
-          <y>150</y>
+          <y>180</y>
           <width>120</width>
           <height>21</height>
          </rect>
@@ -897,7 +897,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>68</x>
-          <y>180</y>
+          <y>210</y>
           <width>120</width>
           <height>21</height>
          </rect>
@@ -910,7 +910,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>76</x>
-          <y>210</y>
+          <y>240</y>
           <width>120</width>
           <height>21</height>
          </rect>
@@ -941,7 +941,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>76</x>
-          <y>240</y>
+          <y>270</y>
           <width>120</width>
           <height>21</height>
          </rect>
@@ -960,7 +960,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>76</x>
-          <y>270</y>
+          <y>300</y>
           <width>120</width>
           <height>21</height>
          </rect>
@@ -979,7 +979,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>76</x>
-          <y>300</y>
+          <y>330</y>
           <width>120</width>
           <height>21</height>
          </rect>
@@ -997,8 +997,8 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_Adengdai">
         <property name="geometry">
          <rect>
-          <x>144</x>
-          <y>90</y>
+          <x>142</x>
+          <y>120</y>
           <width>70</width>
           <height>16</height>
          </rect>
@@ -1010,8 +1010,8 @@ QPushButton::pressed{
        <widget class="QSpinBox" name="spinBox_Adengdai">
         <property name="geometry">
          <rect>
-          <x>218</x>
-          <y>90</y>
+          <x>216</x>
+          <y>120</y>
           <width>46</width>
           <height>21</height>
          </rect>
@@ -1027,7 +1027,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>280</x>
-          <y>90</y>
+          <y>120</y>
           <width>70</width>
           <height>16</height>
          </rect>
@@ -1040,7 +1040,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>356</x>
-          <y>90</y>
+          <y>120</y>
           <width>46</width>
           <height>21</height>
          </rect>
@@ -1056,7 +1056,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>216</x>
-          <y>210</y>
+          <y>240</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1072,7 +1072,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>260</x>
-          <y>210</y>
+          <y>240</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1098,7 +1098,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>216</x>
-          <y>240</y>
+          <y>270</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1114,7 +1114,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>260</x>
-          <y>240</y>
+          <y>270</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1134,7 +1134,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>216</x>
-          <y>270</y>
+          <y>300</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1150,7 +1150,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>260</x>
-          <y>270</y>
+          <y>300</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1170,7 +1170,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>216</x>
-          <y>300</y>
+          <y>330</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1186,7 +1186,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>260</x>
-          <y>300</y>
+          <y>330</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1206,7 +1206,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>202</x>
-          <y>150</y>
+          <y>180</y>
           <width>39</width>
           <height>16</height>
          </rect>
@@ -1219,20 +1219,20 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>244</x>
-          <y>150</y>
+          <y>180</y>
           <width>40</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
-         <string>4802</string>
+         <string>480</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_Achedan">
         <property name="geometry">
          <rect>
           <x>294</x>
-          <y>150</y>
+          <y>180</y>
           <width>37</width>
           <height>16</height>
          </rect>
@@ -1245,7 +1245,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>338</x>
-          <y>150</y>
+          <y>180</y>
           <width>64</width>
           <height>21</height>
          </rect>
@@ -1254,14 +1254,14 @@ background-color: rgb(255, 255, 255);</string>
          <string notr="true"/>
         </property>
         <property name="text">
-         <string>349/450</string>
+         <string/>
         </property>
        </widget>
        <widget class="QLabel" name="label_Bchedan">
         <property name="geometry">
          <rect>
           <x>294</x>
-          <y>180</y>
+          <y>210</y>
           <width>37</width>
           <height>16</height>
          </rect>
@@ -1274,7 +1274,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>338</x>
-          <y>180</y>
+          <y>210</y>
           <width>64</width>
           <height>21</height>
          </rect>
@@ -1287,7 +1287,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>316</x>
-          <y>210</y>
+          <y>240</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1303,7 +1303,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>362</x>
-          <y>210</y>
+          <y>240</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1329,7 +1329,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>316</x>
-          <y>240</y>
+          <y>270</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1345,7 +1345,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>362</x>
-          <y>240</y>
+          <y>270</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1371,7 +1371,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>316</x>
-          <y>270</y>
+          <y>300</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1387,7 +1387,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>362</x>
-          <y>270</y>
+          <y>300</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1413,7 +1413,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>316</x>
-          <y>300</y>
+          <y>330</y>
           <width>38</width>
           <height>16</height>
          </rect>
@@ -1429,7 +1429,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>362</x>
-          <y>300</y>
+          <y>330</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1449,7 +1449,7 @@ background-color: rgb(255, 255, 255);</string>
         <property name="geometry">
          <rect>
           <x>126</x>
-          <y>330</y>
+          <y>360</y>
           <width>50</width>
           <height>18</height>
          </rect>
@@ -1475,7 +1475,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>126</x>
-          <y>350</y>
+          <y>380</y>
           <width>50</width>
           <height>18</height>
          </rect>
@@ -1501,7 +1501,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>90</y>
+          <y>120</y>
           <width>60</width>
           <height>16</height>
          </rect>
@@ -1514,7 +1514,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>80</x>
-          <y>90</y>
+          <y>120</y>
           <width>46</width>
           <height>21</height>
          </rect>
@@ -1533,7 +1533,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>12</x>
-          <y>330</y>
+          <y>360</y>
           <width>100</width>
           <height>40</height>
          </rect>
@@ -1568,7 +1568,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>190</x>
-          <y>330</y>
+          <y>360</y>
           <width>100</width>
           <height>40</height>
          </rect>
@@ -1602,8 +1602,8 @@ QPushButton::pressed{
        <widget class="QComboBox" name="comboBox_xiadansuanfa">
         <property name="geometry">
          <rect>
-          <x>276</x>
-          <y>60</y>
+          <x>194</x>
+          <y>90</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1616,7 +1616,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>202</x>
-          <y>180</y>
+          <y>210</y>
           <width>39</width>
           <height>16</height>
          </rect>
@@ -1629,39 +1629,39 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>244</x>
-          <y>180</y>
+          <y>210</y>
           <width>40</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
-         <string/>
+         <string>480</string>
         </property>
        </widget>
        <widget class="QLineEdit" name="lineEdit_zongshou">
         <property name="geometry">
          <rect>
-          <x>362</x>
-          <y>30</y>
+          <x>278</x>
+          <y>90</y>
           <width>40</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
-         <string/>
+         <string>1</string>
         </property>
        </widget>
        <widget class="QLineEdit" name="lineEdit_meifen">
         <property name="geometry">
          <rect>
           <x>362</x>
-          <y>60</y>
+          <y>90</y>
           <width>40</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
-         <string/>
+         <string>1</string>
         </property>
        </widget>
        <widget class="QPushButton" name="pushButton_set_position">
@@ -1671,7 +1671,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>304</x>
-          <y>330</y>
+          <y>360</y>
           <width>100</width>
           <height>40</height>
          </rect>
@@ -1727,8 +1727,8 @@ QPushButton::pressed{
         </property>
         <property name="geometry">
          <rect>
-          <x>276</x>
-          <y>30</y>
+          <x>80</x>
+          <y>90</y>
           <width>40</width>
           <height>21</height>
          </rect>
@@ -1747,7 +1747,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>280</x>
-          <y>120</y>
+          <y>150</y>
           <width>70</width>
           <height>16</height>
          </rect>
@@ -1760,7 +1760,7 @@ QPushButton::pressed{
         <property name="geometry">
          <rect>
           <x>356</x>
-          <y>120</y>
+          <y>150</y>
           <width>46</width>
           <height>21</height>
          </rect>
@@ -1775,8 +1775,8 @@ QPushButton::pressed{
        <widget class="QLabel" name="label_Abaodanpianyi">
         <property name="geometry">
          <rect>
-          <x>144</x>
-          <y>120</y>
+          <x>142</x>
+          <y>150</y>
           <width>70</width>
           <height>16</height>
          </rect>
@@ -1788,8 +1788,8 @@ QPushButton::pressed{
        <widget class="QSpinBox" name="spinBox_Abaodanpianyi">
         <property name="geometry">
          <rect>
-          <x>218</x>
-          <y>120</y>
+          <x>216</x>
+          <y>150</y>
           <width>46</width>
           <height>21</height>
          </rect>
@@ -1799,6 +1799,116 @@ QPushButton::pressed{
         </property>
         <property name="maximum">
          <number>999999999</number>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_Aheyue">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>30</y>
+          <width>40</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>A合约</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="lineEdit_Aheyue">
+        <property name="geometry">
+         <rect>
+          <x>256</x>
+          <y>30</y>
+          <width>58</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_Achengshu">
+        <property name="geometry">
+         <rect>
+          <x>326</x>
+          <y>30</y>
+          <width>30</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>乘数</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="lineEdit_Achengshu">
+        <property name="geometry">
+         <rect>
+          <x>362</x>
+          <y>30</y>
+          <width>40</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="lineEdit_Bheyue">
+        <property name="geometry">
+         <rect>
+          <x>256</x>
+          <y>60</y>
+          <width>58</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="lineEdit_Bchengshu">
+        <property name="geometry">
+         <rect>
+          <x>362</x>
+          <y>60</y>
+          <width>40</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_Bheyue">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>60</y>
+          <width>40</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>B合约</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_Bchengshu">
+        <property name="geometry">
+         <rect>
+          <x>326</x>
+          <y>60</y>
+          <width>30</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>乘数</string>
         </property>
        </widget>
       </widget>

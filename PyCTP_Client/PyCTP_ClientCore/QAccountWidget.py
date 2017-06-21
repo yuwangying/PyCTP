@@ -832,6 +832,14 @@ class QAccountWidget(QWidget, Ui_Form):
                 index_comboBox = self.comboBox_xiadansuanfa.findText('')
                 if index_comboBox != -1:
                     self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+                # A合约
+                self.lineEdit_Aheyue.setText('')
+                # B合约
+                self.lineEdit_Bheyue.setText('')
+                # A合约乘数
+                self.lineEdit_Achengshu.setText('')
+                # B合约乘数
+                self.lineEdit_Bchengshu.setText('')
                 # 总手
                 self.lineEdit_zongshou.setText('')
                 # 每份
