@@ -240,7 +240,8 @@ class StrategyDataModel(QAbstractTableModel):
             return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter  #
         elif role == QtCore.Qt.BackgroundRole and column == 4:  # 撇退高亮背景提示
             # A总卖==B总买 and A总买==B总卖
-            if self.__data_list[row][30] != self.__data_list[row][6] or self.__data_list[row][32] != self.__data_list[row][5]:
+            if int(self.__data_list[row][30]) / self.__data_list[row][47] != int(self.__data_list[row][6]) / self.__data_list[row][48] \
+                    or int(self.__data_list[row][32]) / self.__data_list[row][47] != int(self.__data_list[row][5]) / self.__data_list[row][48]:
                 return QtGui.QColor(243, 209, 110)
         elif role == QtCore.Qt.BackgroundRole and column == 5:
             return QtGui.QColor(255, 221, 221)

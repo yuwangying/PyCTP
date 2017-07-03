@@ -61,7 +61,7 @@ class Strategy():
         #     return
         self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
         self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
-        self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
+        # self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
         self.update_position_of_position_detail_for_order()  # 利用order持仓明细更新策略持仓变量
         # self.init_position()  # 初始化策略持仓
         self.init_statistics()  # 初始化统计指标
@@ -1005,7 +1005,7 @@ class Strategy():
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_sell + self.__position_b_buy
 
-        print("Strategy.update_position_for_OnRtnOrder() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
+        print("Strategy.update_position_for_OnRtnTrade() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
@@ -1068,7 +1068,7 @@ class Strategy():
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_buy + self.__position_b_sell
         print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
-        print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
+        # print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
@@ -1116,10 +1116,8 @@ class Strategy():
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_buy + self.__position_b_sell
-        print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =",
-              self.__strategy_id, "self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
-        print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =",
-              self.__strategy_id)
+        print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
+        # print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")

@@ -358,8 +358,17 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新界面行情：[多头价差, 空头价差]
     def slot_update_spread_ui(self, list_data):
         # print(">>> QAccountWidget.slot_update_spread_ui() list_data =", list_data)
-        self.__spread_long = list_data[0]
-        self.__spread_short = list_data[1]
+        # self.__spread_long = list_data[0]
+        # self.__spread_short = list_data[1]
+        if len(self.__list_update_group_box_data) == 0:
+            self.lineEdit_duotoujiacha.setText('')
+            self.lineEdit_kongtoujiacha.setText('')
+            return
+        a_scale = self.__list_update_group_box_data[47]  # A合约乘数
+        b_scale = self.__list_update_group_box_data[48]  # B合约乘数
+        self.__spread_long = round(list_data[0] * a_scale - list_data[3] * b_scale, 2)
+        self.__spread_short = round(list_data[1] * a_scale - list_data[2] * b_scale, 2)
+        # print(">>> QAccountWidget.slot_update_spread_ui() self.__spread_long =", self.__spread_long, "self.__spread_short =", self.__spread_short)
         if self.__spread_long != self.__spread_long_last:
             # print(">>> QAccountWidget.slot_update_spread_ui() 更新多头价差", self.__spread_long)
             self.lineEdit_duotoujiacha.setText(str(self.__spread_long))
@@ -1216,6 +1225,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 清空groupBox
     def clean_groupBox(self):
+        print(">>> QAccountWidget.clean_groupBox() called")
         self.lineEdit_qihuozhanghao.setText('')  # 期货账号
         self.lineEdit_celuebianhao.setText('')  # 策略编号
         self.comboBox_jiaoyimoxing.setCurrentIndex(-1)
@@ -1224,6 +1234,8 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Bheyue.setText('')  # B合约
         self.lineEdit_Achengshu.setText('')  # A合约乘数
         self.lineEdit_Bchengshu.setText('')  # B合约乘数
+        self.lineEdit_duotoujiacha.setText('')  # 多头价差
+        self.lineEdit_kongtoujiacha.setText('')  # 空头价差
         self.lineEdit_zongshou.setText('')  # 总手
         self.lineEdit_meifen.setText('')  # 每份
         self.spinBox_zhisun.setValue(0)  # 止损
@@ -1463,7 +1475,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新groupBox：更新全部item
     def update_groupBox(self):
-        print(">>> QAccountWidget.update_groupBox()")
+        print(">>> QAccountWidget.update_groupBox() ")
         # 鼠标未点击任何策略之前，不更新groupBox
         if len(self.__dict_clicked_info[self.__current_tab_name]) == 0:
             return
@@ -1555,9 +1567,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Azuobuy.setText(str(dict_strategy_position['position_a_buy_yesterday']))  # A昨买
         self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))  # B总卖
         self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))  # B昨卖
-    """
 
-    """
     # 更新groupBox：全部元素
     def slot_update_group_box(self):
         # print(">>> QAccountWidget.slot_update_group_box() ", "self.__list_update_group_box_data =", self.__list_update_group_box_data)
