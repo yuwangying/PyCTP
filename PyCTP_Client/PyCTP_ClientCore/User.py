@@ -860,6 +860,7 @@ class User():
         list_panel_show_account_data = list()
         profit_position = self.count_profit_position()  # 计算期货账户持仓盈亏
         used_margin = self.update_current_margin()  # 所有策略占用保证金求和
+        print(">>>User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
         # print(">>> User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
         # 动态权益 = 静态权益 + 入金 - 出金 + 持仓盈亏 + 平仓盈亏 - 手续费
         variable_equity = self.__QryTradingAccount['PreBalance'] \
@@ -879,7 +880,7 @@ class User():
         list_panel_show_account_data.append(risk)  # 7:风险度
         list_panel_show_account_data.append(round(self.__QryTradingAccount['Deposit']))  # 8:今日入金
         list_panel_show_account_data.append(round(self.__QryTradingAccount['Withdraw']))  # 9:今日出金
-        # print(">>>User.get_panel_show_account_data_for_user() list_panel_show_account_data =", list_panel_show_account_data)
+        # print(">>>User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "list_panel_show_account_data =", list_panel_show_account_data)
         return list_panel_show_account_data
 
     # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程
@@ -1464,7 +1465,8 @@ class User():
         # self.__Margin_Occupied_total = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
         # 策略统计结构体中的元素：策略持仓占用保证金
         self.__current_margin = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
-        return self.__current_margin
+        # print(">>>User.update_current_margin() user_id =", self.__user_id, "used_margin =", self.__Margin_Occupied_CFFEX , self.__Margin_Occupied_SHFE , self.__Margin_Occupied_CZCE , self.__Margin_Occupied_DCE)
+        return self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
 
     # 统计持仓明细中属于上海期货交易所的持仓保证金
     def Margin_Occupied_CFFEX(self):
@@ -1504,7 +1506,8 @@ class User():
             margin_0 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_0)
             margin_1 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_1)
             self.__Margin_Occupied_SHFE = margin_0 + margin_1
-        return Margin_Occupied_CFFEX
+        # print(">>>User.Margin_Occupied_CFFEX() self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
+        return self.__Margin_Occupied_SHFE
 
     # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
     def count_single_instrument_margin_CFFEX(self, list_input):
