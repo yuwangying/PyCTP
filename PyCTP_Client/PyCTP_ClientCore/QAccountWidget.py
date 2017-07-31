@@ -2420,7 +2420,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     @pyqtSlot()
     def on_pushButton_set_strategy_clicked(self):
-        print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() called")
+        # print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() called")
         """
         Slot documentation goes here.
         """

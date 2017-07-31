@@ -6,6 +6,7 @@ Created on Wed Jul 20 08:46:13 2016
 """
 
 import os
+import sys
 import time
 import threading
 from operator import itemgetter
@@ -32,8 +33,9 @@ class User():
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     # def __init__(self, dict_arguments, parent=None, ctp_manager=None):
     def __init__(self, dict_arguments, Queue_main, Queue_user):
-        print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
+        self.save_log(self, dict_arguments)  # 日志重定向到本地文件夹
 
+        # print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
         self.__init_arguments = dict_arguments  # 转存形参
         self.__Queue_main = Queue_main  # 主进程put，user进程get
         self.__Queue_user = Queue_user  # user进程put，主进程get
@@ -171,6 +173,28 @@ class User():
         #     print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
         #     self.__init_finished = False  # 策略初始化失败
         #     return
+
+    # 日志重定向到本地文件夹
+    def save_log(self, dict_arguments):
+        user_id = dict_arguments['server']['user_info']['userid']
+        # 删除log文件夹，创建log文件夹
+        if os.path.exists('log'):
+            pass  # 已存在文件夹，什么都不用操作
+            # print("ClientMin.'__main__' log文件夹存在，删除重建log文件夹")
+            # shutil.rmtree('log')
+        else:
+            # print("ClientMin.'__main__' log文件夹不存在，创建log文件夹")
+            os.mkdir('log')
+        # print全部存到log本地文件
+        time_str = datetime.datetime.now().strftime('%Y%m%d %H%M%S')
+
+        file_path_error = 'log/' + user_id + '_error_' + time_str + '.log'
+        stderr_handler = open(file_path_error, 'w')
+        sys.stderr = stderr_handler
+
+        file_path_stdout = 'log/' + user_id + '_out_' + time_str + '.log'
+        stdout_handler = open(file_path_stdout, 'w')
+        sys.stdout = stdout_handler
 
     # 连接交易前置
     def connect_trade_front(self):
@@ -860,7 +884,7 @@ class User():
         list_panel_show_account_data = list()
         profit_position = self.count_profit_position()  # 计算期货账户持仓盈亏
         used_margin = self.update_current_margin()  # 所有策略占用保证金求和
-        print(">>>User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
+        # print(">>>User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
         # print(">>> User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
         # 动态权益 = 静态权益 + 入金 - 出金 + 持仓盈亏 + 平仓盈亏 - 手续费
         variable_equity = self.__QryTradingAccount['PreBalance'] \
@@ -1209,8 +1233,9 @@ class User():
             # if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
             #     print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
             # print(">>> User.get_commission() ", dict_commission)
-            if flag_get_commission_success == False:  # 获取手续费失败，返回空dict
+            if flag_get_commission_success is False:  # 获取手续费失败，返回空dict
                 dict_commission = dict()
+                # 弹窗，或其他形式提醒，此处为初始化类错误，影响手续费统计结果!
             self.__dict_commission[commodity_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
         return self.__dict_commission[commodity_id]
 

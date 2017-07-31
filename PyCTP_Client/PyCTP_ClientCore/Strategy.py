@@ -1625,27 +1625,47 @@ class Strategy():
 
     # 获取指定合约最小跳'PriceTick'
     def get_price_tick(self, instrument_id):
+        found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['PriceTick']
+        if found is False:
+            print("Strategy.get_price_tick() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约最小跳，未找到合约")
+            return 0
 
     # 获取指定合约乘数
     def get_instrument_multiple(self, instrument_id):
+        found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['VolumeMultiple']
+        if found is False:
+            print("Strategy.get_instrument_multiple() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约乘数失败，未找到合约")
+            return 0
 
     # 获取指定合约保证金率
     def get_instrument_margin_ratio(self, instrument_id):
+        found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['LongMarginRatio']
+        if found is False:
+            print("Strategy.get_instrument_margin_ratio() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约保证金率失败，未找到合约")
+            return 0
 
     # 获取指定合约所属的交易搜代码
     def get_exchange_id(self, instrument_id):
+        found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['ExchangeID']
+        if found is False:
+            print("Strategy.get_exchange_id() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约所属交易所代码失败，未找到合约")
+            return 0
     
     # # 更新撤单次数，在user类中的order回调中调用，第一时间更新撤单计数
     # def update_action_count(self):

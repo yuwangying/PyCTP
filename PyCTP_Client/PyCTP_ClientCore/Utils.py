@@ -38,7 +38,14 @@ def code_transform(data):
         return data_output
     # 传入参数为单个变量
     elif isinstance(data, bytes):
-        return data.decode('gbk')
+        try:
+            data.decode('gbk')
+        except:
+            print(">>>Utils.conde_transform() data =", data, type(data))
+        finally:
+            return data.decode('gbk')
+
+        # return data.decode()
     else:
         return data
 
