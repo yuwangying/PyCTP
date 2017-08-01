@@ -1,0 +1,8 @@
+.idea/*
+./build/*
+./__pycache__/*
+./dist/*
+./conn/*
+./CTP_API_File/*
+./data/*
+
