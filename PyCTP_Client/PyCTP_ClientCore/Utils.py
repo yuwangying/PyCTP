@@ -9,6 +9,7 @@ import os
 import time
 import DBManager
 import chardet
+import re
 
 PyCTP_Trade_API_print = False  # PyCTP_Trade_API类打印控制
 Strategy_print = False  # Strategy类打印控制
@@ -37,9 +38,34 @@ def code_transform(data):
         return data_output
     # 传入参数为单个变量
     elif isinstance(data, bytes):
-        return data.decode('gbk')
+        # print(">>>Utils.conde_transform() data =", data, type(data))
+        return data.decode('gbk', 'ignore')
+        # return data.decode('gb18030')
+        # try:
+        #     # data.decode('gbk')
+        #     data.decode('utf-8')
+        # except:
+        #     print(">>>Utils.conde_transform() data =", data, type(data))
+        # finally:
+        #     # return data.decode('gbk')
+        #     return data.decode('utf-8')
+
+        # return data.decode()
     else:
         return data
+
+
+# 传入合约代码，返回品种代码，非品种代码则返回空字符串''
+def extract_commodity_id(instrument_id):
+    if isinstance(instrument_id, str):
+        if re.match(r'[a-zA-Z][0-9]{3,4}$', instrument_id) is not None:
+            return instrument_id[:1]
+        elif re.match(r'[a-zA-Z][a-zA-Z][0-9]{3,4}$', instrument_id) is not None:
+            return instrument_id[:2]
+        else:
+            return ''
+    else:
+        return ''
 
 
 # 打印主菜单
@@ -441,3 +467,16 @@ def make_dirs(path):
 
 
 
+if __name__ == '__main__':
+    print(" cu1707", extract_commodity_id(' cu1707'))
+    print("IF17071", extract_commodity_id('IF17071'))
+    print("T1707", extract_commodity_id('T1707'))
+    print("T17071", extract_commodity_id('T17071'))
+    print("SR709", extract_commodity_id('SR709'))
+    print("SR1709", extract_commodity_id('SR1709'))
+    print("SR17091", extract_commodity_id('SR17091'))
+    print("i1709", extract_commodity_id('i1709'))
+    print("i17091", extract_commodity_id('i17091'))
+    print("i170912", extract_commodity_id('i170912'))
+    print("i17 1", extract_commodity_id('i17 1'))
+    print("i17&", extract_commodity_id('i17&'))

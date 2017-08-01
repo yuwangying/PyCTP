@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 	<ip_address ip="192.168.180.130" port="8888"/>
-	<!-- <ip_address ip="106.14.202.61" port="8888"/> 云服务器 -->
-	<!-- <ip_address ip="192.168.180.130" port="8888"/> 本地服务器 -->
+	<!-- <ip_address ip="106.14.202.61" port="8888"/> 云服务器仿真 -->
+	<!-- <ip_address ip="192.168.180.130" port="8888"/> 本地服务器仿真 -->
+	<!-- ip_address ip="101.95.163.34" port="8901"/> ctpmini2实盘-->
+	<!-- ip_address ip="101.95.163.34" port="9901"/> 飞鼠实盘-->
 </root>

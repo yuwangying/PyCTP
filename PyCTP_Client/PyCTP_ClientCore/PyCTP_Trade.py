@@ -454,8 +454,11 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             self.__SessionID = RspUserLogin['SessionID']
             self.__MaxOrderRef = RspUserLogin['MaxOrderRef']
             # print(">>> PyCTP_Trade.OnRspUserLogin() RspUserLogin['MaxOrderRef'] =", type(RspUserLogin['MaxOrderRef']), RspUserLogin['MaxOrderRef'], "RspUserLogin =", RspUserLogin)
+            print(">>> PyCtp_Trade.OnRspUserLogin() self.__MaxOrderRef =", self.__MaxOrderRef, type(self.__MaxOrderRef))
             self.__OrderRef = int(self.__MaxOrderRef)  # 初始化报单引用
+            # self.__OrderRef = 0  # 初始化报单引用
             self.__OrderActionRef = int(self.__MaxOrderRef)
+            # self.__OrderActionRef = 0
             self.__LoginTime = RspUserLogin['LoginTime']
             self.__FrontID = RspUserLogin['FrontID']
             self.__FFEXTime = RspUserLogin['FFEXTime']
@@ -636,13 +639,13 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             if InputOrderAction['OrderRef'][-2:] == i.get_strategy_id():
                 i.OnRspOrderAction(InputOrderAction, RspInfo, RequestID, IsLast)
 
-    def OnRtnOrder(self, Order):
+    def OnRtnOrder(self, Order_input):
         """报单回报"""
+        Order = copy.deepcopy(Order_input)
+        print(">>>PyCTP_Trade.OnRtnOrder() Order =", Order)
+        Order = Utils.code_transform(Order)
         # t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
         # Order['time'] = t
-        Order = Utils.code_transform(Order)
-        if Utils.PyCTP_Trade_API_print:
-            print('PyCTP_Trade_API.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Time:', t, 'Order:', Order)
         self.__user.OnRtnOrder(Order)  # 转回调给User类的OnRtnOrder
         # 未调用API OrderInsert之前还未生成属性_PyCTP_Trader_API__rsp_OrderInsert
         # if hasattr(self, '_PyCTP_Trader_API__rsp_OrderInsert'):
@@ -655,11 +658,12 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         # self.__df_order = DataFrame.append(self.__df_order, other=series_order, ignore_index=True)
 
     def OnRtnTrade(self, Trade_input):
-        Trade = copy.deepcopy(Trade_input)
         """成交回报"""
+        Trade = copy.deepcopy(Trade_input)
+        print(">>>PyCTP_Trade.OnRtnTrade() Trade =", Trade)
+        Trade = Utils.code_transform(Trade)
         t = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")
         # Trade['time'] = t
-        Trade = Utils.code_transform(Trade)
         if Utils.PyCTP_Trade_API_print:
             print('PyCTP_Trade.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Time:', t, 'Trade:', Trade)
         self.__user.OnRtnTrade(Trade)  # 转到user回调函数

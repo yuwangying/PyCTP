@@ -1,0 +1,7 @@
+./PyCTP_ClientCore/build
+./PyCTP_ClientCore/dist
+./.idea/*
+./PyCTP_ClientCore/conn
+./PyCTP_ClientCore/data/*
+./PyCTP_ClientCore/CTP_API_File/*
+./PyCTP_ClientCore/.idea/

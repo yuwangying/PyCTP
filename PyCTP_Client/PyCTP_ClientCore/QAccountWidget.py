@@ -56,7 +56,7 @@ class QAccountWidget(QWidget, Ui_Form):
     """
     Signal_SendMsg = QtCore.pyqtSignal(str)  # 自定义信号
     signal_update_groupBox_trade_args_for_query = QtCore.pyqtSignal(Strategy)  # 定义信号：更新界面参数框
-    signal_send_msg = QtCore.pyqtSignal(str)  # 窗口修改策略 -> SocketManager发送修改指令
+    signal_send_msg = QtCore.pyqtSignal(dict)  # 窗口修改策略 -> SocketManager发送修改指令
     signal_show_QMessageBox = QtCore.pyqtSignal(list)  # 定义信号：弹窗 -> ClientMain(主线程)中槽函数调用弹窗
     signal_lineEdit_duotoujiacha_setText = QtCore.pyqtSignal(str)  # 定义信号：多头价差lineEdit更新
     signal_lineEdit_kongtoujiacha_setText = QtCore.pyqtSignal(str)  # 定义信号：self.lineEdit_kongtoujiacha.setText()
@@ -305,14 +305,14 @@ class QAccountWidget(QWidget, Ui_Form):
         # if self.tableView_Trade_Args.StrategyDataModel is not None:
         # if self.tableView_Trade_Args.model() is not None:
         #     self.tableView_Trade_Args.StrategyDataModel.set_update_once(True)  # 更新一次tableView内全部index
-        print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name, "int_tab_index =", int_tab_index)
+        # print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name, "int_tab_index =", int_tab_index)
         # print(">>> QAccountWidget.slot_tab_changed() self.__dict_clicked_info =", self.__dict_clicked_info)
         # print("QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         dict_tab_clicked_info = self.__dict_clicked_info[self.__current_tab_name]
         # print(">>> QAccountWidget.slot_tab_changed() dict_tab_clicked_info =", len(dict_tab_clicked_info), dict_tab_clicked_info)
         # 主动触发鼠标单击事件
         if len(dict_tab_clicked_info) > 0:  # 该tab页中存在策略，且鼠标点击过
-            print("QAccountWidget.slot_tab_changed() if len(dict_tab_clicked_info) > 0:")
+            # print("QAccountWidget.slot_tab_changed() if len(dict_tab_clicked_info) > 0:")
             row = dict_tab_clicked_info['row']
             column = dict_tab_clicked_info['column']
             self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
@@ -358,8 +358,17 @@ class QAccountWidget(QWidget, Ui_Form):
     # 更新界面行情：[多头价差, 空头价差]
     def slot_update_spread_ui(self, list_data):
         # print(">>> QAccountWidget.slot_update_spread_ui() list_data =", list_data)
-        self.__spread_long = list_data[0]
-        self.__spread_short = list_data[1]
+        # self.__spread_long = list_data[0]
+        # self.__spread_short = list_data[1]
+        if len(self.__list_update_group_box_data) == 0:
+            self.lineEdit_duotoujiacha.setText('')
+            self.lineEdit_kongtoujiacha.setText('')
+            return
+        a_scale = self.__list_update_group_box_data[47]  # A合约乘数
+        b_scale = self.__list_update_group_box_data[48]  # B合约乘数
+        self.__spread_long = round(list_data[0] * a_scale - list_data[3] * b_scale, 2)
+        self.__spread_short = round(list_data[1] * a_scale - list_data[2] * b_scale, 2)
+        # print(">>> QAccountWidget.slot_update_spread_ui() self.__spread_long =", self.__spread_long, "self.__spread_short =", self.__spread_short)
         if self.__spread_long != self.__spread_long_last:
             # print(">>> QAccountWidget.slot_update_spread_ui() 更新多头价差", self.__spread_long)
             self.lineEdit_duotoujiacha.setText(str(self.__spread_long))
@@ -373,7 +382,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     def set_ClientMain(self, obj_ClientMain):
         self.__client_main = obj_ClientMain
-        
+
     def get_ClientMain(self):
         return self.__client_main
 
@@ -455,10 +464,10 @@ class QAccountWidget(QWidget, Ui_Form):
         print(">>> QAccountWidget.get_clicked_status() self.sender()=", self.sender(), " widget_name=", self.__widget_name, 'user_id=',
               self.__clicked_status['user_id'], 'strategy_id=', self.__clicked_status['strategy_id'])
         return self.__clicked_status
-    
+
     def set_list_strategy(self, list_strategy):
         self.__list_strategy = list_strategy
-        
+
     def get_list_strategy(self):
         return self.__list_strategy
 
@@ -832,6 +841,14 @@ class QAccountWidget(QWidget, Ui_Form):
                 index_comboBox = self.comboBox_xiadansuanfa.findText('')
                 if index_comboBox != -1:
                     self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+                # A合约
+                self.lineEdit_Aheyue.setText('')
+                # B合约
+                self.lineEdit_Bheyue.setText('')
+                # A合约乘数
+                self.lineEdit_Achengshu.setText('')
+                # B合约乘数
+                self.lineEdit_Bchengshu.setText('')
                 # 总手
                 self.lineEdit_zongshou.setText('')
                 # 每份
@@ -1208,10 +1225,17 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 清空groupBox
     def clean_groupBox(self):
+        print(">>> QAccountWidget.clean_groupBox() called")
         self.lineEdit_qihuozhanghao.setText('')  # 期货账号
         self.lineEdit_celuebianhao.setText('')  # 策略编号
         self.comboBox_jiaoyimoxing.setCurrentIndex(-1)
         self.comboBox_xiadansuanfa.setCurrentIndex(-1)
+        self.lineEdit_Aheyue.setText('')  # A合约
+        self.lineEdit_Bheyue.setText('')  # B合约
+        self.lineEdit_Achengshu.setText('')  # A合约乘数
+        self.lineEdit_Bchengshu.setText('')  # B合约乘数
+        self.lineEdit_duotoujiacha.setText('')  # 多头价差
+        self.lineEdit_kongtoujiacha.setText('')  # 空头价差
         self.lineEdit_zongshou.setText('')  # 总手
         self.lineEdit_meifen.setText('')  # 每份
         self.spinBox_zhisun.setValue(0)  # 止损
@@ -1451,7 +1475,7 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 更新groupBox：更新全部item
     def update_groupBox(self):
-        print(">>> QAccountWidget.update_groupBox()")
+        print(">>> QAccountWidget.update_groupBox() ")
         # 鼠标未点击任何策略之前，不更新groupBox
         if len(self.__dict_clicked_info[self.__current_tab_name]) == 0:
             return
@@ -1491,6 +1515,10 @@ class QAccountWidget(QWidget, Ui_Form):
         index_comboBox = self.comboBox_xiadansuanfa.findText(dict_strategy_arguments['order_algorithm'])  # 下单算法
         if index_comboBox != -1:
             self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+        self.lineEdit_Aheyue.setText(dict_strategy_arguments['a_instrument_id'])  # A合约
+        self.lineEdit_Bheyue.setText(dict_strategy_arguments['b_instrument_id'])  # B合约
+        self.lineEdit_Achengshu.setText(str(dict_strategy_arguments['instrument_a_scale']))  # A合约乘数
+        self.lineEdit_Bchengshu.setText(str(dict_strategy_arguments['instrument_b_scale']))  # B合约乘数
         self.lineEdit_zongshou.setText(str(dict_strategy_arguments['lots']))  # 总手
         self.lineEdit_meifen.setText(str(dict_strategy_arguments['lots_batch']))  # 每份
         self.spinBox_zhisun.setValue(dict_strategy_arguments['stop_loss'])  # 止损
@@ -1539,9 +1567,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Azuobuy.setText(str(dict_strategy_position['position_a_buy_yesterday']))  # A昨买
         self.lineEdit_Bzongsell.setText(str(dict_strategy_position['position_b_sell']))  # B总卖
         self.lineEdit_Bzuosell.setText(str(dict_strategy_position['position_b_sell_yesterday']))  # B昨卖
-    """
 
-    """
     # 更新groupBox：全部元素
     def slot_update_group_box(self):
         # print(">>> QAccountWidget.slot_update_group_box() ", "self.__list_update_group_box_data =", self.__list_update_group_box_data)
@@ -1555,6 +1581,10 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> QAccountWidget.slot_update_group_box() index_comboBox =", index_comboBox)
         if index_comboBox != -1:
             self.comboBox_xiadansuanfa.setCurrentIndex(index_comboBox)
+        self.lineEdit_Aheyue.setText(self.__list_update_group_box_data[45])  # A合约
+        self.lineEdit_Bheyue.setText(self.__list_update_group_box_data[46])  # B合约
+        self.lineEdit_Achengshu.setText(str(self.__list_update_group_box_data[47]))  # A合约乘数
+        self.lineEdit_Bchengshu.setText(str(self.__list_update_group_box_data[48]))  # B合约乘数
         self.lineEdit_zongshou.setText(self.__list_update_group_box_data[18])  # 总手
         self.lineEdit_meifen.setText(self.__list_update_group_box_data[19])  # 每份
         self.spinBox_zhisun.setValue(self.__list_update_group_box_data[20])  # 止损
@@ -1691,6 +1721,10 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_celuebianhao.setText(str_none)  # 策略编号
         self.comboBox_jiaoyimoxing.setCurrentIndex(-1)
         self.comboBox_xiadansuanfa.setCurrentIndex(-1)
+        self.lineEdit_Aheyue.setText(str_none)  # A合约
+        self.lineEdit_Bheyue.setText(str_none)  # B合约
+        self.lineEdit_Achengshu.setText(str_none)  # A合约乘数
+        self.lineEdit_Bchengshu.setText(str_none)  # B合约乘数
         self.lineEdit_zongshou.setText(str_none)  # 总手
         self.lineEdit_meifen.setText(str_none)  # 每份
         self.spinBox_zhisun.setValue(int_none)  # 止损
@@ -2000,6 +2034,10 @@ class QAccountWidget(QWidget, Ui_Form):
         for i_strategy in self.__client_main.get_CTPManager().get_list_strategy():
             if i_strategy.get_user_id() == self.comboBox_qihuozhanghao.currentText() and i_strategy.get_strategy_id() == self.comboBox_celuebianhao.currentText():
                 dict_args = i_strategy.get_arguments()
+                self.lineEdit_Aheyue.setText(dict_args['Aheyue'])  # A合约
+                self.lineEdit_Bheyue.setText(dict_args['Bheyue'])
+                self.lineEdit_Achengshu.setText(str(dict_args['Achengshu']))  # A合约乘数
+                self.lineEdit_Bchengshu.setText(str(dict_args['Bchengshu']))
                 self.lineEdit_zongshou.setText(str(dict_args['lots']))  # 总手
                 self.lineEdit_meifen.setText(str(dict_args['lots_batch']))  # 每份
                 self.spinBox_zhisun.setValue(dict_args['stop_loss'])  # 止损
@@ -2166,8 +2204,8 @@ class QAccountWidget(QWidget, Ui_Form):
             'UserID': self.__clicked_user_id,
             'StrategyID':self.__clicked_strategy_id
             }
-        json_msg = json.dumps(dict_msg)
-        self.signal_send_msg.emit(json_msg)
+        # json_msg = json.dumps(dict_msg)
+        self.signal_send_msg.emit(dict_msg)
 
     def send_msg_revise_strategy_on_off(self, dict_args):
         dict_msg = {
@@ -2180,8 +2218,8 @@ class QAccountWidget(QWidget, Ui_Form):
             'StrategyID': dict_args['strategy_id'],
             'OnOff': dict_args['on_off']
         }
-        json_msg = json.dumps(dict_msg)
-        self.signal_send_msg.emit(json_msg)
+        # json_msg = json.dumps(dict_msg)
+        self.signal_send_msg.emit(dict_msg)
 
     @pyqtSlot()
     def on_pushButton_query_account_clicked(self):
@@ -2190,7 +2228,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot()
     def on_pushButton_only_close_clicked(self):
         """
@@ -2285,8 +2323,8 @@ class QAccountWidget(QWidget, Ui_Form):
                 'TraderID': self.__socket_manager.get_trader_id(),
                 'UserID': self.__current_tab_name,
                 'OnOff': on_off}
-        json_trade_onoff = json.dumps(dict_trade_onoff)
-        self.signal_send_msg.emit(json_trade_onoff)
+        # json_trade_onoff = json.dumps(dict_trade_onoff)
+        self.signal_send_msg.emit(dict_trade_onoff)
 
     # 联动加
     @pyqtSlot()
@@ -2379,10 +2417,10 @@ class QAccountWidget(QWidget, Ui_Form):
             dict_args = {"title": "消息", "main": "‘多头开’必须小于‘多头平’"}
             self.signal_show_alert.emit(dict_args)
             return
-    
+
     @pyqtSlot()
     def on_pushButton_set_strategy_clicked(self):
-        print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() called")
+        # print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() called")
         """
         Slot documentation goes here.
         """
@@ -2424,6 +2462,8 @@ class QAccountWidget(QWidget, Ui_Form):
                 # "on_off": # 策略开关int，1开、0关
                 "trade_model": self.comboBox_jiaoyimoxing.currentText(),  # 交易模型
                 "order_algorithm": self.comboBox_xiadansuanfa.currentText(),  # 下单算法
+                "instrument_a_scale": int(self.lineEdit_Achengshu.text()),  # A合约乘数
+                "instrument_b_scale": int(self.lineEdit_Bchengshu.text()),  # B合约乘数
                 "lots": int(self.lineEdit_zongshou.text()),  # 总手
                 "lots_batch": int(self.lineEdit_meifen.text()),  # 每份
                 "stop_loss": float(self.spinBox_zhisun.text()),  # 止损跳数
@@ -2444,10 +2484,10 @@ class QAccountWidget(QWidget, Ui_Form):
                 "buy_open_on_off": (1 if self.checkBox_duotoukai.isChecked() else 0)  # 价差买开触发开关
             }]
         }
-        json_StrategyEditWithoutPosition = json.dumps(dict_args)
+        # json_StrategyEditWithoutPosition = json.dumps(dict_args)
         # self.__client_main.signal_send_msg.emit(json_StrategyEditWithoutPosition)
-        print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() json_StrategyEditWithoutPosition =",json_StrategyEditWithoutPosition)
-        self.signal_send_msg.emit(json_StrategyEditWithoutPosition)  # 发送信号到SocketManager.slot_send_msg
+        print(">>> QAccountWidget.on_pushButton_set_strategy_clicked() dict_args =", dict_args)
+        self.signal_send_msg.emit(dict_args)  # 发送信号到SocketManager.slot_send_msg
 
     @pyqtSlot()
     def on_pushButton_set_position_clicked(self):
@@ -2607,13 +2647,13 @@ class QAccountWidget(QWidget, Ui_Form):
                     "position_b_sell_yesterday": int(self.lineEdit_Bzuosell.text())  # B昨卖
                 }]
             }
-            json_setPosition = json.dumps(dict_setPosition)
-            self.signal_send_msg.emit(json_setPosition)  # 发送信号到SocketManager.slot_send_msg
+            # json_setPosition = json.dumps(dict_setPosition)
+            self.signal_send_msg.emit(dict_setPosition)  # 发送信号到SocketManager.slot_send_msg
 
     # 激活设置持仓按钮，禁用仓位输入框
     @QtCore.pyqtSlot()
     def on_pushButton_set_position_active(self):
-        print(">>> QAccountWidget.on_pushButton_set_position_active() called")
+        # print(">>> QAccountWidget.on_pushButton_set_position_active() called")
         self.set_allow_update_group_box_position(False)  # 允许刷新groupBox中的持仓变量LineEdit为False
         self.lineEdit_Azongsell.setReadOnly(True)  # 文本框只读
         self.lineEdit_Azongsell.setStyleSheet("QLineEdit { background: rgb(255, 255, 245);}")
@@ -2659,8 +2699,8 @@ class QAccountWidget(QWidget, Ui_Form):
                                'TraderID': self.__socket_manager.get_trader_id(),
                                'UserID': str_user_id,
                                'StrategyID': str_strategy_id}
-        json_query_strategy = json.dumps(dict_query_strategy)
-        self.signal_send_msg.emit(json_query_strategy)
+        # json_query_strategy = json.dumps(dict_query_strategy)
+        self.signal_send_msg.emit(dict_query_strategy)
 
         # 测试用：触发保存df_order和df_trade保存到本地
         # 进程间通信，触发特殊指令：保存策略的OnRtnOrder和OnRtnTrade到本地
@@ -2724,8 +2764,10 @@ class QAccountWidget(QWidget, Ui_Form):
         # print(">>> QAccountWidget.on_tableView_Trade_Args_clicked() self.__dict_clicked_info =", self.__dict_clicked_info)
         self.__socket_manager.set_clicked_info(row, column, self.__clicked_user_id, self.__clicked_strategy_id)
         self.get_list_update_group_box_data()  # 获取最新groupBox的更新数据
-        a_instrument_id = self.__list_update_group_box_data[3][:6]
-        b_instrument_id = self.__list_update_group_box_data[3][7:]
+        # a_instrument_id = self.__list_update_group_box_data[3][:6]
+        # b_instrument_id = self.__list_update_group_box_data[3][7:]
+        a_instrument_id = self.__list_update_group_box_data[45]
+        b_instrument_id = self.__list_update_group_box_data[46]
         list_instrument_id = [a_instrument_id, b_instrument_id]
         # self.__socket_manager.get_market_manager().group_box_sub_market(list_instrument_id)
         self.__clicked_list_instrument_id = list_instrument_id
@@ -2743,7 +2785,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         # raise NotImplementedError
         pass
-    
+
     @pyqtSlot(int)
     def on_checkBox_kongtoukai_stateChanged(self, p0):
         """
@@ -2754,7 +2796,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(bool)
     def on_checkBox_duotouping_clicked(self, checked):
         """
@@ -2765,7 +2807,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(int)
     def on_checkBox_duotouping_stateChanged(self, p0):
         """
@@ -2776,7 +2818,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(bool)
     def on_checkBox_duotoukai_clicked(self, checked):
         """
@@ -2787,7 +2829,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(int)
     def on_checkBox_duotoukai_stateChanged(self, p0):
         """
@@ -2798,7 +2840,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(bool)
     def on_checkBox_kongtouping_clicked(self, checked):
         """
@@ -2809,7 +2851,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(int)
     def on_checkBox_kongtouping_stateChanged(self, p0):
         """
@@ -2820,7 +2862,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     #@pyqtSlot(QPoint)
     #def on_tablewidget_tableWidget_Trade_Args_customContextMenuRequested(self, pos):
         """
@@ -2832,7 +2874,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         ## raise NotImplementedError
 
-    
+
     @pyqtSlot(int)
     def on_comboBox_qihuozhanghao_currentIndexChanged(self, index):
         """
@@ -2844,7 +2886,7 @@ class QAccountWidget(QWidget, Ui_Form):
         # TODO: not implemented yet
         # raise NotImplementedError
         # print(">>> QAccountWidget.on_comboBox_qihuozhanghao_currentIndexChanged()")
-    
+
     @pyqtSlot(str)
     def on_comboBox_qihuozhanghao_currentIndexChanged(self, p0):
         """
@@ -2866,7 +2908,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         # raise NotImplementedError
-    
+
     @pyqtSlot(str)
     def on_comboBox_jiaoyimoxing_currentIndexChanged(self, p0):
         """
@@ -2877,7 +2919,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         print("currentindex string %s" % p0)
-    
+
     @pyqtSlot(int)
     def on_comboBox_celuebianhao_currentIndexChanged(self, index):
         """
@@ -2888,7 +2930,7 @@ class QAccountWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         print("currentindex %d" % index)
-    
+
     @pyqtSlot(str)
     def on_comboBox_celuebianhao_currentIndexChanged(self, p0):
         """

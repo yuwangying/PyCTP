@@ -54,9 +54,14 @@ class Strategy():
         self.init_variable()  # 初始化变量
         self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取TdApi的交易日
         self.set_arguments(dict_args)  # 设置策略参数，形参由server端获取到
+        # 从API查询期货合约信息中未找到该合约代码，则不创建Strategy对象
+        # if self.if_exist_instrument_id(self.__a_instrument_id) == False:
+        #     return
+        # if self.if_exist_instrument_id(self.__b_instrument_id) == False:
+        #     return
         self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
         self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
-        self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
+        # self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
         self.update_position_of_position_detail_for_order()  # 利用order持仓明细更新策略持仓变量
         # self.init_position()  # 初始化策略持仓
         self.init_statistics()  # 初始化统计指标
@@ -65,91 +70,6 @@ class Strategy():
         # 临时变量，检查策略接收到的OnRtnOrder\OnRtnTrade记录是否正确
         self.__df_OnRtnOrder = DataFrame()
         self.__df_OnRtnTrade = DataFrame()
-
-        # self.set_init_finished(True)  # 策略初始化完成
-
-        # self.init_list_position_detail_for_order()  # 初始化策略持仓明细order
-        # self.init_list_position_detail_for_trade()  # 初始化策略持仓明细trade
-
-        # self.__init_finished = False  # strategy对象内部属性初始化状态
-        # self.__init_finished_statistics = False  # strategy统计指标初始化状态
-        # self.__trade_tasking = False  # 交易任务进行中
-        # self.__a_order_insert_args = dict()  # a合约报单参数
-        # self.__b_order_insert_args = dict()  # b合约报单参数
-        # self.__list_QryOrder = list()  # 属于本策略的QryOrder列表
-        # self.__list_QryTrade = list()  # 属于本策略的QryTrade列表
-        # self.__list_position_detail_for_order = list()  # 策略持仓明细列表，用order维护
-        # self.__list_position_detail_for_trade = list()  # 策略持仓明细列表，用trade维护
-        # self.__list_order_process = list()  # 未完成的order列表，未全部成交且未撤单
-        # self.__list_order_pending = list()  # 挂单列表，报单、成交、撤单回报
-        # self.__a_tick = None  # A合约tick（第一腿）
-        # self.__b_tick = None  # B合约tick（第二腿）
-        # self.__spread_long = None  # 市场多头价差：A合约买一价 - B合约买一价
-        # self.__spread_long_volume = None  # 市场多头价差盘口挂单量min(A合约买一量 - B合约买一量)
-        # self.__spread_short = None  # 市场空头价差：A合约卖一价 - B合约卖一价
-        # self.__spread_short_volume = None  # 市场空头价差盘口挂单量：min(A合约买一量 - B合约买一量)
-        # self.__spread = None  # 市场最新价价差
-        # self.__order_ref_a = None  # A合约报单引用
-        # self.__order_ref_b = None  # B合约报单引用
-        # self.__order_ref_last = None  # 最后一次实际使用的报单引用
-        # self.__dict_yesterday_position = dict()  # 本策略昨仓
-        # self.__dict_statistics = dict()  # 保存统计类指标的dict
-        # self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnOrder发来的数据
-        # self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnTrade发来的数据
-        # self.__queue_OnRtnDepthMarketData = queue.Queue(maxsize=0)  # 创建队列，存储OnRtnDepthMarketData发来的数据
-        # self.__thread_run_count = threading.Thread(target=self.run_count)  # 创建核心统计运算线程
-        # self.__list_strategy_view = list()  # 单策略对象在view视窗中所显示的数据list，list内容：['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交额', 'A成交率', 'B成交率', '交易模型', '下单算法']
-
-        # 界面交互标志
-        # self.__clicked_total = False  # 策略在主窗口中被选中的标志
-        # self.__clicked_signal = False  # 策略在单账户窗口中被选中的标志
-        # self.__last_to_ui_spread_short = None  # 最后价差值初始值
-        # self.__last_to_ui_spread_long = None  # 最后价差值初始值
-
-        # self.set_arguments(dict_args)  # 设置策略参数
-        # self.__user.add_instrument_id_action_counter(dict_args['list_instrument_id'])  # 将合约代码添加到user类的合约列表
-
-        # 通过API查询的数据，统一放到期货账户登录成功之后再调用
-        # self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
-        # self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
-        # self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
-        # self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
-        # self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
-        # self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
-        # self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
-        # self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
-        # self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
-        # self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
-
-
-        # 程序运行中新添加的策略设置为窗口类和管理类的属性
-        # if self.__user.get_CTPManager().get_ClientMain().get_init_UI_finished():
-        #     self.set_show_widget_name(self.__user.get_CTPManager().get_ClientMain().get_show_widget_name())
-        #     self.__user.get_CTPManager().get_ClientMain().set_obj_new_strategy(self)  # 新建策略设置为ClientMain属性
-
-        # 从user类的list_QryOrder中选出本策略的list_QryOrder
-        # self.get_list_QryOrder()
-        # 从user类的list_QryTrade中选出本策略的list_QryTrade
-        # self.get_list_QryTrade()
-
-        # 初始化策略持仓明细列表，以及初始化统计类指标
-        # self.init_list_position_detail_for_order()
-        # self.init_list_position_detail_for_trade()
-
-        # 初始化策略持仓变量
-        # self.init_position()
-        # 初始化统计指标
-        # self.init_statistics()
-
-        # self.__init_finished = True
-        # print('Strategy.__init__() 创建策略成功：user_id=', self.__user_id, 'strategy_id=', self.__strategy_id)
-
-        # 定义内部处理tick线程
-        # self.signal_handle_tick.connect(self.slot_handle_tick)
-        # self.tick_thread = QtCore.QThread()  # 创建线程实例
-        # self.tick_thread.started.connect(self.slot_handle_tick)  # 线程self.tick_thread绑定到self.slot_handle_tick
-        # self.tick_thread.start()  # 启动线程
-        # self.moveToThread(self.tick_thread)  # 把本类Strategy移到线程self.tick_thread里
 
     # 设置参数
     def set_arguments(self, dict_args):
@@ -162,6 +82,8 @@ class Strategy():
 
         self.__trade_model = dict_args['trade_model']  # 交易模型
         self.__order_algorithm = dict_args['order_algorithm']  # 下单算法选择标志位
+        self.__instrument_a_scale = dict_args['instrument_a_scale']  # A合约乘数
+        self.__instrument_b_scale = dict_args['instrument_b_scale']  # B合约乘数
         self.__lots = dict_args['lots']  # 总手
         self.__lots_batch = dict_args['lots_batch']  # 每批下单手数
         self.__stop_loss = dict_args['stop_loss']  # 止损，单位为最小跳数
@@ -186,42 +108,7 @@ class Strategy():
         self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
         self.__update_position_detail_record_time = dict_args['update_position_detail_record_time']  # 修改策略持仓时间，空字符串：本交易日没有修改持仓
-        print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__update_position_detail_record_time =", self.__update_position_detail_record_time)
-
-        # strategy_arguments = {
-        #     'user_id': self.__user_id,
-        #     'strategy_id': self.__strategy_id,
-        #     'trade_model': self.__trade_model,
-        #     'order_algorithm': self.__order_algorithm,
-        #     'lots': self.__lots,
-        #     'lots_batch': self.__lots_batch,
-        #     'stop_loss': self.__stop_loss,
-        #     'on_off': self.__strategy_on_off,
-        #     'spread_shift': self.__spread_shift,
-        #     'a_instrument_id': self.__a_instrument_id,
-        #     'b_instrument_id': self.__b_instrument_id,
-        #     'a_limit_price_shift': self.__a_limit_price_shift,
-        #     'b_limit_price_shift': self.__b_limit_price_shift,
-        #     'a_wait_price_tick': self.__a_wait_price_tick,
-        #     'b_wait_price_tick': self.__b_wait_price_tick,
-        #     'a_order_action_limit': self.__a_order_action_limit,
-        #     'b_order_action_limit': self.__b_order_action_limit,
-        #     'buy_open': self.__buy_open,
-        #     'sell_close': self.__sell_close,
-        #     'sell_open': self.__sell_open,
-        #     'buy_close': self.__buy_close,
-        #     'sell_open_on_off': self.__sell_open_on_off,
-        #     'buy_close_on_off': self.__buy_close_on_off,
-        #     'buy_open_on_off': self.__sell_close_on_off,
-        #     'sell_close_on_off': self.__buy_open_on_off
-        # }
-        # dict_msg = {
-        #     'DataFlag': 'strategy_arguments',
-        #     'UserId': self.__user_id,
-        #     'DataMain': strategy_arguments  # 最新策略参数
-        # }
-        # print(">>> Strategy.set_arguments() user_id =", self.__user_id, 'data_flag =', 'strategy_arguments', 'data_msg =', dict_msg)
-        # self.__user.get_Queue_user().put(dict_msg)
+        # print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__update_position_detail_record_time =", self.__update_position_detail_record_time)
 
     # 获取参数
     def get_arguments(self):
@@ -232,6 +119,8 @@ class Strategy():
             'on_off': self.__strategy_on_off,
             'trade_model': self.__trade_model,
             'order_algorithm': self.__order_algorithm,
+            'instrument_a_scale': self.__instrument_a_scale,
+            'instrument_b_scale': self.__instrument_b_scale,
             'lots': self.__lots,
             'lots_batch': self.__lots_batch,
             'stop_loss': self.__stop_loss,
@@ -295,6 +184,8 @@ class Strategy():
         self.__total_traded_amount = 0  # A、B成交金额
         self.__a_commission = 0  # A手续费
         self.__b_commission = 0  # B手续费
+        self.__a_commission_order = 0  # A合约申报费，中金所股指期货合约存在申报费
+        self.__b_commission_order = 0  # B合约申报费
         self.__total_commission = 0  # 总手续费
         self.__a_trade_rate = 0  # A成交概率(成交手数/报单手数)
         self.__b_trade_rate = 0  # B成交概率(成交手数/报单手数)
@@ -335,6 +226,9 @@ class Strategy():
             'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
             'b_trade_rate': self.__b_trade_rate  # B成交概率(成交手数/报单手数)
         }
+
+        # 统计申报费的OrderRef管理list
+        self.__list_OrderRef_for_count_commission_order = list()
 
     def get_list_strategy_view(self):
         # ['开关', '期货账号', '策略编号', '交易合约', '总持仓', '买持仓', '卖持仓', '持仓盈亏', '平仓盈亏', '手续费', '净盈亏', '成交量', '成交金额', 'A成交率', 'B成交率', '交易模型', '下单算法']
@@ -665,7 +559,7 @@ class Strategy():
         print("B总买", self.__position_b_buy, "B昨卖", self.__position_b_buy_yesterday)
         print("A总买", self.__position_a_buy, "A昨买", self.__position_a_buy_yesterday)
         print("B总卖", self.__position_b_sell, "B昨卖", self.__position_b_sell_yesterday)
-        print("平仓盈亏-手续费=净盈亏", self.__profit_close, self.__total_commission, self.__profit)
+        # print("平仓盈亏-手续费=净盈亏", self.__profit_close, self.__total_commission, self.__profit)
         # print(" self.__list_position_detail_for_trade 长度", len(self.__list_position_detail_for_trade))
         # for i in self.__list_position_detail_for_trade:
         #     print(i)
@@ -769,14 +663,15 @@ class Strategy():
     # 更新占用保证金
     def update_current_margin(self):
         # print(">>> Strategy.update_current_margin() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
-        # 上期所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
-        # 郑商所：同一合约买、卖持仓，仅收较大单边保证金，同一品种内区分不同月份合约
-        # 大商所：没有保证金免收政策
         # 中金所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
-        # self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
+        # 上期所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
+        # 郑商所：同一个合约买持仓和卖持仓，仅收较大单边保证金
+        # 大商所：没有保证金免收政策
+        self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
         self.__Margin_Occupied_SHFE = self.Margin_Occupied_SHFE()
-        self.__Margin_Occupied_CZCE = 0  # self.Margin_Occupied_CZCE()
-        self.__Margin_Occupied_DCE = 0  # self.Margin_Occupied_DCE()
+        self.__Margin_Occupied_CZCE = self.Margin_Occupied_CZCE()
+        self.__Margin_Occupied_DCE = self.Margin_Occupied_DCE()
+        # print(">>>Strategy.update_current_margin() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "\n    self.__Margin_Occupied_CFFEX =", self.__Margin_Occupied_CFFEX, "\n    self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE, "\n    self.__Margin_Occupied_CZCE =", self.__Margin_Occupied_CZCE, "\n    self.__Margin_Occupied_DCE =", self.__Margin_Occupied_DCE)
         # self.__Margin_Occupied_total = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
         # 策略统计结构体中的元素：策略持仓占用保证金
         self.__current_margin = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
@@ -1110,7 +1005,7 @@ class Strategy():
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_sell + self.__position_b_buy
 
-        print("Strategy.update_position_for_OnRtnOrder() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
+        print("Strategy.update_position_for_OnRtnTrade() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
@@ -1173,7 +1068,7 @@ class Strategy():
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_buy + self.__position_b_sell
         print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
-        print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
+        # print("Strategy.update_position_for_position_detail() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
@@ -1221,10 +1116,8 @@ class Strategy():
         self.__position_b_buy = self.__position_b_buy_today + self.__position_b_buy_yesterday
         self.__position_b_sell = self.__position_b_sell_today + self.__position_b_sell_yesterday
         self.__position = self.__position_b_buy + self.__position_b_sell
-        print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =",
-              self.__strategy_id, "self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
-        print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =",
-              self.__strategy_id)
+        print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__list_position_detail_for_trade =", self.__list_position_detail_for_trade)
+        # print("Strategy.update_position_of_position_detail_for_order() userid =", self.__user_id, "strategy_id =", self.__strategy_id)
         print("     A卖(", self.__position_a_sell, ",", self.__position_a_sell_yesterday, ")")
         print("     B买(", self.__position_b_buy, ",", self.__position_b_buy_yesterday, ")")
         print("     A买(", self.__position_a_buy, ",", self.__position_a_buy_yesterday, ")")
@@ -1342,16 +1235,73 @@ class Strategy():
     def get_dict_statistics(self):
         return self.__dict_statistics
 
+    # 统计持仓明细中属于中金所的持仓保证金
+    def Margin_Occupied_CFFEX(self):
+        self.__Margin_Occupied_CFFEX = 0
+        # 从持仓明细中过滤出中金所的持仓明细
+        list_position_detail_for_trade_CFFEX = list()
+        for i in self.__list_position_detail_for_trade:
+            if i['ExchangeID'] == 'CFFEX':
+                i['CommodityID'] = Utils.extract_commodity_id(i['InstrumentID'])  # 品种代码
+                list_position_detail_for_trade_CFFEX.append(i)
+        if len(list_position_detail_for_trade_CFFEX) == 0:  # 无持仓，返回保证金初始值0
+            return self.__Margin_Occupied_CFFEX
+
+        # 选出持仓明细中存在的品种代码
+        list_commodity_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_CFFEX:
+            if i['CommodityID'] in list_commodity_id:
+                pass
+            else:
+                list_commodity_id.append(i['CommodityID'])
+        # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # a合约和b合约是同一个品种
+        if len(list_commodity_id) == 1:
+            self.__Margin_Occupied_CFFEX = self.count_single_instrument_margin_CFFEX(list_position_detail_for_trade_CFFEX)
+            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
+        # a合约和b合约是不同的品种
+        elif len(list_commodity_id) == 2:
+            # 分别选出两种持仓的明细
+            list_position_detail_for_trade_CFFEX_0 = list()
+            list_position_detail_for_trade_CFFEX_1 = list()
+            for i in list_position_detail_for_trade_CFFEX:
+                if list_commodity_id[0] == i['CommodityID']:
+                    list_position_detail_for_trade_CFFEX_0.append(i)
+                elif list_commodity_id[1] == i['CommodityID']:
+                    list_position_detail_for_trade_CFFEX_1.append(i)
+            # 计算两个品种分别占用的持仓保证金
+            margin_0 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_0)
+            margin_1 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_1)
+            self.__Margin_Occupied_SHFE = margin_0 + margin_1
+        return self.__Margin_Occupied_CFFEX
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_CFFEX(self, list_input):
+        list_position_detail_for_trade_CFFEX = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_CFFEX:
+            i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = max(margin_buy, margin_sell)
+        return margin
+
     # 统计持仓明细中属于上海期货交易所的持仓保证金
     def Margin_Occupied_SHFE(self):
         self.__Margin_Occupied_SHFE = 0
         # 从持仓明细中过滤出上海期货交易所的持仓明细
         list_position_detail_for_trade_SHFE = list()
+        # print(">>>Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade), "len(self.__list_position_detail_for_order) =", len(self.__list_position_detail_for_order))
         for i in self.__list_position_detail_for_trade:
+            # print(">>>Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "i['ExchangeID'] =", i['ExchangeID'])
             if i['ExchangeID'] == 'SHFE':
                 i['CommodityID'] = i['InstrumentID'][:2]
                 list_position_detail_for_trade_SHFE.append(i)
         if len(list_position_detail_for_trade_SHFE) == 0:  # 无上期所持仓，返回初始值0
+            # print(">>>Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "无上期所持仓，返回保证金初始值0")
             return self.__Margin_Occupied_SHFE
 
         # 选出持仓明细中存在的品种代码
@@ -1361,20 +1311,9 @@ class Strategy():
                 pass
             else:
                 list_commodity_id.append(i['CommodityID'])
-        # print(">>> Strategy.Margin_Occupied_SHFE() list_commodity_id =", list_commodity_id)
-
         # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
         # a合约和b合约是同一个品种
         if len(list_commodity_id) == 1:
-            # margin_buy = 0  # 买持仓保证金
-            # margin_sell = 0  # 卖持仓保证金
-            # for i in list_position_detail_for_trade_SHFE:
-            #     i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
-            #     if i['Direction'] == '0':
-            #         margin_buy += i['CurrMargin']
-            #     elif i['Direction'] == '1':
-            #         margin_sell += i['CurrMargin']
-            # self.__Margin_Occupied_SHFE = max(margin_buy, margin_sell)  # 同品种买卖持仓，仅收大单边保证金
             self.__Margin_Occupied_SHFE = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE)
             # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
         # a合约和b合约是不同的品种
@@ -1405,6 +1344,99 @@ class Strategy():
             elif i['Direction'] == '1':
                 margin_sell += i['CurrMargin']
         margin = max(margin_buy, margin_sell)
+        return margin
+
+    # 统计持仓明细中属于上海期货交易所的持仓保证金
+    def Margin_Occupied_CZCE(self):
+        self.__Margin_Occupied_CZCE = 0
+        # 从持仓明细中过滤出郑州期货交易所的持仓明细
+        list_position_detail_for_trade_CZCE = list()
+        for i in self.__list_position_detail_for_trade:
+            if i['ExchangeID'] == 'CZCE':
+                i['CommodityID'] = i['InstrumentID'][:2]
+                list_position_detail_for_trade_CZCE.append(i)
+        if len(list_position_detail_for_trade_CZCE) == 0:  # 无上期所持仓，返回初始值0
+            return self.__Margin_Occupied_CZCE
+
+        # 选出持仓明细中存在的品种代码
+        list_commodity_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_CZCE:
+            if i['CommodityID'] in list_commodity_id:
+                pass
+            else:
+                list_commodity_id.append(i['CommodityID'])
+        # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # a合约和b合约是同一个品种
+        self.__Margin_Occupied_CZCE = self.count_single_instrument_margin_CZCE(list_position_detail_for_trade_CZCE)
+        # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_CZCE =", self.__Margin_Occupied_CZCE)
+        return self.__Margin_Occupied_CZCE
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_CZCE(self, list_input):
+        list_position_detail_for_trade_CZCE = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_CZCE:
+            i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = margin_buy + margin_sell
+        return margin
+
+    # 统计持仓明细中属于大连期货交易所的持仓保证金
+    def Margin_Occupied_DCE(self):
+        self.__Margin_Occupied_DCE = 0
+        # 从持仓明细中过滤出大连期货交易所的持仓明细
+        list_position_detail_for_trade_DCE = list()
+        for i in self.__list_position_detail_for_trade:
+            if i['ExchangeID'] == 'DCE':
+                i['CommodityID'] = i['InstrumentID'][:2]
+                list_position_detail_for_trade_DCE.append(i)
+        if len(list_position_detail_for_trade_DCE) == 0:  # 无大连期货交易所持仓，返回初始值0
+            return self.__Margin_Occupied_DCE
+        self.__Margin_Occupied_DCE = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE)
+        # # 选出持仓明细中存在的品种代码
+        # list_commodity_id = list()  # 保存持仓中存在品种代码
+        # for i in list_position_detail_for_trade_DCE:
+        #     if i['CommodityID'] in list_commodity_id:
+        #         pass
+        #     else:
+        #         list_commodity_id.append(i['CommodityID'])
+        # # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # # a合约和b合约是同一个品种
+        # if len(list_commodity_id) == 1:
+        #     self.__Margin_Occupied_DCE = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE)
+        #     # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_DCE =", self.__Margin_Occupied_DCE)
+        # # a合约和b合约是不同的品种
+        # elif len(list_commodity_id) == 2:
+        #     # 分别选出两种持仓的明细
+        #     list_position_detail_for_trade_DCE_0 = list()
+        #     list_position_detail_for_trade_DCE_1 = list()
+        #     for i in list_position_detail_for_trade_DCE:
+        #         if list_commodity_id[0] == i['CommodityID']:
+        #             list_position_detail_for_trade_DCE_0.append(i)
+        #         elif list_commodity_id[1] == i['CommodityID']:
+        #             list_position_detail_for_trade_DCE_1.append(i)
+        #     # 计算两个品种分别占用的持仓保证金
+        #     margin_0 = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE_0)
+        #     margin_1 = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE_1)
+        #     self.__Margin_Occupied_DCE = margin_0 + margin_1
+        return self.__Margin_Occupied_DCE
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_DCE(self, list_input):
+        list_position_detail_for_trade_DCE = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_DCE:
+            i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = margin_buy + margin_sell
         return margin
 
     # 计算手续费，形参为trade记录结构体，返回值为该笔trade记录的手续费金额
@@ -1443,7 +1475,34 @@ class Strategy():
                     self.__dict_commission_a['CloseRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
                     + self.__dict_commission_a['CloseRatioByVolume'] * trade['Volume']
         return commission_amount
-    
+
+    # 计算申报费
+    def count_commission_order(self, order):
+        if order['ExchangeID'] == 'CFFEX':  # 中金所品种
+            InstrumentID = order['InstrumentID']
+            if len(InstrumentID) == 6:
+                CommodityID = InstrumentID[:2]
+            elif len(InstrumentID) == 5:
+                CommodityID = InstrumentID[:1]
+            if CommodityID in ['IF', 'IH', 'IC']:  # 三个品种统计申报费
+                OrderRef = order['OrderRef']
+                if OrderRef not in self.__list_OrderRef_for_count_commission_order:
+                    self.__list_OrderRef_for_count_commission_order.append(OrderRef)
+                    if InstrumentID == self.__a_instrument_id:
+                        self.__a_commission_order += 1
+                    elif InstrumentID == self.__b_instrument_id:
+                        self.__b_commission_order += 1
+                    # print(">>>Strategy.count_commission_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "申报费", self.__a_instrument_id, "=", self.__a_commission_order, self.__b_instrument_id, "=", self.__b_commission_order)
+                else:
+                    if order['OrderStatus'] in ['0', '5']:
+                        self.__list_OrderRef_for_count_commission_order.remove(OrderRef)
+                        if order['OrderStatus'] == '5':
+                            if InstrumentID == self.__a_instrument_id:
+                                self.__a_commission_order += 1
+                            elif InstrumentID == self.__b_instrument_id:
+                                self.__b_commission_order += 1
+                            # print(">>>Strategy.count_commission_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "申报费", self.__a_instrument_id, "=", self.__a_commission_order, self.__b_instrument_id, "=", self.__b_commission_order)
+
     # 计算策略持仓盈亏，由行情回调驱动
     def update_profit_position(self, tick):
         if len(self.__list_position_detail_for_trade) > 0:  # 有持仓时更新持仓盈亏
@@ -1554,29 +1613,59 @@ class Strategy():
     def get_b_instrument_id(self):
         return self.__b_instrument_id
 
-    # 获取指定合约最小跳'PriceTick'
-    def get_price_tick(self, instrument_id):
+    # 判断从API查询的合约信息中是否存在形参的合约，存在：返回True，不存在：返回False
+    def if_exist_instrument_id(self, instrument_id):
+        found_flag = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found_flag = True
+                return True
+        if found_flag == False:
+            return False
+
+    # 获取指定合约最小跳'PriceTick'
+    def get_price_tick(self, instrument_id):
+        found = False
+        for i in self.__user.get_instrument_info():
+            if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['PriceTick']
+        if found is False:
+            print("Strategy.get_price_tick() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约最小跳，未找到合约")
+            return 0
 
     # 获取指定合约乘数
     def get_instrument_multiple(self, instrument_id):
+        found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['VolumeMultiple']
+        if found is False:
+            print("Strategy.get_instrument_multiple() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约乘数失败，未找到合约")
+            return 0
 
     # 获取指定合约保证金率
     def get_instrument_margin_ratio(self, instrument_id):
+        found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['LongMarginRatio']
+        if found is False:
+            print("Strategy.get_instrument_margin_ratio() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约保证金率失败，未找到合约")
+            return 0
 
     # 获取指定合约所属的交易搜代码
     def get_exchange_id(self, instrument_id):
+        found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                found = True
                 return i['ExchangeID']
+        if found is False:
+            print("Strategy.get_exchange_id() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, "异常，获取合约所属交易所代码失败，未找到合约")
+            return 0
     
     # # 更新撤单次数，在user类中的order回调中调用，第一时间更新撤单计数
     # def update_action_count(self):
@@ -1908,8 +1997,8 @@ class Strategy():
             'a_traded_amount': self.__a_traded_amount,  # A成交金额
             'b_traded_amount': self.__b_traded_amount,  # B成交金额
             'total_traded_amount': self.__total_traded_amount,  # 总成交量
-            'a_commission_count': self.__a_commission,  # A手续费
-            'b_commission_count': self.__b_commission,  # B手续费
+            'a_commission_count': self.__a_commission + self.__a_commission_order,  # A手续费
+            'b_commission_count': self.__b_commission + self.__b_commission_order,  # B手续费
             'commission': self.__total_commission,  # 总手续费
             'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
             'b_trade_rate': self.__b_trade_rate,  # B成交概率(成交手数/报单手数)
@@ -2169,6 +2258,9 @@ class Strategy():
 
         # 更新统计指标
         self.statistics_for_order(Order)
+
+        # 统计中金所部分品种申报费：IF\IH\IC
+        self.count_commission_order(Order)
 
         # 更新界面
         # self.signal_update_strategy.emit(self)

@@ -6,6 +6,7 @@ Created on Wed Jul 20 08:46:13 2016
 """
 
 import os
+import sys
 import time
 import threading
 from operator import itemgetter
@@ -32,17 +33,21 @@ class User():
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     # def __init__(self, dict_arguments, parent=None, ctp_manager=None):
     def __init__(self, dict_arguments, Queue_main, Queue_user):
-        print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
+        self.save_log(dict_arguments)  # 日志重定向到本地文件夹
 
+        # print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
         self.__init_arguments = dict_arguments  # 转存形参
         self.__Queue_main = Queue_main  # 主进程put，user进程get
         self.__Queue_user = Queue_user  # user进程put，主进程get
-        self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 缓存OnRtnTrade回调数据
-        self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据
+        self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 缓存OnRtnTrade回调数据，仅本套利系统的记录
+        self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据，仅本套利系统的记录
+        self.__queue_OnRtnOrder_user = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据，期货账户的所有order数据
         self.__threading_OnRtnOrder = threading.Thread(target=self.threading_run_OnRtnOrder)
         self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
+        self.__threading_count_commission_order = threading.Thread(target=self.threading_count_commission_order)
         self.__threading_OnRtnOrder.setDaemon(True)
         self.__threading_OnRtnTrade.setDaemon(True)
+        self.__threading_count_commission_order.setDaemon(True)
         self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
         self.__dict_strategy = dict()  # 存放策略对象的dict,{strategy_id: obj_strategy}
         self.__dict_strategy_finished = dict()  # 存放策略对象初始化完成标志{strategy_id: False}
@@ -50,6 +55,8 @@ class User():
         self.__dict_action_counter = dict()  # 记录合约撤单次数的字典，撤单操作时添加次数，交易日换日时初始化值
         self.__dict_open_counter = dict()  # 记录合约开仓次数的字典
         self.__list_panel_show_account_data = list()  # 界面更新期货账户资金情况数据结构
+        self.__commission_order = 0  # 申报费，中金所股指期货合约存在申报费
+        self.__list_OrderRef_for_count_commission_order = list()  # 统计申报费的OrderRef管理list
         self.__dict_last_tick = dict()  # 存放所有订阅合约的最后一个tick
         self.__Margin_Occupied_CFFEX = 0  # 上期所品种的持仓占用保证金初始值
         self.__Margin_Occupied_SHFE = 0
@@ -61,31 +68,6 @@ class User():
 
         self.__qry_api_last_time = time.time()  # 类型浮点数，最后一次查询Trade_Api的时间
         self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用首位固定为1，后两位为策略编号，中间部分递增1
-        # self.__list_sessionid = list()  # 当前交易日，期货账户所有会话id，服务端的
-        # self.__server_list_position_detail_for_order_yesterday = list()  # 期货账户持仓明细，内部元素结构为order
-        # self.__server_list_position_detail_for_trade_yesterday = list()  # 期货账户持仓明细，内部元素结构为trade
-        # self.__list_order_process = list()  # 挂单列表，未成交、部分成交还在队列中
-        # self.__list_OnRtnOrder = []  # 保存单账户所有的OnRtnOrder回调数据
-        # self.__list_OnRtnTrade = []  # 保存单账户所有的OnRtnTrade回调数据
-        # self.__list_SendOrder = []  # 保存单账户所有调用OrderInsert的记录
-        # self.__list_strategy = []  # 期货账户下面的所有交易策略实例列表
-        # self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
-        # self.__list_InstrumentId = []  # 合约列表，记录撤单次数，在创建策略的时候添加合约，
-        # self.__dict_open_counter = dict()  # 记录合约开仓手数的字典，交易日换日时初始化
-        # self.__init_finished = False  # 初始化完成
-        # self.__init_finished_succeed = True  # user初始化成功，初始化过程中遇到任何异常就设置为False
-
-        # self.__dict_panel_show_account = dict()  # 单账户窗口显示的数据，{动态权益，静态权益，持仓盈亏，平仓盈亏，手续费，可用资金，占用保证金，下单冻结，风险度，今日入金，今日出金}
-        # self.__current_margin = 0  # 期货账户的持仓占用保证金
-        # self.__commission = 0  # 期货账户手续费
-        # self.__profit_position = 0  # 期货账户持仓盈亏
-        # self.__profit_close = 0  # 期货账户平仓盈亏
-        #
-        # self.__df_order = DataFrame()  # 保存该期货账户的所有OnRtnOrder来的记录
-        # self.__df_trade = DataFrame()  # 保存该期货账户的所有OnRtnTrade来的记录
-        # self.__df_qry_order = DataFrame()  # 保存该期货账户的所有QryOrder返回的记录
-        # self.__df_qry_trade = DataFrame()  # 保存该期货账户的所有QryTrade返回的记录
-        # self.__df_log = DataFrame()  # 测试时用来保存user全局日志
 
         # 创建行情，获取交易日
         self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
@@ -134,6 +116,7 @@ class User():
         # 策略初始化完成，启动转发OnRtnOrder、OnRtnTrade的线程
         self.__threading_OnRtnOrder.start()
         self.__threading_OnRtnTrade.start()
+        self.__threading_count_commission_order.start()
 
         # user初始化完成
         self.set_init_finished(True)
@@ -190,6 +173,28 @@ class User():
         #     print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
         #     self.__init_finished = False  # 策略初始化失败
         #     return
+
+    # 日志重定向到本地文件夹
+    def save_log(self, dict_arguments):
+        user_id = dict_arguments['server']['user_info']['userid']
+        # 删除log文件夹，创建log文件夹
+        if os.path.exists('log'):
+            pass  # 已存在文件夹，什么都不用操作
+            # print("ClientMin.'__main__' log文件夹存在，删除重建log文件夹")
+            # shutil.rmtree('log')
+        else:
+            # print("ClientMin.'__main__' log文件夹不存在，创建log文件夹")
+            os.mkdir('log')
+        # print全部存到log本地文件
+        time_str = datetime.now().strftime('%Y%m%d %H%M%S')
+
+        file_path_error = 'log/' + user_id + '_error_' + time_str + '.log'
+        stderr_handler = open(file_path_error, 'w')
+        sys.stderr = stderr_handler
+
+        file_path_stdout = 'log/' + user_id + '_out_' + time_str + '.log'
+        stdout_handler = open(file_path_stdout, 'w')
+        sys.stdout = stdout_handler
 
     # 连接交易前置
     def connect_trade_front(self):
@@ -538,7 +543,7 @@ class User():
         # 查询策略
         # 界面点击“查询”按钮触发的特殊进程间通信
         elif dict_data['MsgType'] == 91:
-            print(">>> User.handle_Queue_get() user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信", dict_data)
+            print(">>> User.handle_Queue_get() 进程通信main->user，user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信", dict_data)
             # 91:保存OnRtnOrder、OnRtnTrade
             # for strategy_id in self.__dict_strategy:
                 # self.__dict_strategy[strategy_id].save_df_order_trade()
@@ -832,49 +837,54 @@ class User():
             list_strategy_data.append(strategy_arguments['buy_close_on_off'])  # 42:买平-开关
             list_strategy_data.append(strategy_arguments['sell_close_on_off'])  # 43:卖平-开关
             list_strategy_data.append(strategy_arguments['buy_open_on_off'])  # 44:买开-开关
+            list_strategy_data.append(strategy_arguments['a_instrument_id'])  # 45:A合约代码
+            list_strategy_data.append(strategy_arguments['b_instrument_id'])  # 46:B合约代码
+            list_strategy_data.append(strategy_arguments['instrument_a_scale'])  # 47:A合约乘数
+            list_strategy_data.append(strategy_arguments['instrument_b_scale'])  # 48:B合约乘数
             list_table_widget_data.append(list_strategy_data)
         list_table_widget_data = sorted(list_table_widget_data, key=itemgetter(2))
         return list_table_widget_data
 
     # 获取界面panel_show_account_data(账户资金条)更新所需的数据,一个user的数据是一个list，（所有策略实例数据综合）
-    def get_panel_show_account_data(self):
-        list_panel_show_account_data = list()
-        profit_position = 0  # 所有策略持仓盈亏求和
-        profit_close = 0  # 所有策略平仓盈亏求和
-        commission = 0  # 所有策略手续费求和
-        used_margin = 0  # 所有策略占用保证金求和
-        for strategy_id in self.__dict_strategy:
-            # print(">>> User.get_panel_show_account_data() user_id =", self.__user_id, "strategy_id =", strategy_id, "调用get_statistics()")
-            strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
-            profit_position += strategy_statistics['profit_position']  # 持仓盈亏
-            profit_close += strategy_statistics['profit_close']  # 平仓盈亏
-            commission += strategy_statistics['commission']  # 手续费
-            used_margin += strategy_statistics['current_margin']  # 保证金
-        # 动态权益 = 静态权益 + 入金 - 出金 + 持仓盈亏 + 平仓盈亏 - 手续费
-        variable_equity = self.__QryTradingAccount['PreBalance'] \
-                          + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] \
-                          + profit_position + profit_close - commission
-        # 可用资金 = 动态权益 - 占用保证金
-        available_equity = variable_equity - used_margin
-        # 风险度 = 占用保证金 / 动态权益
-        risk = str(round((used_margin / variable_equity) * 100)) + '%'
-        list_panel_show_account_data.append(str(round(variable_equity)))  # 动态权益
-        list_panel_show_account_data.append(str(round(self.__QryTradingAccount['PreBalance'])))  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
-        list_panel_show_account_data.append(str(round(profit_position)))  # 持仓盈亏
-        list_panel_show_account_data.append(str(round(profit_close)))  # 平仓盈亏
-        list_panel_show_account_data.append(str(round(commission)))  # 手续费
-        list_panel_show_account_data.append(str(round(available_equity)))  # 可用资金
-        list_panel_show_account_data.append(str(round(used_margin)))  # 占用保证金
-        list_panel_show_account_data.append(risk)  # 风险度
-        list_panel_show_account_data.append(str(round(self.__QryTradingAccount['Deposit'])))  # 今日入金
-        list_panel_show_account_data.append(str(round(self.__QryTradingAccount['Withdraw'])))  # 今日出金
-        return list_panel_show_account_data
+    # def get_panel_show_account_data(self):
+    #     list_panel_show_account_data = list()
+    #     profit_position = 0  # 所有策略持仓盈亏求和
+    #     profit_close = 0  # 所有策略平仓盈亏求和
+    #     commission = 0  # 所有策略手续费求和
+    #     used_margin = 0  # 所有策略占用保证金求和
+    #     for strategy_id in self.__dict_strategy:
+    #         # print(">>> User.get_panel_show_account_data() user_id =", self.__user_id, "strategy_id =", strategy_id, "调用get_statistics()")
+    #         strategy_statistics = self.__dict_strategy[strategy_id].get_statistics()
+    #         profit_position += strategy_statistics['profit_position']  # 持仓盈亏
+    #         profit_close += strategy_statistics['profit_close']  # 平仓盈亏
+    #         commission += strategy_statistics['commission']  # 手续费
+    #         used_margin += strategy_statistics['current_margin']  # 保证金
+    #     # 动态权益 = 静态权益 + 入金 - 出金 + 持仓盈亏 + 平仓盈亏 - 手续费
+    #     variable_equity = self.__QryTradingAccount['PreBalance'] \
+    #                       + self.__QryTradingAccount['Deposit'] - self.__QryTradingAccount['Withdraw'] \
+    #                       + profit_position + profit_close - commission
+    #     # 可用资金 = 动态权益 - 占用保证金
+    #     available_equity = variable_equity - used_margin
+    #     # 风险度 = 占用保证金 / 动态权益
+    #     risk = str(round((used_margin / variable_equity) * 100)) + '%'
+    #     list_panel_show_account_data.append(str(round(variable_equity)))  # 动态权益
+    #     list_panel_show_account_data.append(str(round(self.__QryTradingAccount['PreBalance'])))  # 静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
+    #     list_panel_show_account_data.append(str(round(profit_position)))  # 持仓盈亏
+    #     list_panel_show_account_data.append(str(round(profit_close)))  # 平仓盈亏
+    #     list_panel_show_account_data.append(str(round(commission)))  # 手续费
+    #     list_panel_show_account_data.append(str(round(available_equity)))  # 可用资金
+    #     list_panel_show_account_data.append(str(round(used_margin)))  # 占用保证金
+    #     list_panel_show_account_data.append(risk)  # 风险度
+    #     list_panel_show_account_data.append(str(round(self.__QryTradingAccount['Deposit'])))  # 今日入金
+    #     list_panel_show_account_data.append(str(round(self.__QryTradingAccount['Withdraw'])))  # 今日出金
+    #     return list_panel_show_account_data
 
     # 获取界面panel_show_account_data(账户资金条)更新所需的数据,一个user的数据是一个list，（期货账户数据，包含但不限于套利系统策略数据）
     def get_panel_show_account_data_for_user(self):
         list_panel_show_account_data = list()
         profit_position = self.count_profit_position()  # 计算期货账户持仓盈亏
         used_margin = self.update_current_margin()  # 所有策略占用保证金求和
+        # print(">>>User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
         # print(">>> User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "used_margin =", used_margin)
         # 动态权益 = 静态权益 + 入金 - 出金 + 持仓盈亏 + 平仓盈亏 - 手续费
         variable_equity = self.__QryTradingAccount['PreBalance'] \
@@ -888,12 +898,13 @@ class User():
         list_panel_show_account_data.append(round(self.__QryTradingAccount['PreBalance']))  # 1:静态权益  ThostFtdUserApiStruct.h"上次结算准备金"
         list_panel_show_account_data.append(round(profit_position))  # 2:持仓盈亏
         list_panel_show_account_data.append(round(self.__profit_close))  # 3:平仓盈亏
-        list_panel_show_account_data.append(round(self.__commission))  # 4:手续费
+        list_panel_show_account_data.append(round(self.__commission + self.__commission_order))  # 4:手续费
         list_panel_show_account_data.append(round(available_equity))  # 5:可用资金
         list_panel_show_account_data.append(round(used_margin))  # 6:占用保证金
         list_panel_show_account_data.append(risk)  # 7:风险度
         list_panel_show_account_data.append(round(self.__QryTradingAccount['Deposit']))  # 8:今日入金
         list_panel_show_account_data.append(round(self.__QryTradingAccount['Withdraw']))  # 9:今日出金
+        # print(">>>User.get_panel_show_account_data_for_user() user_id =", self.__user_id, "list_panel_show_account_data =", list_panel_show_account_data)
         return list_panel_show_account_data
 
     # 定时进程间通信,将tableWidget\panel_show_account更新所需数据发给主进程
@@ -986,8 +997,8 @@ class User():
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
-        # Trade = copy.deepcopy(Trade_input)  # 深拷贝
         t = datetime.now()  # 取接收到回调数据的本地系统时间
+        # print(">>>User.OnRtnTrade() Trade =", Trade)
         # Trade新增字段
         Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
@@ -996,34 +1007,6 @@ class User():
         # self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
         self.statistics_for_trade(Trade)  # 期货账户统计，基于trade
         self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
-
-        # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
-        # if len(Trade['OrderRef']) == 12 and Trade['OrderRef'][:1] == '1':
-            # Trade['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
-
-            # 进程间通信：'DataFlag': 'instrument_statistics'
-            # self.instrument_open_count(Trade)  # 统计合约撤单次数
-            # dict_data = {
-            #     'DataFlag': 'instrument_statistics',
-            #     'UserId': self.__user_id,
-            #     'DataMain': self.__dict_instrument_statistics
-            # }
-            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
-
-            # # 进程间通信：'DataFlag': 'OnRtnTrade'
-            # dict_data = {
-            #     'DataFlag': 'OnRtnTrade',
-            #     'UserId': self.__user_id,
-            #     'DataMain': Trade
-            # }
-            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
-
-
-            # for i in self.__list_strategy:  # 转到strategy回调函数
-            #     if Trade['OrderRef'][-2:] == i.get_strategy_id():
-            #         i.OnRtnOrder(Trade)
-        # else:
-        #     print("User.OnRtnTrade() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的trade")
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, trade):
@@ -1036,16 +1019,10 @@ class User():
             print("User.handle_OnRtnTrade() 过滤掉查询投资者持仓明细之前的trade，trade['Date'] =", trade['TradeDate'], "trade['TradeTime'] =", trade['TradeTime'])
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
-    def OnRtnOrder(self, Order_input):
-        Order = copy.deepcopy(Order_input)
+    def OnRtnOrder(self, Order):
         t = datetime.now()  #取接收到回调数据的本地系统时间
-        # self.statistics(order=Order)  # 统计期货账户的合约撤单次数
-        # self.statistics_for_order(Order)  # 期货账户统计，基于trade
-
-        # 所有trade回调保存到DataFrame格式变量
-        # series_order = Series(Order)
-        # self.__df_order = DataFrame.append(self.__df_order, other=series_order, ignore_index=True)
-        # self.write_log(t.strftime("%Y-%m-%d %H:%M:%S"), 'OnRtnOrder', '报单回调', str(Order))  # 保存到DataFrame格式日志
+        # print(">>>User.OnRtnOrder() Order =", Order)
+        self.__queue_OnRtnOrder_user.put(Order)  # 缓存期货账户的所有order
         
         # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
         if len(Order['OrderRef']) == 12 and Order['OrderRef'][:1] == '1':
@@ -1059,12 +1036,12 @@ class User():
             self.instrument_action_count(Order)  # 统计合约撤单次数
 
             # 进程间通信：'DataFlag': 'instrument_statistics'
-            dict_data = {
-                'DataFlag': 'instrument_statistics',
-                'UserId': self.__user_id,
-                'DataMain': self.__dict_instrument_statistics
-            }
-            self.__Queue_user.put(dict_data)  # user进程put，main进程get
+            # dict_data = {
+            #     'DataFlag': 'instrument_statistics',
+            #     'UserId': self.__user_id,
+            #     'DataMain': self.__dict_instrument_statistics
+            # }
+            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
             # # 进程间通信：'DataFlag': 'OnRtnOrder'
             # dict_data = {
@@ -1075,7 +1052,7 @@ class User():
             # self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
             # 缓存，待提取，提取发送给特定strategy对象
-            self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据
+            self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据，本套利系统的order
             # self.__dict_strategy[strategy_id].OnRtnOrder(Order)
         else:
             print("User.OnRtnOrder() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的order")
@@ -1114,11 +1091,26 @@ class User():
                 if order['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
                     self.__dict_strategy[strategy_id].OnRtnOrder(order)
 
+    # 统计申报费线程
+    def threading_count_commission_order(self):
+        while True:
+            Order = self.__queue_OnRtnOrder_user.get()
+            # 计算申报费
+            if Order['InsertDate'] > self.__date_qry_trading_account \
+                    or (Order['InsertDate'] == self.__date_qry_trading_account
+                        and Order['InsertTime'] >= self.__time_qry_trading_account):
+                self.count_commission_order(Order)
+            else:
+                print("User.handle_OnRtnTrade() 过滤掉查询投资者持仓明细之前的trade，Order['InsertDate'] =", Order['InsertDate'],
+                      "Order['InsertTime'] =", Order['InsertTime'])
+                # self.count_commission_order(Order)
+
     # 处理OnRtnTrade的线程
     def threading_run_OnRtnTrade(self):
         print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id)
         while True:
             trade = self.__queue_OnRtnTrade.get()
+            self.process_trade_offset_flag(trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
             # print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
             # 过滤出本套利系统的trade，并将trade传给Strategy对象
             if len(trade['OrderRef']) == 12 and trade['OrderRef'][:1] == '1':
@@ -1204,33 +1196,46 @@ class User():
     # 形参：合约代码'cu1703'，交易所代码'SHFE'
     def get_commission(self, instrument_id, exchange_id):
         # 获取品种代码，例如cu、zn
-        if exchange_id in ['SHFE', 'CFFEX', 'DZCE']:
-            commodity_id = instrument_id[:2]
-        elif exchange_id in ['DCE']:
-            commodity_id = instrument_id[:1]
-        else:
-            commodity_id = ''
-            print("User.get_commission() 异常，交易所代码在四个交易所之外 user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id)
+        # if exchange_id == 'SHFE':
+        #     if len(instrument_id) == 6:
+        #         commodity_id = instrument_id[:2]
+        #     elif len(instrument_id) == 5:
+        #         commodity_id = instrument_id[:1]
+        # elif exchange_id in ['CFFEX', 'DZCE']:
+        #     commodity_id = instrument_id[:2]
+        # elif exchange_id in ['DCE']:
+        #     commodity_id = instrument_id[:1]
+        # else:
+        #     commodity_id = ''
+        #     print("User.get_commission() 异常，交易所代码在四个交易所之外 user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id)
+        commodity_id = Utils.extract_commodity_id(instrument_id)
+        # print(">>>User.get_commission() commodity_id =", commodity_id)
 
         if commodity_id not in self.__dict_commission:
             # 通过API查询单个品种的手续费率dict
             self.qry_api_interval_manager()  # API查询时间间隔管理
             # 尝试三次获取指定合约的手续费详细
+            flag_get_commission_success = False  # 获取手续费率成功标志位，默认获取失败，False
             flag = 0
             while flag < 3:
                 self.qry_api_interval_manager()  # API查询时间间隔管理
                 list_commission = self.__trader_api.QryInstrumentCommissionRate(instrument_id.encode())
-                if isinstance(list_commission, list):
+                if isinstance(list_commission, list) and len(list_commission) > 0:
+                    # print(">>>User.get_commission() user_id =", self.__user_id, "list_commission =", list_commission)
                     dict_commission = Utils.code_transform(list_commission[0])
-                    print("User.get_mmission() 获取手续费成功", "user_id =", self.__user_id, "instrument_id =", instrument_id, "dict_commission =", dict_commission)
+                    print("User.get_mmission() 获取手续费成功", "user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "dict_commission =", dict_commission)
+                    flag_get_commission_success = True
                     break
                 else:
                     flag += 1
                     print("User.get_mmission() 获取手续费失败，尝试次数", flag, "user_id =", self.__user_id, "instrument_id =", instrument_id,
                           "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
-            if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
-                print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
+            # if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
+            #     print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
             # print(">>> User.get_commission() ", dict_commission)
+            if flag_get_commission_success is False:  # 获取手续费失败，返回空dict
+                dict_commission = dict()
+                # 弹窗，或其他形式提醒，此处为初始化类错误，影响手续费统计结果!
             self.__dict_commission[commodity_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
         return self.__dict_commission[commodity_id]
 
@@ -1430,6 +1435,9 @@ class User():
             commission_amount = \
                 dict_commission_detail['OpenRatioByMoney'] * trade['Price'] * trade[
                     'Volume'] * instrument_multiple + dict_commission_detail['OpenRatioByVolume'] * trade['Volume']
+        elif trade['OffsetFlag'] == '1':
+            commission_amount = 0
+            print(">>>User.count_commission() user_id =", self.__user_id, "异常平仓标志位，OffsetFlag=", trade['OffsetFlag'])
         # 平今
         elif trade['OffsetFlag'] == '3':
             commission_amount = \
@@ -1446,21 +1454,102 @@ class User():
         # 输出A、B各自平仓盈亏检查,错误
         # print(">>> Strategy.count_profit() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__a_profit_close =", self.__a_profit_close, "self.__b_profit_close =", self.__b_profit_close)
 
+    # 计算申报费
+    def count_commission_order(self, order):
+        if order['ExchangeID'] == 'CFFEX':  # 中金所品种
+            InstrumentID = order['InstrumentID']
+            if len(InstrumentID) == 6:
+                CommodityID = InstrumentID[:2]
+            elif len(InstrumentID) == 5:
+                CommodityID = InstrumentID[:1]
+            if CommodityID in ['IF', 'IH', 'IC']:  # 三个品种统计申报费
+                OrderRef = order['OrderRef']
+                if OrderRef not in self.__list_OrderRef_for_count_commission_order:
+                    self.__list_OrderRef_for_count_commission_order.append(OrderRef)
+                    self.__commission_order += 1
+                    print(">>>User.count_commission_order() user_id =", self.__user_id, "申报费 =", self.__commission_order)
+                else:
+                    if order['OrderStatus'] in ['0', '5']:
+                        self.__list_OrderRef_for_count_commission_order.remove(OrderRef)
+                        if order['OrderStatus'] == '5':
+                            self.__commission_order += 1
+                            print(">>>User.count_commission_order() user_id =", self.__user_id, "申报费 =", self.__commission_order)
+
     # 更新占用保证金
     def update_current_margin(self):
         # print(">>> Strategy.update_current_margin() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
+        # 中金所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
         # 上期所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
         # 郑商所：同一合约买、卖持仓，仅收较大单边保证金，同一品种内区分不同月份合约
         # 大商所：没有保证金免收政策
-        # 中金所：同品种的买持仓和卖持仓，仅收较大单边保证金，同一品种内不区分不同月份合约
-        # self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
+        self.__Margin_Occupied_CFFEX = self.Margin_Occupied_CFFEX()
         self.__Margin_Occupied_SHFE = self.Margin_Occupied_SHFE()
-        self.__Margin_Occupied_CZCE = 0  # self.Margin_Occupied_CZCE()
-        self.__Margin_Occupied_DCE = 0  # self.Margin_Occupied_DCE()
+        self.__Margin_Occupied_CZCE = self.Margin_Occupied_CZCE()
+        self.__Margin_Occupied_DCE = self.Margin_Occupied_DCE()
+        # print(">>>User.update_current_margin() user_id =", self.__user_id, "\n    self.__Margin_Occupied_CFFEX =", self.__Margin_Occupied_CFFEX, "\n    self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE, "\n    self.__Margin_Occupied_CZCE =", self.__Margin_Occupied_CZCE, "\n    self.__Margin_Occupied_DCE =", self.__Margin_Occupied_DCE)
         # self.__Margin_Occupied_total = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
         # 策略统计结构体中的元素：策略持仓占用保证金
         self.__current_margin = self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
-        return self.__current_margin
+        # print(">>>User.update_current_margin() user_id =", self.__user_id, "used_margin =", self.__Margin_Occupied_CFFEX , self.__Margin_Occupied_SHFE , self.__Margin_Occupied_CZCE , self.__Margin_Occupied_DCE)
+        return self.__Margin_Occupied_CFFEX + self.__Margin_Occupied_SHFE + self.__Margin_Occupied_CZCE + self.__Margin_Occupied_DCE
+
+    # 统计持仓明细中属于上海期货交易所的持仓保证金
+    def Margin_Occupied_CFFEX(self):
+        Margin_Occupied_CFFEX = 0
+        # 从持仓明细中过滤出上海期货交易所的持仓明细
+        list_position_detail_for_trade_CFFEX = list()
+        for i in self.__qry_investor_position_detail:
+            if i['ExchangeID'] == 'CFFEX':
+                i['CommodityID'] = Utils.extract_commodity_id(i['InstrumentID'])  # 品种代码
+                list_position_detail_for_trade_CFFEX.append(i)
+        if len(list_position_detail_for_trade_CFFEX) == 0:  # 无持仓，返回保证金初始值0
+            return Margin_Occupied_CFFEX
+
+        # 选出持仓明细中存在的品种代码
+        list_commodity_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_CFFEX:
+            if i['CommodityID'] in list_commodity_id:
+                pass
+            else:
+                list_commodity_id.append(i['CommodityID'])
+        # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # a合约和b合约是同一个品种
+        if len(list_commodity_id) == 1:
+            Margin_Occupied_CFFEX = self.count_single_instrument_margin_CFFEX(list_position_detail_for_trade_CFFEX)
+            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
+        # a合约和b合约是不同的品种
+        elif len(list_commodity_id) == 2:
+            # 分别选出两种持仓的明细
+            list_position_detail_for_trade_CFFEX_0 = list()
+            list_position_detail_for_trade_CFFEX_1 = list()
+            for i in list_position_detail_for_trade_CFFEX:
+                if list_commodity_id[0] == i['CommodityID']:
+                    list_position_detail_for_trade_CFFEX_0.append(i)
+                elif list_commodity_id[1] == i['CommodityID']:
+                    list_position_detail_for_trade_CFFEX_1.append(i)
+            # 计算两个品种分别占用的持仓保证金
+            margin_0 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_0)
+            margin_1 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_1)
+            self.__Margin_Occupied_SHFE = margin_0 + margin_1
+        # print(">>>User.Margin_Occupied_CFFEX() self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
+        return self.__Margin_Occupied_SHFE
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_CFFEX(self, list_input):
+        list_position_detail_for_trade_CFFEX = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_CFFEX:
+            instrument_id = i['InstrumentID']
+            instrument_multiple = self.get_instrument_multiple(instrument_id)
+            instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id)
+            i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = max(margin_buy, margin_sell)
+        return margin
 
     # 统计持仓明细中属于上海期货交易所的持仓保证金
     def Margin_Occupied_SHFE(self):
@@ -1510,6 +1599,98 @@ class User():
             elif i['Direction'] == '1':
                 margin_sell += i['CurrMargin']
         margin = max(margin_buy, margin_sell)
+        return margin
+
+    # 统计持仓明细中属于郑州期货交易所的持仓保证金
+    def Margin_Occupied_CZCE(self):
+        self.__Margin_Occupied_CZCE = 0
+        # 从持仓明细中过滤出郑州期货交易所的持仓明细
+        list_position_detail_for_trade_CZCE = list()
+        # 将持仓明细中添加品种代码
+        for i in self.__qry_investor_position_detail:
+            if i['ExchangeID'] == 'CZCE':
+                i['CommodityID'] = Utils.extract_commodity_id(i['InstrumentID'])  # 品种代码
+                list_position_detail_for_trade_CZCE.append(i)
+        if len(list_position_detail_for_trade_CZCE) == 0:
+            return self.__Margin_Occupied_CZCE
+
+        # 选出持仓明细中存在的合约代码
+        list_instrument_id = list()  # 保存持仓中存在品种代码
+        for i in list_position_detail_for_trade_CZCE:
+            if i['InstrumentID'] in list_instrument_id:
+                pass
+            else:
+                list_instrument_id.append(i['InstrumentID'])
+        # 同一个合约买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
+        # a合约和b合约是同一个合约
+        if len(list_instrument_id) == 1:
+            self.__Margin_Occupied_CZCE = self.count_single_instrument_margin_CZCE(list_position_detail_for_trade_CZCE)
+            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_CZCE =", self.__Margin_Occupied_CZCE)
+        # a合约和b合约是不同的合约
+        elif len(list_instrument_id) == 2:
+            # 分别选出两个合约的持仓明细
+            list_position_detail_for_trade_CZCE_0 = list()
+            list_position_detail_for_trade_CZCE_1 = list()
+            for i in list_position_detail_for_trade_CZCE:
+                if list_instrument_id[0] == i['InstrumentID']:
+                    list_position_detail_for_trade_CZCE_0.append(i)
+                elif list_instrument_id[1] == i['InstrumentID']:
+                    list_position_detail_for_trade_CZCE_1.append(i)
+            # 计算两个品种分别占用的持仓保证金
+            margin_0 = self.count_single_instrument_margin_CZCE(list_position_detail_for_trade_CZCE_0)
+            margin_1 = self.count_single_instrument_margin_CZCE(list_position_detail_for_trade_CZCE_1)
+            self.__Margin_Occupied_CZCE = margin_0 + margin_1
+        return self.__Margin_Occupied_CZCE
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_CZCE(self, list_input):
+        list_position_detail_for_trade_CZCE = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_CZCE:
+            instrument_id = i['InstrumentID']
+            instrument_multiple = self.get_instrument_multiple(instrument_id)
+            instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id)
+            i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = max(margin_buy, margin_sell)
+        return margin
+
+    # 统计持仓明细中属于大连期货交易所的持仓保证金
+    def Margin_Occupied_DCE(self):
+        self.__Margin_Occupied_DCE = 0
+        # 从持仓明细中过滤出大连期货交易所的持仓明细
+        list_position_detail_for_trade_DCE = list()
+        for i in self.__qry_investor_position_detail:
+            if i['ExchangeID'] == 'DCE':
+                i['CommodityID'] = i['InstrumentID'][:2]
+                list_position_detail_for_trade_DCE.append(i)
+        if len(list_position_detail_for_trade_DCE) == 0:  # 无上期所持仓，返回初始值0
+            return self.__Margin_Occupied_DCE
+
+        # 大连期货交易所无保证金免收政策
+        self.__Margin_Occupied_DCE = self.count_single_instrument_margin_DCE(list_position_detail_for_trade_DCE)
+        # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_DCE =", self.__Margin_Occupied_DCE)
+        return self.__Margin_Occupied_DCE
+
+    # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
+    def count_single_instrument_margin_DCE(self, list_input):
+        list_position_detail_for_trade_DCE = list_input
+        margin_buy = 0  # 买持仓保证金
+        margin_sell = 0  # 卖持仓保证金
+        for i in list_position_detail_for_trade_DCE:
+            instrument_id = i['InstrumentID']
+            instrument_multiple = self.get_instrument_multiple(instrument_id)
+            instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id)
+            i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
+            if i['Direction'] == '0':
+                margin_buy += i['CurrMargin']
+            elif i['Direction'] == '1':
+                margin_sell += i['CurrMargin']
+        margin = margin_buy + margin_sell
         return margin
 
     # 获取指定合约乘数
@@ -1565,25 +1746,25 @@ class User():
         return self.__dict_panel_show_account
 
     # 窗口显示账户资金初始化信息
-    def init_panel_show_account(self):
-        # 动态权益=静态权益+入金金额-出金金额+平仓盈亏+持仓盈亏-手续费
-        Capital = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - \
-                  self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + \
-                  self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
-        self.__dict_panel_show_account = {
-            'Capital': Capital,
-            'PreBalance': self.__QryTradingAccount['PreBalance'],  # 静态权益
-            'PositionProfit': self.__QryTradingAccount['PositionProfit'],  # 持仓盈亏
-            'CloseProfit': self.__QryTradingAccount['CloseProfit'],  # 平仓盈亏
-            'Commission': self.__QryTradingAccount['Commission'],  # 手续费
-            'Available': self.__QryTradingAccount['Available'],  # 可用资金
-            'CurrMargin': self.__QryTradingAccount['CurrMargin'],  # 占用保证金
-            'FrozenMargin': self.__QryTradingAccount['FrozenMargin'],  # 下单冻结
-            'Risk': self.__QryTradingAccount['CurrMargin'] / Capital,  # 风险度
-            'Deposit': self.__QryTradingAccount['Deposit'],  # 今日入金
-            'Withdraw': self.__QryTradingAccount['Withdraw']  # 今日出金
-            }
-        self.signal_update_panel_show_account.emit(self.__dict_panel_show_account)
+    # def init_panel_show_account(self):
+    #     # 动态权益=静态权益+入金金额-出金金额+平仓盈亏+持仓盈亏-手续费
+    #     Capital = self.__QryTradingAccount['PreBalance'] + self.__QryTradingAccount['Deposit'] - \
+    #               self.__QryTradingAccount['Withdraw'] + self.__QryTradingAccount['CloseProfit'] + \
+    #               self.__QryTradingAccount['PositionProfit'] - self.__QryTradingAccount['Commission']
+    #     self.__dict_panel_show_account = {
+    #         'Capital': Capital,
+    #         'PreBalance': self.__QryTradingAccount['PreBalance'],  # 静态权益
+    #         'PositionProfit': self.__QryTradingAccount['PositionProfit'],  # 持仓盈亏
+    #         'CloseProfit': self.__QryTradingAccount['CloseProfit'],  # 平仓盈亏
+    #         'Commission': self.__QryTradingAccount['Commission'],  # 手续费
+    #         'Available': self.__QryTradingAccount['Available'],  # 可用资金
+    #         'CurrMargin': self.__QryTradingAccount['CurrMargin'],  # 占用保证金
+    #         'FrozenMargin': self.__QryTradingAccount['FrozenMargin'],  # 下单冻结
+    #         'Risk': self.__QryTradingAccount['CurrMargin'] / Capital,  # 风险度
+    #         'Deposit': self.__QryTradingAccount['Deposit'],  # 今日入金
+    #         'Withdraw': self.__QryTradingAccount['Withdraw']  # 今日出金
+    #         }
+    #     self.signal_update_panel_show_account.emit(self.__dict_panel_show_account)
 
     # 保存日志，形参：时间、标题、函数名称、消息主题
     def write_log(self, str_time, str_title, str_function_name, str_msg):
@@ -1649,7 +1830,7 @@ class User():
             # self.__dict_instrument_statistics[instrument_id]['action_count'] = 0  # 不存在的合约，撤单次数设置为0
             # self.__dict_instrument_statistics[instrument_id]['open_count'] = trade['Volume']  # 不存在的合约，开仓数量设置为0
 
-        # 统计合约撤单次数
+        # 统计合约开仓
         # 撤单次数赋值到策略对象的合约撤单次数
         open_count = self.__dict_instrument_statistics[instrument_id]['open_count']
         for strategy_id in self.__dict_strategy:
@@ -1658,6 +1839,18 @@ class User():
             elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
                 self.__dict_strategy[strategy_id].set_b_open_count(open_count)
 
+    # 根据持仓明细规则将平仓标志位OffsetFlag的值由1转换为3或4
+    def process_trade_offset_flag(self, trade):
+        if trade['OffsetFlag'] == '1':  # 平仓标志位为1，需要转换
+            for i in self.__qry_investor_position_detail:
+                if i['InstrumentID'] == trade['InstrumentID'] and i['Direction'] != trade['Direction']:
+                    if i['TradingDay'] != self.__TradingDay:
+                        trade['OffsetFlag'] = '4'  # 修改平仓标志位
+                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为4，trade=", trade)
+                    elif i['TradingDay'] == self.__TradingDay:
+                        trade['OffsetFlag'] = '3'  # 修改平仓标志位
+                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为3，trade=", trade)
+                    break
 
 if __name__ == '__main__':
     print("User.py, if __name__ == '__main__':")

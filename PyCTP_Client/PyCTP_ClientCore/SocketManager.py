@@ -91,7 +91,8 @@ class SocketManager(QtCore.QThread):
         self.__thread_send_msg.setDaemon(True)  # 设置主线程退出该线程也退出
         self.__thread_send_msg.start()  # 开始线程：发送socket消息线程
         self.__thread_heartbeat = threading.Thread(target=self.run_heartbeat)  # 创建心跳进程
-        self.__hearbeat_flag = True  # 心跳标志初始值，True：心跳正常，False：心跳异常
+        self.__thread_heartbeat.setDaemon(True)
+        # self.__hearbeat_flag = True  # 心跳标志初始值，True：心跳正常，False：心跳异常
         # self.__thread_heartbeat.start()  # 开始线程：开始心跳
         # self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
         self.__list_instrument_info = list()  # 所有合约信息
@@ -380,7 +381,7 @@ class SocketManager(QtCore.QThread):
                 self.__RecvN = False
                 print("SocketManager.RecvN()", e, n, totalRecved)
                 # MessageBox().showMessage("错误", "接收消息失败！")
-                dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+                dict_args = {"title": "消息", "main": "注意：接收服务端消息失败"}
                 self.signal_show_alert.emit(dict_args)
                 self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.__thread_connect.start()
@@ -412,13 +413,18 @@ class SocketManager(QtCore.QThread):
         # print("send m.checknum = ", m.checknum)
         # 打包数据(13位的head,1位校验码,不定长数据段)
         data = struct.pack(">13s1B" + str(len(m.buff.encode()) + 1) + "s", m.head.encode(), m.checknum, m.buff.encode())
-
-        print("SocketManager.slot_send_msg()", data)
         try:
             size = self.__sockfd.send(data)  # 发送数据
-        except socket.timeout as e:
-            print("SocketManager.slot_send_msg()", e)
+        except socket.error as e:
+            print("SocketManager.slot_send_msg() except socket.error as e:", e)
             # MessageBox().showMessage("错误", "发送消息失败")
+            dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+            self.signal_show_alert.emit(dict_args)
+        except socket.timeout as e:
+            print("SocketManager.slot_send_msg() except socket.timeout as e:", e)
+            # MessageBox().showMessage("错误", "发送消息失败")
+            dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+            self.signal_show_alert.emit(dict_args)
             self.__recive_msg_flag = False
             self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__thread_connect.start()
@@ -430,6 +436,7 @@ class SocketManager(QtCore.QThread):
     def slot_send_msg(self, buff):
         # thread = threading.current_thread()
         # print(">>> SocketManager.run() thread.getName()=", thread.getName())
+        # json_qry_market_info = json.dumps(buff)
         self.__queue_send_msg.put(buff)
 
     # 接收消息线程
@@ -473,15 +480,16 @@ class SocketManager(QtCore.QThread):
     # 心跳进程
     def run_heartbeat(self):
         while True:
-            time.sleep(5)
-            if self.__hearbeat_flag:
-                print("SocketManager.run_heartbeat() 心跳正常")
-                self.__hearbeat_flag = False
-                self.send_heartbeat_msg()  # 发送心跳
-            else:
-                print("SocketManager.run_heartbeat() MsgType=23，与服务端断开连接", buff)
-                dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
-                self.signal_show_alert.emit(dict_args)
+            time.sleep(20)
+            self.send_heartbeat_msg()  # 发送心跳
+            # if self.__hearbeat_flag:
+            #     # print("SocketManager.run_heartbeat() 心跳正常")
+            #     self.__hearbeat_flag = False
+            #     self.send_heartbeat_msg()  # 发送心跳
+            # else:
+            #     print("SocketManager.run_heartbeat() MsgType=23，与服务端断开连接")
+            #     dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+            #     self.signal_show_alert.emit(dict_args)
 
     # 发送消息线程
     def run_send_msg(self):
@@ -491,7 +499,10 @@ class SocketManager(QtCore.QThread):
         while True:
             tmp_msg = self.__queue_send_msg.get()
             if tmp_msg is not None:
-                self.send_msg_to_server(tmp_msg)
+                if tmp_msg['MsgType'] != 23:
+                    print("SocketManager.run_send_msg() MsgType =", tmp_msg['MsgType'], tmp_msg)
+                json_tmp_msg = json.dumps(tmp_msg)
+                self.send_msg_to_server(json_tmp_msg)
 
     # 组装分段发送的消息，当IsLast==1，消息接收完成
     def receive_part_msg(self, buff):
@@ -502,13 +513,13 @@ class SocketManager(QtCore.QThread):
             if buff['MsgType'] in [1, 7, 8, 9, 13, 14, 18, 19, 23]:  # 不存在字段Info的消息类型
                 # self.receive_msg(buff)
                 pass
-                print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
+                # print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
             else:
                 if len(buff['Info']) > 0:
                     self.__list_info_group.append(buff['Info'][0])
                 buff['Info'] = self.__list_info_group
                 self.__list_info_group = list()
-                print(">>> SocketManager.receive_part_msg() IsLast = 1，Info长度 =", len(buff['Info']), "MsgType =", buff['MsgType'], "full_msg =", buff)
+                # print(">>> SocketManager.receive_part_msg() IsLast = 1，Info长度 =", len(buff['Info']), "MsgType =", buff['MsgType'], "full_msg =", buff)
             self.receive_msg(buff)
         else:
             print(">>> SocketManager.receive_part_msg() IsLast字段异常，buff =", buff)
@@ -535,7 +546,7 @@ class SocketManager(QtCore.QThread):
                     # self.qry_market_info()  # 发送：查询行情配置，MsgType=4
                     self.set_dict_trader_info(buff)
                     self.__dict_user_on_off['所有账户'] = buff['OnOff']
-                    self.__thread_heartbeat.start()  # 开始线程：开始心跳
+                    # self.__thread_heartbeat.start()  # 开始线程：开始心跳
                 elif buff['MsgResult'] == 1:  # 验证不通过
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -715,8 +726,8 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=9 修改期货账户开关失败")
                 # 收到查询策略回报消息，激活“查询”按钮
                 self.signal_activate_query_strategy_pushbutton.emit()
-            elif buff['MsgType'] == 23:  # 服务端的心跳回应
-                self.__hearbeat_flag = True  # 心跳设置为正常
+            # elif buff['MsgType'] == 23:  # 服务端的心跳回应
+            #     self.__hearbeat_flag = True  # 心跳设置为正常
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             if buff['MsgType'] == 18:  # 服务端CTP行情断开、连接通知，服务端主动发送给客户端
                 if buff['MsgResult'] == 0:
@@ -751,8 +762,8 @@ class SocketManager(QtCore.QThread):
                                 'MsgType': 4,  # 查询行情信息
                                 'TraderID': self.__trader_id
                                 }
-        json_qry_market_info = json.dumps(dict_qry_market_info)
-        self.slot_send_msg(json_qry_market_info)
+        # json_qry_market_info = json.dumps(dict_qry_market_info)
+        self.slot_send_msg(dict_qry_market_info)
         self.signal_label_login_error_text.emit('查询行情信息')
 
     # 查询期货账户信息
@@ -764,8 +775,8 @@ class SocketManager(QtCore.QThread):
                               'TraderID': self.__trader_id,
                               'UserID': ''
                               }
-        json_qry_user_info = json.dumps(dict_qry_user_info)
-        self.slot_send_msg(json_qry_user_info)
+        # json_qry_user_info = json.dumps(dict_qry_user_info)
+        self.slot_send_msg(dict_qry_user_info)
         self.signal_label_login_error_text.emit('查询期货账户信息')
 
     # 查询期货账户会话ID
@@ -778,8 +789,8 @@ class SocketManager(QtCore.QThread):
                                   'UserID': ''
                                   }
         # {"MsgRef": 1, "MsgSendFlag": 0, "MsgSrc": 0, "MsgType": 16, "TraderID": "1601", "UserID": ""} UserID为空，返回TraderID所属的所有user的sessions
-        json_qry_sessions_info = json.dumps(dict_qry_sessions_info)
-        self.slot_send_msg(json_qry_sessions_info)
+        # json_qry_sessions_info = json.dumps(dict_qry_sessions_info)
+        self.slot_send_msg(dict_qry_sessions_info)
         self.signal_label_login_error_text.emit('查询sessions')
 
     # 查询下单算法
@@ -790,8 +801,8 @@ class SocketManager(QtCore.QThread):
                                    'MsgType': 11,  # 查询期货账户
                                    'TraderID': self.__trader_id,
                                    }
-        json_qry_algorithm_info = json.dumps(dict_qry_algorithm_info)
-        self.slot_send_msg(json_qry_algorithm_info)
+        # json_qry_algorithm_info = json.dumps(dict_qry_algorithm_info)
+        self.slot_send_msg(dict_qry_algorithm_info)
         self.signal_label_login_error_text.emit('查询下单算法')
 
     # 查询策略
@@ -804,8 +815,8 @@ class SocketManager(QtCore.QThread):
                                   'UserID': '',
                                   'StrategyID': ''
                                   }
-        json_qry_strategy_info = json.dumps(dict_qry_strategy_info)
-        self.slot_send_msg(json_qry_strategy_info)
+        # json_qry_strategy_info = json.dumps(dict_qry_strategy_info)
+        self.slot_send_msg(dict_qry_strategy_info)
         self.signal_label_login_error_text.emit('查询策略')
 
     """
@@ -834,8 +845,8 @@ class SocketManager(QtCore.QThread):
             'TraderID': self.__trader_id,
             'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的持仓明细
         }
-        json_qry_position_detial_for_order = json.dumps(dict_qry_position_detial_for_order)
-        self.slot_send_msg(json_qry_position_detial_for_order)
+        # json_qry_position_detial_for_order = json.dumps(dict_qry_position_detial_for_order)
+        self.slot_send_msg(dict_qry_position_detial_for_order)
         self.signal_label_login_error_text.emit('查询期货账户昨日持仓明细(order)')
 
     # 查询期货账户昨日持仓明细（trade）
@@ -848,8 +859,8 @@ class SocketManager(QtCore.QThread):
             'TraderID': self.__trader_id,
             'UserID': ""  # self.__user_id, 键值为空时查询所有UserID的持仓明细
         }
-        json_qry_position_detial_for_trade = json.dumps(dict_qry_position_detial_for_trade)
-        self.slot_send_msg(json_qry_position_detial_for_trade)
+        # json_qry_position_detial_for_trade = json.dumps(dict_qry_position_detial_for_trade)
+        self.slot_send_msg(dict_qry_position_detial_for_trade)
         self.signal_label_login_error_text.emit('查询期货账户昨日持仓明细(trade)')
 
     # 发送心跳消息
@@ -861,8 +872,8 @@ class SocketManager(QtCore.QThread):
             'MsgType': 23,  # 查询期货账户昨日持仓明细trade
             'TraderID': self.__trader_id
         }
-        json_send_heartbeat_msg = json.dumps(dict_send_heartbeat_msg)
-        self.slot_send_msg(json_send_heartbeat_msg)
+        # json_send_heartbeat_msg = json.dumps(dict_send_heartbeat_msg)
+        self.slot_send_msg(dict_send_heartbeat_msg)
 
     """
     # 查询交易员开关
@@ -1053,6 +1064,7 @@ class SocketManager(QtCore.QThread):
         self.data_structure()  # 组织和创建客户端运行数据结构
         self.create_user_process()  # 创建user进程
         self.signal_q_ctp_show.emit()  # 显示主窗口，显示qctp，显示QCTP
+        self.__thread_heartbeat.start()  # 开始线程：开始心跳
         # self.__q_ctp.show()  # 显示主窗口
         # self.__q_login.hide()  # 隐藏登录窗口
 
@@ -1298,7 +1310,7 @@ class SocketManager(QtCore.QThread):
             # 从user下所有的策略参数中找到特定的策略
             if strategy_id == i[2]:
                 list_strategy_args = i
-                print(">>> SocketManager.check_strategy_position() list_strategy_args =", list_strategy_args)
+                # print(">>> SocketManager.check_strategy_position() list_strategy_args =", list_strategy_args)
                 break
         position_b_sell = int(list_strategy_args[5])
         position_b_sell_yesterday = int(list_strategy_args[34])
@@ -1311,28 +1323,28 @@ class SocketManager(QtCore.QThread):
         equality_flag = True
         if position_b_sell != buff['Info'][0]['position_b_sell']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_sell != buff['Info'][0]['position_b_sell']", position_b_sell, buff['Info'][0]['position_b_sell'], type(position_b_sell), type(buff['Info'][0]['position_b_sell']))
+            # print(">>> SocketManager.check_strategy_position() position_b_sell != buff['Info'][0]['position_b_sell']", position_b_sell, buff['Info'][0]['position_b_sell'], type(position_b_sell), type(buff['Info'][0]['position_b_sell']))
         if position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']", position_b_sell_yesterday, buff['Info'][0]['position_b_sell_yesterday'], type(position_b_sell_yesterday), type(buff['Info'][0]['position_b_sell_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']", position_b_sell_yesterday, buff['Info'][0]['position_b_sell_yesterday'], type(position_b_sell_yesterday), type(buff['Info'][0]['position_b_sell_yesterday']))
         if position_b_buy != buff['Info'][0]['position_b_buy']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_buy != buff['Info'][0]['position_b_buy']", position_b_buy, buff['Info'][0]['position_b_buy'], type(position_b_buy), type(buff['Info'][0]['position_b_buy']))
+            # print(">>> SocketManager.check_strategy_position() position_b_buy != buff['Info'][0]['position_b_buy']", position_b_buy, buff['Info'][0]['position_b_buy'], type(position_b_buy), type(buff['Info'][0]['position_b_buy']))
         if position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']", position_b_buy_yesterday, buff['Info'][0]['position_b_buy_yesterday'], type(position_b_buy_yesterday), type(buff['Info'][0]['position_b_buy_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']", position_b_buy_yesterday, buff['Info'][0]['position_b_buy_yesterday'], type(position_b_buy_yesterday), type(buff['Info'][0]['position_b_buy_yesterday']))
         if position_a_sell != buff['Info'][0]['position_a_sell']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_sell != buff['Info'][0]['position_a_sell']", position_a_sell, buff['Info'][0]['position_a_sell'], type(position_a_sell), type(buff['Info'][0]['position_a_sell']))
+            # print(">>> SocketManager.check_strategy_position() position_a_sell != buff['Info'][0]['position_a_sell']", position_a_sell, buff['Info'][0]['position_a_sell'], type(position_a_sell), type(buff['Info'][0]['position_a_sell']))
         if position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']", position_a_sell_yesterday, buff['Info'][0]['position_a_sell_yesterday'], type(position_a_sell_yesterday), type(buff['Info'][0]['position_a_sell_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']", position_a_sell_yesterday, buff['Info'][0]['position_a_sell_yesterday'], type(position_a_sell_yesterday), type(buff['Info'][0]['position_a_sell_yesterday']))
         if position_a_buy != buff['Info'][0]['position_a_buy']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_buy != buff['Info'][0]['position_a_buy']", position_a_buy, buff['Info'][0]['position_a_buy'], type(position_a_buy), type(buff['Info'][0]['position_a_buy']))
+            # print(">>> SocketManager.check_strategy_position() position_a_buy != buff['Info'][0]['position_a_buy']", position_a_buy, buff['Info'][0]['position_a_buy'], type(position_a_buy), type(buff['Info'][0]['position_a_buy']))
         if position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']:
             equality_flag = False
-            print(">>> SocketManager.check_strategy_position() position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']", position_a_buy_yesterday, buff['Info'][0]['position_a_buy_yesterday'], type(position_a_buy_yesterday), type(buff['Info'][0]['position_a_buy_yesterday']))
+            # print(">>> SocketManager.check_strategy_position() position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']", position_a_buy_yesterday, buff['Info'][0]['position_a_buy_yesterday'], type(position_a_buy_yesterday), type(buff['Info'][0]['position_a_buy_yesterday']))
         if equality_flag:
             pass
             # QMessageBox().showMessage("消息", "服务端与客户端持仓一致！")
@@ -1365,7 +1377,7 @@ class SocketManager(QtCore.QThread):
                         print("B总买", list_strategy_info[6], "B昨买", list_strategy_info[35])
                         print("A总买", list_strategy_info[32], "A昨买", list_strategy_info[33])
                         print("B总卖", list_strategy_info[5], "B昨卖", list_strategy_info[34])
-                        print("平仓盈亏-手续费=净盈亏", list_strategy_info[9], list_strategy_info[10], list_strategy_info[11])
+                        # print("平仓盈亏-手续费=净盈亏", list_strategy_info[9], list_strategy_info[10], list_strategy_info[11])
                         break  # 跳出1282行for
                 break  # 跳出1280行for
 

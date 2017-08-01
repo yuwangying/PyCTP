@@ -263,6 +263,7 @@ class MarketManagerForUi(QObject):
         self.__b_tick = None
         self.__spread_long_last = 0.00001  # 最后一次保存的价差行情，初始值为一个不易出现的值
         self.__spread_short_last = 0.00001
+        self.__last_list_market = [0, 0, 0, 0]  # 最后一次保存的价差行情[A买一, A卖一, B买一, B卖一]
 
     def get_TradingDay(self):
         return self.__TradingDay
@@ -413,19 +414,29 @@ class MarketManagerForUi(QObject):
         if self.__a_tick is None or self.__b_tick is None:
             return
 
-        self.__spread_long = round((self.__a_tick['BidPrice1'] - self.__b_tick['AskPrice1']), 2)
-        # self.__spread_long_volume = min(self.__a_tick['BidVolume1'], self.__b_tick['AskVolume1'])
-        self.__spread_short = round((self.__a_tick['AskPrice1'] - self.__b_tick['BidPrice1']), 2)
-        # self.__spread_short_volume = min(self.__a_tick['AskVolume1'], self.__b_tick['BidVolume1'])
-        # print("MarketManagerForUi.OnRtnDepthMarketData() ", self.__a_instrument_id, "-", self.__b_instrument_id,"多头价差:", self.__spread_long, "空头价差:", self.__spread_short)
-        # 行情发生变化，发送信号给界面，刷新界面
-        if self.__spread_long != self.__spread_long_last or self.__spread_short != self.__spread_short_last:
-            self.signal_update_spread_ui.emit([self.__spread_long, self.__spread_short])
-        # 保存最后一次价差行情
-        self.__spread_long_last = self.__spread_long
-        self.__spread_short_last = self.__spread_short
+        # # 下单算法1的行情：将价差行情基础结果传给界面
+        # self.__spread_long = round((self.__a_tick['BidPrice1'] - self.__b_tick['AskPrice1']), 2)
+        # # self.__spread_long_volume = min(self.__a_tick['BidVolume1'], self.__b_tick['AskVolume1'])
+        # self.__spread_short = round((self.__a_tick['AskPrice1'] - self.__b_tick['BidPrice1']), 2)
+        # # self.__spread_short_volume = min(self.__a_tick['AskVolume1'], self.__b_tick['BidVolume1'])
+        # # print("MarketManagerForUi.OnRtnDepthMarketData() ", self.__a_instrument_id, "-", self.__b_instrument_id,"多头价差:", self.__spread_long, "空头价差:", self.__spread_short)
+        # # 行情发生变化，发送信号给界面，刷新界面
+        # if self.__spread_long != self.__spread_long_last or self.__spread_short != self.__spread_short_last:
+        #     self.signal_update_spread_ui.emit([self.__spread_long, self.__spread_short])
+        # # 保存最后一次价差行情
+        # self.__spread_long_last = self.__spread_long
+        # self.__spread_short_last = self.__spread_short
 
-            # 将行情通过信号槽传给界面
+        # 下单算法2的行情：将市场行情传给界面
+        list_market = [self.__a_tick['BidPrice1'], self.__a_tick['AskPrice1'], self.__b_tick['BidPrice1'], self.__b_tick['AskPrice1']]
+        if self.__last_list_market != list_market:  # 行情有变化，触发信号：更新界面行情
+            self.signal_update_spread_ui.emit(list_market)
+
+        self.__last_list_market = list_market
+
+
+
+
 
 
 
