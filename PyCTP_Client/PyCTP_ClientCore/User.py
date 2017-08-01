@@ -33,7 +33,7 @@ class User():
     # 初始化参数BrokerID\UserID\Password\frontaddress，参数格式为二进制字符串
     # def __init__(self, dict_arguments, parent=None, ctp_manager=None):
     def __init__(self, dict_arguments, Queue_main, Queue_user):
-        self.save_log(self, dict_arguments)  # 日志重定向到本地文件夹
+        self.save_log(dict_arguments)  # 日志重定向到本地文件夹
 
         # print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
         self.__init_arguments = dict_arguments  # 转存形参
@@ -186,7 +186,7 @@ class User():
             # print("ClientMin.'__main__' log文件夹不存在，创建log文件夹")
             os.mkdir('log')
         # print全部存到log本地文件
-        time_str = datetime.datetime.now().strftime('%Y%m%d %H%M%S')
+        time_str = datetime.now().strftime('%Y%m%d %H%M%S')
 
         file_path_error = 'log/' + user_id + '_error_' + time_str + '.log'
         stderr_handler = open(file_path_error, 'w')
